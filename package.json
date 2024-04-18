@@ -1,5 +1,5 @@
 {
-  "name": "ar-io-network-portal",
+  "name": "@ar-io/network-portal",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -23,12 +23,10 @@
     "@sentry/react": "^7.101.1",
     "axios": "^1.6.7",
     "axios-retry": "^4.0.0",
-    "eslint-plugin-tailwindcss": "^3.14.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.1",
     "tailwindcss-animate": "^1.0.7",
-    "ts-jest": "^29.1.2",
     "winston": "^3.11.0",
     "zustand": "^4.5.1"
   },
@@ -83,6 +81,7 @@
     "prettier-plugin-tailwindcss": "^0.5.11",
     "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.1",
+    "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
     "vite": "^5.1.0",

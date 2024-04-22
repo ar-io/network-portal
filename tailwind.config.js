@@ -3,7 +3,7 @@ import { colors } from './tokens';
 
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  darkMode: 'class', // or 'media' or 'class
+  darkMode: 'selector', 
   theme: {
     extend: {
       text: {
@@ -11,6 +11,9 @@ export default {
         base: '14px',
         scale: 1.2,
       },
+      fontFamily: {
+        'sans': ['Rubik', 'sans-serif']
+      }
     },
     colors,
   },

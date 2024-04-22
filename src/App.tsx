@@ -6,6 +6,7 @@ import {
   createBrowserRouter,
   createRoutesFromElements,
 } from 'react-router-dom';
+import "@fontsource/rubik";
 
 import AppRouterLayout from './components/layout/AppRouterLayout';
 import NotFound from './pages/NotFound';
@@ -22,7 +23,7 @@ function App() {
           index
           element={
             <Suspense
-              fallback={<div className="center flex flex-row">Loading</div>}
+              fallback={<div className="flex flex-row self-center">Loading</div>}
             >
               <Home />
             </Suspense>

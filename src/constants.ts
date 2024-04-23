@@ -2,6 +2,10 @@ import winston, { createLogger, format, transports } from 'winston';
 
 import { Logger } from '../types/index.js';
 
+export const ARIO_DOCS_URL = 'https://docs.ar.io';
+export const GATEWAY_CONTRACT_URL =
+  'https://viewblock.io/arweave/contract/bLAgYxAdX2Ry-nt6aH2ixgvJXbpsEYm28NgJgyqfs-U';
+
 export const THEME_TYPES = {
   LIGHT: 'light',
   DARK: 'dark',

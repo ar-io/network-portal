@@ -1,4 +1,6 @@
+import { ARIO_DOCS_URL, GATEWAY_CONTRACT_URL } from '@src/constants';
 import { MouseEventHandler, ReactElement, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import {
   ArioLogoIcon,
@@ -15,24 +17,30 @@ import {
 
 const SideBarButton = ({
   icon,
+  title,
   text,
   rightIcon = undefined,
   isOpen,
+  active,
   onClick,
 }: {
   icon: ReactElement;
+  title: string;
   text: string;
   rightIcon?: ReactElement;
   isOpen: boolean;
+  active: boolean;
   onClick: MouseEventHandler;
 }) => {
+  const classNames = active
+    ? 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] rounded-[6px] bg-gradient-to-b shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] dark:bg-[#212124]'
+    : 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] hover:rounded-[6px] hover:bg-gradient-to-b hover:shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] hover:dark:bg-[#212124]';
+
   return (
     <button
-      className="flex h-[34px] w-full items-center space-x-[11px] 
-      px-[11px] py-[5px] hover:rounded-[6px] hover:bg-gradient-to-b 
-      hover:shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] 
-      dark:to-[rgba(0,0,0,0.06)] hover:dark:bg-[#212124]"
-      onClick={onClick}
+      title={title}
+      className={classNames}
+      onClick={active ? undefined : onClick}
     >
       {icon}
       {isOpen && (
@@ -46,6 +54,8 @@ const SideBarButton = ({
 
 const SideBar = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const sideBarClasses = `flex h-screen w-[${isOpen ? '264px' : '90px'}] flex-col p-[24px]
   dark:bg-grey-1000 dark:text-grey-300`;
@@ -66,27 +76,43 @@ const SideBar = () => {
       <div className="dark:text-grey-100">
         <SideBarButton
           icon={<DashboardIcon />}
+          title="Dashboard"
           text="Dashboard"
           isOpen={isOpen}
-          onClick={() => {}}
+          active={location.pathname.startsWith('/dashboard')}
+          onClick={() => {
+            navigate('/dashboard');
+          }}
         />
         <SideBarButton
           icon={<GatewaysIcon />}
+          title="Gateways"
           text="Gateways"
           isOpen={isOpen}
-          onClick={() => {}}
+          active={location.pathname.startsWith('/gateways')}
+          onClick={() => {
+            navigate('/gateways');
+          }}
         />
         <SideBarButton
           icon={<StakingIcon />}
+          title="Staking"
           text="Staking"
           isOpen={isOpen}
-          onClick={() => {}}
+          active={location.pathname.startsWith('/staking')}
+          onClick={() => {
+            navigate('/staking');
+          }}
         />
         <SideBarButton
           icon={<BinocularsIcon />}
+          title="Observers"
           text="Observers"
           isOpen={isOpen}
-          onClick={() => {}}
+          active={location.pathname.startsWith('/observers')}
+          onClick={() => {
+            navigate('/observers');
+          }}
         />
       </div>
       <div className="grow"></div>
@@ -94,17 +120,25 @@ const SideBar = () => {
       <div className="py-[12px]">
         <SideBarButton
           icon={<DocsIcon />}
+          title="Docs"
           text="Docs"
           rightIcon={<LinkArrowIcon />}
           isOpen={isOpen}
-          onClick={() => {}}
+          active={false}
+          onClick={() => {
+            window.open(ARIO_DOCS_URL, '_blank');
+          }}
         />
         <SideBarButton
           icon={<ContractIcon />}
+          title="Contract"
           text="Contract"
           rightIcon={<LinkArrowIcon />}
           isOpen={isOpen}
-          onClick={() => {}}
+          active={false}
+          onClick={() => {
+            window.open(GATEWAY_CONTRACT_URL, '_blank');
+          }}
         />
       </div>
       <hr className="text-[#232329]" />

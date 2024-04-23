@@ -2,6 +2,7 @@
 import ArioLogoIcon from './ario.svg?react';
 import BinocularsIcon from './binoculars.svg?react';
 import CloseDrawerIcon from './close_drawer.svg?react';
+import ConnectIcon from './connect.svg?react';
 import ContractIcon from './contract.svg?react';
 import DashboardIcon from './dashboard.svg?react';
 import DocsIcon from './docs.svg?react';
@@ -14,6 +15,7 @@ export {
   ArioLogoIcon,
   BinocularsIcon,
   CloseDrawerIcon,
+  ConnectIcon,
   ContractIcon,
   DashboardIcon,
   DocsIcon,

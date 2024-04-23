@@ -2,8 +2,8 @@
 import { colors } from './tokens';
 
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  darkMode: 'selector', 
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'selector',
   theme: {
     extend: {
       text: {
@@ -12,10 +12,10 @@ export default {
         scale: 1.2,
       },
       fontFamily: {
-        'sans': ['Rubik', 'sans-serif']
-      }
+        sans: ['Rubik', 'sans-serif'],
+      },
     },
-    colors,
+    colors: { ...colors, transparent: 'transparent' },
   },
   plugins: [require('tailwindcss-animate')],
 };

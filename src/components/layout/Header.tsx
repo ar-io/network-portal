@@ -33,7 +33,7 @@ const Header = () => {
           <button
             className="inline-flex items-center justify-start 
                      gap-[11px] rounded-md bg-grey-800 bg-gradient-to-b from-[rgba(102,102,102,.06)] 
-                     to-neutrals-1100 py-[5px] pl-[13px] pr-[11px] shadow-inner"
+                     to-neutrals-1100 px-[11px] py-[5px] shadow-inner"
           >
             <ConnectIcon />
             <div

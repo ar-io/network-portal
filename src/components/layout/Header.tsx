@@ -1,4 +1,4 @@
-import { ConnectIcon } from "../icons";
+import { ConnectIcon } from '../icons';
 
 const Header = () => {
   return (
@@ -29,12 +29,21 @@ const Header = () => {
       </div>
       <div className="grow" />
       <div className="content-center">
-        <button className="from-stone-500 to-black border-black inline-flex h-[30px] w-[107px] items-center justify-start gap-[11px] rounded-md border bg-gradient-to-b py-[5px] pl-[13px] pr-[11px] shadow-inner">
-          <ConnectIcon />
-          <div className="text-[#F7C3A1] font-['Rubik'] text-sm font-normal leading-tight">
-            Connect
-          </div>
-        </button>
+        <div className="rounded-md bg-gradient-to-b from-[#EEB3BFA3] to-[#DF9BE808] p-[1px]">
+          <button
+            className="inline-flex items-center justify-start 
+                     gap-[11px] rounded-md bg-grey-800 bg-gradient-to-b from-[rgba(102,102,102,.06)] 
+                     to-neutrals-1100 py-[5px] pl-[13px] pr-[11px] shadow-inner"
+          >
+            <ConnectIcon />
+            <div
+              className="bg-gradient-to-r from-[#F7C3A1] to-[#DF9BE8_100%] 
+          bg-clip-text text-sm leading-tight text-transparent"
+            >
+              Connect
+            </div>
+          </button>
+        </div>
       </div>
     </header>
   );

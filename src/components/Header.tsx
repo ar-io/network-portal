@@ -1,4 +1,4 @@
-import { ConnectIcon } from '../icons';
+import { ConnectIcon } from './icons';
 
 const Header = () => {
   return (

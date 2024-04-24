@@ -1,3 +1,4 @@
+import Button, { ButtonType } from './Button';
 import { ConnectIcon } from './icons';
 
 const Header = () => {
@@ -29,21 +30,7 @@ const Header = () => {
       </div>
       <div className="grow" />
       <div className="content-center">
-        <div className="rounded-md bg-gradient-to-b from-[#EEB3BFA3] to-[#DF9BE808] p-[1px]">
-          <button
-            className="inline-flex items-center justify-start 
-                     gap-[11px] rounded-md bg-grey-800 bg-gradient-to-b from-[rgba(102,102,102,.06)] 
-                     to-neutrals-1100 px-[11px] py-[5px] shadow-inner"
-          >
-            <ConnectIcon />
-            <div
-              className="bg-gradient-to-r from-[#F7C3A1] to-[#DF9BE8_100%] 
-          bg-clip-text text-sm leading-tight text-transparent"
-            >
-              Connect
-            </div>
-          </button>
-        </div>
+        <Button buttonType={ButtonType.PRIMARY} icon={<ConnectIcon />} title="Connect" text="Connect" onClick={() => {}} />
       </div>
     </header>
   );

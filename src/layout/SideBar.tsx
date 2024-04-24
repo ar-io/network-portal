@@ -13,7 +13,7 @@ import {
   LinkArrowIcon,
   OpenDrawerIcon,
   StakingIcon,
-} from '../icons';
+} from '../components/icons';
 
 const SideBarButton = ({
   icon,

@@ -9,7 +9,7 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom';
 
-import AppRouterLayout from './components/layout/AppRouterLayout';
+import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
 

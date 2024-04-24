@@ -1,4 +1,4 @@
-import { defaultLogger } from '@src/constants';
+// import { defaultLogger } from '@src/constants';
 import axios, {
   AxiosInstance,
   AxiosProgressEvent,
@@ -97,7 +97,8 @@ export interface AxiosInstanceParameters {
 }
 
 export const createAxiosInstance = ({
-  logger = defaultLogger,
+  // logger = defaultLogger,
+  logger,
   axiosConfig = {},
   retryConfig = {
     retryDelay: axiosRetry.exponentialDelay,
@@ -109,7 +110,8 @@ export const createAxiosInstance = ({
       );
     },
     onRetry: (retryCount, error) => {
-      logger.debug(`Request failed, ${error}. Retry attempt #${retryCount}...`);
+      // logger.debug(`Request failed, ${error}. Retry attempt #${retryCount}...`);
+      logger?.debug(`Request failed, ${error}. Retry attempt #${retryCount}...`);
     },
   },
 }: AxiosInstanceParameters = {}): AxiosInstance => {

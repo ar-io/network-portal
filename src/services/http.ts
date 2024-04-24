@@ -1,4 +1,4 @@
-import { DefaultLogger } from '@src/constants';
+import { defaultLogger } from '@src/constants';
 import axios, {
   AxiosInstance,
   AxiosProgressEvent,
@@ -9,7 +9,9 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 import { Readable } from 'stream';
 import { ReadableStream } from 'stream/web';
 
-import { FailedRequestError, HTTPClient, Logger } from '../../types';
+import { FailedRequestError, HTTPClient } from '../../types';
+import { Logger } from 'winston'
+
 
 export class AxiosHTTPService implements HTTPClient {
   private axios: AxiosInstance;
@@ -95,7 +97,7 @@ export interface AxiosInstanceParameters {
 }
 
 export const createAxiosInstance = ({
-  logger = new DefaultLogger(),
+  logger = defaultLogger,
   axiosConfig = {},
   retryConfig = {
     retryDelay: axiosRetry.exponentialDelay,

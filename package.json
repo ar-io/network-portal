@@ -19,6 +19,7 @@
     "vis": "yarn vite-bundle-visualizer"
   },
   "dependencies": {
+    "@ar.io/sdk": "^1.0.1",
     "@fontsource/rubik": "^5.0.19",
     "@sentry/browser": "^7.101.1",
     "@sentry/react": "^7.101.1",

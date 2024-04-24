@@ -1,4 +1,4 @@
-import { createLogger, format, transports } from 'winston';
+// import { createLogger, format, transports } from 'winston';
 
 
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
@@ -10,9 +10,9 @@ export const THEME_TYPES = {
   DARK: 'dark',
 };
 
-export const defaultLogger = createLogger({
-      level: 'info',
-      silent: false,
-      format: format.simple(),
-      transports: [new transports.Console()],
-    })
+// export const defaultLogger = createLogger({
+//       level: 'info',
+//       silent: false,
+//       format: format.simple(),
+//       transports: [new transports.Console()],
+//     })

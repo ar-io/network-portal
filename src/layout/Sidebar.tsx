@@ -1,5 +1,5 @@
 import { ARIO_DOCS_URL, GATEWAY_CONTRACT_URL } from '@src/constants';
-import { MouseEventHandler, ReactElement, useState } from 'react';
+import { MouseEventHandler, ReactElement, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import {
@@ -52,19 +52,26 @@ const SideBarButton = ({
   );
 };
 
-const SideBar = () => {
-  const [isOpen, setIsOpen] = useState(true);
+const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+    const storedValue = localStorage.getItem('sidebarOpen');
+    return storedValue == null ? true : JSON.parse(storedValue);
+  });
 
-  const sideBarClasses = `flex h-screen w-[${isOpen ? '264px' : '90px'}] flex-col p-[24px]
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+  }, [sidebarOpen]);
+
+  const sideBarClasses = `flex h-screen w-[${sidebarOpen ? '264px' : '90px'}] flex-col p-[24px]
   dark:bg-grey-1000 dark:text-grey-300`;
 
   return (
     <aside className={sideBarClasses}>
       <div className="flex h-[36px] pb-[64px]">
         <ArioLogoIcon />
-        {isOpen && (
+        {sidebarOpen && (
           <div className="pl-[12px]">
             <p className="align-top text-[14px] leading-none text-neutrals-100">
               NETWORK PORTAL
@@ -78,7 +85,7 @@ const SideBar = () => {
           icon={<DashboardIcon />}
           title="Dashboard"
           text="Dashboard"
-          isOpen={isOpen}
+          isOpen={sidebarOpen}
           active={location.pathname.startsWith('/dashboard')}
           onClick={() => {
             navigate('/dashboard');
@@ -88,7 +95,7 @@ const SideBar = () => {
           icon={<GatewaysIcon />}
           title="Gateways"
           text="Gateways"
-          isOpen={isOpen}
+          isOpen={sidebarOpen}
           active={location.pathname.startsWith('/gateways')}
           onClick={() => {
             navigate('/gateways');
@@ -98,7 +105,7 @@ const SideBar = () => {
           icon={<StakingIcon />}
           title="Staking"
           text="Staking"
-          isOpen={isOpen}
+          isOpen={sidebarOpen}
           active={location.pathname.startsWith('/staking')}
           onClick={() => {
             navigate('/staking');
@@ -108,7 +115,7 @@ const SideBar = () => {
           icon={<BinocularsIcon />}
           title="Observers"
           text="Observers"
-          isOpen={isOpen}
+          isOpen={sidebarOpen}
           active={location.pathname.startsWith('/observers')}
           onClick={() => {
             navigate('/observers');
@@ -123,7 +130,7 @@ const SideBar = () => {
           title="Docs"
           text="Docs"
           rightIcon={<LinkArrowIcon />}
-          isOpen={isOpen}
+          isOpen={sidebarOpen}
           active={false}
           onClick={() => {
             window.open(ARIO_DOCS_URL, '_blank');
@@ -134,7 +141,7 @@ const SideBar = () => {
           title="Contract"
           text="Contract"
           rightIcon={<LinkArrowIcon />}
-          isOpen={isOpen}
+          isOpen={sidebarOpen}
           active={false}
           onClick={() => {
             window.open(GATEWAY_CONTRACT_URL, '_blank');
@@ -143,9 +150,9 @@ const SideBar = () => {
       </div>
       <hr className="text-[#232329]" />
       <div className="pt-[24px]">
-        <div className={isOpen ? 'flex justify-end' : 'flex justify-center'}>
-          <button onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <CloseDrawerIcon /> : <OpenDrawerIcon />}
+        <div className={sidebarOpen ? 'flex justify-end' : 'flex justify-center'}>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)}>
+            {sidebarOpen ? <CloseDrawerIcon /> : <OpenDrawerIcon />}
           </button>
         </div>
       </div>
@@ -153,4 +160,4 @@ const SideBar = () => {
   );
 };
 
-export default SideBar;
+export default Sidebar;

@@ -33,8 +33,8 @@ const SideBarButton = ({
   onClick: MouseEventHandler;
 }) => {
   const classNames = active
-    ? 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] rounded-[6px] bg-gradient-to-b shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] dark:bg-[#212124]'
-    : 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] hover:rounded-[6px] hover:bg-gradient-to-b hover:shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] hover:dark:bg-[#212124]';
+    ? 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] rounded-[6px] bg-gradient-to-b shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] dark:bg-[#212124] text-textHigh'
+    : 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] hover:rounded-[6px] hover:bg-gradient-to-b hover:shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] hover:dark:bg-[#212124] text-textMid hover:text-textHigh';
 
   return (
     <button
@@ -65,7 +65,7 @@ const Sidebar = () => {
   }, [sidebarOpen]);
 
   const sideBarClasses = `flex h-screen w-[${sidebarOpen ? '264px' : '90px'}] flex-col p-[24px]
-  dark:bg-grey-1000 dark:text-grey-300`;
+  dark:bg-grey-1000 dark:text-textMid`;
 
   return (
     <aside className={sideBarClasses}>
@@ -150,7 +150,9 @@ const Sidebar = () => {
       </div>
       <hr className="text-[#232329]" />
       <div className="pt-[24px]">
-        <div className={sidebarOpen ? 'flex justify-end' : 'flex justify-center'}>
+        <div
+          className={sidebarOpen ? 'flex justify-end' : 'flex justify-center'}
+        >
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? <CloseDrawerIcon /> : <OpenDrawerIcon />}
           </button>

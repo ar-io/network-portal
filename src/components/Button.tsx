@@ -13,7 +13,7 @@ export const Button = ({
   text = undefined,
   onClick,
 }: {
-  buttonType?: ButtonType;
+  buttonType: ButtonType;
   icon?: ReactElement;
   title: string;
   text?: string;

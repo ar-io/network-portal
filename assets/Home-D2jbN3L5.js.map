@@ -1,1 +1,0 @@
-{"version":3,"file":"Home-D2jbN3L5.js","sources":["../../src/pages/Home.tsx"],"sourcesContent":["function Home() {\n  return (\n    <div>\n      <h1>Home</h1>\n    </div>\n  );\n}\n\nexport default Home;\n"],"names":["Home","jsxRuntimeExports"],"mappings":"+VAAA,SAAAA,GAAA,CACA,OAAAC,EAAA,IAAA,MAAA,CAAA,SAAAA,EAAA,IAAA,KAAA,CAAA,SAAA,MAAA,CAAA,CAAA,CAAA,CAKA"}

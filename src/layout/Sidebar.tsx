@@ -41,7 +41,7 @@ const Sidebar = () => {
   }, [sidebarOpen]);
 
   const sideBarClasses = `flex h-screen w-[${sidebarOpen ? '264px' : '90px'}] flex-col p-[24px]
-  dark:bg-grey-1000 dark:text-textMid`;
+  dark:bg-grey-1000 dark:text-mid`;
 
   return (
     <aside className={sideBarClasses}>

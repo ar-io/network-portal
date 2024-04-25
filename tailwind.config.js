@@ -25,10 +25,12 @@ export default {
       'btn-primary-gradient-end': 'rgba(0, 0, 0 0.06)', 
       'btn-primary-outer-gradient-start': '#EEB3BFA3',
       'btn-primary-outer-gradient-end': '#DF9BE808',
+      'divider': '#232329',
       // using camel case here to make thing like text-textHigh less strange
       'textHigh': '#CACAD6',
       'textMid' : '#A3A3AD',
-      'textLow' : '#7F7F87'
+      'textLow' : '#7F7F87',
+
     },
   },
   plugins: [require('tailwindcss-animate')],

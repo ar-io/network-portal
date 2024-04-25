@@ -123,7 +123,7 @@ const Sidebar = () => {
         />
       </div>
       <div className="grow"></div>
-      <hr className="text-[#232329]" />
+      <hr className="text-divider" />
       <div className="py-[12px]">
         <SideBarButton
           icon={<DocsIcon />}
@@ -148,7 +148,7 @@ const Sidebar = () => {
           }}
         />
       </div>
-      <hr className="text-[#232329]" />
+      <hr className="text-divider" />
       <div className="pt-[24px]">
         <div
           className={sidebarOpen ? 'flex justify-end' : 'flex justify-center'}

@@ -1,4 +1,4 @@
-import { ARWEAVE_TX_REGEX } from '@ar.io/sdk';
+import { ARWEAVE_TX_REGEX } from '@ar.io/sdk/web';
 import { Equatable } from '../types';
 
 export class ArweaveTransactionID implements Equatable<ArweaveTransactionID> {

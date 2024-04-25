@@ -1,12 +1,14 @@
 // import { createLogger, format, transports } from 'winston';
+import { ARNS_TESTNET_REGISTRY_TX } from '@ar.io/sdk/web';
 
-import { ARNS_TESTNET_REGISTRY_TX } from '@ar.io/sdk';
+
+
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
+
 
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARNS_REGISTRY_ADDRESS = new ArweaveTransactionID(
-  process.env.VITE_ARNS_REGISTRY_ADDRESS ??
-  ARNS_TESTNET_REGISTRY_TX,
+  process.env.VITE_ARNS_REGISTRY_ADDRESS ?? ARNS_TESTNET_REGISTRY_TX,
 );
 export const GATEWAY_CONTRACT_URL =
   `https://viewblock.io/arweave/contract/${ARNS_REGISTRY_ADDRESS.toString()}`;

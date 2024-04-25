@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 
-import Notifications from './Notifications';
-import Sidebar from './Sidebar';
+import Notifications from './Notifications.js';
+import Sidebar from './Sidebar.js';
 
 function AppRouterLayout() {
   return (

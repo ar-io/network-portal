@@ -1,5 +1,5 @@
-import Button, { ButtonType } from './Button';
-import { ConnectIcon } from './icons';
+import Button, { ButtonType } from './Button.js';
+import { ConnectIcon } from './icons/index.js';
 
 const Header = () => {
   return (

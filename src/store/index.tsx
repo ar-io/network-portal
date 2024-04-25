@@ -1,5 +1,5 @@
-import { THEME_TYPES } from '@src/constants';
-import { applyThemePreference } from '@src/utils';
+import { THEME_TYPES } from '@src/constants.js';
+import { applyThemePreference } from '@src/utils.js';
 import { create } from 'zustand';
 
 export type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];

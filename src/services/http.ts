@@ -10,7 +10,7 @@ import { Readable } from 'stream';
 import { ReadableStream } from 'stream/web';
 import { Logger } from 'winston';
 
-import { FailedRequestError, HTTPClient } from '../../types';
+import { FailedRequestError, HTTPClient } from '../../types/index.js'
 
 export class AxiosHTTPService implements HTTPClient {
   private axios: AxiosInstance;

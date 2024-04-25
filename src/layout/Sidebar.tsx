@@ -1,4 +1,4 @@
-import { ARIO_DOCS_URL, GATEWAY_CONTRACT_URL } from '@src/constants';
+import { ARIO_DOCS_URL, GATEWAY_CONTRACT_URL } from '@src/constants.js';
 import { MouseEventHandler, ReactElement, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -13,7 +13,7 @@ import {
   LinkArrowIcon,
   OpenDrawerIcon,
   StakingIcon,
-} from '../components/icons';
+} from '../components/icons/index.js';
 
 const SideBarButton = ({
   icon,

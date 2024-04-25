@@ -9,14 +9,14 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom';
 
-import AppRouterLayout from './layout/AppRouterLayout';
-import Loading from './pages/Loading';
-import NotFound from './pages/NotFound';
+import AppRouterLayout from './layout/AppRouterLayout.js';
+import Loading from './pages/Loading.js';
+import NotFound from './pages/NotFound.js';
 
-const Dashboard = React.lazy(() => import('./pages/Dashboard'));
-const Gateways = React.lazy(() => import('./pages/Gateways'));
-const Staking = React.lazy(() => import('./pages/Staking'));
-const Observers = React.lazy(() => import('./pages/Observers'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard.js'));
+const Gateways = React.lazy(() => import('./pages/Gateways.js'));
+const Staking = React.lazy(() => import('./pages/Staking.js'));
+const Observers = React.lazy(() => import('./pages/Observers.js'));
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
 

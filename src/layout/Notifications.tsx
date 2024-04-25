@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/browser';
-import { errorEmitter, notificationEmitter } from '@src/services/events';
+import { errorEmitter, notificationEmitter } from '@src/services/events.js';
 import { useEffect } from 'react';
 
 function Notifications() {

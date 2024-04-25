@@ -1,5 +1,5 @@
 import { ARIO_DOCS_URL, GATEWAY_CONTRACT_URL } from '@src/constants';
-import { MouseEventHandler, ReactElement, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import {
@@ -14,43 +14,19 @@ import {
   OpenDrawerIcon,
   StakingIcon,
 } from '../components/icons';
+import Button from '@src/components/Button';
 
-const SideBarButton = ({
-  icon,
-  title,
-  text,
-  rightIcon = undefined,
-  isOpen,
-  active,
-  onClick,
-}: {
-  icon: ReactElement;
-  title: string;
-  text: string;
-  rightIcon?: ReactElement;
-  isOpen: boolean;
-  active: boolean;
-  onClick: MouseEventHandler;
-}) => {
-  const classNames = active
-    ? 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] rounded-[6px] bg-gradient-to-b shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] dark:bg-[#212124] text-textHigh'
-    : 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] hover:rounded-[6px] hover:bg-gradient-to-b hover:shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] hover:dark:bg-[#212124] text-textMid hover:text-textHigh';
+const ROUTES_PRIMARY = [
+  { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { title: 'Gateways', icon: <GatewaysIcon />, path: '/gateways' },
+  { title: 'Staking', icon: <StakingIcon />, path: '/staking' },
+  { title: 'Observers', icon: <BinocularsIcon />, path: '/observers' },
+];
 
-  return (
-    <button
-      title={title}
-      className={classNames}
-      onClick={active ? undefined : onClick}
-    >
-      {icon}
-      {isOpen && (
-        <div className="flex grow items-center space-x-[4px] text-left text-[14px]">
-          {text} {rightIcon}
-        </div>
-      )}
-    </button>
-  );
-};
+const ROUTES_SECONDARY = [
+  { title: 'Docs', icon: <DocsIcon />, path: ARIO_DOCS_URL },
+  { title: 'Contract', icon: <ContractIcon />, path: GATEWAY_CONTRACT_URL },
+];
 
 const Sidebar = () => {
   const location = useLocation();
@@ -81,74 +57,38 @@ const Sidebar = () => {
         )}
       </div>
       <div className="dark:text-grey-100">
-        <SideBarButton
-          icon={<DashboardIcon />}
-          title="Dashboard"
-          text="Dashboard"
-          isOpen={sidebarOpen}
-          active={location.pathname.startsWith('/dashboard')}
-          onClick={() => {
-            navigate('/dashboard');
-          }}
-        />
-        <SideBarButton
-          icon={<GatewaysIcon />}
-          title="Gateways"
-          text="Gateways"
-          isOpen={sidebarOpen}
-          active={location.pathname.startsWith('/gateways')}
-          onClick={() => {
-            navigate('/gateways');
-          }}
-        />
-        <SideBarButton
-          icon={<StakingIcon />}
-          title="Staking"
-          text="Staking"
-          isOpen={sidebarOpen}
-          active={location.pathname.startsWith('/staking')}
-          onClick={() => {
-            navigate('/staking');
-          }}
-        />
-        <SideBarButton
-          icon={<BinocularsIcon />}
-          title="Observers"
-          text="Observers"
-          isOpen={sidebarOpen}
-          active={location.pathname.startsWith('/observers')}
-          onClick={() => {
-            navigate('/observers');
-          }}
-        />
+        {ROUTES_PRIMARY.map(({ title, icon, path }) => (
+          // eslint-disable-next-line react/jsx-key
+          <Button
+            className="w-full"
+            icon={icon}
+            title={title}
+            text={sidebarOpen ? title : undefined}
+            active={location.pathname.startsWith(path)}
+            onClick={() => {
+              navigate(path);
+            }}
+          />
+        ))}
       </div>
       <div className="grow"></div>
-      <hr className="text-[#232329]" />
+      <hr className="text-divider" />
       <div className="py-[12px]">
-        <SideBarButton
-          icon={<DocsIcon />}
-          title="Docs"
-          text="Docs"
+      {ROUTES_SECONDARY.map(({ title, icon, path }) => (
+        // eslint-disable-next-line react/jsx-key
+        <Button
+          className="w-full"
+          icon={icon}
           rightIcon={<LinkArrowIcon />}
-          isOpen={sidebarOpen}
-          active={false}
+          title={path}
+          text={sidebarOpen ? title : undefined}
           onClick={() => {
-            window.open(ARIO_DOCS_URL, '_blank');
+            window.open(path, '_blank');
           }}
         />
-        <SideBarButton
-          icon={<ContractIcon />}
-          title="Contract"
-          text="Contract"
-          rightIcon={<LinkArrowIcon />}
-          isOpen={sidebarOpen}
-          active={false}
-          onClick={() => {
-            window.open(GATEWAY_CONTRACT_URL, '_blank');
-          }}
-        />
+      ))}
       </div>
-      <hr className="text-[#232329]" />
+      <hr className="text-divider" />
       <div className="pt-[24px]">
         <div
           className={sidebarOpen ? 'flex justify-end' : 'flex justify-center'}

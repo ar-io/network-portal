@@ -1,5 +1,5 @@
 import { ARIO_DOCS_URL, GATEWAY_CONTRACT_URL } from '@src/constants';
-import { MouseEventHandler, ReactElement, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import {
@@ -14,43 +14,7 @@ import {
   OpenDrawerIcon,
   StakingIcon,
 } from '../components/icons';
-
-const SideBarButton = ({
-  icon,
-  title,
-  text,
-  rightIcon = undefined,
-  isOpen,
-  active,
-  onClick,
-}: {
-  icon: ReactElement;
-  title: string;
-  text: string;
-  rightIcon?: ReactElement;
-  isOpen: boolean;
-  active: boolean;
-  onClick: MouseEventHandler;
-}) => {
-  const classNames = active
-    ? 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] rounded-[6px] bg-gradient-to-b shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] dark:bg-[#212124] text-textHigh'
-    : 'flex h-[34px] w-full items-center space-x-[11px] px-[11px] py-[5px] hover:rounded-[6px] hover:bg-gradient-to-b hover:shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] hover:dark:bg-[#212124] text-textMid hover:text-textHigh';
-
-  return (
-    <button
-      title={title}
-      className={classNames}
-      onClick={active ? undefined : onClick}
-    >
-      {icon}
-      {isOpen && (
-        <div className="flex grow items-center space-x-[4px] text-left text-[14px]">
-          {text} {rightIcon}
-        </div>
-      )}
-    </button>
-  );
-};
+import Button from '@src/components/Button';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -81,41 +45,41 @@ const Sidebar = () => {
         )}
       </div>
       <div className="dark:text-grey-100">
-        <SideBarButton
+        <Button
+          className="w-full"
           icon={<DashboardIcon />}
           title="Dashboard"
-          text="Dashboard"
-          isOpen={sidebarOpen}
+          text={sidebarOpen ? 'Dashboard' : undefined}
           active={location.pathname.startsWith('/dashboard')}
           onClick={() => {
             navigate('/dashboard');
           }}
         />
-        <SideBarButton
+        <Button
+          className="w-full"
           icon={<GatewaysIcon />}
           title="Gateways"
-          text="Gateways"
-          isOpen={sidebarOpen}
+          text={sidebarOpen ? 'Gateways' : undefined}
           active={location.pathname.startsWith('/gateways')}
           onClick={() => {
             navigate('/gateways');
           }}
         />
-        <SideBarButton
+        <Button
+          className="w-full"
           icon={<StakingIcon />}
           title="Staking"
-          text="Staking"
-          isOpen={sidebarOpen}
+          text={sidebarOpen ? 'Staking' : undefined}
           active={location.pathname.startsWith('/staking')}
           onClick={() => {
             navigate('/staking');
           }}
         />
-        <SideBarButton
+        <Button
+          className="w-full"
           icon={<BinocularsIcon />}
           title="Observers"
-          text="Observers"
-          isOpen={sidebarOpen}
+          text={sidebarOpen ? 'Observers' : undefined}
           active={location.pathname.startsWith('/observers')}
           onClick={() => {
             navigate('/observers');
@@ -125,23 +89,23 @@ const Sidebar = () => {
       <div className="grow"></div>
       <hr className="text-divider" />
       <div className="py-[12px]">
-        <SideBarButton
+        <Button
+          className="w-full"
           icon={<DocsIcon />}
           title="Docs"
-          text="Docs"
+          text={sidebarOpen ? 'Docs' : undefined}
           rightIcon={<LinkArrowIcon />}
-          isOpen={sidebarOpen}
           active={false}
           onClick={() => {
             window.open(ARIO_DOCS_URL, '_blank');
           }}
         />
-        <SideBarButton
+        <Button
+          className="w-full"
           icon={<ContractIcon />}
           title="Contract"
-          text="Contract"
+          text={sidebarOpen ? 'Contract' : undefined}
           rightIcon={<LinkArrowIcon />}
-          isOpen={sidebarOpen}
           active={false}
           onClick={() => {
             window.open(GATEWAY_CONTRACT_URL, '_blank');

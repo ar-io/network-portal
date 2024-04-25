@@ -21,8 +21,10 @@ export const Button = ({
 }) => {
   if (buttonType === ButtonType.PRIMARY) {
     return (
-      <div className="rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start
-       to-btn-primary-outer-gradient-end p-[1px]">
+      <div
+        className="rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start
+       to-btn-primary-outer-gradient-end p-px"
+      >
         <button
           title={title}
           className="inline-flex items-center justify-start 
@@ -33,8 +35,10 @@ export const Button = ({
         >
           {icon}
           {text && (
-            <div className="bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end 
-              bg-clip-text text-sm leading-tight text-transparent">
+            <div
+              className="bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end 
+              bg-clip-text text-sm leading-tight text-transparent"
+            >
               {text}
             </div>
           )}

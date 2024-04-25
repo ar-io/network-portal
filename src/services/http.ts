@@ -8,10 +8,9 @@ import axios, {
 import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 import { Readable } from 'stream';
 import { ReadableStream } from 'stream/web';
+import { Logger } from 'winston';
 
 import { FailedRequestError, HTTPClient } from '../../types';
-import { Logger } from 'winston'
-
 
 export class AxiosHTTPService implements HTTPClient {
   private axios: AxiosInstance;
@@ -111,7 +110,9 @@ export const createAxiosInstance = ({
     },
     onRetry: (retryCount, error) => {
       // logger.debug(`Request failed, ${error}. Retry attempt #${retryCount}...`);
-      logger?.debug(`Request failed, ${error}. Retry attempt #${retryCount}...`);
+      logger?.debug(
+        `Request failed, ${error}. Retry attempt #${retryCount}...`,
+      );
     },
   },
 }: AxiosInstanceParameters = {}): AxiosInstance => {

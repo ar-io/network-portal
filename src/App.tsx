@@ -32,7 +32,8 @@ function App() {
               <Dashboard />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="gateways"
           element={
@@ -40,7 +41,8 @@ function App() {
               <Gateways />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="staking"
           element={
@@ -48,7 +50,8 @@ function App() {
               <Staking />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="observers"
           element={
@@ -56,7 +59,8 @@ function App() {
               <Observers />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route path="*" element={<Navigate to="/" />} />
       </Route>,
     ),

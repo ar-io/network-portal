@@ -8,11 +8,11 @@ export enum ButtonType {
 
 export const Button = ({
   className,
-  buttonType,
-  icon = undefined,
-  rightIcon = undefined,
+  buttonType = ButtonType.SECONDARY,
+  icon,
+  rightIcon,
   title,
-  text = undefined,
+  text,
   active = false,
   onClick,
 }: {
@@ -23,12 +23,9 @@ export const Button = ({
   title: string;
   text?: string;
   active?: boolean;
-  onClick: MouseEventHandler;
+  onClick?: MouseEventHandler;
 }) => {
-  const resolvedButtonType = buttonType ?? ButtonType.SECONDARY;
-  const resolvedActive = active ?? false;
-
-  if (resolvedButtonType === ButtonType.PRIMARY) {
+  if (buttonType === ButtonType.PRIMARY) {
     return (
       <div
         className="rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start
@@ -54,7 +51,7 @@ export const Button = ({
         </button>
       </div>
     );
-  } else if (resolvedButtonType === ButtonType.SECONDARY) {
+  } else if (buttonType === ButtonType.SECONDARY) {
     const baseClassNames =
       'h-[34px] rounded-[6px] flex items-center space-x-[11px] px-[11px] py-[5px] text-[14px]';
     const activeClassNames =
@@ -64,14 +61,14 @@ export const Button = ({
 
     const buttonClassNames = [
       baseClassNames,
-      resolvedActive ? activeClassNames : nonActiveClassnames,
+      active ? activeClassNames : nonActiveClassnames,
       className,
     ].join(' ');
     return (
       <button
         title={title}
         className={buttonClassNames}
-        onClick={resolvedActive ? undefined : onClick}
+        onClick={onClick}
       >
         {icon}
         {text && (

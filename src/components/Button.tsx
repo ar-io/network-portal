@@ -22,10 +22,11 @@ export const Button = ({
   rightIcon?: ReactElement;
   title: string;
   text?: string;
-  active: boolean;
+  active?: boolean;
   onClick: MouseEventHandler;
 }) => {
   const resolvedButtonType = buttonType ?? ButtonType.SECONDARY;
+  const resolvedActive = active ?? false;
 
   if (resolvedButtonType === ButtonType.PRIMARY) {
     return (
@@ -63,11 +64,15 @@ export const Button = ({
 
     const buttonClassNames = [
       baseClassNames,
-      active ? activeClassNames : nonActiveClassnames,
+      resolvedActive ? activeClassNames : nonActiveClassnames,
       className,
     ].join(' ');
     return (
-      <button title={title} className={buttonClassNames} onClick={onClick}>
+      <button
+        title={title}
+        className={buttonClassNames}
+        onClick={resolvedActive ? undefined : onClick}
+      >
         {icon}
         {text && (
           <div className="flex grow items-center space-x-[4px] text-left">

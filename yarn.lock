@@ -25,10 +25,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.1.tgz#b11e5c495b466ef8d1d2394e87814511daea1aac"
-  integrity sha512-4+L5DoQm3pm9gFJ4pRAeHKc9OtV4UrfUUSUUFywJaQ1pAbj0WKGw6fNL/O9j3G5NiWeTI57SdP/AfS5NjIn8wA==
+"@ar.io/sdk@^1.0.2-alpha.1":
+  version "1.0.2-alpha.1"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.2-alpha.1.tgz#0846e9c4fc337d8ab17edf0289ddece2e0be4c59"
+  integrity sha512-dqJweSxNsZcA8itLo3qTbzQy6C455XhMhvBRRTuqcMTyqlOx8MSEDg0+0KrBnHfwPsBQSv4WRO50hlKthu2AOA==
   dependencies:
     arbundles "0.11.0"
     arweave "1.14.4"
@@ -2791,7 +2791,7 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.5.tgz#ec10755e871497bcd83efe927e43ec46e8c0747e"
   integrity sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==
 
-"@types/node@*":
+"@types/node@*", "@types/node@^20.12.7":
   version "20.12.7"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.12.7.tgz#04080362fa3dd6c5822061aa3124f5c152cff384"
   integrity sha512-wq0cICSkRLVaf3UGLMGItu/PtdY7oaXaI/RVU+xliKVOtRna3PRY57ZDfztpDL0n11vfymMUnXv8QwYCO7L1wg==

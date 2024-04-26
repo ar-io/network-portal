@@ -41,7 +41,7 @@ const Sidebar = () => {
   }, [sidebarOpen]);
 
   const sideBarClasses = `flex h-screen w-[${sidebarOpen ? '264px' : '90px'}] flex-col p-[24px]
-  dark:bg-grey-1000 dark:text-textMid`;
+  dark:bg-grey-1000 dark:text-mid`;
 
   return (
     <aside className={sideBarClasses}>
@@ -57,9 +57,9 @@ const Sidebar = () => {
         )}
       </div>
       <div className="dark:text-grey-100">
-        {ROUTES_PRIMARY.map(({ title, icon, path }) => (
-          // eslint-disable-next-line react/jsx-key
+        {ROUTES_PRIMARY.map(({ title, icon, path }, index) => (
           <Button
+            key={index}
             className="w-full"
             icon={icon}
             title={title}
@@ -74,9 +74,9 @@ const Sidebar = () => {
       <div className="grow"></div>
       <hr className="text-divider" />
       <div className="py-[12px]">
-      {ROUTES_SECONDARY.map(({ title, icon, path }) => (
-        // eslint-disable-next-line react/jsx-key
+      {ROUTES_SECONDARY.map(({ title, icon, path }, index) => (
         <Button
+          key={index}
           className="w-full"
           icon={icon}
           rightIcon={<LinkArrowIcon />}

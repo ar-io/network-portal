@@ -66,27 +66,4 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
   return <>{children}</>;
 };
 
-// const updateIfConnected = async () => {
-
-//   const walletType = window.localStorage.getItem('walletType');
-//   const globalState = useGlobalState();
-
-//   try {
-//     if (walletType === WALLET_TYPES.ARCONNECT) {
-//       const connector = new ArConnectWalletConnector();
-//       const address = await connector?.getWalletAddress();
-
-//       globalState.updateWallet(address.toString(), connector);
-//     }
-//   } catch (error) {
-//     // eventEmitter.emit('error', error);
-//   } finally {
-//     globalState.setWalletStateInitialized(true);
-//   }
-// }
-
-// export const initializeArConnect = async () => {
-
-// }
-
 export default WalletProvider;

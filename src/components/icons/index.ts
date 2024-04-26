@@ -1,6 +1,8 @@
 /// <reference types="vite-plugin-svgr/client" />
+import ArConnectIcon from './arconnect.svg?react';
 import ArioLogoIcon from './ario.svg?react';
 import BinocularsIcon from './binoculars.svg?react';
+import CloseIcon from './close.svg?react';
 import CloseDrawerIcon from './close_drawer.svg?react';
 import ConnectIcon from './connect.svg?react';
 import ContractIcon from './contract.svg?react';
@@ -12,8 +14,10 @@ import OpenDrawerIcon from './open_drawer.svg?react';
 import StakingIcon from './staking.svg?react';
 
 export {
+  ArConnectIcon,
   ArioLogoIcon,
   BinocularsIcon,
+  CloseIcon,
   CloseDrawerIcon,
   ConnectIcon,
   ContractIcon,

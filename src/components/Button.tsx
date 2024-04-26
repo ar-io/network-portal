@@ -72,7 +72,7 @@ export const Button = ({
       >
         {icon}
         {text && (
-          <div className="flex grow items-center space-x-[4px] text-left">
+          <div className="flex grow items-center space-x-[4px] text-left leading-none">
             {text} {rightIcon}
           </div>
         )}

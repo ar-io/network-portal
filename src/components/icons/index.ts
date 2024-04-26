@@ -9,9 +9,12 @@ import ContractIcon from './contract.svg?react';
 import DashboardIcon from './dashboard.svg?react';
 import DocsIcon from './docs.svg?react';
 import GatewaysIcon from './gateways.svg?react';
+import GearIcon from './gear.svg?react';
 import LinkArrowIcon from './link_arrow.svg?react';
+import LogoutIcon from './logout.svg?react';
 import OpenDrawerIcon from './open_drawer.svg?react';
 import StakingIcon from './staking.svg?react';
+import WalletIcon from './wallet.svg?react';
 
 export {
   ArConnectIcon,
@@ -24,7 +27,10 @@ export {
   DashboardIcon,
   DocsIcon,
   GatewaysIcon,
+  GearIcon,
   OpenDrawerIcon,
   LinkArrowIcon,
+  LogoutIcon,
   StakingIcon,
+  WalletIcon,
 };

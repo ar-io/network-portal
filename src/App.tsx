@@ -12,6 +12,7 @@ import {
 import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
+import WalletProvider from './components/WalletProvider';
 
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Gateways = React.lazy(() => import('./pages/Gateways'));
@@ -63,9 +64,9 @@ function App() {
   );
 
   return (
-    <>
+    <WalletProvider>
       <RouterProvider router={router} />
-    </>
+    </WalletProvider>
   );
 }
 

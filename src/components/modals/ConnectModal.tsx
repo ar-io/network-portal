@@ -1,8 +1,12 @@
 /* eslint-disable tailwindcss/classnames-order */
 
 import { Dialog } from '@headlessui/react';
+import { useGlobalState } from '@src/store';
+import { ArweaveWalletConnector } from '@src/types';
+import { useState } from 'react';
 import Button from '../Button';
 import { ArConnectIcon, CloseIcon, ConnectIcon } from '../icons';
+import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 
 const ConnectModal = ({
   open,
@@ -11,6 +15,38 @@ const ConnectModal = ({
   open: boolean;
   onClose: () => void;
 }) => {
+  const [connecting, setConnecting] = useState<boolean>(false);
+
+  const updateWallet = useGlobalState((state) => state.updateWallet);
+
+  const connect = async (walletConnector: ArweaveWalletConnector) => {
+    try {
+      setConnecting(true);
+      await walletConnector.connect();
+
+      //   const arweaveGate = await walletConnector.getGatewayConfig();
+      //   if (arweaveGate?.host) {
+      //     await dispatchNewGateway(
+      //       arweaveGate.host,
+      //       walletConnector,
+      //       dispatchGlobalState,
+      //     );
+      //   }
+
+      const address = await walletConnector.getWalletAddress();
+
+      updateWallet(address.toString(), walletConnector);
+
+      onClose();
+    } catch (error: any) {
+      //   if (walletConnector) {
+      //     eventEmitter.emit('error', error);
+      //   }
+    } finally {
+      setConnecting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div
@@ -32,7 +68,11 @@ const ConnectModal = ({
             </h2>
             <div className="flex grow justify-center pb-[32px]">
               <Button
-                onClick={() => {}}
+                onClick={() => {
+                  if (!connecting) {
+                    connect(new ArConnectWalletConnector());
+                  }
+                }}
                 active={true}
                 icon={<ArConnectIcon className="size-[16px]" />}
                 title="Connect with ArConnect"

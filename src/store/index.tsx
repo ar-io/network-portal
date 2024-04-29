@@ -1,11 +1,17 @@
+import { ArIO, ArIOReadable, EpochDistributionData } from '@ar.io/sdk/web';
 import { THEME_TYPES } from '@src/constants';
 import { ArweaveWalletConnector } from '@src/types';
+import Arweave from 'arweave/web';
 import { create } from 'zustand';
 
 export type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];
 
 export type GlobalState = {
   theme: ThemeType;
+  arweave: Arweave;
+  arIOReadSDK: ArIOReadable;
+  blockHeight?: number;
+  currentEpoch?: EpochDistributionData;
   walletAddress?: string;
   wallet?: ArweaveWalletConnector;
   balances: {
@@ -17,20 +23,26 @@ export type GlobalState = {
 
 export type GlobalStateActions = {
   setTheme: (theme: ThemeType) => void;
-  updateWallet: (walletAddress?: string, wallet?: ArweaveWalletConnector) => void;
+  setBlockHeight: (blockHeight: number) => void;
+  setCurrentEpoch: (currentEpoch: EpochDistributionData) => void;
+  updateWallet: (
+    walletAddress?: string,
+    wallet?: ArweaveWalletConnector,
+  ) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
   reset: () => void;
 };
 
 export const initialGlobalState: GlobalState = {
   theme: THEME_TYPES.DARK,
+  arweave: Arweave.init({}),
+  arIOReadSDK: ArIO.init(),
   balances: {
     ar: 0,
     io: 0,
   },
   walletStateInitialized: false,
 };
-
 export class GlobalStateActionBase implements GlobalStateActions {
   constructor(
     private set: (props: any, replace?: boolean) => void,
@@ -42,11 +54,19 @@ export class GlobalStateActionBase implements GlobalStateActions {
     // applyThemePreference(theme);
   };
 
+  setBlockHeight = (blockHeight: number) => {
+    this.set({ blockHeight });
+  };
+
+  setCurrentEpoch = (currentEpoch: EpochDistributionData) => {
+    this.set({ currentEpoch });
+  };
+
   updateWallet = (walletAddress?: string, wallet?: ArweaveWalletConnector) => {
     this.set({ walletAddress, wallet });
   };
 
-  setWalletStateInitialized = (initialized:boolean) => {
+  setWalletStateInitialized = (initialized: boolean) => {
     this.set({ walletStateInitialized: initialized });
   };
 

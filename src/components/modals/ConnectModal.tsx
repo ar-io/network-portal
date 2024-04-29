@@ -35,7 +35,7 @@ const ConnectModal = ({
 
       const address = await walletConnector.getWalletAddress();
 
-      updateWallet(address.toString(), walletConnector);
+      updateWallet(address, walletConnector);
 
       onClose();
     } catch (error: any) {

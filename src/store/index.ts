@@ -1,6 +1,7 @@
 import { ArIO, ArIOReadable, EpochDistributionData } from '@ar.io/sdk/web';
 import { THEME_TYPES } from '@src/constants';
 import { ArweaveWalletConnector } from '@src/types';
+import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import Arweave from 'arweave/web';
 import { create } from 'zustand';
 
@@ -12,11 +13,11 @@ export type GlobalState = {
   arIOReadSDK: ArIOReadable;
   blockHeight?: number;
   currentEpoch?: EpochDistributionData;
-  walletAddress?: string;
+  walletAddress?: ArweaveTransactionID;
   wallet?: ArweaveWalletConnector;
   balances: {
     ar: number;
-    [x: string]: number;
+    io: number;
   };
   walletStateInitialized: boolean;
 };
@@ -26,9 +27,10 @@ export type GlobalStateActions = {
   setBlockHeight: (blockHeight: number) => void;
   setCurrentEpoch: (currentEpoch: EpochDistributionData) => void;
   updateWallet: (
-    walletAddress?: string,
+    walletAddress?: ArweaveTransactionID,
     wallet?: ArweaveWalletConnector,
   ) => void;
+  setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
   reset: () => void;
 };
@@ -62,8 +64,12 @@ export class GlobalStateActionBase implements GlobalStateActions {
     this.set({ currentEpoch });
   };
 
-  updateWallet = (walletAddress?: string, wallet?: ArweaveWalletConnector) => {
+  updateWallet = (walletAddress?: ArweaveTransactionID, wallet?: ArweaveWalletConnector) => {
     this.set({ walletAddress, wallet });
+  };
+
+  setBalances = (ar: number, io: number) => {
+    this.set ({ balances: { ar, io } });
   };
 
   setWalletStateInitialized = (initialized: boolean) => {

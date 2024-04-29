@@ -2,10 +2,22 @@ import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
 import { WALLET_TYPES } from '@src/types';
+import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
+import Ar from 'arweave/web/ar';
 import { ReactElement, useEffect } from 'react';
 
+const AR = new Ar();
+
 const WalletProvider = ({ children }: { children: ReactElement }) => {
-  const { setWalletStateInitialized, updateWallet } = useGlobalState();
+  const blockHeight = useGlobalState((state) => state.blockHeight);
+  const walletAddress = useGlobalState((state) => state.walletAddress);
+  const setWalletStateInitialized = useGlobalState(
+    (state) => state.setWalletStateInitialized,
+  );
+  const updateWallet = useGlobalState((state) => state.updateWallet);
+  const setBalances = useGlobalState((state) => state.setBalances);
+  const arweave = useGlobalState((state) => state.arweave);
+  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   useEffect(() => {
     window.addEventListener('arweaveWalletLoaded', updateIfConnected);
@@ -13,7 +25,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
     return () => {
       window.removeEventListener('arweaveWalletLoaded', updateIfConnected);
     };
-  }, []);
+  });
 
   useEffectOnce(() => {
     setTimeout(() => {
@@ -21,32 +33,30 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
     }, 5000);
   });
 
-  //   useEffect(() => {
-  //     if (walletAddress) {
-  //       updateBalances(walletAddress);
-  //     }
-  //   }, [walletAddress, blockHeight]);
+  useEffect(() => {
+    if (walletAddress) {
+      const updateBalances = async (address: ArweaveTransactionID) => {
+        try {
+          const [mioBalance, arBalance] = await Promise.all([
+            arIOReadSDK.getBalance({ address: address.toString() }),
+            arweave.wallets.getBalance(address.toString()),
+          ]);
 
-  //   const updateBalances = async (address: ArweaveTransactionID) => {
-  //     try {
-  //       const [ioBalance, arBalance] = await Promise.all([
-  //         arweaveDataProvider.getTokenBalance(address, ARNS_REGISTRY_ADDRESS),
-  //         arweaveDataProvider.getArBalance(address),
-  //       ]);
+          const arBalanceNum = +AR.winstonToAr(arBalance);
+          // convert micro IO balance to IO
+          const ioBalance = mioBalance / 1000000;
 
-  //       dispatchWalletState({
-  //         type: 'setBalances',
-  //         payload: {
-  //           [ioTicker]: ioBalance,
-  //           ar: arBalance,
-  //         },
-  //       });
-  //     } catch (error) {
-  //       eventEmitter.emit('error', error);
-  //     }
-  //   };
+          setBalances(arBalanceNum, ioBalance);
+        } catch (error) {
+          // eventEmitter.emit('error', error);
+        }
+      };
 
-  async function updateIfConnected() {
+      updateBalances(walletAddress);
+    }
+  }, [walletAddress, blockHeight, arIOReadSDK, arweave, setBalances]);
+
+  const updateIfConnected = async () => {
     const walletType = window.localStorage.getItem('walletType');
 
     try {
@@ -54,14 +64,14 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
         const connector = new ArConnectWalletConnector();
         const address = await connector?.getWalletAddress();
 
-        updateWallet(address.toString(), connector);
+        updateWallet(address, connector);
       }
     } catch (error) {
       //   eventEmitter.emit('error', error);
     } finally {
       setWalletStateInitialized(true);
     }
-  }
+  };
 
   return <>{children}</>;
 };

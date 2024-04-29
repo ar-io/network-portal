@@ -1,6 +1,6 @@
 import { Popover } from '@headlessui/react';
 import { useGlobalState } from '@src/store';
-import { formatWalletAddress } from '@src/utils';
+import { formatBalance, formatWalletAddress } from '@src/utils';
 import { forwardRef, useState } from 'react';
 import Button, { ButtonType } from './Button';
 import {
@@ -33,6 +33,7 @@ const Profile = () => {
   );
 
   const wallet = useGlobalState((state) => state.wallet);
+  const balances = useGlobalState((state) => state.balances);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
 
@@ -47,16 +48,18 @@ const Profile = () => {
         <div className="flex gap-[8px] py-[20px]">
           <WalletIcon />
           <div className="text-sm text-high">
-            {formatWalletAddress(walletAddress)}
+            {formatWalletAddress(walletAddress.toString())}
           </div>
         </div>
         <div className="rounded-[6px] border border-grey-800 py-[12px]">
           <div className="px-[16px] text-xs text-low">IO Balance</div>
           <div className="border-b border-grey-800 px-[16px] pb-[12px] pt-[4px] text-high">
-            13.7k
+            {formatBalance(balances.io)}
           </div>
           <div className="px-[16px] pt-[12px] text-xs text-low">AR Balance</div>
-          <div className="px-[16px] pt-[4px] text-high">0.06</div>
+          <div className="px-[16px] pt-[4px] text-high">
+            {formatBalance(balances.ar)}
+          </div>
         </div>
         <div className="flex flex-col gap-[12px] py-[12px] text-mid">
           <button className="flex items-center gap-[8px]">

@@ -1,12 +1,10 @@
-/* eslint-disable tailwindcss/classnames-order */
-
 import { Dialog } from '@headlessui/react';
+import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
 import { ArweaveWalletConnector } from '@src/types';
 import { useState } from 'react';
 import Button from '../Button';
 import { ArConnectIcon, CloseIcon, ConnectIcon } from '../icons';
-import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 
 const ConnectModal = ({
   open,
@@ -63,7 +61,7 @@ const ConnectModal = ({
             <div className="flex grow justify-center pb-[16px]">
               <ConnectIcon className="size-[24px]" />
             </div>
-            <h2 className="text-high pb-[16px] text-2xl">
+            <h2 className="pb-[16px] text-2xl text-high">
               Connect Your Wallet
             </h2>
             <div className="flex grow justify-center pb-[32px]">

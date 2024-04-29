@@ -1,6 +1,6 @@
 import Header from "@src/components/Header";
 
-function Observers() {
+const Observers = () => {
   return (
     <div>
       <Header />

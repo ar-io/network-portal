@@ -1,6 +1,6 @@
 import Header from "@src/components/Header";
 
-function Gateways() {
+const Gateways = () => {
   return (
     <div>
       <Header />

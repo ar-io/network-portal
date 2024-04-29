@@ -31,3 +31,7 @@ export const formatBalance = (ar: number) => {
     compactDisplay: 'short',
   }).format(ar);
 };
+
+export function mioToIo(mio: number): number {
+  return mio / 1_000_000;
+}

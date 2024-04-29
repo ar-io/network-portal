@@ -2,6 +2,7 @@ import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
 import { WALLET_TYPES } from '@src/types';
+import { mioToIo } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import Ar from 'arweave/web/ar';
 import { ReactElement, useEffect } from 'react';
@@ -37,16 +38,15 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
     if (walletAddress) {
       const updateBalances = async (address: ArweaveTransactionID) => {
         try {
-          const [mioBalance, arBalance] = await Promise.all([
+          const [mioBalance, winstonBalance] = await Promise.all([
             arIOReadSDK.getBalance({ address: address.toString() }),
             arweave.wallets.getBalance(address.toString()),
           ]);
 
-          const arBalanceNum = +AR.winstonToAr(arBalance);
-          // convert micro IO balance to IO
-          const ioBalance = mioBalance / 1000000;
+          const arBalance = +AR.winstonToAr(winstonBalance);
+          const ioBalance = mioToIo(mioBalance);
 
-          setBalances(arBalanceNum, ioBalance);
+          setBalances(arBalance, ioBalance);
         } catch (error) {
           // eventEmitter.emit('error', error);
         }

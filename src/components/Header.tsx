@@ -20,7 +20,7 @@ const Header = () => {
       </div>
       <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r px-6 dark:border-transparent-100-8">
         <div className="text-[12px] text-high">
-          <p>{blockHeight ? blockHeight.toLocaleString('en-US') : NBSP}</p>
+          {blockHeight ? blockHeight.toLocaleString('en-US') : NBSP}
         </div>
         <div className="pt-[4px] text-[12px] leading-none text-low">
           ARWEAVE BLOCK

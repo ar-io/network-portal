@@ -25,10 +25,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.2.tgz#36eb72c8c544b2b6b90dd725459559be9ed41120"
-  integrity sha512-Fo/gHFAPG4i+bSozLRp/9dhkfuewpA6daYJOOVzIIlMqdRKG5NyXxylknvH8cxZfh7w1ZWQi+P5QZA0sQfBdTQ==
+"@ar.io/sdk@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.3.tgz#bd707e428f33096f0c5c18edfa0d31fca7a8daed"
+  integrity sha512-sPmSlGs6ppU6Ou2q2zVhCeFtk6S91xlRgVF0FliPxlwkNHoVpbRXpssfFXgMlu0hZ3B0ApvawGfUM9nWh9t+Nw==
   dependencies:
     arbundles "0.11.0"
     arweave "1.14.4"

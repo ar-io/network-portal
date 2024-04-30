@@ -9,6 +9,8 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom';
 
+import GlobalDataProvider from './components/GlobalDataProvider';
+import WalletProvider from './components/WalletProvider';
 import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
@@ -32,7 +34,8 @@ function App() {
               <Dashboard />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="gateways"
           element={
@@ -40,7 +43,8 @@ function App() {
               <Gateways />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="staking"
           element={
@@ -48,7 +52,8 @@ function App() {
               <Staking />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="observers"
           element={
@@ -56,16 +61,19 @@ function App() {
               <Observers />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route path="*" element={<Navigate to="/" />} />
       </Route>,
     ),
   );
 
   return (
-    <>
-      <RouterProvider router={router} />
-    </>
+    <GlobalDataProvider>
+      <WalletProvider>
+        <RouterProvider router={router} />
+      </WalletProvider>
+    </GlobalDataProvider>
   );
 }
 

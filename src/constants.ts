@@ -14,6 +14,9 @@ export const THEME_TYPES = {
   DARK: 'dark',
 };
 
+// Unicode non-breaking space that renders where &nbsp; does not in React code
+export const NBSP = '\u00A0';
+
 // export const defaultLogger = createLogger({
 //   level: 'info',
 //   silent: false,

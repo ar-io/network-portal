@@ -1,4 +1,4 @@
-import { MouseEventHandler, ReactElement } from 'react';
+import { LegacyRef, MouseEventHandler, ReactElement } from 'react';
 
 export enum ButtonType {
   PRIMARY = 'primary',
@@ -7,6 +7,7 @@ export enum ButtonType {
 }
 
 export const Button = ({
+  forwardRef,
   className,
   buttonType = ButtonType.SECONDARY,
   icon,
@@ -16,6 +17,7 @@ export const Button = ({
   active = false,
   onClick,
 }: {
+  forwardRef?: LegacyRef<HTMLButtonElement>;
   className?: string;
   buttonType?: ButtonType;
   icon?: ReactElement;
@@ -33,6 +35,7 @@ export const Button = ({
       >
         <button
           title={title}
+          ref={forwardRef}
           className="inline-flex items-center justify-start 
                      gap-[11px] rounded-md bg-btn-primary-base bg-gradient-to-b 
                      from-btn-primary-gradient-start to-btn-primary-gradient-end 
@@ -66,13 +69,14 @@ export const Button = ({
     ].join(' ');
     return (
       <button
+        ref={forwardRef}
         title={title}
         className={buttonClassNames}
         onClick={onClick}
       >
         {icon}
         {text && (
-          <div className="flex grow items-center space-x-[4px] text-left">
+          <div className="flex grow items-center space-x-[4px] text-left leading-none">
             {text} {rightIcon}
           </div>
         )}

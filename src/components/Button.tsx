@@ -45,8 +45,7 @@ export const Button = ({
           {icon}
           {text && (
             <div
-              className="bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end 
-              bg-clip-text text-sm leading-tight text-transparent"
+              className="text-gradient text-sm leading-tight"
             >
               {text}
             </div>

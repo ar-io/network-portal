@@ -9,6 +9,7 @@ import ConnectIcon from './connect.svg?react';
 import ContractIcon from './contract.svg?react';
 import DashboardIcon from './dashboard.svg?react';
 import DocsIcon from './docs.svg?react';
+import FormErrorIcon from './form_error.svg?react';
 import GatewaysIcon from './gateways.svg?react';
 import GearIcon from './gear.svg?react';
 import LinkArrowIcon from './link_arrow.svg?react';
@@ -30,6 +31,7 @@ export {
   ContractIcon,
   DashboardIcon,
   DocsIcon,
+  FormErrorIcon,
   GatewaysIcon,
   GearIcon,
   LinkArrowIcon,

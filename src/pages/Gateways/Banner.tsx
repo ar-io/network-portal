@@ -1,5 +1,6 @@
 import { PinkArrowIcon, StartGatewayCubes } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
+import StartGatewayModal from '@src/components/modals/StartGatewayModal';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
 
@@ -7,6 +8,7 @@ const Banner = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
 
   const [loginOpen, setLoginOpen] = useState(false);
+  const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
   return (
     <div>
@@ -15,6 +17,8 @@ const Banner = () => {
         onClick={() => {
           if (!walletAddress) {
             setLoginOpen(true);
+          } else {
+            setStartGatewayOpen(true);
           }
         }}
       >
@@ -40,6 +44,8 @@ const Banner = () => {
         </div>
       </button>
       <ConnectModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <StartGatewayModal open={startGatewayOpen} onClose={() => setStartGatewayOpen(false)} />
+
     </div>
   );
 };

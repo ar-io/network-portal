@@ -28,27 +28,27 @@ export const Button = ({
   onClick?: MouseEventHandler;
 }) => {
   if (buttonType === ButtonType.PRIMARY) {
+    const classNames = [
+      'rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end p-px',
+      className,
+    ].join(' ');
+
+    const btnClassNames =
+      'inline-flex size-full items-center gap-[11px] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[11px] py-[5px] shadow-inner';
+
     return (
-      <div
-        className="rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start
-       to-btn-primary-outer-gradient-end p-px"
-      >
+      <div className={classNames}>
         <button
           title={title}
           ref={forwardRef}
-          className="inline-flex items-center justify-start 
-                     gap-[11px] rounded-md bg-btn-primary-base bg-gradient-to-b 
-                     from-btn-primary-gradient-start to-btn-primary-gradient-end 
-                     px-[11px] py-[5px] shadow-inner"
+          className={
+            btnClassNames + (icon ? ' justify-start' : ' justify-center')
+          }
           onClick={onClick}
         >
           {icon}
           {text && (
-            <div
-              className="text-gradient text-sm leading-tight"
-            >
-              {text}
-            </div>
+            <div className="text-gradient text-sm leading-tight">{text}</div>
           )}
         </button>
       </div>
@@ -75,7 +75,12 @@ export const Button = ({
       >
         {icon}
         {text && (
-          <div className="flex grow items-center space-x-[4px] text-left leading-none">
+          <div
+            className={
+              'flex grow items-center space-x-[4px] leading-none ' +
+              (icon ? 'justify-left' : 'justify-center')
+            }
+          >
             {text} {rightIcon}
           </div>
         )}

@@ -47,7 +47,7 @@ const ConnectModal = ({
 
   return (
     <BaseModal open={open} onClose={onClose}>
-      <div>
+      <div className='w-[392px]'>
         <div className="flex grow justify-center pb-[16px]">
           <ConnectIcon className="size-[24px]" />
         </div>

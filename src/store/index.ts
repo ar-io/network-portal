@@ -1,5 +1,10 @@
-import { ArIO, ArIOReadable, EpochDistributionData } from '@ar.io/sdk/web';
-import { THEME_TYPES } from '@src/constants';
+import {
+  ArIO,
+  ArIOReadable,
+  ArIOWritable,
+  EpochDistributionData,
+} from '@ar.io/sdk/web';
+import { ARNS_REGISTRY_ADDRESS, THEME_TYPES } from '@src/constants';
 import { ArweaveWalletConnector } from '@src/types';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import Arweave from 'arweave/web';
@@ -11,6 +16,7 @@ export type GlobalState = {
   theme: ThemeType;
   arweave: Arweave;
   arIOReadSDK: ArIOReadable;
+  arIOWriteableSDK?: ArIOWritable;
   blockHeight?: number;
   currentEpoch?: EpochDistributionData;
   walletAddress?: ArweaveTransactionID;
@@ -30,6 +36,7 @@ export type GlobalStateActions = {
     walletAddress?: ArweaveTransactionID,
     wallet?: ArweaveWalletConnector,
   ) => void;
+  setArIOWriteableSDK: (arIOWriteableSDK: ArIOWritable) => void;
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
   reset: () => void;
@@ -38,7 +45,7 @@ export type GlobalStateActions = {
 export const initialGlobalState: GlobalState = {
   theme: THEME_TYPES.DARK,
   arweave: Arweave.init({}),
-  arIOReadSDK: ArIO.init(),
+  arIOReadSDK: ArIO.init({ contractTxId: ARNS_REGISTRY_ADDRESS.toString()}),
   balances: {
     ar: 0,
     io: 0,
@@ -64,12 +71,19 @@ export class GlobalStateActionBase implements GlobalStateActions {
     this.set({ currentEpoch });
   };
 
-  updateWallet = (walletAddress?: ArweaveTransactionID, wallet?: ArweaveWalletConnector) => {
+  updateWallet = (
+    walletAddress?: ArweaveTransactionID,
+    wallet?: ArweaveWalletConnector,
+  ) => {
     this.set({ walletAddress, wallet });
   };
 
+  setArIOWriteableSDK = (arIOWriteableSDK: ArIOWritable) => {
+    this.set({ arIOWriteableSDK });
+  };
+
   setBalances = (ar: number, io: number) => {
-    this.set ({ balances: { ar, io } });
+    this.set({ balances: { ar, io } });
   };
 
   setWalletStateInitialized = (initialized: boolean) => {

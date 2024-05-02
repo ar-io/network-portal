@@ -30,6 +30,7 @@ export default {
       high: '#CACAD6',
       mid: '#A3A3AD',
       low: '#7F7F87',
+      link: '#A3A3AD',
     },
   },
   plugins: [require('tailwindcss-animate')],

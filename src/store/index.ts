@@ -3,6 +3,7 @@ import {
   ArIOReadable,
   ArIOWritable,
   EpochDistributionData,
+  Gateway,
 } from '@ar.io/sdk/web';
 import { ARNS_REGISTRY_ADDRESS, THEME_TYPES } from '@src/constants';
 import { ArweaveWalletConnector } from '@src/types';
@@ -21,6 +22,7 @@ export type GlobalState = {
   currentEpoch?: EpochDistributionData;
   walletAddress?: ArweaveTransactionID;
   wallet?: ArweaveWalletConnector;
+  gateway?: Gateway;
   balances: {
     ar: number;
     io: number;
@@ -36,6 +38,7 @@ export type GlobalStateActions = {
     walletAddress?: ArweaveTransactionID,
     wallet?: ArweaveWalletConnector,
   ) => void;
+  setGateway: (gateway?: Gateway) => void;
   setArIOWriteableSDK: (arIOWriteableSDK?: ArIOWritable) => void;
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
@@ -76,6 +79,10 @@ export class GlobalStateActionBase implements GlobalStateActions {
     wallet?: ArweaveWalletConnector,
   ) => {
     this.set({ walletAddress, wallet });
+  };
+
+  setGateway = (gateway?: Gateway) => {
+    this.set({ gateway });
   };
 
   setArIOWriteableSDK = (arIOWriteableSDK?: ArIOWritable) => {

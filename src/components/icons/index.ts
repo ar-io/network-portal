@@ -11,6 +11,8 @@ import DashboardIcon from './dashboard.svg?react';
 import DocsIcon from './docs.svg?react';
 import FormErrorIcon from './form_error.svg?react';
 import GatewaysIcon from './gateways.svg?react';
+import GatewayIcon from './gateway.svg?react';
+import GatewayHoverIcon from './gateway_hover.svg?react';
 import GearIcon from './gear.svg?react';
 import LinkArrowIcon from './link_arrow.svg?react';
 import LogoutIcon from './logout.svg?react';
@@ -32,6 +34,8 @@ export {
   DashboardIcon,
   DocsIcon,
   FormErrorIcon,
+  GatewayIcon,
+  GatewayHoverIcon,
   GatewaysIcon,
   GearIcon,
   LinkArrowIcon,

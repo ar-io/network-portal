@@ -1,3 +1,5 @@
+import { ArIO } from '@ar.io/sdk/web';
+import { ARNS_REGISTRY_ADDRESS } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
@@ -15,10 +17,15 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
   const setWalletStateInitialized = useGlobalState(
     (state) => state.setWalletStateInitialized,
   );
+
+  const wallet = useGlobalState((state) => state.wallet);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const setBalances = useGlobalState((state) => state.setBalances);
   const arweave = useGlobalState((state) => state.arweave);
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const setArIOWriteableSDK = useGlobalState(
+    (state) => state.setArIOWriteableSDK,
+  );
 
   useEffect(() => {
     window.addEventListener('arweaveWalletLoaded', updateIfConnected);
@@ -55,6 +62,22 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
       updateBalances(walletAddress);
     }
   }, [walletAddress, blockHeight, arIOReadSDK, arweave, setBalances]);
+
+  useEffect(() => {
+    if (wallet) {
+      const signer = wallet.signer;
+
+      if (signer) {
+        const writeable = ArIO.init({
+          contractTxId: ARNS_REGISTRY_ADDRESS.toString(),
+          signer,
+        });
+        setArIOWriteableSDK(writeable);
+      }
+    } else {
+      setArIOWriteableSDK(undefined);
+    }
+  }, [setArIOWriteableSDK, wallet]);
 
   const updateIfConnected = async () => {
     const walletType = window.localStorage.getItem('walletType');

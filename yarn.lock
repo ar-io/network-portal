@@ -25,10 +25,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@^1.0.5-alpha.2":
-  version "1.0.5-alpha.2"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.5-alpha.2.tgz#6c2540dc5395186800dc65dbe7605aeee6347599"
-  integrity sha512-8l3lMOy5OQqp3HSQChEXg0tQy09Mg2KvhvBgNnDSbYJZ5K3Ziu895MtNyJvDldtkohHQcH/jSz8kZTT6iXOLeQ==
+"@ar.io/sdk@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.5.tgz#3fc74936e7a1345c42e5f8ed6c46cfd3a5eb183f"
+  integrity sha512-oXIk5iQFIm0Qf0s2O4BXOxtvWQxvwTCBtTYXJokk+m4DsPxakAEMSLE3ko0JAUOU85fNCBGrSV4yqvsaeS3KQg==
   dependencies:
     arbundles "0.11.0"
     arweave "1.14.4"
@@ -5735,6 +5735,11 @@ globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
+goober@^2.1.10:
+  version "2.1.14"
+  resolved "https://registry.yarnpkg.com/goober/-/goober-2.1.14.tgz#4a5c94fc34dc086a8e6035360ae1800005135acd"
+  integrity sha512-4UpC0NdGyAFqLNPnhCT2iHpza2q+RAY3GV85a/mRPdzyPQMsj0KmMMuetdIkzWRbJ+Hgau1EZztq8ImmiMGhsg==
+
 gopd@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/gopd/-/gopd-1.0.1.tgz#29ff76de69dac7489b7c0918a5788e56477c332c"
@@ -8269,6 +8274,13 @@ react-dom@^18.2.0:
   dependencies:
     loose-envify "^1.1.0"
     scheduler "^0.23.0"
+
+react-hot-toast@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/react-hot-toast/-/react-hot-toast-2.4.1.tgz#df04295eda8a7b12c4f968e54a61c8d36f4c0994"
+  integrity sha512-j8z+cQbWIM5LY37pR6uZR6D4LfseplqnuAO4co4u8917hBUvXlEqyP1ZzqVLcqoyUesZZv/ImreoCeHVDpE5pQ==
+  dependencies:
+    goober "^2.1.10"
 
 react-is@^16.13.1, react-is@^16.7.0:
   version "16.13.1"

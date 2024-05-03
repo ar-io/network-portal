@@ -36,7 +36,7 @@ export type GlobalStateActions = {
     walletAddress?: ArweaveTransactionID,
     wallet?: ArweaveWalletConnector,
   ) => void;
-  setArIOWriteableSDK: (arIOWriteableSDK: ArIOWritable) => void;
+  setArIOWriteableSDK: (arIOWriteableSDK?: ArIOWritable) => void;
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
   reset: () => void;
@@ -45,7 +45,7 @@ export type GlobalStateActions = {
 export const initialGlobalState: GlobalState = {
   theme: THEME_TYPES.DARK,
   arweave: Arweave.init({}),
-  arIOReadSDK: ArIO.init({ contractTxId: ARNS_REGISTRY_ADDRESS.toString()}),
+  arIOReadSDK: ArIO.init({ contractTxId: ARNS_REGISTRY_ADDRESS.toString() }),
   balances: {
     ar: 0,
     io: 0,
@@ -78,7 +78,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
     this.set({ walletAddress, wallet });
   };
 
-  setArIOWriteableSDK = (arIOWriteableSDK: ArIOWritable) => {
+  setArIOWriteableSDK = (arIOWriteableSDK?: ArIOWritable) => {
     this.set({ arIOWriteableSDK });
   };
 

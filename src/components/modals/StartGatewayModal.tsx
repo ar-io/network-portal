@@ -6,6 +6,7 @@ import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
 import FormSwitch from '../forms/FormSwitch';
 import BaseModal from './BaseModal';
+import toast from 'react-hot-toast';
 
 const DEFAULT_FORM_STATE = {
   label: '',
@@ -37,6 +38,7 @@ const StartGatewayModal = ({
   onClose: () => void;
 }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
   const [formState, setFormState] =
     useState<Record<string, string>>(DEFAULT_FORM_STATE);
@@ -190,9 +192,38 @@ const StartGatewayModal = ({
     });
   };
 
-  const submitForm = () => {
-    if (isFormValid()) {
-      console.log('Form is valid');
+  const submitForm = async () => {
+    if (isFormValid() && arioWriteableSDK) {
+      try {
+
+        const { id:txID } = await arioWriteableSDK.joinNetwork({
+          // GatewayConnectionSettings
+          protocol: 'https',
+          fqdn: formState.address,
+          port: 443,
+
+          // GatewayMetadata
+          note: formState.note,
+          label: formState.label,
+          properties: propertiesIdEnabled ? formState.propertiesId : DEFAULT_FORM_STATE.propertiesId,
+          observerWallet: formState.observerWallet,
+
+          // GatewayStakingSettings
+          allowDelegatedStaking: delegatedStakingEnabled,
+          delegateRewardShareRatio: delegatedStakingEnabled
+            ? parseFloat(formState.delegatedStakingShareRatio)
+            : 0,
+          minDelegatedStake: delegatedStakingEnabled
+            ? parseFloat(formState.delegatedStaking)
+            : 100,
+          autoStake: true,
+
+          qty: parseFloat(formState.stake),
+        });
+        console.log('txID', txID);
+      } catch (e) {
+        toast.error("${e}");
+      }
     }
   };
 

@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 
-import Notifications from './Notifications';
 import Sidebar from './Sidebar';
+import { Toaster } from 'react-hot-toast';
 
 function AppRouterLayout() {
   return (
@@ -12,7 +12,7 @@ function AppRouterLayout() {
           <Outlet />
         </div>
       </div>
-      <Notifications />
+      <Toaster position='bottom-right'/>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { ARWEAVE_TX_REGEX } from '@ar.io/sdk/web';
 import { FQDN_REGEX } from '@src/constants';
 import { useGlobalState } from '@src/store';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
 import FormSwitch from '../forms/FormSwitch';
@@ -46,6 +46,13 @@ const StartGatewayModal = ({
     useState<boolean>(false);
   const [propertiesIdEnabled, setPropertiesIdEnabled] =
     useState<boolean>(false);
+
+  useEffect(() => {
+    setFormState({
+      ...formState,
+      observerWallet: walletAddress?.toString() ?? '',
+    });
+  }, [walletAddress]);
 
   const formRowDefs: FormRowDef[] = [
     {
@@ -103,6 +110,7 @@ const StartGatewayModal = ({
               }
               setPropertiesIdEnabled(v);
             }}
+            title={`${propertiesIdEnabled ? "Disable" : "Enable"} Custom Properties ID`}
           />
         </div>
       ),
@@ -138,6 +146,7 @@ const StartGatewayModal = ({
           <FormSwitch
             checked={delegatedStakingEnabled}
             onChange={setDelegatedStakingEnabled}
+            title={`${delegatedStakingEnabled ? "Disable" : "Enable"} Delegated Staking`}
           />
         </div>
       ),
@@ -186,7 +195,10 @@ const StartGatewayModal = ({
   };
 
   const resetForm = () => {
-    setFormState(DEFAULT_FORM_STATE);
+    setFormState({
+      ...DEFAULT_FORM_STATE,
+      observerWallet: walletAddress?.toString() ?? '',
+    });
     setDelegatedStakingEnabled(false);
     setPropertiesIdEnabled(false);
     setFormErrors({});

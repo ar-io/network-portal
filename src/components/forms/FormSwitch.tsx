@@ -3,9 +3,11 @@ import { Switch } from '@headlessui/react';
 const FormSwitch = ({
   checked,
   onChange,
+  title,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
+  title: string;
 }) => {
   return (
     <Switch
@@ -14,8 +16,9 @@ const FormSwitch = ({
       } relative inline-flex h-[18px] w-[30px] items-center rounded-full border border-transparent-100-8`}
       checked={checked}
       onChange={onChange}
+      title={title}
     >
-      <span className="sr-only">Enable notifications</span>
+      <span className="sr-only"></span>
       <span
         className={`${
           checked ? 'translate-x-[14px]' : 'translate-x-[2px]'

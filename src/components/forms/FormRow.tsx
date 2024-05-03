@@ -45,7 +45,7 @@ const FormRow = ({
           : '';
 
   const errorMessage = errorMessages[formPropertyName];
-  const hasError = enabled && errorMessage && errorMessage.trim().length > 0;
+  const hasError = enabled && errorMessage?.trim().length > 0;
 
   return (
     <>
@@ -74,6 +74,7 @@ const FormRow = ({
               }
               type="text"
               contentEditable={enabled}
+              readOnly={!enabled}
               placeholder={placeholder}
               value={enabled ? formState[formPropertyName] : ''}
               onChange={(e) => {

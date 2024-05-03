@@ -64,7 +64,7 @@ const StartGatewayModal = ({
       label: '*Label:',
       rowType: RowType.TOP,
       validateProperty: (v: string) => {
-        return v.trim() === '' ? 'Label is required' : undefined;
+        return v.trim().length > 0 && v.trim().length <= 64 ? 'Label is required and must be 1-64 characters in length.' : undefined;
       },
     },
     {
@@ -174,7 +174,7 @@ const StartGatewayModal = ({
       label: '*Note:',
       rowType: RowType.BOTTOM,
       validateProperty: (v: string) => {
-        return v.trim() === '' ? 'Note is required.' : undefined;
+        return v.trim().length > 0 && v.trim().length <= 256 ? 'Note is required and must be 1-256 characters in length.' : undefined;
       },
     },
   ];

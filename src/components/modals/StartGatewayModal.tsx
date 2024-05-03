@@ -48,9 +48,11 @@ const StartGatewayModal = ({
     useState<boolean>(false);
 
   useEffect(() => {
-    setFormState({
-      ...formState,
-      observerWallet: walletAddress?.toString() ?? '',
+    setFormState((currentState) => {
+      return {
+        ...currentState,
+        observerWallet: walletAddress?.toString() ?? '',
+      };
     });
   }, [walletAddress]);
 
@@ -110,7 +112,7 @@ const StartGatewayModal = ({
               }
               setPropertiesIdEnabled(v);
             }}
-            title={`${propertiesIdEnabled ? "Disable" : "Enable"} Custom Properties ID`}
+            title={`${propertiesIdEnabled ? 'Disable' : 'Enable'} Custom Properties ID`}
           />
         </div>
       ),
@@ -146,7 +148,7 @@ const StartGatewayModal = ({
           <FormSwitch
             checked={delegatedStakingEnabled}
             onChange={setDelegatedStakingEnabled}
-            title={`${delegatedStakingEnabled ? "Disable" : "Enable"} Delegated Staking`}
+            title={`${delegatedStakingEnabled ? 'Disable' : 'Enable'} Delegated Staking`}
           />
         </div>
       ),

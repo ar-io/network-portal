@@ -64,7 +64,7 @@ const StartGatewayModal = ({
       label: '*Label:',
       rowType: RowType.TOP,
       validateProperty: (v: string) => {
-        return v.trim().length > 0 && v.trim().length <= 64 ? 'Label is required and must be 1-64 characters in length.' : undefined;
+        return v.trim().length < 1 && v.trim().length > 64 ? 'Label is required and must be 1-64 characters in length.' : undefined;
       },
     },
     {
@@ -135,7 +135,7 @@ const StartGatewayModal = ({
       formPropertyName: 'delegatedStaking',
       label: 'Delegated Staking (IO):',
       enabled: delegatedStakingEnabled,
-      placeholder: 'Minimum 0.1 IO',
+      placeholder: delegatedStakingEnabled ? 'Minimum 0.1 IO' : "Delegated Staking Off",
       validateProperty: (v: string) => {
         if (!delegatedStakingEnabled) {
           return undefined;
@@ -174,7 +174,7 @@ const StartGatewayModal = ({
       label: '*Note:',
       rowType: RowType.BOTTOM,
       validateProperty: (v: string) => {
-        return v.trim().length > 0 && v.trim().length <= 256 ? 'Note is required and must be 1-256 characters in length.' : undefined;
+        return v.trim().length < 1 && v.trim().length > 256 ? 'Note is required and must be 1-256 characters in length.' : undefined;
       },
     },
   ];
@@ -221,8 +221,8 @@ const StartGatewayModal = ({
           qty: parseFloat(formState.stake),
         });
         console.log('txID', txID);
-      } catch (e) {
-        toast.error("${e}");
+      } catch (e: any) {
+        toast.error(`${e}`);
       }
     }
   };

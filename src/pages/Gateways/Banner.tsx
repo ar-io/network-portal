@@ -13,7 +13,7 @@ import { useState } from 'react';
 
 const InfoSection = (label: string, value: string) => {
   return (
-    <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r px-[48px] dark:border-transparent-100-8">
+    <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r px-[48px] text-left dark:border-transparent-100-8">
       <div className="pt-[4px] text-[12px] leading-none text-low">{label}</div>
       <div className="text-[12px] text-mid">{value}</div>
     </div>
@@ -35,7 +35,7 @@ const Banner = () => {
           `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`,
         ],
         ['Observer Wallet', formatWalletAddress(gateway.observerWallet)],
-        ['Joined', gateway.start],
+        ['Joined at', gateway.start],
         ['Stake (IO)', mioToIo(gateway.operatorStake)],
         ['Status', gateway.status],
         ['Reward Ratio', gateway.settings.delegateRewardShareRatio],
@@ -62,8 +62,8 @@ const Banner = () => {
         <BannerRightChevron className="invisible absolute right-[16px] top-[16px] group-hover:visible" />
         <div className="absolute top-0 z-10 flex size-full flex-col bg-transparent py-[24px] align-middle">
           <div className="flex items-center gap-[12px] pl-[24px]">
-            <GatewayIcon className='block group-hover:hidden'/>
-            <GatewayHoverIcon className='hidden group-hover:block'/>
+            <GatewayIcon className="block group-hover:hidden" />
+            <GatewayHoverIcon className="hidden group-hover:block" />
             <div className="group-hover:text-gradient text-sm text-high">
               My Gateway
             </div>
@@ -102,7 +102,6 @@ const Banner = () => {
           </div>
         </div>
         <StartGatewayCubes className="visible absolute left-[64px] top-0 z-0 group-hover:invisible" />
-        {/* <BannerRightChevron className="invisible absolute right-[16px] top-[16px] group-hover:visible" /> */}
         <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-[24px] align-middle">
           <div className="flex items-center gap-[8px]">
             <div className="text-gradient">Start your own gateway</div>{' '}

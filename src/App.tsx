@@ -15,10 +15,10 @@ import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
 
-const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+// const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Gateways = React.lazy(() => import('./pages/Gateways'));
-const Staking = React.lazy(() => import('./pages/Staking'));
-const Observers = React.lazy(() => import('./pages/Observers'));
+// const Staking = React.lazy(() => import('./pages/Staking'));
+// const Observers = React.lazy(() => import('./pages/Observers'));
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
 
@@ -26,8 +26,8 @@ function App() {
   const router = sentryCreateBrowserRouter(
     createRoutesFromElements(
       <Route element={<AppRouterLayout />} errorElement={<NotFound />}>
-        <Route index path="/" element={<Navigate to="/dashboard" />} />
-        <Route
+        <Route index path="/" element={<Navigate to="/gateways" />} />
+        {/* <Route
           path="dashboard"
           element={
             <Suspense fallback={<Loading />}>
@@ -35,7 +35,7 @@ function App() {
             </Suspense>
           }
         />
-        ,
+        , */}
         <Route
           path="gateways"
           element={
@@ -45,7 +45,7 @@ function App() {
           }
         />
         ,
-        <Route
+        {/* <Route
           path="staking"
           element={
             <Suspense fallback={<Loading />}>
@@ -62,7 +62,7 @@ function App() {
             </Suspense>
           }
         />
-        ,
+        , */}
         <Route path="*" element={<Navigate to="/" />} />
       </Route>,
     ),

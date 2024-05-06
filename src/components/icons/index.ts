@@ -20,6 +20,7 @@ import OpenDrawerIcon from './open_drawer.svg?react';
 import PinkArrowIcon from './pink_arrow.svg?react';
 import StakingIcon from './staking.svg?react';
 import StartGatewayCubes from './start_gateway_cubes.svg?react';
+import ToastCloseIcon from './toast_close.svg?react';
 import WalletIcon from './wallet.svg?react';
 
 export {
@@ -44,5 +45,6 @@ export {
   PinkArrowIcon,
   StakingIcon,
   StartGatewayCubes,
+  ToastCloseIcon,
   WalletIcon,
 };

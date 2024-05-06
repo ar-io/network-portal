@@ -20,13 +20,15 @@ export default {
       transparent: 'transparent',
       'gradient-primary-start': '#F7C3A1',
       'gradient-primary-end': '#DF9BE8',
+      'gradient-red-start': '#FFB4B4',
+      'gradient-red-end': '#FF6C6C',
       'btn-primary-base': '#0e0e0f',
       'btn-primary-gradient-start': 'rgba(102, 102, 102, 0.06)',
       'btn-primary-gradient-end': 'rgba(0, 0, 0 0.06)',
       'btn-primary-outer-gradient-start': '#EEB3BFA3',
       'btn-primary-outer-gradient-end': '#DF9BE808',
       divider: '#232329',
-      // these correspond to textHigh, textMid, textLow 
+      // these correspond to textHigh, textMid, textLow
       high: '#CACAD6',
       mid: '#A3A3AD',
       low: '#7F7F87',

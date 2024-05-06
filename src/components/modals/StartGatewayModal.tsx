@@ -2,11 +2,13 @@ import { ARWEAVE_TX_REGEX } from '@ar.io/sdk/web';
 import { FQDN_REGEX } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
 import FormSwitch from '../forms/FormSwitch';
 import BaseModal from './BaseModal';
-import toast from 'react-hot-toast';
+import BlockingMessageModal from './BlockingMessageModal';
+// import { ToastCloseIcon } from '../icons';
 
 const DEFAULT_FORM_STATE = {
   label: '',
@@ -49,6 +51,9 @@ const StartGatewayModal = ({
   const [propertiesIdEnabled, setPropertiesIdEnabled] =
     useState<boolean>(false);
 
+  const [showBlockingMessageModal, setShowBlockingMessageModal] =
+    useState(false);
+
   useEffect(() => {
     setFormState((currentState) => {
       return {
@@ -64,7 +69,9 @@ const StartGatewayModal = ({
       label: '*Label:',
       rowType: RowType.TOP,
       validateProperty: (v: string) => {
-        return v.trim().length < 1 && v.trim().length > 64 ? 'Label is required and must be 1-64 characters in length.' : undefined;
+        return v.trim().length < 1 || v.trim().length > 64
+          ? 'Label is required and must be 1-64 characters in length.'
+          : undefined;
       },
     },
     {
@@ -135,7 +142,9 @@ const StartGatewayModal = ({
       formPropertyName: 'delegatedStaking',
       label: 'Delegated Staking (IO):',
       enabled: delegatedStakingEnabled,
-      placeholder: delegatedStakingEnabled ? 'Minimum 0.1 IO' : "Delegated Staking Off",
+      placeholder: delegatedStakingEnabled
+        ? 'Minimum 0.1 IO'
+        : 'Delegated Staking Off',
       validateProperty: (v: string) => {
         if (!delegatedStakingEnabled) {
           return undefined;
@@ -174,7 +183,9 @@ const StartGatewayModal = ({
       label: '*Note:',
       rowType: RowType.BOTTOM,
       validateProperty: (v: string) => {
-        return v.trim().length < 1 && v.trim().length > 256 ? 'Note is required and must be 1-256 characters in length.' : undefined;
+        return v.trim().length < 1 || v.trim().length > 256
+          ? 'Note is required and must be 1-256 characters in length.'
+          : undefined;
       },
     },
   ];
@@ -195,8 +206,8 @@ const StartGatewayModal = ({
   const submitForm = async () => {
     if (isFormValid() && arioWriteableSDK) {
       try {
-
-        const { id:txID } = await arioWriteableSDK.joinNetwork({
+        setShowBlockingMessageModal(true);
+        const { id: txID } = await arioWriteableSDK.joinNetwork({
           // GatewayConnectionSettings
           protocol: 'https',
           fqdn: formState.address,
@@ -205,7 +216,9 @@ const StartGatewayModal = ({
           // GatewayMetadata
           note: formState.note,
           label: formState.label,
-          properties: propertiesIdEnabled ? formState.propertiesId : DEFAULT_FORM_STATE.propertiesId,
+          properties: propertiesIdEnabled
+            ? formState.propertiesId
+            : DEFAULT_FORM_STATE.propertiesId,
           observerWallet: formState.observerWallet,
 
           // GatewayStakingSettings
@@ -223,6 +236,8 @@ const StartGatewayModal = ({
         console.log('txID', txID);
       } catch (e: any) {
         toast.error(`${e}`);
+      } finally {
+        setShowBlockingMessageModal(false);
       }
     }
   };
@@ -269,6 +284,16 @@ const StartGatewayModal = ({
           <Button
             className="w-[100px]"
             onClick={closeDialog}
+            // onClick={() =>
+            //   toast.custom((t) => {
+            //     return (
+            //       <div className="flex rounded-xl bg-gradient-to-r from-gradient-red-start to-gradient-red-end px-3 py-2 text-sm text-neutrals-1100">
+            //         <div>uh oh big error message la la la al la la lalala</div>
+            //         <button onClick={() => toast.dismiss(t.id)}><ToastCloseIcon/></button>
+            //       </div>
+            //     );
+            //   })
+            // }
             active={true}
             title="Cancel"
             text="Cancel"
@@ -289,6 +314,11 @@ const StartGatewayModal = ({
             />
           </div>
         </div>
+        <BlockingMessageModal
+          open={showBlockingMessageModal}
+          onClose={() => setShowBlockingMessageModal(false)}
+          message="Sign the following data with your wallet to proceed."
+        ></BlockingMessageModal>
       </div>
     </BaseModal>
   );

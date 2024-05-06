@@ -8,7 +8,7 @@ import {
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StartGatewayModal from '@src/components/modals/StartGatewayModal';
 import { useGlobalState } from '@src/store';
-import { formatWalletAddress, mioToIo } from '@src/utils';
+import { formatWalletAddress, formatWithCommas, mioToIo } from '@src/utils';
 import { useState } from 'react';
 
 const InfoSection = (label: string, value: string) => {
@@ -36,7 +36,7 @@ const Banner = () => {
         ],
         ['Observer Wallet', formatWalletAddress(gateway.observerWallet)],
         ['Joined at', gateway.start],
-        ['Stake (IO)', mioToIo(gateway.operatorStake)],
+        ['Stake (IO)', formatWithCommas(mioToIo(gateway.operatorStake))],
         ['Status', gateway.status],
         ['Reward Ratio', gateway.settings.delegateRewardShareRatio],
       ]

@@ -1,5 +1,7 @@
 import { THEME_TYPES } from '../constants';
 
+const COMMA_NUMBER_FORMAT = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1});
+
 // for tailwind css, need the change the root
 export const applyThemePreference = (theme: string) => {
   const { DARK, LIGHT } = THEME_TYPES;
@@ -34,4 +36,9 @@ export const formatBalance = (ar: number) => {
 
 export function mioToIo(mio: number): number {
   return mio / 1_000_000;
+}
+
+/** Format number with commas, with maximum one fraction digit */
+export function formatWithCommas(num:number) {
+  return COMMA_NUMBER_FORMAT.format(num);
 }

@@ -1,6 +1,8 @@
-import { JoinNetworkParams } from '@ar.io/sdk';
 import { useGlobalState } from '@src/store';
-import { KEY_PENDING_JOIN_NETWORK_PARAMS } from '@src/store/persistent';
+import {
+  getPendingDataCache,
+  storePendingDataCache,
+} from '@src/store/persistent';
 import { formatWalletAddress, formatWithCommas, mioToIo } from '@src/utils';
 import { useEffect } from 'react';
 
@@ -12,15 +14,17 @@ export enum GatewayStatus {
 
 export const useGatewayInfo = () => {
   const gateway = useGlobalState((state) => state.gateway);
-  const pendingGateway = localStorage.getItem(KEY_PENDING_JOIN_NETWORK_PARAMS);
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const pendingDataCache = getPendingDataCache(walletAddress?.toString());
+  const pendingJoinNetworkParams = pendingDataCache.pendingJoinNetworkParams;
+
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const setGateway = useGlobalState((state) => state.setGateway);
 
   let gatewayInfo: Array<[string, string | number]>;
 
   useEffect(() => {
-    if (!gateway && walletAddress && pendingGateway) {
+    if (!gateway && walletAddress && pendingJoinNetworkParams) {
       const pollGateway = async () => {
         const gateway = await arIOReadSDK.getGateway({
           address: walletAddress.toString(),
@@ -34,11 +38,19 @@ export const useGatewayInfo = () => {
 
       return () => clearInterval(intervalId);
     }
-  }, [arIOReadSDK, gateway, pendingGateway, setGateway, walletAddress]);
+  }, [
+    arIOReadSDK,
+    gateway,
+    pendingJoinNetworkParams,
+    setGateway,
+    walletAddress,
+  ]);
 
   if (gateway) {
-    if (pendingGateway) {
-      localStorage.removeItem(KEY_PENDING_JOIN_NETWORK_PARAMS);
+    if (pendingJoinNetworkParams && walletAddress) {
+      const updated = { ...pendingDataCache };
+      delete updated.pendingJoinNetworkParams;
+      storePendingDataCache(walletAddress.toString(), updated);
     }
 
     gatewayInfo = [
@@ -53,10 +65,7 @@ export const useGatewayInfo = () => {
       ['Status', gateway.status],
       ['Reward Ratio', gateway.settings.delegateRewardShareRatio],
     ];
-  } else if (pendingGateway) {
-    const pendingJoinNetworkParams: JoinNetworkParams =
-      JSON.parse(pendingGateway);
-
+  } else if (pendingJoinNetworkParams) {
     const {
       label,
       protocol,
@@ -85,7 +94,7 @@ export const useGatewayInfo = () => {
 
   const gatewayStatus = gateway
     ? GatewayStatus.FOUND
-    : pendingGateway
+    : pendingJoinNetworkParams
       ? GatewayStatus.PENDING
       : GatewayStatus.NOT_FOUND;
 

@@ -1,7 +1,7 @@
 import { ARWEAVE_TX_REGEX, JoinNetworkParams } from '@ar.io/sdk/web';
 import { FQDN_REGEX } from '@src/constants';
 import { useGlobalState } from '@src/store';
-import { KEY_PENDING_JOIN_NETWORK_PARAMS } from '@src/store/persistent';
+import { updatePendingDataCache } from '@src/store/persistent';
 import { showErrorToast } from '@src/utils/toast';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
@@ -242,10 +242,12 @@ const StartGatewayModal = ({
         const { id: txID } =
           await arioWriteableSDK.joinNetwork(joinNetworkParams);
         console.log('Join Network txID:', txID);
-        localStorage.setItem(
-          KEY_PENDING_JOIN_NETWORK_PARAMS,
-          JSON.stringify(joinNetworkParams),
-        );
+
+        if (walletAddress) {
+          updatePendingDataCache(walletAddress?.toString(), {
+            pendingJoinNetworkParams: joinNetworkParams,
+          });
+        }
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);

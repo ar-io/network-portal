@@ -5,7 +5,13 @@ import {
   EpochDistributionData,
   Gateway,
 } from '@ar.io/sdk/web';
-import { ARNS_REGISTRY_ADDRESS, THEME_TYPES } from '@src/constants';
+import {
+  ARNS_REGISTRY_ADDRESS,
+  DEFAULT_ARWEAVE_HOST,
+  DEFAULT_ARWEAVE_PORT,
+  DEFAULT_ARWEAVE_PROTOCOL,
+  THEME_TYPES,
+} from '@src/constants';
 import { ArweaveWalletConnector } from '@src/types';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import Arweave from 'arweave/web';
@@ -47,7 +53,11 @@ export type GlobalStateActions = {
 
 export const initialGlobalState: GlobalState = {
   theme: THEME_TYPES.DARK,
-  arweave: Arweave.init({}),
+  arweave: Arweave.init({
+    host: DEFAULT_ARWEAVE_HOST,
+    protocol: DEFAULT_ARWEAVE_PROTOCOL,
+    port: DEFAULT_ARWEAVE_PORT,
+  }),
   arIOReadSDK: ArIO.init({ contractTxId: ARNS_REGISTRY_ADDRESS.toString() }),
   balances: {
     ar: 0,

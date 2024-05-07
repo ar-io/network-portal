@@ -9,6 +9,10 @@ export const ARNS_REGISTRY_ADDRESS = new ArweaveTransactionID(
 );
 export const GATEWAY_CONTRACT_URL = `https://viewblock.io/arweave/contract/${ARNS_REGISTRY_ADDRESS.toString()}`;
 
+export const DEFAULT_ARWEAVE_PROTOCOL = process.env.VITE_GATEWAY_PROTOCOL ?? 'https';
+export const DEFAULT_ARWEAVE_HOST = process.env.VITE_GATEWAY_HOST ?? 'ar-io.dev';
+export const DEFAULT_ARWEAVE_PORT = Number(process.env.VITE_GATEWAY_PORT) ?? 443;
+
 export const THEME_TYPES = {
   LIGHT: 'light',
   DARK: 'dark',

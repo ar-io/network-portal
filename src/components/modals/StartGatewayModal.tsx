@@ -2,15 +2,14 @@ import { ARWEAVE_TX_REGEX, JoinNetworkParams } from '@ar.io/sdk/web';
 import { FQDN_REGEX } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { KEY_PENDING_JOIN_NETWORK_PARAMS } from '@src/store/persistent';
+import { showErrorToast } from '@src/utils/toast';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
 import FormSwitch from '../forms/FormSwitch';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-// import { ToastCloseIcon } from '../icons';
 
 const DEFAULT_FORM_STATE = {
   label: '',
@@ -237,10 +236,11 @@ const StartGatewayModal = ({
           qty: parseFloat(formState.stake),
         };
 
-        // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK 
+        // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK
         // const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
         // await delay(5000);
-        const { id: txID } = await arioWriteableSDK.joinNetwork(joinNetworkParams);
+        const { id: txID } =
+          await arioWriteableSDK.joinNetwork(joinNetworkParams);
         console.log('Join Network txID:', txID);
         localStorage.setItem(
           KEY_PENDING_JOIN_NETWORK_PARAMS,
@@ -248,7 +248,7 @@ const StartGatewayModal = ({
         );
         setShowSuccessModal(true);
       } catch (e: any) {
-        toast.error(`${e}`);
+        showErrorToast(`${e}`);
       } finally {
         setShowBlockingMessageModal(false);
       }
@@ -297,17 +297,6 @@ const StartGatewayModal = ({
           <Button
             className="w-[100px]"
             onClick={closeDialog}
-            // onClick={() => toast.error('uh oh big error message la la la al la la lalala')}
-            // onClick={() =>
-            //   toast.custom((t) => {
-            //     return (
-            //       <div className="flex rounded-xl bg-gradient-to-r from-gradient-red-start to-gradient-red-end px-3 py-2 text-sm text-neutrals-1100">
-            //         <div>uh oh big error message la la la al la la lalala</div>
-            //         <button onClick={() => toast.dismiss(t.id)}><ToastCloseIcon/></button>
-            //       </div>
-            //     );
-            //   })
-            // }
             active={true}
             title="Cancel"
             text="Cancel"

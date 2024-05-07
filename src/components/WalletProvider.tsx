@@ -7,6 +7,7 @@ import { KEY_WALLET_TYPE } from '@src/store/persistent';
 import { WALLET_TYPES } from '@src/types';
 import { mioToIo } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
+import { showErrorToast } from '@src/utils/toast';
 import Ar from 'arweave/web/ar';
 import { ReactElement, useEffect } from 'react';
 
@@ -57,7 +58,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
 
           setBalances(arBalance, ioBalance);
         } catch (error) {
-          // eventEmitter.emit('error', error);
+          showErrorToast(`${error}`);
         }
       };
 
@@ -106,7 +107,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
         updateWallet(address, connector);
       }
     } catch (error) {
-      //   eventEmitter.emit('error', error);
+      showErrorToast(`${error}`);
     } finally {
       setWalletStateInitialized(true);
     }

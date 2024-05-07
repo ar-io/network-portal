@@ -7,48 +7,38 @@ import {
 } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StartGatewayModal from '@src/components/modals/StartGatewayModal';
+import { GatewayStatus, useGatewayInfo } from '@src/hooks/useGatewayInfo';
 import { useGlobalState } from '@src/store';
-import { formatWalletAddress, formatWithCommas, mioToIo } from '@src/utils';
 import { useState } from 'react';
 
-const InfoSection = (label: string, value: string) => {
+const InfoSection = ({ label, value }: { label: string; value: string }) => {
   return (
     <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r px-[48px] text-left dark:border-transparent-100-8">
       <div className="pt-[4px] text-[12px] leading-none text-low">{label}</div>
-      <div className="text-[12px] text-mid">{value}</div>
+      <div className="text-nowrap text-[12px] text-mid">{value}</div>
     </div>
   );
 };
 
 const Banner = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
-  const gateway = useGlobalState((state) => state.gateway);
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
-  const gatewayInfoToDisplay = gateway
-    ? [
-        ['Label', gateway.settings.label],
-        [
-          'Address',
-          `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`,
-        ],
-        ['Observer Wallet', formatWalletAddress(gateway.observerWallet)],
-        ['Joined at', gateway.start],
-        ['Stake (IO)', formatWithCommas(mioToIo(gateway.operatorStake))],
-        ['Status', gateway.status],
-        ['Reward Ratio', gateway.settings.delegateRewardShareRatio],
-      ]
-    : [];
+  const { gatewayInfo, gatewayStatus } = useGatewayInfo();
 
-  return gateway ? (
-    <div>
+  return gatewayStatus !== GatewayStatus.NOT_FOUND ? (
+    <div
+      className={
+        gatewayStatus == GatewayStatus.PENDING
+          ? 'pointer-events-none'
+          : undefined
+      }
+    >
       <button
         className="group relative mt-[24px] h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
-        onClick={() => {
-          // console.log(gateway);
-        }}
+        onClick={() => {}}
       >
         <div
           className="invisible size-full rounded-xl
@@ -69,9 +59,9 @@ const Banner = () => {
             </div>
           </div>
           <div className="mt-[12px] flex pl-[6px]">
-            {gatewayInfoToDisplay.map(([label, value]) =>
-              InfoSection(label as string, `${value}`),
-            )}
+            {gatewayInfo.map(([label, value], index) => (
+              <InfoSection key={index} label={label} value={`${value}`} />
+            ))}
           </div>
         </div>
       </button>

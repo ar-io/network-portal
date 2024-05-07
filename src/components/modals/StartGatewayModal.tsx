@@ -1,6 +1,7 @@
-import { ARWEAVE_TX_REGEX } from '@ar.io/sdk/web';
+import { ARWEAVE_TX_REGEX, JoinNetworkParams } from '@ar.io/sdk/web';
 import { FQDN_REGEX } from '@src/constants';
 import { useGlobalState } from '@src/store';
+import { KEY_PENDING_JOIN_NETWORK_PARAMS } from '@src/store/persistent';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import Button, { ButtonType } from '../Button';
@@ -8,6 +9,7 @@ import FormRow, { RowType } from '../forms/FormRow';
 import FormSwitch from '../forms/FormSwitch';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
+import SuccessModal from './SuccessModal';
 // import { ToastCloseIcon } from '../icons';
 
 const DEFAULT_FORM_STATE = {
@@ -53,6 +55,7 @@ const StartGatewayModal = ({
 
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     setFormState((currentState) => {
@@ -207,7 +210,7 @@ const StartGatewayModal = ({
     if (isFormValid() && arioWriteableSDK) {
       try {
         setShowBlockingMessageModal(true);
-        const { id: txID } = await arioWriteableSDK.joinNetwork({
+        const joinNetworkParams: JoinNetworkParams = {
           // GatewayConnectionSettings
           protocol: 'https',
           fqdn: formState.address,
@@ -232,8 +235,18 @@ const StartGatewayModal = ({
           autoStake: true,
 
           qty: parseFloat(formState.stake),
-        });
-        console.log('txID', txID);
+        };
+
+        // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK 
+        // const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+        // await delay(5000);
+        const { id: txID } = await arioWriteableSDK.joinNetwork(joinNetworkParams);
+        console.log('Join Network txID:', txID);
+        localStorage.setItem(
+          KEY_PENDING_JOIN_NETWORK_PARAMS,
+          JSON.stringify(joinNetworkParams),
+        );
+        setShowSuccessModal(true);
       } catch (e: any) {
         toast.error(`${e}`);
       } finally {
@@ -284,6 +297,7 @@ const StartGatewayModal = ({
           <Button
             className="w-[100px]"
             onClick={closeDialog}
+            // onClick={() => toast.error('uh oh big error message la la la al la la lalala')}
             // onClick={() =>
             //   toast.custom((t) => {
             //     return (
@@ -319,6 +333,16 @@ const StartGatewayModal = ({
           onClose={() => setShowBlockingMessageModal(false)}
           message="Sign the following data with your wallet to proceed."
         ></BlockingMessageModal>
+        <SuccessModal
+          open={showSuccessModal}
+          onClose={() => {
+            resetForm();
+            setShowSuccessModal(false);
+            onClose();
+          }}
+          title="Congratulations"
+          bodyText="You have successfully joined the network."
+        />
       </div>
     </BaseModal>
   );

@@ -76,10 +76,7 @@ export const Button = ({
         {icon}
         {text && (
           <div
-            className={
-              'flex grow items-center space-x-[4px] leading-none ' +
-              (icon ? 'justify-left' : 'justify-center')
-            }
+            className={`flex grow items-center space-x-[4px] leading-none ${icon ? 'justify-start' : 'justify-center'}`}
           >
             {text} {rightIcon}
           </div>

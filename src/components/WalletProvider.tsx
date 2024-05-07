@@ -3,6 +3,7 @@ import { ARNS_REGISTRY_ADDRESS } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
+import { KEY_WALLET_TYPE } from '@src/store/persistent';
 import { WALLET_TYPES } from '@src/types';
 import { mioToIo } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
@@ -95,7 +96,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
   }, [arIOReadSDK, setGateway, walletAddress]);
 
   const updateIfConnected = async () => {
-    const walletType = window.localStorage.getItem('walletType');
+    const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);
 
     try {
       if (walletType === WALLET_TYPES.ARCONNECT) {

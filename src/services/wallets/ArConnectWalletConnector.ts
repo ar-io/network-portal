@@ -6,6 +6,7 @@ import { ArconnectSigner } from '@ar.io/sdk/web';
 import { executeWithTimeout } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { ArweaveWalletConnector, WALLET_TYPES } from '../../types';
+import { KEY_WALLET_TYPE } from '@src/store/persistent';
 
 export const ARCONNECT_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
@@ -25,14 +26,6 @@ export class ArConnectWalletConnector implements ArweaveWalletConnector {
   constructor() {
     this._wallet = window?.arweaveWallet;
     this.signer = new ArconnectSigner(this._wallet, null as any);
-
-    // {
-    //   signer: async (transaction: Transaction) => {
-    //     const signedTransaction = await this._wallet.sign(transaction);
-    //     Object.assign(transaction, signedTransaction);
-    //   },
-    //   // type: 'arweave' as SignatureType,
-    // };
   }
 
   // The API has been shown to be unreliable, so we call each function with a timeout
@@ -60,7 +53,7 @@ export class ArConnectWalletConnector implements ArweaveWalletConnector {
       return;
     }
     // confirm they have the extension installed
-    localStorage.setItem('walletType', WALLET_TYPES.ARCONNECT);
+    localStorage.setItem(KEY_WALLET_TYPE, WALLET_TYPES.ARCONNECT);
     const permissions = await this.safeArconnectApiExecutor(
       this._wallet?.getPermissions,
     );
@@ -85,14 +78,14 @@ export class ArConnectWalletConnector implements ArweaveWalletConnector {
         // TODO: add arweave configs here
       )
       .catch((err) => {
-        localStorage.removeItem('walletType');
+        localStorage.removeItem(KEY_WALLET_TYPE);
         console.error(err);
         throw new ArconnectError('User cancelled authentication.');
       });
   }
 
   async disconnect(): Promise<void> {
-    localStorage.removeItem('walletType');
+    localStorage.removeItem(KEY_WALLET_TYPE);
     return this.safeArconnectApiExecutor(this._wallet?.disconnect);
   }
 

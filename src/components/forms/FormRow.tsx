@@ -57,10 +57,10 @@ const FormRow = ({
       <div>
         <div
           className={[
-            'h-[40px] overflow-hidden ',
+            'h-[40px] overflow-hidden from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r',
             hasError
-              ? 'bg-red-600 from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r'
-              : 'bg-grey-800 from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r focus-within:p-px',
+              ? 'bg-red-600'
+              : 'bg-grey-800 focus-within:p-px',
             roundStyle,
           ].join(' ')}
         >

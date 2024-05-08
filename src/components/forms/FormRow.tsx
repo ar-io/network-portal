@@ -8,6 +8,13 @@ export enum RowType {
   SINGLE,
 }
 
+const ROUND_STYLES = {
+  [RowType.TOP]: 'rounded-t-md',
+  [RowType.BOTTOM]: 'rounded-b-md',
+  [RowType.SINGLE]: 'rounded-md',
+  [RowType.MIDDLE]: '',
+};
+
 const FormRow = ({
   formPropertyName,
   formState,
@@ -35,14 +42,7 @@ const FormRow = ({
   rightComponent?: JSX.Element;
   validateProperty: (value: string) => string | undefined;
 }) => {
-  const roundStyle =
-    rowType === RowType.TOP
-      ? 'rounded-t-md'
-      : rowType === RowType.BOTTOM
-        ? 'rounded-b-md'
-        : rowType === RowType.SINGLE
-          ? 'rounded-md'
-          : '';
+  const roundStyle = ROUND_STYLES[rowType];
 
   const errorMessage = errorMessages[formPropertyName];
   const hasError = enabled && errorMessage?.trim().length > 0;

@@ -14,6 +14,7 @@ import GatewaysIcon from './gateways.svg?react';
 import GatewayIcon from './gateway.svg?react';
 import GatewayHoverIcon from './gateway_hover.svg?react';
 import GearIcon from './gear.svg?react';
+import HeaderSeparatorIcon from './header_separator.svg?react';
 import LinkArrowIcon from './link_arrow.svg?react';
 import LogoutIcon from './logout.svg?react';
 import OpenDrawerIcon from './open_drawer.svg?react';
@@ -40,6 +41,7 @@ export {
   GatewayHoverIcon,
   GatewaysIcon,
   GearIcon,
+  HeaderSeparatorIcon,
   LinkArrowIcon,
   LogoutIcon,
   OpenDrawerIcon,

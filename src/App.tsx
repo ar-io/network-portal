@@ -14,6 +14,7 @@ import WalletProvider from './components/WalletProvider';
 import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
+import Gateway from './pages/Gateway';
 
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Gateways = React.lazy(() => import('./pages/Gateways'));
@@ -36,6 +37,14 @@ function App() {
           }
         />
         , */}
+        <Route
+          path="gateways/:ownerId"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Gateway />
+            </Suspense>
+          }
+        />
         <Route
           path="gateways"
           element={

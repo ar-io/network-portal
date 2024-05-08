@@ -194,7 +194,8 @@ const StartGatewayModal = ({
 
   const isFormValid = () => {
     return formRowDefs.every((rowDef) => {
-      // compare against false as it could be undefined
+      // enabled value can be true, false, or undefined. We shortcircuit and accept the row
+      // as valid here only if the row definition is explicity set to false. 
       if (rowDef.enabled == false) {
         return true;
       }

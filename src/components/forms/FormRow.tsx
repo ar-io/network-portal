@@ -8,6 +8,13 @@ export enum RowType {
   SINGLE,
 }
 
+const ROUND_STYLES = {
+  [RowType.TOP]: 'rounded-t-md',
+  [RowType.BOTTOM]: 'rounded-b-md',
+  [RowType.SINGLE]: 'rounded-md',
+  [RowType.MIDDLE]: '',
+};
+
 const FormRow = ({
   formPropertyName,
   formState,
@@ -35,14 +42,7 @@ const FormRow = ({
   rightComponent?: JSX.Element;
   validateProperty: (value: string) => string | undefined;
 }) => {
-  const roundStyle =
-    rowType === RowType.TOP
-      ? 'rounded-t-md'
-      : rowType === RowType.BOTTOM
-        ? 'rounded-b-md'
-        : rowType === RowType.SINGLE
-          ? 'rounded-md'
-          : '';
+  const roundStyle = ROUND_STYLES[rowType];
 
   const errorMessage = errorMessages[formPropertyName];
   const hasError = enabled && errorMessage?.trim().length > 0;
@@ -57,10 +57,10 @@ const FormRow = ({
       <div>
         <div
           className={[
-            'h-[40px] overflow-hidden ',
+            'h-[40px] overflow-hidden from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r',
             hasError
-              ? 'bg-red-600 from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r'
-              : 'bg-grey-800 from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r focus-within:p-px',
+              ? 'bg-red-600'
+              : 'bg-grey-800 focus-within:p-px',
             roundStyle,
           ].join(' ')}
         >

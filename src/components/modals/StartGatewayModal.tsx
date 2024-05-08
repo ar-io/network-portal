@@ -22,6 +22,11 @@ const DEFAULT_FORM_STATE = {
   note: '',
 };
 
+const DEFAULT_PROTOCOL = 'https';
+const DEFAULT_PORT = 443;
+const DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO = 0;
+const DEFAULT_DELEGATED_STAKING = 100;
+
 interface FormRowDef {
   formPropertyName: string;
   label: string;
@@ -104,7 +109,7 @@ const StartGatewayModal = ({
       placeholder: DEFAULT_FORM_STATE.propertiesId,
       validateProperty: (v: string) => {
         return v.trim() === '' || !ARWEAVE_TX_REGEX.test(v)
-          ? 'Preoperties ID is required and must be a valid domain name.'
+          ? 'Properties ID is required and must be a valid domain name.'
           : undefined;
       },
       rightComponent: (
@@ -139,7 +144,6 @@ const StartGatewayModal = ({
           : undefined;
       },
     },
-
     {
       formPropertyName: 'delegatedStaking',
       label: 'Delegated Staking (IO):',
@@ -194,7 +198,8 @@ const StartGatewayModal = ({
 
   const isFormValid = () => {
     return formRowDefs.every((rowDef) => {
-      // compare against false as it could be undefined
+      // enabled value can be true, false, or undefined. We shortcircuit and accept the row
+      // as valid here only if the row definition is explicity set to false.
       if (rowDef.enabled == false) {
         return true;
       }
@@ -211,9 +216,9 @@ const StartGatewayModal = ({
         setShowBlockingMessageModal(true);
         const joinNetworkParams: JoinNetworkParams = {
           // GatewayConnectionSettings
-          protocol: 'https',
+          protocol: DEFAULT_PROTOCOL,
           fqdn: formState.address,
-          port: 443,
+          port: DEFAULT_PORT,
 
           // GatewayMetadata
           note: formState.note,
@@ -227,10 +232,10 @@ const StartGatewayModal = ({
           allowDelegatedStaking: delegatedStakingEnabled,
           delegateRewardShareRatio: delegatedStakingEnabled
             ? parseFloat(formState.delegatedStakingShareRatio)
-            : 0,
+            : DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO,
           minDelegatedStake: delegatedStakingEnabled
             ? parseFloat(formState.delegatedStaking)
-            : 100,
+            : DEFAULT_DELEGATED_STAKING,
           autoStake: true,
 
           qty: parseFloat(formState.stake),
@@ -244,7 +249,7 @@ const StartGatewayModal = ({
         console.log('Join Network txID:', txID);
 
         if (walletAddress) {
-          updatePendingDataCache(walletAddress?.toString(), {
+          updatePendingDataCache(walletAddress.toString(), {
             pendingJoinNetworkParams: joinNetworkParams,
           });
         }

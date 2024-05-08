@@ -21,7 +21,6 @@ const BlockingMessageModal = ({
             width={24}
             height={24}
           />
-          {/* <ConnectIcon className="size-[24px]" /> */}
         </div>
         <div className="text-sm text-mid">{message}</div>
       </div>

@@ -12,6 +12,8 @@ export enum GatewayStatus {
   NOT_FOUND,
 }
 
+const GATEWAY_POLLING_INTERVAL_MS = 15_000 // 15 seconds
+
 export const useGatewayInfo = () => {
   const gateway = useGlobalState((state) => state.gateway);
   const walletAddress = useGlobalState((state) => state.walletAddress);
@@ -34,7 +36,7 @@ export const useGatewayInfo = () => {
       pollGateway();
 
       // check every 15 seconds
-      const intervalId = setInterval(pollGateway, 15000);
+      const intervalId = setInterval(pollGateway, GATEWAY_POLLING_INTERVAL_MS);
 
       return () => clearInterval(intervalId);
     }

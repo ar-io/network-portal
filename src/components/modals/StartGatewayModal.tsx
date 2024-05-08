@@ -245,7 +245,7 @@ const StartGatewayModal = ({
         console.log('Join Network txID:', txID);
 
         if (walletAddress) {
-          updatePendingDataCache(walletAddress?.toString(), {
+          updatePendingDataCache(walletAddress.toString(), {
             pendingJoinNetworkParams: joinNetworkParams,
           });
         }

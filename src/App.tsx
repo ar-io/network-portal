@@ -1,5 +1,6 @@
 import '@fontsource/rubik';
 import { wrapCreateBrowserRouter } from '@sentry/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { Suspense } from 'react';
 import {
   Navigate,
@@ -12,9 +13,9 @@ import {
 import GlobalDataProvider from './components/GlobalDataProvider';
 import WalletProvider from './components/WalletProvider';
 import AppRouterLayout from './layout/AppRouterLayout';
+import Gateway from './pages/Gateway';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
-import Gateway from './pages/Gateway';
 
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Gateways = React.lazy(() => import('./pages/Gateways'));
@@ -22,6 +23,8 @@ const Gateways = React.lazy(() => import('./pages/Gateways'));
 // const Observers = React.lazy(() => import('./pages/Observers'));
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
+
+const queryClient = new QueryClient();
 
 function App() {
   const router = sentryCreateBrowserRouter(
@@ -78,11 +81,13 @@ function App() {
   );
 
   return (
-    <GlobalDataProvider>
-      <WalletProvider>
-        <RouterProvider router={router} />
-      </WalletProvider>
-    </GlobalDataProvider>
+    <QueryClientProvider client={queryClient}>
+      <GlobalDataProvider>
+        <WalletProvider>
+          <RouterProvider router={router} />
+        </WalletProvider>
+      </GlobalDataProvider>
+    </QueryClientProvider>
   );
 }
 

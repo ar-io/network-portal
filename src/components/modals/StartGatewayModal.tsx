@@ -88,7 +88,7 @@ const StartGatewayModal = ({
       label: '*Observer Wallet:',
       validateProperty: (v: string) => {
         return v.trim() === '' || !ARWEAVE_TX_REGEX.test(v)
-          ? 'Observer Wallet is required and must be a valid domain name.'
+          ? 'Observer Wallet is required and must be a valid wallet address.'
           : undefined;
       },
     },
@@ -99,7 +99,7 @@ const StartGatewayModal = ({
       placeholder: DEFAULT_FORM_STATE.propertiesId,
       validateProperty: (v: string) => {
         return v.trim() === '' || !ARWEAVE_TX_REGEX.test(v)
-          ? 'Properties ID is required and must be a valid domain name.'
+          ? 'Properties ID is required and must be a valid Arweave transaction ID.'
           : undefined;
       },
       rightComponent: (

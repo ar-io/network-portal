@@ -242,7 +242,6 @@ const StartGatewayModal = ({
         };
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK
-        // const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
         // await delay(5000);
         const { id: txID } =
           await arioWriteableSDK.joinNetwork(joinNetworkParams);

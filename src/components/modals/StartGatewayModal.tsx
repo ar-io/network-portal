@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
 import FormSwitch from '../forms/FormSwitch';
+import { FormRowDef, isFormValid } from '../forms/formData';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
@@ -26,17 +27,6 @@ const DEFAULT_PROTOCOL = 'https';
 const DEFAULT_PORT = 443;
 const DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO = 0;
 const DEFAULT_DELEGATED_STAKING = 100;
-
-interface FormRowDef {
-  formPropertyName: string;
-  label: string;
-  rowType?: RowType;
-  leftComponent?: JSX.Element;
-  rightComponent?: JSX.Element;
-  enabled?: boolean;
-  placeholder?: string;
-  validateProperty: (value: string) => string | undefined;
-}
 
 const StartGatewayModal = ({
   open,
@@ -196,22 +186,10 @@ const StartGatewayModal = ({
     },
   ];
 
-  const isFormValid = () => {
-    return formRowDefs.every((rowDef) => {
-      // enabled value can be true, false, or undefined. We shortcircuit and accept the row
-      // as valid here only if the row definition is explicity set to false.
-      if (rowDef.enabled == false) {
-        return true;
-      }
-      const errorMessage = rowDef.validateProperty(
-        formState[rowDef.formPropertyName],
-      );
-      return errorMessage === undefined;
-    });
-  };
-
   const submitForm = async () => {
-    if (isFormValid() && arioWriteableSDK) {
+    const formValid = isFormValid({ formRowDefs, formValues: formState });
+
+    if (formValid && arioWriteableSDK) {
       try {
         setShowBlockingMessageModal(true);
         const joinNetworkParams: JoinNetworkParams = {
@@ -309,7 +287,9 @@ const StartGatewayModal = ({
           />
           <div
             className={
-              isFormValid() ? undefined : 'pointer-events-none opacity-30'
+              isFormValid({ formRowDefs, formValues: formState })
+                ? undefined
+                : 'pointer-events-none opacity-30'
             }
           >
             <Button

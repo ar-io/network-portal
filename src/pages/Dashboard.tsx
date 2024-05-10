@@ -1,6 +1,6 @@
 import Header from "@src/components/Header";
 
-function Dashboard() {
+const Dashboard = () => {
   return (
     <div>
       <Header />

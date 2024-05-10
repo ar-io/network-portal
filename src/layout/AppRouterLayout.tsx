@@ -1,6 +1,5 @@
+import { Toaster } from 'react-hot-toast';
 import { Outlet } from 'react-router-dom';
-
-import Notifications from './Notifications';
 import Sidebar from './Sidebar';
 
 function AppRouterLayout() {
@@ -12,7 +11,10 @@ function AppRouterLayout() {
           <Outlet />
         </div>
       </div>
-      <Notifications />
+      <Toaster
+        containerStyle={{ position: 'fixed', zIndex: 99999 }}
+        position="bottom-right"
+      />
     </div>
   );
 }

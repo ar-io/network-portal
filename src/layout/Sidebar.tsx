@@ -2,25 +2,22 @@ import { ARIO_DOCS_URL, GATEWAY_CONTRACT_URL } from '@src/constants';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import Button from '@src/components/Button';
 import {
   ArioLogoIcon,
-  BinocularsIcon,
   CloseDrawerIcon,
   ContractIcon,
-  DashboardIcon,
   DocsIcon,
   GatewaysIcon,
   LinkArrowIcon,
   OpenDrawerIcon,
-  StakingIcon,
 } from '../components/icons';
-import Button from '@src/components/Button';
 
 const ROUTES_PRIMARY = [
-  { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  // { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { title: 'Gateways', icon: <GatewaysIcon />, path: '/gateways' },
-  { title: 'Staking', icon: <StakingIcon />, path: '/staking' },
-  { title: 'Observers', icon: <BinocularsIcon />, path: '/observers' },
+  // { title: 'Staking', icon: <StakingIcon />, path: '/staking' },
+  // { title: 'Observers', icon: <BinocularsIcon />, path: '/observers' },
 ];
 
 const ROUTES_SECONDARY = [
@@ -74,19 +71,19 @@ const Sidebar = () => {
       <div className="grow"></div>
       <hr className="text-divider" />
       <div className="py-[12px]">
-      {ROUTES_SECONDARY.map(({ title, icon, path }, index) => (
-        <Button
-          key={index}
-          className="w-full"
-          icon={icon}
-          rightIcon={<LinkArrowIcon />}
-          title={path}
-          text={sidebarOpen ? title : undefined}
-          onClick={() => {
-            window.open(path, '_blank');
-          }}
-        />
-      ))}
+        {ROUTES_SECONDARY.map(({ title, icon, path }, index) => (
+          <Button
+            key={index}
+            className="w-full"
+            icon={icon}
+            rightIcon={<LinkArrowIcon />}
+            title={path}
+            text={sidebarOpen ? title : undefined}
+            onClick={() => {
+              window.open(path, '_blank');
+            }}
+          />
+        ))}
       </div>
       <hr className="text-divider" />
       <div className="pt-[24px]">

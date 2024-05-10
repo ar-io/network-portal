@@ -1,13 +1,12 @@
 import { ArconnectError, WalletNotInstalledError } from '@src/utils/errors';
 import { PermissionType } from 'arconnect';
-import { ApiConfig } from 'arweave/node/lib/api';
-// import { CustomSignature, SignatureType, Transaction } from 'warp-contracts';
+import { ApiConfig } from 'arweave/web/lib/api';
 
-// import { ARCONNECT_UNRESPONSIVE_ERROR } from '../../components/layout/Notifications/Notifications';
-import { ArconnectSigner } from '@ar.io/sdk';
+import { ArconnectSigner } from '@ar.io/sdk/web';
 import { executeWithTimeout } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { ArweaveWalletConnector, WALLET_TYPES } from '../../types';
+import { KEY_WALLET_TYPE } from '@src/store/persistent';
 
 export const ARCONNECT_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
@@ -15,6 +14,7 @@ export const ARCONNECT_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_PUBLIC_KEY',
   'SIGN_TRANSACTION',
   'ACCESS_ARWEAVE_CONFIG',
+  'SIGNATURE',
 ];
 export const ARCONNECT_UNRESPONSIVE_ERROR =
   'There was an issue initializing ArConnect. Please reload the page to initialize.';
@@ -25,15 +25,7 @@ export class ArConnectWalletConnector implements ArweaveWalletConnector {
 
   constructor() {
     this._wallet = window?.arweaveWallet;
-    // this.signer = new ArconnectSigner(this._wallet, );
-
-    // {
-    //   signer: async (transaction: Transaction) => {
-    //     const signedTransaction = await this._wallet.sign(transaction);
-    //     Object.assign(transaction, signedTransaction);
-    //   },
-    //   // type: 'arweave' as SignatureType,
-    // };
+    this.signer = new ArconnectSigner(this._wallet, null as any);
   }
 
   // The API has been shown to be unreliable, so we call each function with a timeout
@@ -61,7 +53,7 @@ export class ArConnectWalletConnector implements ArweaveWalletConnector {
       return;
     }
     // confirm they have the extension installed
-    localStorage.setItem('walletType', WALLET_TYPES.ARCONNECT);
+    localStorage.setItem(KEY_WALLET_TYPE, WALLET_TYPES.ARCONNECT);
     const permissions = await this.safeArconnectApiExecutor(
       this._wallet?.getPermissions,
     );
@@ -86,15 +78,14 @@ export class ArConnectWalletConnector implements ArweaveWalletConnector {
         // TODO: add arweave configs here
       )
       .catch((err) => {
-        localStorage.removeItem('walletType');
+        localStorage.removeItem(KEY_WALLET_TYPE);
         console.error(err);
         throw new ArconnectError('User cancelled authentication.');
       });
-    // this.signer.signer.bind(this);
   }
 
   async disconnect(): Promise<void> {
-    localStorage.removeItem('walletType');
+    localStorage.removeItem(KEY_WALLET_TYPE);
     return this.safeArconnectApiExecutor(this._wallet?.disconnect);
   }
 

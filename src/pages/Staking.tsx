@@ -1,6 +1,6 @@
 import Header from '@src/components/Header';
 
-function Staking() {
+const Staking = () => {
   return (
     <div>
       <Header />

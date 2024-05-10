@@ -42,7 +42,7 @@ const Profile = () => {
       <Popover.Button as={CustomPopoverButton} />
 
       <Popover.Panel
-        className="absolute right-0 z-10 mt-[10px] w-[240px] 
+        className="absolute right-0 z-50 mt-[10px] w-[240px] 
       rounded-[12px] border border-grey-800 bg-grey-1000 px-[16px] text-sm shadow-md"
       >
         <div className="flex gap-[8px] py-[20px]">

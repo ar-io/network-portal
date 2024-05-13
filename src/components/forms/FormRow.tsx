@@ -1,11 +1,13 @@
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { FormErrorIcon } from '../icons';
+import { FormErrorIcon, ResetIcon } from '../icons';
+import FormSwitch from './FormSwitch';
 
 export enum RowType {
   TOP,
   MIDDLE,
   BOTTOM,
   SINGLE,
+  LAST // special hack for last row due to rounding of container vs form
 }
 
 const ROUND_STYLES = {
@@ -13,10 +15,21 @@ const ROUND_STYLES = {
   [RowType.BOTTOM]: 'rounded-b-md',
   [RowType.SINGLE]: 'rounded-md',
   [RowType.MIDDLE]: '',
+  [RowType.LAST]: 'rounded-bl-md rounded-br-xl',
 };
+
+const ModifiedDot = ({ className }: { className: string }) => (
+  <div className={`size-[15px] ${className}`}>
+    <div className={`absolute size-[15px] rounded-[10px] bg-green-600/20`} />
+    <div
+      className={`absolute left-[5px] top-[5px] size-[5px] rounded-[10px]  bg-green-600`}
+    />
+  </div>
+);
 
 const FormRow = ({
   formPropertyName,
+  initialState,
   formState,
   placeholder,
   enabled = true,
@@ -28,24 +41,48 @@ const FormRow = ({
   leftComponent,
   rightComponent,
   validateProperty,
+  readOnly,
 }: {
   formPropertyName: string;
   placeholder?: string;
   enabled?: boolean;
-  formState: Record<string, string>;
-  setFormState: (formState: Record<string, string>) => void;
+  initialState?: Record<string, string | boolean>;
+  formState: Record<string, string | boolean>;
+  setFormState: (formState: Record<string, string | boolean>) => void;
   errorMessages: Record<string, string>;
   setErrorMessages: (errorMessages: Record<string, string>) => void;
   label: string;
   rowType?: RowType;
   leftComponent?: JSX.Element;
   rightComponent?: JSX.Element;
-  validateProperty: (value: string) => string | undefined;
+  validateProperty?: (value: string) => string | undefined;
+  readOnly?: boolean;
 }) => {
   const roundStyle = ROUND_STYLES[rowType];
 
   const errorMessage = errorMessages[formPropertyName];
   const hasError = enabled && errorMessage?.trim().length > 0;
+
+  const value = formState[formPropertyName];
+
+  const modified = initialState && initialState[formPropertyName] !== value;
+
+  const clearFormError = () => {
+    const cleared = { ...errorMessages };
+    delete cleared[formPropertyName];
+    setErrorMessages(cleared);
+  }
+
+  const resetFormValue = () => {
+    if (initialState) {
+      setFormState({
+        ...formState,
+        [formPropertyName]: initialState[formPropertyName],
+      });
+      clearFormError();
+    }
+  };
+
 
   return (
     <>
@@ -54,13 +91,39 @@ const FormRow = ({
           {label}
         </div>
       </div>
-      <div>
+      {readOnly ? (
+        <div className="h-[40px] content-center border-b border-grey-800 px-[24px] text-sm text-low">
+          {value}
+        </div>
+      ) : typeof value === 'boolean' ? (
+        <div className="relative flex content-center items-center border-b border-grey-800 px-[24px] ">
+          <div className="h-[40px] grow content-center text-sm">
+            <span className={value ? 'text-green-600' : 'text-low'}>
+              {value ? 'Enabled' : 'Disabled'}
+            </span>
+          </div>
+          <FormSwitch
+            checked={value}
+            onChange={(v) => {
+              setFormState({
+                ...formState,
+                [formPropertyName]: v,
+              });
+            }}
+            title={`${value ? 'Disable' : 'Enable'} ${label}`}
+          />
+
+          {modified && 
+          
+              // using fixed position to avoid the modified dot from being clipped by the overflow-hidden parent
+              // may need to revisit if form parent placement changes to not be flush right with viewport 
+          <ModifiedDot className="fixed right-[17.5px] z-10" />}
+        </div>
+      ) : (
         <div
           className={[
-            'h-[40px] overflow-hidden from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r',
-            hasError
-              ? 'bg-red-600'
-              : 'bg-grey-800 focus-within:p-px',
+            'relative h-[40px] overflow-hidden from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r',
+            hasError ? 'bg-red-600' : 'bg-grey-800 focus-within:p-px',
             roundStyle,
           ].join(' ')}
         >
@@ -70,18 +133,16 @@ const FormRow = ({
             {leftComponent}
             <input
               className={
-                'size-full overflow-hidden border-none bg-grey-1000 px-[24px] py-[12px] text-sm text-mid outline-none placeholder:text-grey-600 focus:text-high'
+                'size-full overflow-hidden border-none bg-grey-1000 px-[24px] py-[12px] text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
               }
               type="text"
-              contentEditable={enabled}
+              disabled={!enabled}
               readOnly={!enabled}
               placeholder={placeholder}
-              value={enabled ? formState[formPropertyName] : ''}
+              value={enabled ? value : ''}
               onChange={(e) => {
                 if (hasError) {
-                  const cleared = { ...errorMessages };
-                  delete cleared[formPropertyName];
-                  setErrorMessages(cleared);
+                  clearFormError();
                 }
                 setFormState({
                   ...formState,
@@ -89,18 +150,17 @@ const FormRow = ({
                 });
               }}
               onBlur={() => {
-                const errMessage = validateProperty(
-                  formState[formPropertyName],
-                );
+                if (readOnly || !enabled) return;
+                if (!validateProperty)
+                  throw new Error('validateProperty is required');
+                const errMessage = validateProperty(value);
                 if (errMessage) {
                   setErrorMessages({
                     ...errorMessages,
                     [formPropertyName]: errMessage,
                   });
                 } else {
-                  const cleared = { ...errorMessages };
-                  delete cleared[formPropertyName];
-                  setErrorMessages(cleared);
+                  clearFormError();
                 }
               }}
             />
@@ -123,10 +183,20 @@ const FormRow = ({
                 </Tooltip.Provider>
               </div>
             )}
+            {initialState && initialState[formPropertyName] !== value && (
+              <button className="pr-[16px]" onClick={resetFormValue}>
+                <ResetIcon />
+              </button>
+            )}
             {rightComponent}
+            {modified && (
+              // using fixed position to avoid the modified dot from being clipped by the overflow-hidden parent
+              // may need to revisit if form parent placement changes to not be flush right with viewport 
+              <ModifiedDot className="fixed right-[17.5px] z-10" />
+            )}
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 };

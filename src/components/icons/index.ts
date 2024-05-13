@@ -20,6 +20,7 @@ import LinkArrowIcon from './link_arrow.svg?react';
 import LogoutIcon from './logout.svg?react';
 import OpenDrawerIcon from './open_drawer.svg?react';
 import PinkArrowIcon from './pink_arrow.svg?react';
+import ResetIcon from './reset.svg?react';
 import StakingIcon from './staking.svg?react';
 import StartGatewayCubes from './start_gateway_cubes.svg?react';
 import StatsArrowIcon from './stats_arrow.svg?react';
@@ -49,6 +50,7 @@ export {
   LogoutIcon,
   OpenDrawerIcon,
   PinkArrowIcon,
+  ResetIcon,
   StakingIcon,
   StartGatewayCubes,
   StatsArrowIcon,

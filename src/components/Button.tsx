@@ -10,6 +10,7 @@ export const Button = ({
   forwardRef,
   className,
   buttonType = ButtonType.SECONDARY,
+  secondaryGradient = false,
   icon,
   rightIcon,
   title,
@@ -20,6 +21,7 @@ export const Button = ({
   forwardRef?: LegacyRef<HTMLButtonElement>;
   className?: string;
   buttonType?: ButtonType;
+  secondaryGradient?: boolean;
   icon?: ReactElement;
   rightIcon?: ReactElement;
   title: string;
@@ -76,7 +78,7 @@ export const Button = ({
         {icon}
         {text && (
           <div
-            className={`flex grow items-center space-x-[4px] leading-none ${icon ? 'justify-start' : 'justify-center'}`}
+            className={`flex grow items-center space-x-[4px] leading-none ${secondaryGradient ? 'text-gradient' : ''} ${icon ? 'justify-start' : 'justify-center'}`}
           >
             {text} {rightIcon}
           </div>

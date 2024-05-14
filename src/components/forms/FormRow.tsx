@@ -183,13 +183,13 @@ const FormRow = ({
                 </Tooltip.Provider>
               </div>
             )}
-            {initialState && initialState[formPropertyName] !== value && (
+            {enabled && initialState && initialState[formPropertyName] !== value && (
               <button className="pr-[16px]" onClick={resetFormValue}>
                 <ResetIcon />
               </button>
             )}
             {rightComponent}
-            {modified && (
+            {enabled && modified && (
               // using fixed position to avoid the modified dot from being clipped by the overflow-hidden parent
               // may need to revisit if form parent placement changes to not be flush right with viewport 
               <ModifiedDot className="fixed right-[17.5px] z-10" />

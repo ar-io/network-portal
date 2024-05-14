@@ -1,3 +1,4 @@
+import { UpdateGatewaySettingsParams } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import FormRow, { RowType } from '@src/components/forms/FormRow';
@@ -8,17 +9,20 @@ import {
 } from '@src/components/forms/formData';
 import {
   validateDomainName,
-  validateIOMinimum,
+  validateIOAmount,
   validateNumberRange,
   validateString,
   validateTransactionId,
   validateWalletAddress,
 } from '@src/components/forms/validation';
 import { EditIcon, StatsArrowIcon } from '@src/components/icons';
+import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
+import SuccessModal from '@src/components/modals/SuccessModal';
 import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { useGlobalState } from '@src/store';
 import { mioToIo } from '@src/utils';
+import { showErrorToast } from '@src/utils/toast';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
@@ -57,6 +61,8 @@ const formatUptime = (uptime: number) => {
 
 const Gateway = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const balances = useGlobalState((state) => state.balances);
 
   const params = useParams();
 
@@ -84,11 +90,14 @@ const Gateway = () => {
   );
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // const [showBlockingMessageModal, setShowBlockingMessageModal] =
-  //   useState(false);
-  // const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showBlockingMessageModal, setShowBlockingMessageModal] =
+    useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
+  const maxStake = gateway?.operatorStake
+    ? mioToIo(gateway.operatorStake) + (balances?.io || 0)
+    : undefined;
 
   useEffect(() => {
     setInitialState((currentState) => {
@@ -105,22 +114,25 @@ const Gateway = () => {
     });
   }, [walletAddress]);
 
-
-  // This updates the form when the user toggles the delegated staking switch to false to reset the 
-  // form values and error messages back to the initial state. 
+  // This updates the form when the user toggles the delegated staking switch to false to reset the
+  // form values and error messages back to the initial state.
   useEffect(() => {
-    if(formState.allowDelegatedStaking == false) {
-      const updatedState:Record<string, string | boolean> = {};
+    if (formState.allowDelegatedStaking == false) {
+      const updatedState: Record<string, string | boolean> = {};
 
-      if(formState.delegatedStakingShareRatio !== initialState.delegatedStakingShareRatio) {
-        updatedState.delegatedStakingShareRatio = initialState.delegatedStakingShareRatio;
+      if (
+        formState.delegateRewardShareRatio !==
+        initialState.delegateRewardShareRatio
+      ) {
+        updatedState.delegateRewardShareRatio =
+          initialState.delegateRewardShareRatio;
       }
-      if(formState.minDelegatedStake !== initialState.minDelegatedStake) {
+      if (formState.minDelegatedStake !== initialState.minDelegatedStake) {
         updatedState.minDelegatedStake = initialState.minDelegatedStake;
       }
 
-      if(Object.keys(updatedState).length > 0) {
-        const updatedErrors = {...formErrors};
+      if (Object.keys(updatedState).length > 0) {
+        const updatedErrors = { ...formErrors };
         Object.keys(updatedState).forEach((key) => {
           delete updatedErrors[key];
         });
@@ -132,10 +144,9 @@ const Gateway = () => {
             ...updatedState,
           };
         });
-
       }
     }
-  }, [initialState, formState, formErrors])
+  }, [initialState, formState, formErrors]);
 
   const formRowDefs: FormRowDef[] = [
     {
@@ -145,7 +156,7 @@ const Gateway = () => {
       validateProperty: validateString('Label', 1, 64),
     },
     {
-      formPropertyName: 'address',
+      formPropertyName: 'fqdn',
       label: 'Address:',
       rowType: RowType.BOTTOM,
       leftComponent: <div className="pl-[24px] text-xs text-low">https://</div>,
@@ -154,7 +165,7 @@ const Gateway = () => {
     },
     {
       formPropertyName: 'ownerId',
-      label: 'Owner ID:',
+      label: 'Owner Wallet:',
       rowType: RowType.SINGLE,
       readOnly: true,
     },
@@ -165,17 +176,17 @@ const Gateway = () => {
       validateProperty: validateWalletAddress('Observer Wallet'),
     },
     {
-      formPropertyName: 'propertiesId',
+      formPropertyName: 'properties',
       label: 'Properties ID:',
       rowType: RowType.MIDDLE,
       validateProperty: validateTransactionId('Properties ID'),
     },
     {
       formPropertyName: 'stake',
-      label: 'Stake (IO):',
+      label: 'Gateway Stake (IO):',
       rowType: RowType.BOTTOM,
       placeholder: 'Minimum 10000 IO',
-      validateProperty: validateIOMinimum('Stake', 10000),
+      validateProperty: validateIOAmount('Stake', 10000, maxStake),
     },
     {
       formPropertyName: 'status',
@@ -191,7 +202,7 @@ const Gateway = () => {
     },
     {
       formPropertyName: 'delegatedStake',
-      label: 'Delegated Stake (IO):',
+      label: 'Total Delegated Stake (IO):',
       rowType: RowType.SINGLE,
       readOnly: true,
     },
@@ -206,7 +217,7 @@ const Gateway = () => {
       rowType: RowType.SINGLE,
     },
     {
-      formPropertyName: 'delegatedStakingShareRatio',
+      formPropertyName: 'delegateRewardShareRatio',
       label: 'Reward Share Ratio:',
       rowType: RowType.TOP,
       enabled: delegatedStakingEnabled,
@@ -223,24 +234,24 @@ const Gateway = () => {
       placeholder: delegatedStakingEnabled
         ? 'Minimum 100 IO'
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOMinimum('Minumum Delegated Stake ', 100),
+      validateProperty: validateIOAmount('Minumum Delegated Stake ', 100),
     },
   ];
 
   const startEditing = () => {
     const initialState = {
       label: gateway?.settings.label || '',
-      address: gateway?.settings.fqdn || '',
+      fqdn: gateway?.settings.fqdn || '',
       ownerId: ownerId || '',
       observerWallet: gateway?.observerWallet || '',
-      propertiesId: gateway?.settings.properties || '',
+      properties: gateway?.settings.properties || '',
       stake: mioToIo(gateway?.operatorStake || 0) + '',
       status: gateway?.status || '',
       note: gateway?.settings.note || '',
       delegatedStake: (gateway?.totalDelegatedStake || 0) + '',
       autoStake: gateway?.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
-      delegatedStakingShareRatio:
+      delegateRewardShareRatio:
         (gateway?.settings.delegateRewardShareRatio || 0) + '',
       minDelegatedStake: (gateway?.settings.minDelegatedStake || 0) + '',
     };
@@ -250,6 +261,87 @@ const Gateway = () => {
   };
 
   const numFormChanges = calculateNumFormChanges({ initialState, formState });
+
+  const submitForm = async () => {
+    if (
+      arIOWriteableSDK &&
+      isFormValid({ formRowDefs, formValues: formState })
+    ) {
+      // saveGatewayChanges();
+
+      const changed = Object.keys(formState).reduce(
+        (acc, key) => {
+          return formState[key] !== initialState[key]
+            ? { ...acc, [key]: formState[key] }
+            : acc;
+        },
+        {} as Record<string, string | number | boolean>,
+      );
+
+      // split possible args for transactions
+      const operatorStake = changed.stake
+        ? parseFloat(changed.stake as string)
+        : undefined;
+
+      const updateGatewaySettingsParams: UpdateGatewaySettingsParams = {
+        allowDelegatedStaking: changed.allowDelegatedStaking as boolean,
+        delegateRewardShareRatio:
+          changed.allowDelegatedStaking && changed.delegateRewardShareRatio
+            ? parseFloat(changed.delegateRewardShareRatio as string)
+            : undefined,
+        fqdn: changed.fqdn as string,
+        label: changed.label as string,
+        minDelegatedStake:
+          changed.allowDelegatedStaking && changed.minDelegatedStake
+            ? parseFloat(changed.minDelegatedStake as string)
+            : undefined,
+        note: changed.note as string,
+        properties: changed.properties as string,
+        autoStake: changed.autoStake as boolean,
+
+        //FIXME - add property for Observer Wallet when
+        //added to ar.io SDK
+      };
+
+      console.log(operatorStake, updateGatewaySettingsParams);
+
+      setShowBlockingMessageModal(true);
+
+      try {
+        if (
+          Object.values(updateGatewaySettingsParams).some(
+            (v) => v !== undefined,
+          )
+        ) {
+          const { id: txID } = await arIOWriteableSDK.updateGatewaySettings(
+            updateGatewaySettingsParams,
+          );
+          console.log(txID);
+        }
+
+        if (operatorStake !== undefined && gateway) {
+          const stakeDiff = operatorStake - mioToIo(gateway.operatorStake || 0);
+
+          if (stakeDiff > 0) {
+            const { id: txID } = await arIOWriteableSDK.increaseOperatorStake({
+              qty: stakeDiff,
+            });
+            console.log(txID);
+          } else if (stakeDiff < 0) {
+            const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake({
+              qty: Math.abs(stakeDiff),
+            });
+            console.log(txID);
+          }
+        }
+        setShowSuccessModal(true);
+      } catch (e: any) {
+        showErrorToast(`${e}`);
+      } finally {
+        setShowBlockingMessageModal(false);
+      }
+    }
+  };
 
   return (
     <div>
@@ -303,10 +395,7 @@ const Gateway = () => {
                       text={`Save ${numFormChanges} changes`}
                       buttonType={ButtonType.SECONDARY}
                       secondaryGradient={true}
-                      onClick={() => {
-                        // saveGatewayChanges();
-                        setEditing(false);
-                      }}
+                      onClick={submitForm}
                     />
                   ) : (
                     <></>
@@ -344,6 +433,24 @@ const Gateway = () => {
           )}
         </div>
       </div>
+      {showBlockingMessageModal && (
+        <BlockingMessageModal
+          open={showBlockingMessageModal}
+          onClose={() => setShowBlockingMessageModal(false)}
+          message="Sign the following data with your wallet to proceed."
+        ></BlockingMessageModal>
+      )}
+      {showSuccessModal && (
+        <SuccessModal
+          open={showSuccessModal}
+          onClose={() => {
+            setShowSuccessModal(false);
+            setEditing(false);
+          }}
+          title="Congratulations"
+          bodyText="You have successfully updated your gateway."
+        />
+      )}
     </div>
   );
 };

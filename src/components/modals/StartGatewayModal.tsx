@@ -9,7 +9,7 @@ import FormSwitch from '../forms/FormSwitch';
 import { FormRowDef, isFormValid } from '../forms/formData';
 import {
   validateDomainName,
-  validateIOMinimum,
+  validateIOAmount,
   validateNumberRange,
   validateString,
   validateTransactionId,
@@ -118,7 +118,7 @@ const StartGatewayModal = ({
       formPropertyName: 'stake',
       label: '*Stake (IO):',
       placeholder: 'Minimum 10000 IO',
-      validateProperty: validateIOMinimum('Stake', 10000),
+      validateProperty: validateIOAmount('Stake', 10000),
     },
     {
       formPropertyName: 'minDelegatedStake',
@@ -127,7 +127,7 @@ const StartGatewayModal = ({
       placeholder: delegatedStakingEnabled
         ? 'Minimum 100 IO'
         : 'Delegated Staking Off',
-      validateProperty: validateIOMinimum('Minimum Delegated Stake', 100),
+      validateProperty: validateIOAmount('Minimum Delegated Stake', 100),
       rightComponent: (
         <div className="pr-[12px]">
           <FormSwitch

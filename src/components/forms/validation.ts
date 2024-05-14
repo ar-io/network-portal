@@ -46,13 +46,20 @@ export const validateTransactionId = (
   };
 };
 
-export const validateIOMinimum = (
+export const validateIOAmount = (
   propertyName: string,
   min: number,
+  max?: number,
 ): FormValidationFunction => {
   return (v: string) => {
     const value = parseFloat(v);
-    return value < min || isNaN(value)
+
+    if(max) {
+      return value < min || value > max || isNaN(v as unknown as number)
+        ? `${propertyName} must be a number from ${min} to ${max} IO.`
+        : undefined;
+    }
+    return value < min || isNaN(v as unknown as number)
       ? `${propertyName} must be a number >= ${min} IO.`
       : undefined;
   };

@@ -69,7 +69,7 @@ const PropertyDisplayPanel = ({
           value: gateway?.settings.delegateRewardShareRatio,
         },
         {
-          label: 'Minimum Delegated Stake',
+          label: 'Minimum Delegated Stake (IO)',
           value: gateway?.settings.minDelegatedStake,
         },
       ]
@@ -78,22 +78,22 @@ const PropertyDisplayPanel = ({
   const gatewayRows = [
     { label: 'Label:', value: gateway?.settings.label },
     { label: 'Address:', value: gatewayAddress, type: 'link' },
-    { label: 'Owner ID:', value: ownerId, type: 'address' },
-    { label: 'Observer ID:', value: gateway?.observerWallet, type: 'address' },
+    { label: 'Owner Wallet:', value: ownerId, type: 'address' },
+    { label: 'Observer Wallet:', value: gateway?.observerWallet, type: 'address' },
     {
       label: 'Properties ID:',
       value: gateway?.settings.properties,
       type: 'tx',
     },
     {
-      label: 'Gateway Stake:',
+      label: 'Gateway Stake (IO):',
       value: gateway?.operatorStake
         ? mioToIo(gateway?.operatorStake)
         : undefined,
     },
     { label: 'Status:', value: gateway?.status },
     { label: 'Note:', value: gateway?.settings.note },
-    { label: 'Delegated Stake:', value: gateway?.totalDelegatedStake },
+    { label: 'Total Delegated Stake (IO):', value: gateway?.totalDelegatedStake },
     { label: 'Reward Auto Stake:', value: gateway?.settings.autoStake },
     {
       label: 'Delegated Staking:',

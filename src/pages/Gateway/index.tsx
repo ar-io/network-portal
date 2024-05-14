@@ -239,21 +239,23 @@ const Gateway = () => {
   ];
 
   const startEditing = () => {
+    if (!gateway) return;
+
     const initialState = {
-      label: gateway?.settings.label || '',
-      fqdn: gateway?.settings.fqdn || '',
+      label: gateway.settings.label || '',
+      fqdn: gateway.settings.fqdn || '',
       ownerId: ownerId || '',
-      observerWallet: gateway?.observerWallet || '',
-      properties: gateway?.settings.properties || '',
-      stake: mioToIo(gateway?.operatorStake || 0) + '',
-      status: gateway?.status || '',
-      note: gateway?.settings.note || '',
-      delegatedStake: (gateway?.totalDelegatedStake || 0) + '',
-      autoStake: gateway?.settings.autoStake || false,
+      observerWallet: gateway.observerWallet || '',
+      properties: gateway.settings.properties || '',
+      stake: mioToIo(gateway.operatorStake || 0) + '',
+      status: gateway.status || '',
+      note: gateway.settings.note || '',
+      delegatedStake: mioToIo(gateway.totalDelegatedStake || 0) + '',
+      autoStake: gateway.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
       delegateRewardShareRatio:
-        (gateway?.settings.delegateRewardShareRatio || 0) + '',
-      minDelegatedStake: (gateway?.settings.minDelegatedStake || 0) + '',
+        (gateway.settings.delegateRewardShareRatio || 0) + '',
+      minDelegatedStake: mioToIo(gateway.settings.minDelegatedStake || 0) + '',
     };
     setInitialState(initialState);
     setFormState(initialState);

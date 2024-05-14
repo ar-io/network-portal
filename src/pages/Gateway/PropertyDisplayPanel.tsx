@@ -70,7 +70,7 @@ const PropertyDisplayPanel = ({
         },
         {
           label: 'Minimum Delegated Stake (IO)',
-          value: gateway?.settings.minDelegatedStake,
+          value: mioToIo(gateway?.settings.minDelegatedStake || 0),
         },
       ]
     : [];
@@ -93,7 +93,7 @@ const PropertyDisplayPanel = ({
     },
     { label: 'Status:', value: gateway?.status },
     { label: 'Note:', value: gateway?.settings.note },
-    { label: 'Total Delegated Stake (IO):', value: gateway?.totalDelegatedStake },
+    { label: 'Total Delegated Stake (IO):', value: mioToIo(gateway?.totalDelegatedStake || 0)},
     { label: 'Reward Auto Stake:', value: gateway?.settings.autoStake },
     {
       label: 'Delegated Staking:',

@@ -20,7 +20,12 @@ import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
 import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
-import { useGlobalState } from '@src/store';
+import usePendingGatewayUpdates from '@src/hooks/usePendingGatewayUpdates';
+import { PendingGatewayUpdates, useGlobalState } from '@src/store';
+import {
+  GatewaySettingsUpdate,
+  OperatorStakeUpdate,
+} from '@src/store/persistent';
 import { mioToIo } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useEffect, useState } from 'react';
@@ -63,6 +68,8 @@ const Gateway = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const balances = useGlobalState((state) => state.balances);
+
+  const { addPendingGatewayUpdates } = usePendingGatewayUpdates();
 
   const params = useParams();
 
@@ -266,6 +273,7 @@ const Gateway = () => {
 
   const submitForm = async () => {
     if (
+      walletAddress &&
       arIOWriteableSDK &&
       isFormValid({ formRowDefs, formValues: formState })
     ) {
@@ -307,6 +315,11 @@ const Gateway = () => {
 
       setShowBlockingMessageModal(true);
 
+      const updates: PendingGatewayUpdates = {
+        operatorStakeUpdates: [],
+        gatewaySettingsUpdates: [],
+      };
+
       try {
         if (
           Object.values(updateGatewaySettingsParams).some(
@@ -316,7 +329,15 @@ const Gateway = () => {
           const { id: txID } = await arIOWriteableSDK.updateGatewaySettings(
             updateGatewaySettingsParams,
           );
-          console.log(txID);
+          // TODO: replace with logger call at INFO level when logger reinstated
+          console.log(`Update Gateway Settings txID: ${txID}`);
+
+          const pendingGatewaySettingsUpdate: GatewaySettingsUpdate = {
+            txid: await txID,
+            params: updateGatewaySettingsParams,
+          };
+
+          updates.gatewaySettingsUpdates.push(pendingGatewaySettingsUpdate);
         }
 
         if (operatorStake !== undefined && gateway) {
@@ -326,14 +347,36 @@ const Gateway = () => {
             const { id: txID } = await arIOWriteableSDK.increaseOperatorStake({
               qty: stakeDiff,
             });
-            console.log(txID);
+
+            // TODO: replace with logger call at INFO level when logger reinstated
+            console.log(`Increase Operator Stake txID: ${txID}`);
+
+            const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
+              txid: await txID,
+              type: 'increase',
+              qty: stakeDiff,
+            };
+
+            updates.operatorStakeUpdates.push(pendingOperatorStakeUpdate);
           } else if (stakeDiff < 0) {
             const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake({
               qty: Math.abs(stakeDiff),
             });
-            console.log(txID);
+
+            // TODO: replace with logger call at INFO level when logger reinstated
+            console.log(`Decrease Operator Stake txID: ${txID}`);
+
+            const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
+              txid: await txID,
+              type: 'decrease',
+              qty: Math.abs(stakeDiff),
+            };
+
+            updates.operatorStakeUpdates.push(pendingOperatorStakeUpdate);
           }
         }
+
+        addPendingGatewayUpdates(updates);
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);

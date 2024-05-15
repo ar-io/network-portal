@@ -60,8 +60,9 @@ const useGateway = ({
           params.delegateRewardShareRatio ?? settings.delegateRewardShareRatio;
         settings.fqdn = params.fqdn ?? settings.fqdn;
         settings.label = params.label ?? settings.label;
-        settings.minDelegatedStake =
-          params.minDelegatedStake ?? settings.minDelegatedStake;
+        settings.minDelegatedStake = params.minDelegatedStake
+          ? params.minDelegatedStake * 1_000_000
+          : settings.minDelegatedStake;
         settings.note = params.note ?? settings.note;
         settings.port = params.port ?? settings.port;
         settings.protocol = params.protocol ?? settings.protocol;

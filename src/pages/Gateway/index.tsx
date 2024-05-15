@@ -296,13 +296,13 @@ const Gateway = () => {
       const updateGatewaySettingsParams: UpdateGatewaySettingsParams = {
         allowDelegatedStaking: changed.allowDelegatedStaking as boolean,
         delegateRewardShareRatio:
-          changed.allowDelegatedStaking && changed.delegateRewardShareRatio
+          formState.allowDelegatedStaking && changed.delegateRewardShareRatio
             ? parseFloat(changed.delegateRewardShareRatio as string)
             : undefined,
         fqdn: changed.fqdn as string,
         label: changed.label as string,
         minDelegatedStake:
-          changed.allowDelegatedStaking && changed.minDelegatedStake
+          formState.allowDelegatedStaking && changed.minDelegatedStake
             ? parseFloat(changed.minDelegatedStake as string)
             : undefined,
         note: changed.note as string,

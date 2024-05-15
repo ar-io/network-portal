@@ -300,9 +300,7 @@ const Gateway = () => {
         note: changed.note as string,
         properties: changed.properties as string,
         autoStake: changed.autoStake as boolean,
-
-        //FIXME - add property for Observer Wallet when
-        //added to ar.io SDK
+        observerWallet: changed.observerWallet as string,
       };
 
       console.log(operatorStake, updateGatewaySettingsParams);

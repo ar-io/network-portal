@@ -189,8 +189,6 @@ const StartGatewayModal = ({
             : DEFAULT_DELEGATED_STAKING,
           autoStake: true,
 
-
-          // UH OH - THIS SHOULD BE CONVERTED TO mIO from IO!!!
           qty: parseFloat(String(formState.stake)),
         };
 

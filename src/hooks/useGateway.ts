@@ -1,4 +1,4 @@
-import { ARWEAVE_TX_REGEX } from '@ar.io/sdk/web';
+import { ARWEAVE_TX_REGEX, IOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { GatewaySettingsUpdate } from '@src/store/persistent';
 import { useQuery } from '@tanstack/react-query';
@@ -44,8 +44,8 @@ const useGateway = ({
       operatorStakeUpdates.forEach((update) => {
         data.operatorStake =
           update.type === 'increase'
-            ? data.operatorStake + update.qty * 1_000_000
-            : data.operatorStake - update.qty * 1_000_000;
+            ? data.operatorStake + new IOToken(update.qty).toMIO().valueOf() 
+            : data.operatorStake - new IOToken(update.qty).toMIO().valueOf();
       });
     }
     if (gatewaySettingsUpdates) {
@@ -61,7 +61,7 @@ const useGateway = ({
         settings.fqdn = params.fqdn ?? settings.fqdn;
         settings.label = params.label ?? settings.label;
         settings.minDelegatedStake = params.minDelegatedStake
-          ? params.minDelegatedStake * 1_000_000
+          ? new IOToken(params.minDelegatedStake).toMIO().valueOf() 
           : settings.minDelegatedStake;
         settings.note = params.note ?? settings.note;
         settings.port = params.port ?? settings.port;

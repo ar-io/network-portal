@@ -1,3 +1,4 @@
+import { mIOToken } from '@ar.io/sdk/web';
 import { THEME_TYPES } from '../constants';
 
 const COMMA_NUMBER_FORMAT = new Intl.NumberFormat('en-US', {
@@ -37,7 +38,7 @@ export const formatBalance = (ar: number) => {
 };
 
 export function mioToIo(mio: number): number {
-  return mio / 1_000_000;
+  return new mIOToken(mio).toIO().valueOf();
 }
 
 /** Format number with commas, with maximum one fraction digit */

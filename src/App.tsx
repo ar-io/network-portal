@@ -13,13 +13,13 @@ import {
 import GlobalDataProvider from './components/GlobalDataProvider';
 import WalletProvider from './components/WalletProvider';
 import AppRouterLayout from './layout/AppRouterLayout';
-import Gateway from './pages/Gateway';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
 import PendingInteractionsProvider from './components/PendingInteractionsProvider';
 
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Gateways = React.lazy(() => import('./pages/Gateways'));
+const Gateway = React.lazy(() => import('./pages/Gateway'));
 // const Staking = React.lazy(() => import('./pages/Staking'));
 // const Observers = React.lazy(() => import('./pages/Observers'));
 

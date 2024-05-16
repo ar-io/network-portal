@@ -13,7 +13,7 @@ const useHealthcheck = ({
   url?: string;
 }) => {
   const queryResults = useQuery({
-    queryKey: ['gateway', url],
+    queryKey: ['healthcheck', url],
     queryFn: async () => {
       if (url === undefined) {
         throw new Error('Error: no URL provided.')

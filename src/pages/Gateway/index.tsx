@@ -311,8 +311,6 @@ const Gateway = () => {
         observerWallet: changed.observerWallet as string,
       };
 
-      console.log(operatorStake, updateGatewaySettingsParams);
-
       setShowBlockingMessageModal(true);
 
       const updates: PendingGatewayUpdates = {

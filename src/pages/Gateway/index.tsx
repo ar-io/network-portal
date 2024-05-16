@@ -433,11 +433,10 @@ const Gateway = () => {
                     </div>
                   ) : numFormChanges > 0 ? (
                     <Button
-                      className="h-[30px]"
+                      className="last:text-gradient h-[30px]"
                       title={`Save ${numFormChanges} changes`}
                       text={`Save ${numFormChanges} changes`}
                       buttonType={ButtonType.SECONDARY}
-                      secondaryGradient={true}
                       onClick={submitForm}
                     />
                   ) : (

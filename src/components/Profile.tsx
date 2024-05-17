@@ -90,7 +90,12 @@ const Profile = () => {
         text="Connect"
         onClick={() => setIsModalOpen(true)}
       />
-      <ConnectModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {isModalOpen && (
+        <ConnectModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   ) : (
     <div></div>

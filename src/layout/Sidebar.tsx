@@ -11,12 +11,13 @@ import {
   GatewaysIcon,
   LinkArrowIcon,
   OpenDrawerIcon,
+  StakingIcon,
 } from '../components/icons';
 
 const ROUTES_PRIMARY = [
   // { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { title: 'Gateways', icon: <GatewaysIcon />, path: '/gateways' },
-  // { title: 'Staking', icon: <StakingIcon />, path: '/staking' },
+  { title: 'Staking', icon: <StakingIcon />, path: '/staking' },
   // { title: 'Observers', icon: <BinocularsIcon />, path: '/observers' },
 ];
 

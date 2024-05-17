@@ -14,6 +14,10 @@ export default {
       fontFamily: {
         sans: ['Rubik', 'sans-serif'],
       },
+      boxShadow: {
+        'one': '0px 0px 0px 16px rgba(14, 14, 15, 0.70)',
+      }
+
     },
     colors: {
       ...colors,

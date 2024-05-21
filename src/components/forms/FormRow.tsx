@@ -1,5 +1,5 @@
-import * as Tooltip from '@radix-ui/react-tooltip';
-import { FormErrorIcon, ResetIcon } from '../icons';
+import { ResetIcon } from '../icons';
+import ErrorMessageIcon from './ErrorMessageIcon';
 import FormSwitch from './FormSwitch';
 
 export enum RowType {
@@ -7,7 +7,7 @@ export enum RowType {
   MIDDLE,
   BOTTOM,
   SINGLE,
-  LAST // special hack for last row due to rounding of container vs form
+  LAST, // special hack for last row due to rounding of container vs form
 }
 
 const ROUND_STYLES = {
@@ -71,7 +71,7 @@ const FormRow = ({
     const cleared = { ...errorMessages };
     delete cleared[formPropertyName];
     setErrorMessages(cleared);
-  }
+  };
 
   const resetFormValue = () => {
     if (initialState) {
@@ -82,7 +82,6 @@ const FormRow = ({
       clearFormError();
     }
   };
-
 
   return (
     <>
@@ -113,11 +112,11 @@ const FormRow = ({
             title={`${value ? 'Disable' : 'Enable'} ${label}`}
           />
 
-          {modified && 
-          
-              // using fixed position to avoid the modified dot from being clipped by the overflow-hidden parent
-              // may need to revisit if form parent placement changes to not be flush right with viewport 
-          <ModifiedDot className="fixed right-[17.5px] z-10" />}
+          {modified && (
+            // using fixed position to avoid the modified dot from being clipped by the overflow-hidden parent
+            // may need to revisit if form parent placement changes to not be flush right with viewport
+            <ModifiedDot className="fixed right-[17.5px] z-10" />
+          )}
         </div>
       ) : (
         <div
@@ -164,34 +163,18 @@ const FormRow = ({
                 }
               }}
             />
-            {hasError && (
-              <div className="relative flex px-[12px] text-red-600">
-                <Tooltip.Provider>
-                  <Tooltip.Root>
-                    <Tooltip.Trigger>
-                      <FormErrorIcon />
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content className="z-50 w-fit rounded-md bg-red-1000 px-[24px] py-[12px]">
-                        <Tooltip.Arrow className="fill-red-1000" />
-                        <div className="text-sm text-red-600">
-                          {errorMessage}
-                        </div>
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip.Root>
-                </Tooltip.Provider>
-              </div>
-            )}
-            {enabled && initialState && initialState[formPropertyName] !== value && (
-              <button className="pr-[16px]" onClick={resetFormValue}>
-                <ResetIcon />
-              </button>
-            )}
+            {hasError && <ErrorMessageIcon errorMessage={errorMessage} />}
+            {enabled &&
+              initialState &&
+              initialState[formPropertyName] !== value && (
+                <button className="pr-[16px]" onClick={resetFormValue}>
+                  <ResetIcon />
+                </button>
+              )}
             {rightComponent}
             {enabled && modified && (
               // using fixed position to avoid the modified dot from being clipped by the overflow-hidden parent
-              // may need to revisit if form parent placement changes to not be flush right with viewport 
+              // may need to revisit if form parent placement changes to not be flush right with viewport
               <ModifiedDot className="fixed right-[17.5px] z-10" />
             )}
           </div>

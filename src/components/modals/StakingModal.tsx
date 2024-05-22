@@ -156,7 +156,7 @@ const StakingModal = ({
             target: gatewayOwnerWallet,
             qty: parseFloat(amountToUnstake), // value in IO
           });
-          
+
           // TODO: replace with logger call at INFO level when logger reinstated
           console.log('Decrease Delegate Stake txID:', txID);
         }
@@ -287,7 +287,7 @@ const StakingModal = ({
             />
           </div>
         </div>
-        <div className="flex size-full flex-col bg-neutrals-1100 p-[32px]">
+        <div className="flex size-full flex-col p-[32px]">
           <DisplayRow
             className="py-[4px] first:text-mid last:text-mid"
             label="Fee:"

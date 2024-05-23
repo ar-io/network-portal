@@ -10,6 +10,7 @@ import StartGatewayModal from '@src/components/modals/StartGatewayModal';
 import { GatewayStatus, useGatewayInfo } from '@src/hooks/useGatewayInfo';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const InfoSection = ({ label, value }: { label: string; value: string }) => {
   return (
@@ -21,6 +22,8 @@ const InfoSection = ({ label, value }: { label: string; value: string }) => {
 };
 
 const Banner = () => {
+  const navigate = useNavigate();
+
   const walletAddress = useGlobalState((state) => state.walletAddress);
 
   const [loginOpen, setLoginOpen] = useState(false);
@@ -38,11 +41,15 @@ const Banner = () => {
     >
       <button
         className="group relative mt-[24px] h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
-        onClick={() => {}}
+        onClick={() => {
+          if (walletAddress) {
+            navigate(`/gateways/${walletAddress.toString()}`);
+          }
+        }}
       >
         <div
-          className="invisible size-full rounded-xl
-       bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
+          className="invisible size-full rounded-xl bg-gradient-to-r
+        from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
         >
           <div className="relative size-full overflow-hidden rounded-xl bg-grey-800">
             <StartGatewayCubes className="absolute right-[-11px] top-[-6px] z-0" />

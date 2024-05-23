@@ -16,8 +16,14 @@ import { ArweaveWalletConnector } from '@src/types';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import Arweave from 'arweave/web';
 import { create } from 'zustand';
+import { GatewaySettingsUpdate, OperatorStakeUpdate } from './persistent';
 
 export type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];
+
+export type PendingGatewayUpdates = {
+  gatewaySettingsUpdates: GatewaySettingsUpdate[];
+  operatorStakeUpdates: OperatorStakeUpdate[];
+};
 
 export type GlobalState = {
   theme: ThemeType;
@@ -34,6 +40,7 @@ export type GlobalState = {
     io: number;
   };
   walletStateInitialized: boolean;
+  pendingGatewayUpdates: PendingGatewayUpdates; 
 };
 
 export type GlobalStateActions = {
@@ -49,6 +56,7 @@ export type GlobalStateActions = {
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
   reset: () => void;
+  setPendingGatewayUpdates: (pendingGatewayUpdates: PendingGatewayUpdates) => void;
 };
 
 export const initialGlobalState: GlobalState = {
@@ -64,6 +72,10 @@ export const initialGlobalState: GlobalState = {
     io: 0,
   },
   walletStateInitialized: false,
+  pendingGatewayUpdates: {
+    gatewaySettingsUpdates: [],
+    operatorStakeUpdates: [],
+  },
 };
 export class GlobalStateActionBase implements GlobalStateActions {
   constructor(
@@ -109,6 +121,10 @@ export class GlobalStateActionBase implements GlobalStateActions {
 
   reset = () => {
     this.set({ ...this.initialGlobalState }, true);
+  };
+
+  setPendingGatewayUpdates = (pendingGatewayUpdates: PendingGatewayUpdates) => {
+    this.set({ pendingGatewayUpdates });
   };
 }
 

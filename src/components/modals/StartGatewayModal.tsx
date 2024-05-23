@@ -1,5 +1,4 @@
-import { ARWEAVE_TX_REGEX, JoinNetworkParams } from '@ar.io/sdk/web';
-import { FQDN_REGEX } from '@src/constants';
+import { JoinNetworkParams } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { updatePendingDataCache } from '@src/store/persistent';
 import { showErrorToast } from '@src/utils/toast';
@@ -7,6 +6,15 @@ import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
 import FormSwitch from '../forms/FormSwitch';
+import { FormRowDef, isFormValid } from '../forms/formData';
+import {
+  validateDomainName,
+  validateIOAmount,
+  validateNumberRange,
+  validateString,
+  validateTransactionId,
+  validateWalletAddress,
+} from '../forms/validation';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
@@ -27,17 +35,6 @@ const DEFAULT_PORT = 443;
 const DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO = 0;
 const DEFAULT_DELEGATED_STAKING = 100;
 
-interface FormRowDef {
-  formPropertyName: string;
-  label: string;
-  rowType?: RowType;
-  leftComponent?: JSX.Element;
-  rightComponent?: JSX.Element;
-  enabled?: boolean;
-  placeholder?: string;
-  validateProperty: (value: string) => string | undefined;
-}
-
 const StartGatewayModal = ({
   open,
   onClose,
@@ -49,7 +46,7 @@ const StartGatewayModal = ({
   const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
   const [formState, setFormState] =
-    useState<Record<string, string>>(DEFAULT_FORM_STATE);
+    useState<Record<string, string|boolean>>(DEFAULT_FORM_STATE);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const [delegatedStakingEnabled, setDelegatedStakingEnabled] =
@@ -75,11 +72,7 @@ const StartGatewayModal = ({
       formPropertyName: 'label',
       label: '*Label:',
       rowType: RowType.TOP,
-      validateProperty: (v: string) => {
-        return v.trim().length < 1 || v.trim().length > 64
-          ? 'Label is required and must be 1-64 characters in length.'
-          : undefined;
-      },
+      validateProperty: validateString('Label', 1, 64),
     },
     {
       formPropertyName: 'address',
@@ -87,31 +80,19 @@ const StartGatewayModal = ({
       leftComponent: <div className="pl-[24px] text-xs text-low">https://</div>,
       rightComponent: <div className="pr-[24px] text-xs text-low">:443</div>,
 
-      validateProperty: (v: string) => {
-        return v.trim() === '' || !FQDN_REGEX.test(v)
-          ? 'Address is required and must be a valid domain name.'
-          : undefined;
-      },
+      validateProperty: validateDomainName('Address'),
     },
     {
       formPropertyName: 'observerWallet',
       label: '*Observer Wallet:',
-      validateProperty: (v: string) => {
-        return v.trim() === '' || !ARWEAVE_TX_REGEX.test(v)
-          ? 'Observer Wallet is required and must be a valid wallet address.'
-          : undefined;
-      },
+      validateProperty: validateWalletAddress('Observer Wallet'),
     },
     {
       formPropertyName: 'propertiesId',
       label: '*Properties ID:',
       enabled: propertiesIdEnabled,
       placeholder: DEFAULT_FORM_STATE.propertiesId,
-      validateProperty: (v: string) => {
-        return v.trim() === '' || !ARWEAVE_TX_REGEX.test(v)
-          ? 'Properties ID is required and must be a valid Arweave transaction ID.'
-          : undefined;
-      },
+      validateProperty: validateTransactionId('Properties ID'),
       rightComponent: (
         <div className="pr-[12px]">
           <FormSwitch
@@ -137,29 +118,16 @@ const StartGatewayModal = ({
       formPropertyName: 'stake',
       label: '*Stake (IO):',
       placeholder: 'Minimum 10000 IO',
-      validateProperty: (v: string) => {
-        const value = parseFloat(v);
-        return value < 10000 || isNaN(value)
-          ? 'Stake must be a number > 10000 IO.'
-          : undefined;
-      },
+      validateProperty: validateIOAmount('Stake', 10000),
     },
     {
-      formPropertyName: 'delegatedStaking',
+      formPropertyName: 'minDelegatedStake',
       label: 'Delegated Staking (IO):',
       enabled: delegatedStakingEnabled,
       placeholder: delegatedStakingEnabled
-        ? 'Minimum 0.1 IO'
+        ? 'Minimum 100 IO'
         : 'Delegated Staking Off',
-      validateProperty: (v: string) => {
-        if (!delegatedStakingEnabled) {
-          return undefined;
-        }
-        const value = parseFloat(v);
-        return value < 0.1 || isNaN(value)
-          ? 'Delegated Staking must be a number > 0.1 IO.'
-          : undefined;
-      },
+      validateProperty: validateIOAmount('Minimum Delegated Stake', 100),
       rightComponent: (
         <div className="pr-[12px]">
           <FormSwitch
@@ -177,74 +145,59 @@ const StartGatewayModal = ({
       placeholder: delegatedStakingEnabled
         ? 'Enter value 0-100'
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: (v: string) => {
-        const value = parseFloat(v);
-        return value < 0 || value > 100 || isNaN(value)
-          ? 'Delegated Staking Share Ratio must be a number from 0 to 100.'
-          : undefined;
-      },
+      validateProperty: validateNumberRange(
+        'Delegated Staking Share Ratio',
+        0,
+        100,
+      ),
     },
     {
       formPropertyName: 'note',
       label: '*Note:',
       rowType: RowType.BOTTOM,
-      validateProperty: (v: string) => {
-        return v.trim().length < 1 || v.trim().length > 256
-          ? 'Note is required and must be 1-256 characters in length.'
-          : undefined;
-      },
+      validateProperty: validateString('Note', 1, 256),
     },
   ];
 
-  const isFormValid = () => {
-    return formRowDefs.every((rowDef) => {
-      // enabled value can be true, false, or undefined. We shortcircuit and accept the row
-      // as valid here only if the row definition is explicity set to false.
-      if (rowDef.enabled == false) {
-        return true;
-      }
-      const errorMessage = rowDef.validateProperty(
-        formState[rowDef.formPropertyName],
-      );
-      return errorMessage === undefined;
-    });
-  };
-
   const submitForm = async () => {
-    if (isFormValid() && arioWriteableSDK) {
+    const formValid = isFormValid({ formRowDefs, formValues: formState });
+
+    if (formValid && arioWriteableSDK) {
       try {
         setShowBlockingMessageModal(true);
         const joinNetworkParams: JoinNetworkParams = {
           // GatewayConnectionSettings
           protocol: DEFAULT_PROTOCOL,
-          fqdn: formState.address,
+          fqdn: String(formState.address),
           port: DEFAULT_PORT,
 
           // GatewayMetadata
-          note: formState.note,
-          label: formState.label,
+          note: String(formState.note),
+          label: String(formState.label),
           properties: propertiesIdEnabled
-            ? formState.propertiesId
+            ? String(formState.propertiesId)
             : DEFAULT_FORM_STATE.propertiesId,
-          observerWallet: formState.observerWallet,
+          observerWallet: String(formState.observerWallet),
 
           // GatewayStakingSettings
           allowDelegatedStaking: delegatedStakingEnabled,
           delegateRewardShareRatio: delegatedStakingEnabled
-            ? parseFloat(formState.delegatedStakingShareRatio)
+            ? parseFloat(String(formState.delegatedStakingShareRatio))
             : DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO,
           minDelegatedStake: delegatedStakingEnabled
-            ? parseFloat(formState.delegatedStaking)
+            ? parseFloat(String(formState.minDelegatedStake))
             : DEFAULT_DELEGATED_STAKING,
           autoStake: true,
 
-          qty: parseFloat(formState.stake),
+          qty: parseFloat(String(formState.stake)),
         };
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK
         // await delay(5000);
         const { id: txID } =
           await arioWriteableSDK.joinNetwork(joinNetworkParams);
+
+        // TODO: replace with logger call at INFO level when logger reinstated
         console.log('Join Network txID:', txID);
 
         if (walletAddress) {
@@ -309,7 +262,9 @@ const StartGatewayModal = ({
           />
           <div
             className={
-              isFormValid() ? undefined : 'pointer-events-none opacity-30'
+              isFormValid({ formRowDefs, formValues: formState })
+                ? undefined
+                : 'pointer-events-none opacity-30'
             }
           >
             <Button

@@ -1,11 +1,28 @@
-import { JoinNetworkParams } from '@ar.io/sdk/web';
+import { JoinNetworkParams, UpdateGatewaySettingsParams } from '@ar.io/sdk/web';
 
 // KEYS FOR LOCAL STORAGE
 export const KEY_WALLET_TYPE = 'walletType';
 
+// CUSTOM PENDING DATA TYPES
+export interface OperatorStakeUpdate {
+  /** Arweave Transaction ID for update, to be checked for cache invalidation and eviction */
+  txid: string;
+  type: 'increase' | 'decrease';
+  /** Amount in IO (matches argument data type to SDK write interaction) */
+  qty: number;
+}
+
+export interface GatewaySettingsUpdate {
+  /** Arweave Transaction ID for update, to be checked for cache invalidation and eviction */
+  txid: string;
+  params: UpdateGatewaySettingsParams;
+}
+
 // PENDING DATA CACHE
 export interface PendingDataCache {
   pendingJoinNetworkParams?: JoinNetworkParams;
+  pendingOperatorStakeUpdates?: OperatorStakeUpdate[]; 
+  pendingGatewaySettingsUpdates?: GatewaySettingsUpdate[];
 }
 
 export const getPendingDataCache = (

@@ -25,10 +25,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@^1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.6.tgz#2491803c717f692a729027f6d7d039a94eac4087"
-  integrity sha512-0UlfPDKrI9n3813BX7Wtpu1ZMmfXC2ArJJDMzdaHw9s0+2hdLsXTCCpQqNht5jGGd0iccurI1gINL0yo8WE3tA==
+"@ar.io/sdk@^1.0.7-alpha.2":
+  version "1.0.7-alpha.2"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.7-alpha.2.tgz#4ee4557dce517807565199a8704682131428d55f"
+  integrity sha512-tkUGk3tjNCePfLXjvUwwlAW4OGwotVcJM1cOfPC4ZugPVuuJ5JZ5THMM/YRyWgo/cK6brJync6LiyIChDQIzAA==
   dependencies:
     arbundles "0.11.0"
     arweave "1.14.4"
@@ -2743,6 +2743,18 @@
   integrity sha512-/JLo/l2JsT/LRd80C3HfbmVpxOAJ11FO2RCEslFrgzLltoP9j8XIbsyDcfCt2WWyX+CM96rBoNM+IToAkFOugg==
   dependencies:
     "@swc/counter" "^0.1.3"
+
+"@tanstack/query-core@5.35.1":
+  version "5.35.1"
+  resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-5.35.1.tgz#a7e6cbf0f252475da19ba9cba6567e8fe683b2ee"
+  integrity sha512-0Dnpybqb8+ps6WgqBnqFEC+1F/xLvUosRAq+wiGisTgolOZzqZfkE2995dEXmhuzINiTM7/a6xSGznU0NIvBkw==
+
+"@tanstack/react-query@^5.35.1":
+  version "5.35.1"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-query/-/react-query-5.35.1.tgz#3b7c710bb32c6c71e0cbe64029dded9b0cbd9a0f"
+  integrity sha512-i2T7m2ffQdNqlX3pO+uMsnQ0H4a59Ens2GxtlMsRiOvdSB4SfYmHb27MnvFV8rGmtWRaa4gPli0/rpDoSS5LbQ==
+  dependencies:
+    "@tanstack/query-core" "5.35.1"
 
 "@tanstack/react-virtual@^3.0.0-beta.60":
   version "3.4.0"

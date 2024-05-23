@@ -248,12 +248,12 @@ const StakingModal = ({
               (amountToStake?.length > 0 ||
                 balances.io < minRequiredStakeToAdd) &&
               (errorMessages.cannotStake || errorMessages.stakeAmount) && (
-                <ErrorMessageIcon errorMessage={errorMessages.cannotStake ?? errorMessages.stakeAmount!} />
+                <ErrorMessageIcon errorMessage={errorMessages.cannotStake ?? errorMessages.stakeAmount!} tooltipPadding={12}/>
               )}
             {tab == 1 &&
               amountToUnstake?.length > 0 &&
               errorMessages.unstakeAmount && (
-                <ErrorMessageIcon errorMessage={errorMessages.unstakeAmount} />
+                <ErrorMessageIcon errorMessage={errorMessages.unstakeAmount} tooltipPadding={12}/>
               )}
             <Button
               className="mr-[12px] h-[28px]"

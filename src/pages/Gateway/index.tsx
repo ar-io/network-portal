@@ -1,4 +1,4 @@
-import { UpdateGatewaySettingsParams } from '@ar.io/sdk/web';
+import { IOToken, UpdateGatewaySettingsParams } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import FormRow, { RowType } from '@src/components/forms/FormRow';
@@ -303,7 +303,7 @@ const Gateway = () => {
         label: changed.label as string,
         minDelegatedStake:
           formState.allowDelegatedStaking && changed.minDelegatedStake
-            ? parseFloat(changed.minDelegatedStake as string)
+            ? new IOToken(parseFloat(changed.minDelegatedStake as string)).toMIO()
             : undefined,
         note: changed.note as string,
         properties: changed.properties as string,
@@ -343,7 +343,7 @@ const Gateway = () => {
 
           if (stakeDiff > 0) {
             const { id: txID } = await arIOWriteableSDK.increaseOperatorStake({
-              qty: stakeDiff,
+              qty: new IOToken(stakeDiff).toMIO(),
             });
 
             // TODO: replace with logger call at INFO level when logger reinstated
@@ -358,7 +358,7 @@ const Gateway = () => {
             updates.operatorStakeUpdates.push(pendingOperatorStakeUpdate);
           } else if (stakeDiff < 0) {
             const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake({
-              qty: Math.abs(stakeDiff),
+              qty: new IOToken(Math.abs(stakeDiff)).toMIO(),
             });
 
             // TODO: replace with logger call at INFO level when logger reinstated

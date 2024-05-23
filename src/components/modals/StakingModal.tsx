@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { IOToken, mIOToken } from '@ar.io/sdk/web';
 import useGateway from '@src/hooks/useGateway';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -83,7 +83,9 @@ const StakingModal = ({
   const existingStake = new mIOToken(delegateData?.delegatedStake ?? 0)
     .toIO()
     .valueOf();
-  const minDelegatedStake = gateway?.settings.minDelegatedStake ?? 100;
+  const minDelegatedStake = gateway
+    ? new mIOToken(gateway?.settings.minDelegatedStake).toIO().valueOf()
+    : 100;
   const minRequiredStakeToAdd = existingStake > 0 ? 1 : minDelegatedStake;
 
   const validators = {
@@ -146,7 +148,7 @@ const StakingModal = ({
         if (tab == 0) {
           const { id: txID } = await arIOWriteableSDK.increaseDelegateStake({
             target: gatewayOwnerWallet,
-            qty: parseFloat(amountToStake), // value in IO
+            qty: new IOToken(parseFloat(amountToStake)).toMIO(),
           });
 
           // TODO: replace with logger call at INFO level when logger reinstated
@@ -154,7 +156,7 @@ const StakingModal = ({
         } else {
           const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
             target: gatewayOwnerWallet,
-            qty: parseFloat(amountToUnstake), // value in IO
+            qty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
           });
 
           // TODO: replace with logger call at INFO level when logger reinstated
@@ -173,6 +175,10 @@ const StakingModal = ({
     gatewayOwner: validators.address(gatewayOwnerWallet),
     stakeAmount: validators.stakeAmount(amountToStake),
     unstakeAmount: validators.unstakeAmount(amountToUnstake),
+    cannotStake:
+      balances.io < minRequiredStakeToAdd
+        ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
+        : undefined,
   };
 
   return (
@@ -239,9 +245,10 @@ const StakingModal = ({
               }}
             ></input>
             {tab == 0 &&
-              amountToStake?.length > 0 &&
-              errorMessages.stakeAmount && (
-                <ErrorMessageIcon errorMessage={errorMessages.stakeAmount} />
+              (amountToStake?.length > 0 ||
+                balances.io < minRequiredStakeToAdd) &&
+              (errorMessages.cannotStake || errorMessages.stakeAmount) && (
+                <ErrorMessageIcon errorMessage={errorMessages.cannotStake ?? errorMessages.stakeAmount!} />
               )}
             {tab == 1 &&
               amountToUnstake?.length > 0 &&

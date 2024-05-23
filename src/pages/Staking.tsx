@@ -20,7 +20,7 @@ const Staking = () => {
   return (
     <div className="flex size-full flex-col">
       <Header />
-      <div className="grow pt-[24px]">
+      <div className="grow">
         {walletAddress ? (
           <div>
             <button

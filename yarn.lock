@@ -20,17 +20,17 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@1.0.7-alpha.4":
-  version "1.0.7-alpha.4"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.7-alpha.4.tgz#fe18eca276f99e54033c91ab166796df78b01c42"
-  integrity sha512-JmPUYWKcW6H6RGnrP24eZBVuLoJkib2u+tCRdKR49uC/dbUcr7NLSDpQM3l31wqEs3u935AlPq8stm6zFuhZBw==
+"@ar.io/sdk@1.0.7-alpha.5":
+  version "1.0.7-alpha.5"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-1.0.7-alpha.5.tgz#e524a73e3bc0dd63f822ad015092319108d5646d"
+  integrity sha512-/FVBy9pZcSi9bmf9dczUXEa49SbRk1Avz3a1n0qEmUZcm0849UAEHlepQlb/oSf1LCQW1/j4l+JfeVZpvpL/OA==
   dependencies:
     arbundles "0.11.0"
-    arweave "1.14.4"
+    arweave "1.15.1"
     axios "1.4.0"
     bunyan "^1.8.15"
     warp-arbundles "^1.0.4"
-    warp-contracts "1.4.43"
+    warp-contracts "1.4.45"
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.10.4", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.23.5", "@babel/code-frame@^7.24.2":
   version "7.24.2"
@@ -3594,7 +3594,7 @@ arweave@1.14.4:
     base64-js "^1.5.1"
     bignumber.js "^9.0.2"
 
-arweave@^1.10.13, arweave@^1.13.7, arweave@^1.15.0:
+arweave@1.15.1, arweave@^1.10.13, arweave@^1.13.7, arweave@^1.15.0:
   version "1.15.1"
   resolved "https://registry.yarnpkg.com/arweave/-/arweave-1.15.1.tgz#c6183136b20980c81a8cb77ce6fd9fb333e1a174"
   integrity sha512-rT7FOwqdudd5npqp4xOYdDT2035LtpcqePjwirh4wjRiEtVsz1FZkRiM2Yj+fOAwYzOm/hNG0GDOipDSaiEGGQ==
@@ -9758,10 +9758,10 @@ warp-arbundles@^1.0.4:
     buffer "^6.0.3"
     warp-isomorphic "^1.0.7"
 
-warp-contracts@1.4.43:
-  version "1.4.43"
-  resolved "https://registry.yarnpkg.com/warp-contracts/-/warp-contracts-1.4.43.tgz#070023842f11501aa9e4787a267db213505ef3e1"
-  integrity sha512-72mbYH7opfPoreTOLIWqOqOw8chhvd3iR4cAztaz+JawV7enY3SnpVyAW+erlu+/OoEb2TX2Ap4xNeShdp/paw==
+warp-contracts@1.4.45:
+  version "1.4.45"
+  resolved "https://registry.yarnpkg.com/warp-contracts/-/warp-contracts-1.4.45.tgz#918ede8cdc272bb6c0e9d9334a31107071b8b894"
+  integrity sha512-v4asbKIofCmQjH+1Q+yTyJmGUFwaL11zNnfaipRsxQ488MB7lGfQGNeadMfYhhc2yvUDhcVok1UcSfvfgugPaQ==
   dependencies:
     archiver "^5.3.0"
     arweave "1.14.4"

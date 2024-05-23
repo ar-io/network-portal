@@ -12,6 +12,11 @@ export interface GatewayRewards {
   EAY: number;
 }
 
+export interface UserRewards {
+    EEY: number;
+    EAY: number;
+}
+
 export const calculateGatewayRewards = (
   protocolBalance: IOToken,
   totalGateways: number,
@@ -42,7 +47,7 @@ export const calculateGatewayRewards = (
 export const calculateUserRewards = (
   gatewayRewards: GatewayRewards,
   userDelegatedStake: IOToken,
-) => {
+):UserRewards => {
   const delegatedStake = userDelegatedStake.valueOf();
   const stakeProportion =
     delegatedStake / (gatewayRewards.totalDelegatedStake.valueOf() + delegatedStake);

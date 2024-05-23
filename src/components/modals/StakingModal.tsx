@@ -1,5 +1,6 @@
 import { IOToken, mIOToken } from '@ar.io/sdk/web';
 import useGateway from '@src/hooks/useGateway';
+import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useState } from 'react';
@@ -79,6 +80,22 @@ const StakingModal = ({
   const delegateData = walletAddress
     ? (gateway?.delegates[walletAddress?.toString()] as any)
     : undefined;
+  const currentStake = new mIOToken(
+    (delegateData?.delegatedStake as number) ?? 0,
+  )
+    .toIO()
+    .valueOf();
+
+  const newTotalStake =
+    tab == 0
+      ? currentStake + parseFloat(amountToStake)
+      : currentStake - parseFloat(amountToUnstake);
+  const rewardsInfo = useRewardsInfo(gateway, newTotalStake);
+  const EAY = rewardsInfo && newTotalStake > 0
+    ? (rewardsInfo.EAY * 100).toLocaleString('en-us', {
+        maximumFractionDigits: 2,
+      }) + ' %'
+    : '-';
 
   const existingStake = new mIOToken(delegateData?.delegatedStake ?? 0)
     .toIO()
@@ -113,11 +130,6 @@ const StakingModal = ({
     }
   };
 
-  const currentStake = new mIOToken(
-    (delegateData?.delegatedStake as number) ?? 0,
-  )
-    .toIO()
-    .valueOf();
   const remainingBalance = isFormValid()
     ? balances.io - parseFloat(amountToStake)
     : '-';
@@ -248,12 +260,20 @@ const StakingModal = ({
               (amountToStake?.length > 0 ||
                 balances.io < minRequiredStakeToAdd) &&
               (errorMessages.cannotStake || errorMessages.stakeAmount) && (
-                <ErrorMessageIcon errorMessage={errorMessages.cannotStake ?? errorMessages.stakeAmount!} tooltipPadding={12}/>
+                <ErrorMessageIcon
+                  errorMessage={
+                    errorMessages.cannotStake ?? errorMessages.stakeAmount!
+                  }
+                  tooltipPadding={12}
+                />
               )}
             {tab == 1 &&
               amountToUnstake?.length > 0 &&
               errorMessages.unstakeAmount && (
-                <ErrorMessageIcon errorMessage={errorMessages.unstakeAmount} tooltipPadding={12}/>
+                <ErrorMessageIcon
+                  errorMessage={errorMessages.unstakeAmount}
+                  tooltipPadding={12}
+                />
               )}
             <Button
               className="mr-[12px] h-[28px]"
@@ -285,7 +305,7 @@ const StakingModal = ({
               value={gateway ? gateway.settings.fqdn : '-'}
             />
 
-            <DisplayRow className="py-[4px]" label="EEY:" value="-" />
+            <DisplayRow className="py-[4px]" label="EAY:" value={EAY} />
 
             <DisplayRow
               className="py-[4px]"

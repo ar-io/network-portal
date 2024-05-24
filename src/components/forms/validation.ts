@@ -52,10 +52,10 @@ export const validateIOAmount = (
   max?: number,
 ): FormValidationFunction => {
   return (v: string) => {
-    const value = parseFloat(v);
+    const value = +v;
 
     if (max) {
-      if (isNaN(v as unknown as number) || isNaN(value)) {
+      if (isNaN(value)) {
         return `${propertyName} must be a number.`;
       } else if (max <= min && value < min) {
         return `${propertyName} must be a number >= ${min} IO.`;
@@ -65,7 +65,7 @@ export const validateIOAmount = (
         ? `${propertyName} must be a number from ${min} to ${max} IO.`
         : undefined;
     }
-    return value < min || isNaN(v as unknown as number) || isNaN(value)
+    return value < min || isNaN(value)
       ? `${propertyName} must be a number >= ${min} IO.`
       : undefined;
   };
@@ -77,14 +77,9 @@ export const validateNumberRange = (
   max: number,
 ): FormValidationFunction => {
   return (v: string) => {
-    const value = parseFloat(v);
+    const value = +v;
 
-    // because parseFloat parses initial valid numbers then discards any remaining invalid text,
-    // need to use isNan(v as unknown as number) to check for invalid text like "3adsfwe".
-    return value < min ||
-      value > max ||
-      isNaN(v as unknown as number) ||
-      isNaN(value)
+    return value < min || value > max || isNaN(value)
       ? `${propertyName} must be a number from ${min} to ${max}.`
       : undefined;
   };
@@ -96,9 +91,9 @@ export const validateUnstakeAmount = (
   minDelegatedStake: number,
 ): FormValidationFunction => {
   return (v: string) => {
-    const value = parseFloat(v);
+    const value = +v;
 
-    if (isNaN(v as unknown as number) || isNaN(value)) {
+    if (isNaN(value) || v.length === 0) {
       return `${propertyName} must be a number.`;
     }
 

@@ -243,7 +243,7 @@ const StakingModal = ({
               onChange={(e) => {
                 const textValue = e.target.value;
 
-                if (textValue && isNaN(e.target.value as unknown as number)) {
+                if (textValue && isNaN(+e.target.value)) {
                   return;
                 }
 

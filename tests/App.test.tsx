@@ -2,7 +2,7 @@
 
 // import App from '../src/App';
 
-describe('App', () => {
+describe.skip('App', () => {
   it('should render App', () => {
     // const app = render(<App />);
     // expect(app).toMatchSnapshot();

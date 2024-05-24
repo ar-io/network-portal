@@ -78,11 +78,9 @@ const StakingModal = ({
   });
 
   const delegateData = walletAddress
-    ? (gateway?.delegates[walletAddress?.toString()] as any)
+    ? gateway?.delegates[walletAddress?.toString()]
     : undefined;
-  const currentStake = new mIOToken(
-    (delegateData?.delegatedStake as number) ?? 0,
-  )
+  const currentStake = new mIOToken(delegateData?.delegatedStake ?? 0)
     .toIO()
     .valueOf();
 

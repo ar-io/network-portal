@@ -12,7 +12,7 @@ jobs:
       matrix:
         step: [
             'lint:check',
-            #'test',
+            'test',
             'build',
           ]
     steps:

@@ -13,7 +13,7 @@ describe('rewards.ts', () => {
       const gateway = {
         totalDelegatedStake: new IOToken(50000).toMIO().valueOf(),
         settings: {
-          delegateRewardShareRatio: 0.5,
+          delegateRewardShareRatio: 50,
         },
       } as Gateway;
 

@@ -23,11 +23,10 @@ export const calculateGatewayRewards = (
   gateway: Gateway,
 ): GatewayRewards => {
   const epochRewards = protocolBalance.valueOf() * EPOCH_DISTRIBUTION_RATIO;
-
   const baseGatewayReward =
     (epochRewards * GATEWAY_REWARDS_RATIO) / totalGateways;
 
-  const gatewayRewardShareRatio = gateway.settings.delegateRewardShareRatio;
+  const gatewayRewardShareRatio = gateway.settings.delegateRewardShareRatio / 100;
   const totalDelegatedStake = new mIOToken(gateway.totalDelegatedStake)
     .toIO();
 

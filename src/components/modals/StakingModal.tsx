@@ -89,11 +89,12 @@ const StakingModal = ({
       ? currentStake + parseFloat(amountToStake)
       : currentStake - parseFloat(amountToUnstake);
   const rewardsInfo = useRewardsInfo(gateway, newTotalStake);
-  const EAY = rewardsInfo && newTotalStake > 0
-    ? (rewardsInfo.EAY * 100).toLocaleString('en-us', {
-        maximumFractionDigits: 2,
-      }) + ' %'
-    : '-';
+  const EAY =
+    rewardsInfo && newTotalStake > 0
+      ? (rewardsInfo.EAY * 100).toLocaleString('en-us', {
+          maximumFractionDigits: 2,
+        }) + ' %'
+      : '-';
 
   const existingStake = new mIOToken(delegateData?.delegatedStake ?? 0)
     .toIO()
@@ -210,17 +211,23 @@ const StakingModal = ({
         </div>
         <div className="flex flex-col p-[32px]">
           <div className="text-left text-sm text-mid">Gateway Owner:</div>
-          <input
-            className={
-              'mt-3 size-full rounded-md border border-grey-800 bg-grey-1000 px-[24px] py-[12px] text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
-            }
-            type="text"
-            placeholder="Enter wallet address for Gateway"
-            value={userEnteredWalletAddress}
-            onChange={(e) => {
-              setUserEnteredWalletAddress(e.target.value);
-            }}
-          />
+          {ownerWallet ? (
+            <div className="py-[12px] text-left text-sm text-mid">
+              {ownerWallet}
+            </div>
+          ) : (
+            <input
+              className={
+                'mt-3 size-full rounded-md border border-grey-800 bg-grey-1000 px-[24px] py-[12px] text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+              }
+              type="text"
+              placeholder="Enter wallet address for Gateway"
+              value={userEnteredWalletAddress}
+              onChange={(e) => {
+                setUserEnteredWalletAddress(e.target.value);
+              }}
+            />
+          )}
           <div className="mt-[32px] flex items-center">
             <div className="text-left text-sm text-mid">Amount:</div>
             <div className="grow"></div>

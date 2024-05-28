@@ -20,7 +20,7 @@ import PendingInteractionsProvider from './components/PendingInteractionsProvide
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Gateways = React.lazy(() => import('./pages/Gateways'));
 const Gateway = React.lazy(() => import('./pages/Gateway'));
-const Staking = React.lazy(() => import('./pages/Staking'));
+const Staking = React.lazy(() => import('./pages/Staking/Staking'));
 // const Observers = React.lazy(() => import('./pages/Observers'));
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);

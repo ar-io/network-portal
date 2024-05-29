@@ -1,4 +1,3 @@
-// import { defaultLogger } from '@src/constants';
 import axios, {
   AxiosInstance,
   AxiosProgressEvent,
@@ -9,16 +8,16 @@ import axiosRetry, { IAxiosRetryConfig } from 'axios-retry';
 import { Readable } from 'stream';
 import { ReadableStream } from 'stream/web';
 
+import { log } from '@src/constants';
 import { FailedRequestError, HTTPClient } from '../../types';
-import { Logger } from 'winston'
-
+import { RootLogger } from 'loglevel';
 
 export class AxiosHTTPService implements HTTPClient {
   private axios: AxiosInstance;
-  private logger: Logger;
+  private logger: RootLogger;
 
   // TODO: re-implement axios-retry. Currently that package is broken for nodenext.
-  constructor({ url, logger }: { url: string; logger: Logger }) {
+  constructor({ url, logger }: { url: string; logger: RootLogger }) {
     this.logger = logger;
     this.axios = createAxiosInstance({
       axiosConfig: {
@@ -93,12 +92,11 @@ export class AxiosHTTPService implements HTTPClient {
 export interface AxiosInstanceParameters {
   axiosConfig?: Omit<AxiosRequestConfig, 'validateStatus'>;
   retryConfig?: IAxiosRetryConfig;
-  logger?: Logger;
+  logger?: RootLogger;
 }
 
 export const createAxiosInstance = ({
-  // logger = defaultLogger,
-  logger,
+  logger = log,
   axiosConfig = {},
   retryConfig = {
     retryDelay: axiosRetry.exponentialDelay,
@@ -111,7 +109,9 @@ export const createAxiosInstance = ({
     },
     onRetry: (retryCount, error) => {
       // logger.debug(`Request failed, ${error}. Retry attempt #${retryCount}...`);
-      logger?.debug(`Request failed, ${error}. Retry attempt #${retryCount}...`);
+      logger?.debug(
+        `Request failed, ${error}. Retry attempt #${retryCount}...`,
+      );
     },
   },
 }: AxiosInstanceParameters = {}): AxiosInstance => {

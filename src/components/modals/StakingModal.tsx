@@ -14,6 +14,7 @@ import {
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
+import { log } from '@src/constants';
 
 const DisplayRow = ({
   label,
@@ -161,16 +162,14 @@ const StakingModal = ({
             qty: new IOToken(parseFloat(amountToStake)).toMIO(),
           });
 
-          // TODO: replace with logger call at INFO level when logger reinstated
-          console.log('Increase Delegate Stake txID:', txID);
+          log.info(`Increase Delegate Stake txID: ${txID}`);
         } else {
           const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
             target: gatewayOwnerWallet,
             qty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
           });
 
-          // TODO: replace with logger call at INFO level when logger reinstated
-          console.log('Decrease Delegate Stake txID:', txID);
+          log.info(`Decrease Delegate Stake txID: ${txID}`);
         }
         setShowSuccessModal(true);
       } catch (e: any) {

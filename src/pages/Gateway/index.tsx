@@ -31,6 +31,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
+import { log } from '@src/constants';
 
 const StatsBox = ({
   title,
@@ -326,8 +327,7 @@ const Gateway = () => {
           const { id: txID } = await arIOWriteableSDK.updateGatewaySettings(
             updateGatewaySettingsParams,
           );
-          // TODO: replace with logger call at INFO level when logger reinstated
-          console.log(`Update Gateway Settings txID: ${txID}`);
+          log.info(`Update Gateway Settings txID: ${txID}`);
 
           const pendingGatewaySettingsUpdate: GatewaySettingsUpdate = {
             txid: await txID,
@@ -345,8 +345,7 @@ const Gateway = () => {
               qty: new IOToken(stakeDiff).toMIO(),
             });
 
-            // TODO: replace with logger call at INFO level when logger reinstated
-            console.log(`Increase Operator Stake txID: ${txID}`);
+            log.info(`Increase Operator Stake txID: ${txID}`);
 
             const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
               txid: await txID,
@@ -360,8 +359,7 @@ const Gateway = () => {
               qty: new IOToken(Math.abs(stakeDiff)).toMIO(),
             });
 
-            // TODO: replace with logger call at INFO level when logger reinstated
-            console.log(`Decrease Operator Stake txID: ${txID}`);
+            log.info(`Decrease Operator Stake txID: ${txID}`);
 
             const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
               txid: await txID,

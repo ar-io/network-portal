@@ -4,6 +4,7 @@ import { GearIcon, SortAsc, SortDesc } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
+import { log } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -121,8 +122,7 @@ const ActiveStakes = () => {
               qty: stake.delegatedStake, // read and write value both in mIO
             });
 
-            // TODO: replace with logger call at INFO level when logger reinstated
-            console.log('Decrease Delegate Stake txID:', txID);
+            log.info(`Decrease Delegate Stake txID: ${txID}`);
           }
         }
 

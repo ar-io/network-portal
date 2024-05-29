@@ -18,6 +18,7 @@ import {
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
+import { log } from '@src/constants';
 
 const DEFAULT_FORM_STATE = {
   label: '',
@@ -193,8 +194,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
         const { id: txID } =
           await arioWriteableSDK.joinNetwork(joinNetworkParams);
 
-        // TODO: replace with logger call at INFO level when logger reinstated
-        console.log('Join Network txID:', txID);
+        log.info(`Join Network txID: ${txID}`);
 
         if (walletAddress) {
           updatePendingDataCache(walletAddress.toString(), {

@@ -7,6 +7,7 @@ import { executeWithTimeout } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { ArweaveWalletConnector, WALLET_TYPES } from '../../types';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
+import { log } from '@src/constants';
 
 export const ARCONNECT_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
@@ -79,7 +80,7 @@ export class ArConnectWalletConnector implements ArweaveWalletConnector {
       )
       .catch((err) => {
         localStorage.removeItem(KEY_WALLET_TYPE);
-        console.error(err);
+        log.error(err);
         throw new ArconnectError('User cancelled authentication.');
       });
   }

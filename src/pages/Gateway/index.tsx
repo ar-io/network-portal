@@ -1,4 +1,4 @@
-import { IOToken, UpdateGatewaySettingsParams } from '@ar.io/sdk/web';
+import { IOToken, UpdateGatewaySettingsParams, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import FormRow, { RowType } from '@src/components/forms/FormRow';
@@ -26,7 +26,6 @@ import {
   GatewaySettingsUpdate,
   OperatorStakeUpdate,
 } from '@src/store/persistent';
-import { mioToIo } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -103,7 +102,7 @@ const Gateway = () => {
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
   const maxStake = gateway?.operatorStake
-    ? mioToIo(gateway.operatorStake) + (balances?.io || 0)
+    ? new mIOToken(gateway.operatorStake).toIO().valueOf() + (balances?.io || 0)
     : undefined;
 
   useEffect(() => {
@@ -254,15 +253,15 @@ const Gateway = () => {
       ownerId: ownerId || '',
       observerWallet: gateway.observerWallet || '',
       properties: gateway.settings.properties || '',
-      stake: mioToIo(gateway.operatorStake || 0) + '',
+      stake: new mIOToken(gateway.operatorStake || 0).toIO().valueOf() + '',
       status: gateway.status || '',
       note: gateway.settings.note || '',
-      delegatedStake: mioToIo(gateway.totalDelegatedStake || 0) + '',
+      delegatedStake: new mIOToken(gateway.totalDelegatedStake || 0).toIO().valueOf() + '',
       autoStake: gateway.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
       delegateRewardShareRatio:
         (gateway.settings.delegateRewardShareRatio || 0) + '',
-      minDelegatedStake: mioToIo(gateway.settings.minDelegatedStake || 0) + '',
+      minDelegatedStake: new mIOToken(gateway.settings.minDelegatedStake || 0).toIO().valueOf() + '',
     };
     setInitialState(initialState);
     setFormState(initialState);
@@ -339,7 +338,7 @@ const Gateway = () => {
         }
 
         if (operatorStake !== undefined && gateway) {
-          const stakeDiff = operatorStake - mioToIo(gateway.operatorStake || 0);
+          const stakeDiff = operatorStake - new mIOToken(gateway.operatorStake || 0).toIO().valueOf();
 
           if (stakeDiff > 0) {
             const { id: txID } = await arIOWriteableSDK.increaseOperatorStake({

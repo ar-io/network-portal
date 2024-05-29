@@ -1,6 +1,5 @@
-import { Gateway } from '@ar.io/sdk/web';
+import { Gateway, mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
-import { mioToIo } from '@src/utils';
 
 const DisplayRow = ({
   label,
@@ -70,7 +69,9 @@ const PropertyDisplayPanel = ({
         },
         {
           label: 'Minimum Delegated Stake (IO)',
-          value: mioToIo(gateway?.settings.minDelegatedStake || 0),
+          value: new mIOToken(gateway?.settings.minDelegatedStake || 0)
+            .toIO()
+            .valueOf(),
         },
       ]
     : [];
@@ -79,7 +80,11 @@ const PropertyDisplayPanel = ({
     { label: 'Label:', value: gateway?.settings.label },
     { label: 'Address:', value: gatewayAddress, type: 'link' },
     { label: 'Owner Wallet:', value: ownerId, type: 'address' },
-    { label: 'Observer Wallet:', value: gateway?.observerWallet, type: 'address' },
+    {
+      label: 'Observer Wallet:',
+      value: gateway?.observerWallet,
+      type: 'address',
+    },
     {
       label: 'Properties ID:',
       value: gateway?.settings.properties,
@@ -88,12 +93,15 @@ const PropertyDisplayPanel = ({
     {
       label: 'Gateway Stake (IO):',
       value: gateway?.operatorStake
-        ? mioToIo(gateway?.operatorStake)
+        ? new mIOToken(gateway?.operatorStake).toIO().valueOf()
         : undefined,
     },
     { label: 'Status:', value: gateway?.status },
     { label: 'Note:', value: gateway?.settings.note },
-    { label: 'Total Delegated Stake (IO):', value: mioToIo(gateway?.totalDelegatedStake || 0)},
+    {
+      label: 'Total Delegated Stake (IO):',
+      value: new mIOToken(gateway?.totalDelegatedStake || 0).toIO().valueOf(),
+    },
     { label: 'Reward Auto Stake:', value: gateway?.settings.autoStake },
     {
       label: 'Delegated Staking:',

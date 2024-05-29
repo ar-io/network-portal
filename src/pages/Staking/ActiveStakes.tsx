@@ -1,9 +1,12 @@
 import { Gateway, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import { GearIcon, SortAsc, SortDesc } from '@src/components/icons';
+import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import StakingModal from '@src/components/modals/StakingModal';
+import SuccessModal from '@src/components/modals/SuccessModal';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
+import { showErrorToast } from '@src/utils/toast';
 import {
   SortingState,
   createColumnHelper,
@@ -30,10 +33,14 @@ const ActiveStakes = () => {
     },
   ]);
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
   const { data: gateways } = useGateways();
   const [activeStakes, setActiveStakes] = useState<Array<TableData>>([]);
 
+  const [showBlockingMessageModal, setShowBlockingMessageModal] =
+    useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
 
@@ -99,17 +106,49 @@ const ActiveStakes = () => {
     onSortingChange: setSorting,
   });
 
+  const hasDelegatedStake =
+    activeStakes?.some((v) => v.delegatedStake > 0) ?? false;
+
+  const withdrawAll = async () => {
+    if (walletAddress && arIOWriteableSDK && hasDelegatedStake) {
+      setShowBlockingMessageModal(true);
+
+      try {
+        for (const stake of activeStakes) {
+          if (stake.delegatedStake > 0) {
+            const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
+              target: stake.owner,
+              qty: stake.delegatedStake, // read and write value both in mIO
+            });
+
+            // TODO: replace with logger call at INFO level when logger reinstated
+            console.log('Decrease Delegate Stake txID:', txID);
+          }
+        }
+
+        setShowSuccessModal(true);
+      } catch (e: any) {
+        showErrorToast(`${e}`);
+      } finally {
+        setShowBlockingMessageModal(false);
+      }
+    }
+  };
+
   return (
     <div>
       <div className="mt-2 flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
         <div className="grow text-sm text-mid">Active Stakes</div>
-        <Button
-          buttonType={ButtonType.SECONDARY}
-          className="*:text-gradient h-[30px]"
-          active={true}
-          title="Withdraw All"
-          text="Withdraw All"
-        />
+        {hasDelegatedStake && (
+          <Button
+            buttonType={ButtonType.SECONDARY}
+            className="*:text-gradient h-[30px]"
+            active={true}
+            title="Withdraw All"
+            text="Withdraw All"
+            onClick={withdrawAll}
+          />
+        )}
       </div>
       <table className="w-full border-x border-b border-grey-500">
         <thead className="text-xs text-low">
@@ -214,6 +253,21 @@ const ActiveStakes = () => {
           open={!!stakingModalWalletAddress}
           onClose={() => setStakingModalWalletAddress(undefined)}
           ownerWallet={stakingModalWalletAddress}
+        />
+      )}
+      {showBlockingMessageModal && (
+        <BlockingMessageModal
+          onClose={() => setShowBlockingMessageModal(false)}
+          message="Sign the following data with your wallet to proceed."
+        ></BlockingMessageModal>
+      )}
+      {showSuccessModal && (
+        <SuccessModal
+          onClose={() => {
+            setShowSuccessModal(false);
+          }}
+          title="Congratulations"
+          bodyText="You have successfully withdrawn all stakes."
         />
       )}
     </div>

@@ -158,6 +158,8 @@ const ActiveStakes = () => {
             const pendingWithdrawals = row.getValue(
               'pendingWithdrawals',
             ) as number;
+            const owner = row.renderValue('owner') as string;
+
             return (
               <tr
                 key={row.id}
@@ -175,7 +177,15 @@ const ActiveStakes = () => {
                     </a>{' '}
                   </div>
                 </td>
-                <td className="text-mid">{row.renderValue('owner')}</td>
+                <td className="text-mid">
+                  <a
+                    href={`https://viewblock.io/arweave/address/${owner}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {owner}
+                  </a>
+                </td>
                 <td>{stake}</td>
                 <td
                   className={pendingWithdrawals > 0 ? 'text-high' : 'text-low'}

@@ -72,11 +72,10 @@ const Banner = () => {
           </div>
         </div>
       </button>
-      <ConnectModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-      <StartGatewayModal
-        open={startGatewayOpen}
-        onClose={() => setStartGatewayOpen(false)}
-      />
+      {loginOpen && <ConnectModal onClose={() => setLoginOpen(false)} />}
+      {startGatewayOpen && (
+        <StartGatewayModal onClose={() => setStartGatewayOpen(false)} />
+      )}
     </div>
   ) : (
     <div>
@@ -110,11 +109,10 @@ const Banner = () => {
           </div>
         </div>
       </button>
-      <ConnectModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-      <StartGatewayModal
-        open={startGatewayOpen}
-        onClose={() => setStartGatewayOpen(false)}
-      />
+      {loginOpen && <ConnectModal onClose={() => setLoginOpen(false)} />}
+      {startGatewayOpen && (
+        <StartGatewayModal onClose={() => setStartGatewayOpen(false)} />
+      )}
     </div>
   );
 };

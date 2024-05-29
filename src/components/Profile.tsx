@@ -92,7 +92,6 @@ const Profile = () => {
       />
       {isModalOpen && (
         <ConnectModal
-          open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
       )}

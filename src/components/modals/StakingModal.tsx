@@ -47,7 +47,6 @@ const DisplayRow = ({
 };
 
 const StakingModal = ({
-  open,
   onClose,
   ownerWallet,
 }: {
@@ -193,7 +192,7 @@ const StakingModal = ({
   };
 
   return (
-    <BaseModal open={open} onClose={onClose} useDefaultPadding={false}>
+    <BaseModal onClose={onClose} useDefaultPadding={false}>
       <div className="w-[456px]">
         <div className="grid grid-cols-2">
           <button
@@ -360,14 +359,12 @@ const StakingModal = ({
         </div>
         {showBlockingMessageModal && (
           <BlockingMessageModal
-            open={showBlockingMessageModal}
             onClose={() => setShowBlockingMessageModal(false)}
             message="Sign the following data with your wallet to proceed."
           ></BlockingMessageModal>
         )}
         {showSuccessModal && (
           <SuccessModal
-            open={showSuccessModal}
             onClose={() => {
               setShowSuccessModal(false);
               onClose();

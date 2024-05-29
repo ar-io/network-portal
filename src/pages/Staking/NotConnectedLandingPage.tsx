@@ -27,10 +27,7 @@ const NotConnectedLandingPage = () => {
           />
         </div>
         {isConnectModalOpen && (
-          <ConnectModal
-            open={isConnectModalOpen}
-            onClose={() => setIsConnectModalOpen(false)}
-          />
+          <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
         )}
       </div>
     </div>

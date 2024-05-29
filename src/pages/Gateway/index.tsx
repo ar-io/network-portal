@@ -474,14 +474,12 @@ const Gateway = () => {
       </div>
       {showBlockingMessageModal && (
         <BlockingMessageModal
-          open={showBlockingMessageModal}
           onClose={() => setShowBlockingMessageModal(false)}
           message="Sign the following data with your wallet to proceed."
         ></BlockingMessageModal>
       )}
       {showSuccessModal && (
         <SuccessModal
-          open={showSuccessModal}
           onClose={() => {
             setShowSuccessModal(false);
             setEditing(false);

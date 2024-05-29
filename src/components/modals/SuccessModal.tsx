@@ -3,18 +3,16 @@ import { SuccessCheck } from '../icons';
 import BaseModal from './BaseModal';
 
 const SuccessModal = ({
-  open,
   onClose,
   title,
   bodyText,
 }: {
-  open: boolean;
   onClose: () => void;
   title: string;
   bodyText: string;
 }) => {
   return (
-    <BaseModal open={open} onClose={onClose}>
+    <BaseModal onClose={onClose}>
       <div className="w-[392px]">
         <div className="flex grow justify-center pb-[12px]">
           <SuccessCheck className="size-[32px]" />

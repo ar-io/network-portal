@@ -22,6 +22,7 @@ import OpenDrawerIcon from './open_drawer.svg?react';
 import PinkArrowIcon from './pink_arrow.svg?react';
 import ResetIcon from './reset.svg?react';
 import StakingIcon from './staking.svg?react';
+import StakingSplash from './staking_splash.svg?react';
 import StartGatewayCubes from './start_gateway_cubes.svg?react';
 import StatsArrowIcon from './stats_arrow.svg?react';
 import SuccessCheck from './success_check.svg?react';
@@ -52,6 +53,7 @@ export {
   PinkArrowIcon,
   ResetIcon,
   StakingIcon,
+  StakingSplash,
   StartGatewayCubes,
   StatsArrowIcon,
   SuccessCheck,

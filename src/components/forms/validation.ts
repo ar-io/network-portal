@@ -52,14 +52,20 @@ export const validateIOAmount = (
   max?: number,
 ): FormValidationFunction => {
   return (v: string) => {
-    const value = parseFloat(v);
+    const value = +v;
 
-    if(max) {
-      return value < min || value > max || isNaN(v as unknown as number)
+    if (max) {
+      if (isNaN(value)) {
+        return `${propertyName} must be a number.`;
+      } else if (max <= min && value < min) {
+        return `${propertyName} must be a number >= ${min} IO.`;
+      }
+
+      return value < min || value > max
         ? `${propertyName} must be a number from ${min} to ${max} IO.`
         : undefined;
     }
-    return value < min || isNaN(v as unknown as number)
+    return value < min || isNaN(value)
       ? `${propertyName} must be a number >= ${min} IO.`
       : undefined;
   };
@@ -71,12 +77,42 @@ export const validateNumberRange = (
   max: number,
 ): FormValidationFunction => {
   return (v: string) => {
-    const value = parseFloat(v);
+    const value = +v;
 
-    // because parseFloat parses initial valid numbers then discards any remaining invalid text, 
-    // need to use isNan(v as unknown as number) to check for invalid text like "3adsfwe". 
-    return value < min || value > max || isNaN(v as unknown as number)
+    return value < min || value > max || isNaN(value)
       ? `${propertyName} must be a number from ${min} to ${max}.`
       : undefined;
+  };
+};
+
+export const validateUnstakeAmount = (
+  propertyName: string,
+  currentStake: number,
+  minDelegatedStake: number,
+): FormValidationFunction => {
+  return (v: string) => {
+    const value = +v;
+
+    if (isNaN(value) || v.length === 0) {
+      return `${propertyName} must be a number.`;
+    }
+
+    if (value < 1) {
+      return `${propertyName} must be at least 1 IO.`;
+    }
+
+    if (value > currentStake) {
+      return `${propertyName} cannot be greater than your current stake of ${currentStake} IO.`;
+    }
+
+    if (
+      currentStake - value < minDelegatedStake &&
+      value != minDelegatedStake &&
+      value != currentStake
+    ) {
+      return `Withdrawing this amount will put you below the gateway's minimum stake of ${minDelegatedStake} IO. You can either: withdraw a smaller amount so your remaining stake is above the minimum - or - withdraw your full delegated stake.`;
+    }
+
+    return undefined;
   };
 };

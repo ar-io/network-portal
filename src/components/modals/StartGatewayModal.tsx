@@ -1,4 +1,4 @@
-import { JoinNetworkParams } from '@ar.io/sdk/web';
+import { IOToken, JoinNetworkParams } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { updatePendingDataCache } from '@src/store/persistent';
 import { showErrorToast } from '@src/utils/toast';
@@ -46,7 +46,7 @@ const StartGatewayModal = ({
   const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
   const [formState, setFormState] =
-    useState<Record<string, string|boolean>>(DEFAULT_FORM_STATE);
+    useState<Record<string, string | boolean>>(DEFAULT_FORM_STATE);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const [delegatedStakingEnabled, setDelegatedStakingEnabled] =
@@ -184,12 +184,14 @@ const StartGatewayModal = ({
           delegateRewardShareRatio: delegatedStakingEnabled
             ? parseFloat(String(formState.delegatedStakingShareRatio))
             : DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO,
-          minDelegatedStake: delegatedStakingEnabled
-            ? parseFloat(String(formState.minDelegatedStake))
-            : DEFAULT_DELEGATED_STAKING,
+          minDelegatedStake: new IOToken(
+            delegatedStakingEnabled
+              ? parseFloat(String(formState.minDelegatedStake))
+              : DEFAULT_DELEGATED_STAKING,
+          ).toMIO(),
           autoStake: true,
 
-          qty: parseFloat(String(formState.stake)),
+          qty: new IOToken(parseFloat(String(formState.stake))).toMIO(),
         };
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK

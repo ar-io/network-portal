@@ -7,11 +7,13 @@ const BaseModal = ({
   onClose,
   children,
   showCloseButton = true,
+  useDefaultPadding = true,
 }: {
   open: boolean;
   onClose: () => void;
   children: ReactElement;
   showCloseButton?: boolean;
+  useDefaultPadding?: boolean;
 }) => {
   return (
     <Dialog open={open} onClose={() => {}} className="relative z-10">
@@ -21,7 +23,9 @@ const BaseModal = ({
       />
 
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
-        <Dialog.Panel className="relative items-stretch rounded-[12px] bg-[#111112] p-[32px] text-center text-grey-100">
+        <Dialog.Panel
+          className={`relative items-stretch rounded-[12px] bg-[#111112] ${useDefaultPadding ? 'p-[32px]' : ''} text-center text-grey-100`}
+        >
           {showCloseButton && (
             <button className="absolute right-[-28px] top-0" onClick={onClose}>
               <CloseIcon />

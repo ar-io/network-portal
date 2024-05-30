@@ -61,7 +61,7 @@ const useGateway = ({
         settings.fqdn = params.fqdn ?? settings.fqdn;
         settings.label = params.label ?? settings.label;
         settings.minDelegatedStake = params.minDelegatedStake
-          ? new IOToken(params.minDelegatedStake).toMIO().valueOf() 
+          ? params.minDelegatedStake.valueOf() 
           : settings.minDelegatedStake;
         settings.note = params.note ?? settings.note;
         settings.port = params.port ?? settings.port;

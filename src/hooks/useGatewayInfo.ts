@@ -86,7 +86,7 @@ export const useGatewayInfo = () => {
         observerWallet ? formatWalletAddress(observerWallet) : '',
       ],
       ['Joined at', 'PENDING'],
-      ['Stake (IO)', formatWithCommas(mioToIo(operatorStake))],
+      ['Stake (IO)', formatWithCommas(mioToIo(operatorStake.valueOf()))],
       ['Status', 'PENDING'],
       ['Reward Ratio', delegateRewardShareRatio],
     ];

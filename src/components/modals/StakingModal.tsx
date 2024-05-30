@@ -1,4 +1,5 @@
 import { IOToken, mIOToken } from '@ar.io/sdk/web';
+import { log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
@@ -14,7 +15,6 @@ import {
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import { log } from '@src/constants';
 
 const DisplayRow = ({
   label,
@@ -77,6 +77,9 @@ const StakingModal = ({
     ownerWalletAddress: gatewayOwnerWallet,
   });
 
+  const allowDelegatedStaking =
+    gateway?.settings.allowDelegatedStaking ?? false;
+
   const delegateData = walletAddress
     ? gateway?.delegates[walletAddress?.toString()]
     : undefined;
@@ -119,7 +122,7 @@ const StakingModal = ({
   };
 
   const isFormValid = () => {
-    if (!gateway) {
+    if (!gateway || (tab == 0 && !allowDelegatedStaking)) {
       return false;
     }
     if (tab == 0) {
@@ -145,11 +148,11 @@ const StakingModal = ({
     }
   };
 
-  const disableInput = !gateway
-    ? true
-    : tab == 0
-      ? balances.io < minRequiredStakeToAdd
-      : currentStake <= 0;
+  const disableInput =
+    !gateway ||
+    (tab == 0 &&
+      (balances.io < minRequiredStakeToAdd || !allowDelegatedStaking)) ||
+    (tab == 1 && currentStake <= 0);
 
   const submitForm = async () => {
     if (walletAddress && arIOWriteableSDK && gateway && isFormValid()) {
@@ -187,7 +190,9 @@ const StakingModal = ({
     cannotStake:
       balances.io < minRequiredStakeToAdd
         ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
-        : undefined,
+        : !allowDelegatedStaking
+          ? 'Gateway does not allow delegated staking.'
+          : undefined,
   };
 
   return (
@@ -259,9 +264,10 @@ const StakingModal = ({
                 }
               }}
             ></input>
-            {tab == 0 &&
+            {tab == 0 && gateway &&
               (amountToStake?.length > 0 ||
-                balances.io < minRequiredStakeToAdd) &&
+                balances.io < minRequiredStakeToAdd ||
+                !allowDelegatedStaking) &&
               (errorMessages.cannotStake || errorMessages.stakeAmount) && (
                 <ErrorMessageIcon
                   errorMessage={

@@ -9,18 +9,18 @@ const Tooltip = ({
   children: React.ReactNode;
 }) => {
   return (
-    <div className="relative flex px-[12px]">
+    <div className="relative flex">
       <ReactTooltip.Provider>
         <ReactTooltip.Root>
           <ReactTooltip.Trigger>{children}</ReactTooltip.Trigger>
           <ReactTooltip.Portal>
             <ReactTooltip.Content
-              className={`z-50 mb-[4px] w-fit max-w-[400px] rounded-md border border-grey-500 bg-neutrals-1100 px-[24px] py-[12px]`}
+              className={`z-50 mb-[4px] w-fit max-w-[400px] rounded-md border border-grey-500 bg-containerL0 px-[24px] py-[12px]`}
             >
               {/* <ReactTooltip.Arrow className={`${marginBottom}`} /> */}
               <div className="text-sm text-low">{message}</div>
               <div
-                className={`absolute bottom-0 left-[48%] size-[10px] rotate-45 border border-grey-500 bg-neutrals-1100 [clip-path:polygon(0%_100%,100%_0,100%_100%)]    `}
+                className={`absolute bottom-0 left-[48%] size-[10px] rotate-45 border border-grey-500 bg-containerL0 [clip-path:polygon(0%_100%,100%_0,100%_100%)]    `}
               />
             </ReactTooltip.Content>
           </ReactTooltip.Portal>

@@ -208,6 +208,9 @@ const Gateways = () => {
                         href={`https://${row.getValue('domain')}`}
                         target="_blank"
                         rel="noreferrer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
                       >
                         {row.getValue('domain')}
                       </a>{' '}
@@ -218,9 +221,9 @@ const Gateways = () => {
                       href={`https://viewblock.io/arweave/address/${owner}`}
                       target="_blank"
                       rel="noreferrer"
-                      // onClick={(e) => {
-                      //   // e.preventDefault();
-                      // }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
                     >
                       {owner}
                     </a>

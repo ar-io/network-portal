@@ -1,13 +1,13 @@
-import { Gateway, mIOToken } from '@ar.io/sdk/web';
+import { mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
-import { GearIcon, SortAsc, SortDesc } from '@src/components/icons';
-import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
+import Tooltip from '@src/components/Tooltip';
+import { InfoIcon, SortAsc, SortDesc } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
-import SuccessModal from '@src/components/modals/SuccessModal';
-import { log } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
+import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
-import { showErrorToast } from '@src/utils/toast';
+import { formatWithCommas } from '@src/utils';
+import { calculateGatewayRewards } from '@src/utils/rewards';
 import {
   SortingState,
   createColumnHelper,
@@ -17,66 +17,75 @@ import {
 } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
+const EAY_TOOLTIP_TEXT =
+  'EAY = Estimated yield ratio determined by the projecting the current nominal reward conditions over the course of a year. Does NOT include potential observation rewards.';
+
 interface TableData {
+  label: string;
+  domain: string;
   owner: string;
-  delegatedStake: number;
-  gateway: Gateway;
-  pendingWithdrawals: number;
+  failedConsecutiveEpochs: number;
+  rewardRatio: number;
+  eay: number;
 }
 
 const columnHelper = createColumnHelper<TableData>();
 
-const ActiveStakes = () => {
+const DelegateStake = () => {
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: 'delegatedStake',
+      id: 'rewardRatio',
       desc: true,
     },
   ]);
   const walletAddress = useGlobalState((state) => state.walletAddress);
-  const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
   const { data: gateways } = useGateways();
-  const [activeStakes, setActiveStakes] = useState<Array<TableData>>([]);
+  const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
+    [],
+  );
 
-  const [showBlockingMessageModal, setShowBlockingMessageModal] =
-    useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
 
-  useEffect(() => {
-    const activeStakes: Array<TableData> =
-      !walletAddress || !gateways
-        ? ([] as Array<TableData>)
-        : Object.keys(gateways).reduce((acc, key) => {
-            const gateway = gateways[key];
-            const delegate = gateway.delegates[walletAddress?.toString()];
+  const { data: protocolBalance } = useProtocolBalance();
 
-            if (delegate) {
+  useEffect(() => {
+    const stakeableGateways: Array<TableData> =
+      !walletAddress || !gateways || !protocolBalance
+        ? ([] as Array<TableData>)
+        : Object.entries(gateways).reduce((acc, [owner, gateway]) => {
+            if (gateway.settings.allowDelegatedStaking) {
               return [
                 ...acc,
                 {
-                  owner: key,
-                  delegatedStake: delegate.delegatedStake,
-                  gateway,
-                  pendingWithdrawals: Object.keys(delegate.vaults).length,
+                  label: gateway.settings.label,
+                  domain: gateway.settings.fqdn,
+                  owner,
+                  failedConsecutiveEpochs:
+                    gateway.stats.failedConsecutiveEpochs,
+                  rewardRatio: gateway.settings.delegateRewardShareRatio,
+                  eay: calculateGatewayRewards(
+                    new mIOToken(protocolBalance).toIO(),
+                    Object.keys(gateways).length,
+                    gateway,
+                  ).EAY,
                 },
               ];
             }
             return acc;
           }, [] as Array<TableData>);
-    setActiveStakes(activeStakes);
-  }, [gateways, walletAddress]);
+    setStakeableGateways(stakeableGateways);
+  }, [gateways, protocolBalance, walletAddress]);
 
   // Define columns for the table
   const columns = [
-    columnHelper.accessor('gateway.settings.label', {
+    columnHelper.accessor('label', {
       id: 'label',
       header: 'Label',
       sortDescFirst: false,
     }),
-    columnHelper.accessor('gateway.settings.fqdn', {
+    columnHelper.accessor('domain', {
       id: 'domain',
       header: 'Domain',
       sortDescFirst: false,
@@ -86,69 +95,36 @@ const ActiveStakes = () => {
       header: 'Address',
       sortDescFirst: false,
     }),
-    columnHelper.accessor('delegatedStake', {
-      id: 'delegatedStake',
-      header: 'Current Stake',
+    columnHelper.accessor('failedConsecutiveEpochs', {
+      id: 'failedConsecutiveEpochs',
+      header: 'Offline Epochs',
       sortDescFirst: true,
     }),
-    columnHelper.accessor('pendingWithdrawals', {
-      id: 'pendingWithdrawals',
-      header: 'Pending Withdrawals',
+    columnHelper.accessor('rewardRatio', {
+      id: 'rewardRatio',
+      header: 'Reward Ratio',
+      sortDescFirst: true,
+    }),
+    columnHelper.accessor('eay', {
+      id: 'eay',
+      header: 'EAY',
       sortDescFirst: true,
     }),
   ];
 
   const table = useReactTable({
     columns,
-    data: activeStakes,
+    data: stakeableGateways,
     getCoreRowModel: getCoreRowModel<TableData>(),
     getSortedRowModel: getSortedRowModel(), //provide a sorting row model
     state: { sorting },
     onSortingChange: setSorting,
   });
 
-  const hasDelegatedStake =
-    activeStakes?.some((v) => v.delegatedStake > 0) ?? false;
-
-  const withdrawAll = async () => {
-    if (walletAddress && arIOWriteableSDK && hasDelegatedStake) {
-      setShowBlockingMessageModal(true);
-
-      try {
-        for (const stake of activeStakes) {
-          if (stake.delegatedStake > 0) {
-            const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
-              target: stake.owner,
-              qty: stake.delegatedStake, // read and write value both in mIO
-            });
-
-            log.info(`Decrease Delegate Stake txID: ${txID}`);
-          }
-        }
-
-        setShowSuccessModal(true);
-      } catch (e: any) {
-        showErrorToast(`${e}`);
-      } finally {
-        setShowBlockingMessageModal(false);
-      }
-    }
-  };
-
   return (
     <div>
       <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
-        <div className="grow text-sm text-mid">Active Stakes</div>
-        {hasDelegatedStake && (
-          <Button
-            buttonType={ButtonType.SECONDARY}
-            className="*:text-gradient h-[30px]"
-            active={true}
-            title="Withdraw All"
-            text="Withdraw All"
-            onClick={withdrawAll}
-          />
-        )}
+        <div className="grow text-sm text-mid">Delegate Stake</div>
       </div>
       <table className="w-full border-x border-b border-grey-500">
         <thead className="text-xs text-low">
@@ -174,6 +150,11 @@ const ActiveStakes = () => {
                       }}
                     >
                       {header.column.columnDef.header?.toString()}
+                      {header.column.columnDef.id === 'eay' && (
+                        <Tooltip message={EAY_TOOLTIP_TEXT}>
+                          <InfoIcon className='h-full'/>
+                        </Tooltip>
+                      )}
                       {sortState ? (
                         sortState === 'desc' ? (
                           <SortDesc />
@@ -193,12 +174,6 @@ const ActiveStakes = () => {
         </thead>
         <tbody className="text-sm">
           {table.getRowModel().rows.map((row) => {
-            const stake = new mIOToken(row.getValue('delegatedStake'))
-              .toIO()
-              .valueOf();
-            const pendingWithdrawals = row.getValue(
-              'pendingWithdrawals',
-            ) as number;
             const owner = row.renderValue('owner') as string;
 
             return (
@@ -227,17 +202,19 @@ const ActiveStakes = () => {
                     {owner}
                   </a>
                 </td>
-                <td>{stake}</td>
-                <td
-                  className={pendingWithdrawals > 0 ? 'text-high' : 'text-low'}
-                >{`${pendingWithdrawals}`}</td>
+                <td>{row.original.failedConsecutiveEpochs}</td>
+                <td>{row.original.rewardRatio}</td>
                 <td>
+                  {row.original.eay < 0
+                    ? 'N/A'
+                    : `${formatWithCommas(row.original.eay)}%`}
+                </td>
+                <td className="pr-[24px]">
                   <Button
-                    buttonType={ButtonType.SECONDARY}
+                    buttonType={ButtonType.PRIMARY}
                     active={true}
-                    title="Unstake"
-                    text=" "
-                    rightIcon={<GearIcon />}
+                    title="Stake"
+                    text="Stake"
                     onClick={() => {
                       setStakingModalWalletAddress(
                         row.getValue('owner') as string,
@@ -250,11 +227,6 @@ const ActiveStakes = () => {
           })}
         </tbody>
       </table>
-      {activeStakes.length === 0 && (
-        <div className="flex h-[100px] items-center justify-center border-x border-b border-grey-500 text-low">
-          No active stakes found.
-        </div>
-      )}
       {stakingModalWalletAddress && (
         <StakingModal
           open={!!stakingModalWalletAddress}
@@ -262,23 +234,8 @@ const ActiveStakes = () => {
           ownerWallet={stakingModalWalletAddress}
         />
       )}
-      {showBlockingMessageModal && (
-        <BlockingMessageModal
-          onClose={() => setShowBlockingMessageModal(false)}
-          message="Sign the following data with your wallet to proceed."
-        ></BlockingMessageModal>
-      )}
-      {showSuccessModal && (
-        <SuccessModal
-          onClose={() => {
-            setShowSuccessModal(false);
-          }}
-          title="Congratulations"
-          bodyText="You have successfully withdrawn all stakes."
-        />
-      )}
     </div>
   );
 };
 
-export default ActiveStakes;
+export default DelegateStake;

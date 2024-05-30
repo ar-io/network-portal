@@ -13,8 +13,8 @@ export interface GatewayRewards {
 }
 
 export interface UserRewards {
-    EEY: number;
-    EAY: number;
+  EEY: number;
+  EAY: number;
 }
 
 export const calculateGatewayRewards = (
@@ -26,13 +26,20 @@ export const calculateGatewayRewards = (
   const baseGatewayReward =
     (epochRewards * GATEWAY_REWARDS_RATIO) / totalGateways;
 
-  const gatewayRewardShareRatio = gateway.settings.delegateRewardShareRatio / 100;
-  const totalDelegatedStake = new mIOToken(gateway.totalDelegatedStake)
-    .toIO();
+  const gatewayRewardShareRatio =
+    gateway.settings.delegateRewardShareRatio / 100;
+  const totalDelegatedStake = new mIOToken(gateway.totalDelegatedStake).toIO();
 
-  const rewardsSharedPerEpoch = new IOToken(baseGatewayReward * gatewayRewardShareRatio);
+  const rewardsSharedPerEpoch = new IOToken(
+    baseGatewayReward * gatewayRewardShareRatio,
+  );
 
-  const EEY = rewardsSharedPerEpoch.valueOf() / totalDelegatedStake.valueOf();
+  // Return -1 if totalDelegatedStake is 0. This signals 0 stake and allows calling 
+  // code to use the value for sorting purposes.
+  const EEY =
+    totalDelegatedStake.valueOf() > 0
+      ? rewardsSharedPerEpoch.valueOf() / totalDelegatedStake.valueOf()
+      : -1;
   const EAY = EEY * EPOCHS_PER_YEAR;
 
   return {
@@ -46,11 +53,13 @@ export const calculateGatewayRewards = (
 export const calculateUserRewards = (
   gatewayRewards: GatewayRewards,
   userDelegatedStake: IOToken,
-):UserRewards => {
+): UserRewards => {
   const delegatedStake = userDelegatedStake.valueOf();
   const stakeProportion =
-    delegatedStake / (gatewayRewards.totalDelegatedStake.valueOf() + delegatedStake);
-  const epochReward = gatewayRewards.rewardsSharedPerEpoch.valueOf() * stakeProportion;
+    delegatedStake /
+    (gatewayRewards.totalDelegatedStake.valueOf() + delegatedStake);
+  const epochReward =
+    gatewayRewards.rewardsSharedPerEpoch.valueOf() * stakeProportion;
 
   const EEY = epochReward / delegatedStake;
   const EAY = EEY * EPOCHS_PER_YEAR;

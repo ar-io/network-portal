@@ -2,14 +2,15 @@ import { PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import { useState } from 'react';
 import ActiveStakes from './ActiveStakes';
+import DelegateStake from './DelegateStakeTable';
 
 const ConnectedLandingPage = () => {
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
 
   return (
-    <div>
+    <div className="flex flex-col gap-[24px] overflow-y-scroll py-[24px]">
       <button
-        className="group relative mt-[24px] h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
+        className="group relative h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
         onClick={() => {
           setIsStakingModalOpen(true);
         }}
@@ -32,6 +33,7 @@ bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-
         </div>
       </button>
       <ActiveStakes />
+      <DelegateStake />
       {isStakingModalOpen && (
         <StakingModal
           open={isStakingModalOpen}

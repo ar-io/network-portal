@@ -180,7 +180,9 @@ const ActiveStakes = () => {
                         ) : (
                           <SortAsc />
                         )
-                      ) : undefined}
+                      ) : (
+                        <div className="w-[16px]" />
+                      )}
                     </button>
                   </th>
                 );

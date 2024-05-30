@@ -1,7 +1,9 @@
 import { mIOToken } from '@ar.io/sdk/web';
 import Header from '@src/components/Header';
+import Tooltip from '@src/components/Tooltip';
 import { SortAsc, SortDesc } from '@src/components/icons';
 import useGateways from '@src/hooks/useGateways';
+import { formatWithCommas } from '@src/utils';
 import {
   SortingState,
   createColumnHelper,
@@ -12,13 +14,14 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Banner from './Banner';
-import { formatWithCommas } from '@src/utils';
 
 interface TableData {
   label: string;
   domain: string;
   owner: string;
   start: number;
+  totalDelegatedStake: number; // IO
+  operatorStake: number; // IO
   totalStake: number; // IO
   status: string;
   rewardRatio: number;
@@ -44,7 +47,7 @@ const Gateways = () => {
     const tableData: Array<TableData> = !gateways
       ? ([] as Array<TableData>)
       : Object.entries(gateways).reduce((acc, [owner, gateway]) => {
-        console.log(gateway)
+          console.log(gateway);
           return [
             ...acc,
             {
@@ -52,6 +55,12 @@ const Gateways = () => {
               domain: gateway.settings.fqdn,
               owner: owner,
               start: gateway.start,
+              totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
+                .toIO()
+                .valueOf(),
+              operatorStake: new mIOToken(gateway.operatorStake)
+                .toIO()
+                .valueOf(),
               totalStake: new mIOToken(
                 gateway.totalDelegatedStake + gateway.operatorStake,
               )
@@ -101,7 +110,7 @@ const Gateways = () => {
     columnHelper.accessor('rewardRatio', {
       id: 'rewardRatio',
       header: 'Reward Ratio',
-      sortDescFirst: false,
+      sortDescFirst: true,
     }),
     columnHelper.accessor('failedConsecutiveEpochs', {
       id: 'failedConsecutiveEpochs',
@@ -157,7 +166,9 @@ const Gateways = () => {
                           ) : (
                             <SortAsc />
                           )
-                        ) : undefined}
+                        ) : (
+                          <div className="w-[16px]" />
+                        )}
                       </button>
                     </th>
                   );
@@ -168,6 +179,18 @@ const Gateways = () => {
           <tbody className="text-sm">
             {table.getRowModel().rows.map((row) => {
               const stake = `${formatWithCommas(row.getValue('totalStake'))} IO`;
+              const stakeTooltip = (
+                <div>
+                  <div>
+                    Operator Stake:{' '}
+                    {formatWithCommas(row.original.operatorStake)} IO
+                  </div>
+                  <div className="mt-1">
+                    Total Delegated Stake:{' '}
+                    {formatWithCommas(row.original.totalDelegatedStake)} IO
+                  </div>
+                </div>
+              );
               const owner = row.renderValue('owner') as string;
 
               return (
@@ -203,7 +226,9 @@ const Gateways = () => {
                     </a>
                   </td>
                   <td>{row.renderValue('start')}</td>
-                  <td>{stake}</td>
+                  <td>
+                    <Tooltip message={stakeTooltip}>{stake}</Tooltip>
+                  </td>
                   <td>{row.renderValue('status')}</td>
                   <td>{row.renderValue('rewardRatio')}%</td>
                   <td>{row.renderValue('failedConsecutiveEpochs')}</td>

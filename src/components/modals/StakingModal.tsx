@@ -3,6 +3,7 @@ import { log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
+import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
@@ -236,8 +237,8 @@ const StakingModal = ({
             <div className="grow"></div>
             <div className="text-left text-xs text-low">
               {tab == 0
-                ? balances && `Available: ${balances.io} IO`
-                : `Available to Unstake: ${currentStake} IO`}
+                ? balances && `Available: ${formatWithCommas(balances.io)} IO`
+                : `Available to Unstake: ${formatWithCommas(currentStake)} IO`}
             </div>
           </div>
           <div className="mt-3 flex h-[52px] items-center overflow-hidden rounded-md border border-grey-800">
@@ -264,7 +265,8 @@ const StakingModal = ({
                 }
               }}
             ></input>
-            {tab == 0 && gateway &&
+            {tab == 0 &&
+              gateway &&
               (amountToStake?.length > 0 ||
                 balances.io < minRequiredStakeToAdd ||
                 !allowDelegatedStaking) &&

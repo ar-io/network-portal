@@ -7,7 +7,7 @@ const NotConnectedLandingPage = () => {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
 
   return (
-    <div className="flex h-full items-center justify-center">
+    <div className="flex h-full grow items-center justify-center border rounded-xl border-grey-800">
       <div className="fixed overflow-hidden">
         <StakingSplash />
       </div>

@@ -11,7 +11,7 @@ const Header = () => {
       <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r pr-6 dark:border-transparent-100-8">
         <div className="text-[12px] text-high">
           {currentEpoch
-            ? currentEpoch.epochPeriod.toLocaleString('en-US')
+            ? currentEpoch.epochIndex.toLocaleString('en-US')
             : NBSP}
         </div>
         <div className="pt-[4px] text-[12px] leading-none text-low">

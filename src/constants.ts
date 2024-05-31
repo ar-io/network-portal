@@ -7,6 +7,9 @@ export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARNS_REGISTRY_ADDRESS = new ArweaveTransactionID(
   process.env.VITE_ARNS_REGISTRY_ADDRESS ?? ARNS_DEVNET_REGISTRY_TX,
 );
+export const IO_PROCESS_ID = new ArweaveTransactionID(
+    'GaQrvEMKBpkjofgnBi_B3IgIDmY_XYelVLB6GcRGrHc',
+);
 export const GATEWAY_CONTRACT_URL = `https://viewblock.io/arweave/contract/${ARNS_REGISTRY_ADDRESS.toString()}`;
 
 export const DEFAULT_ARWEAVE_PROTOCOL = process.env.VITE_GATEWAY_PROTOCOL ?? 'https';

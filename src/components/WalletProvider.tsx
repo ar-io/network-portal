@@ -1,5 +1,5 @@
-import { ArIO } from '@ar.io/sdk/web';
-import { ARNS_REGISTRY_ADDRESS } from '@src/constants';
+import { IO } from '@ar.io/sdk/web';
+import { IO_PROCESS_ID } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
@@ -71,8 +71,8 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
       const signer = wallet.signer;
 
       if (signer) {
-        const writeable = ArIO.init({
-          contractTxId: ARNS_REGISTRY_ADDRESS.toString(),
+        const writeable = IO.init({
+          processId: IO_PROCESS_ID.toString(),
           signer,
         });
         setArIOWriteableSDK(writeable);

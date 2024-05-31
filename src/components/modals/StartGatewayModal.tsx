@@ -22,7 +22,7 @@ import SuccessModal from './SuccessModal';
 const DEFAULT_FORM_STATE = {
   label: '',
   address: '',
-  observerWallet: '',
+  observerAddress: '',
   propertiesId: 'FH1aVetOoulPGqgYukj0VE0wIhDy90WiQoV3U2PeY44',
   stake: '',
   delegatedStaking: '',
@@ -62,7 +62,7 @@ const StartGatewayModal = ({
     setFormState((currentState) => {
       return {
         ...currentState,
-        observerWallet: walletAddress?.toString() ?? '',
+        observerAddress: walletAddress?.toString() ?? '',
       };
     });
   }, [walletAddress]);
@@ -83,7 +83,7 @@ const StartGatewayModal = ({
       validateProperty: validateDomainName('Address'),
     },
     {
-      formPropertyName: 'observerWallet',
+      formPropertyName: 'observerAddress',
       label: '*Observer Wallet:',
       validateProperty: validateWalletAddress('Observer Wallet'),
     },
@@ -177,7 +177,7 @@ const StartGatewayModal = ({
           properties: propertiesIdEnabled
             ? String(formState.propertiesId)
             : DEFAULT_FORM_STATE.propertiesId,
-          observerWallet: String(formState.observerWallet),
+          observerAddress: String(formState.observerAddress),
 
           // GatewayStakingSettings
           allowDelegatedStaking: delegatedStakingEnabled,
@@ -219,7 +219,7 @@ const StartGatewayModal = ({
   const resetForm = () => {
     setFormState({
       ...DEFAULT_FORM_STATE,
-      observerWallet: walletAddress?.toString() ?? '',
+      observerAddress: walletAddress?.toString() ?? '',
     });
     setDelegatedStakingEnabled(false);
     setPropertiesIdEnabled(false);

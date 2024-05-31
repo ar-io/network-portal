@@ -79,7 +79,7 @@ const PropertyDisplayPanel = ({
     { label: 'Label:', value: gateway?.settings.label },
     { label: 'Address:', value: gatewayAddress, type: 'link' },
     { label: 'Owner Wallet:', value: ownerId, type: 'address' },
-    { label: 'Observer Wallet:', value: gateway?.observerWallet, type: 'address' },
+    { label: 'Observer Wallet:', value: gateway?.observerAddress, type: 'address' },
     {
       label: 'Properties ID:',
       value: gateway?.settings.properties,

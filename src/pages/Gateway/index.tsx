@@ -110,13 +110,13 @@ const Gateway = () => {
     setInitialState((currentState) => {
       return {
         ...currentState,
-        observerWallet: walletAddress?.toString() ?? '',
+        observerAddress: walletAddress?.toString() ?? '',
       };
     });
     setFormState((currentState) => {
       return {
         ...currentState,
-        observerWallet: walletAddress?.toString() ?? '',
+        observerAddress: walletAddress?.toString() ?? '',
       };
     });
   }, [walletAddress]);
@@ -177,7 +177,7 @@ const Gateway = () => {
       readOnly: true,
     },
     {
-      formPropertyName: 'observerWallet',
+      formPropertyName: 'observerAddress',
       label: 'Observer Wallet:',
       rowType: RowType.TOP,
       validateProperty: validateWalletAddress('Observer Wallet'),
@@ -252,7 +252,7 @@ const Gateway = () => {
       label: gateway.settings.label || '',
       fqdn: gateway.settings.fqdn || '',
       ownerId: ownerId || '',
-      observerWallet: gateway.observerWallet || '',
+      observerAddress: gateway.observerAddress || '',
       properties: gateway.settings.properties || '',
       stake: mioToIo(gateway.operatorStake || 0) + '',
       status: gateway.status || '',
@@ -308,7 +308,7 @@ const Gateway = () => {
         note: changed.note as string,
         properties: changed.properties as string,
         autoStake: changed.autoStake as boolean,
-        observerWallet: changed.observerWallet as string,
+        observerAddress: changed.observerAddress as string,
       };
 
       setShowBlockingMessageModal(true);

@@ -23,7 +23,7 @@ describe('persistent.ts', () => {
       properties: 'example',
       protocol: 'https',
       qty: 10000,
-      observerWallet: mockWalletAddress,
+      observerAddress: mockWalletAddress,
     },
     pendingOperatorStakeUpdates: [{ txid: 'tx123', type: 'increase', qty: 100 }],
     pendingGatewaySettingsUpdates: [
@@ -74,7 +74,7 @@ describe('persistent.ts', () => {
         properties: 'example2',
         protocol: 'https',
         qty: 20000,
-        observerWallet: mockWalletAddress2,
+        observerAddress: mockWalletAddress2,
       };
       localStorage.setItem(mockWalletAddress, JSON.stringify(mockData));
       updatePendingDataCache(mockWalletAddress, {

@@ -337,7 +337,7 @@ const StakingModal = ({
             <DisplayRow
               className="py-[4px]"
               label="Remaining Balance:"
-              value={`${remainingBalance} IO`}
+              value={`${remainingBalance !== '-' ? formatWithCommas(+remainingBalance) : remainingBalance} IO`}
             />
           )}
           <DisplayRow
@@ -346,8 +346,8 @@ const StakingModal = ({
             value={`${
               isFormValid()
                 ? tab == 0
-                  ? currentStake + parseFloat(amountToStake)
-                  : currentStake - parseFloat(amountToUnstake)
+                  ? formatWithCommas(currentStake + parseFloat(amountToStake))
+                  : formatWithCommas(currentStake - parseFloat(amountToUnstake))
                 : '-'
             } IO`}
           />

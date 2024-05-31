@@ -14,7 +14,7 @@ const ErrorMessageIcon = ({
   return (
     <div className="relative flex px-[12px] text-red-600">
       <Tooltip.Provider>
-        <Tooltip.Root>
+        <Tooltip.Root delayDuration={0}>
           <Tooltip.Trigger>
             <FormErrorIcon />
           </Tooltip.Trigger>

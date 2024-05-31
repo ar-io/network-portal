@@ -3,6 +3,7 @@ import Button, { ButtonType } from '@src/components/Button';
 import Tooltip from '@src/components/Tooltip';
 import { InfoIcon, SortAsc, SortDesc } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
+import { EAY_TOOLTIP_TEXT } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -16,9 +17,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-
-const EAY_TOOLTIP_TEXT =
-  'EAY = Estimated yield ratio determined by the projecting the current nominal reward conditions over the course of a year. Does NOT include potential observation rewards.';
 
 interface TableData {
   label: string;

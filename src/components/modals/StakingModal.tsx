@@ -230,6 +230,7 @@ const StakingModal = ({
               onChange={(e) => {
                 setUserEnteredWalletAddress(e.target.value);
               }}
+              maxLength={43}
             />
           )}
           <div className="mt-[32px] flex items-center">

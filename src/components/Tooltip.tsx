@@ -11,7 +11,7 @@ const Tooltip = ({
   return (
     <div className="relative flex">
       <ReactTooltip.Provider>
-        <ReactTooltip.Root>
+        <ReactTooltip.Root delayDuration={0}>
           <ReactTooltip.Trigger>{children}</ReactTooltip.Trigger>
           <ReactTooltip.Portal>
             <ReactTooltip.Content

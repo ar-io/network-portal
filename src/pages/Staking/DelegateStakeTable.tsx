@@ -1,7 +1,8 @@
 import { mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
+import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import { InfoIcon, SortAsc, SortDesc } from '@src/components/icons';
+import { InfoIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_TEXT } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
@@ -9,13 +10,7 @@ import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
-import {
-  SortingState,
-  createColumnHelper,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
 interface TableData {
@@ -30,15 +25,9 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const DelegateStake = () => {
-  const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: 'rewardRatio',
-      desc: true,
-    },
-  ]);
   const walletAddress = useGlobalState((state) => state.walletAddress);
 
-  const { data: gateways } = useGateways();
+  const { isLoading, data: gateways } = useGateways();
   const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
     [],
   );
@@ -87,11 +76,33 @@ const DelegateStake = () => {
       id: 'domain',
       header: 'Domain',
       sortDescFirst: false,
+      cell: ({ row }) => (
+        <div className="text-gradient">
+          <a
+            href={`https://${row.getValue('domain')}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {row.getValue('domain')}
+          </a>{' '}
+        </div>
+      ),
     }),
     columnHelper.accessor('owner', {
       id: 'owner',
       header: 'Address',
       sortDescFirst: false,
+      cell: ({ row }) => (
+        <div className="text-mid">
+          <a
+            href={`https://viewblock.io/arweave/address/${row.getValue('owner')}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {row.getValue('owner')}
+          </a>
+        </div>
+      ),
     }),
     columnHelper.accessor('failedConsecutiveEpochs', {
       id: 'failedConsecutiveEpochs',
@@ -105,126 +116,57 @@ const DelegateStake = () => {
     }),
     columnHelper.accessor('eay', {
       id: 'eay',
-      header: 'EAY',
+      header: () => ( 
+        <div className="flex gap-[4px]">
+          EAY
+          <Tooltip message={EAY_TOOLTIP_TEXT}>
+            <InfoIcon className="h-full" />
+          </Tooltip>
+        </div>
+      ),
       sortDescFirst: true,
+      cell: ({ row }) => (
+        <td>
+          {row.original.eay < 0
+            ? 'N/A'
+            : `${formatWithCommas(row.original.eay)}%`}
+        </td>
+      ),
+    }),
+
+    columnHelper.display({
+      id: 'action',
+      header: '',
+      cell: ({ row }) => {
+        return (
+          <div className="pr-[24px]">
+            <Button
+              buttonType={ButtonType.PRIMARY}
+              active={true}
+              title="Stake"
+              text="Stake"
+              onClick={() => {
+                setStakingModalWalletAddress(row.getValue('owner') as string);
+              }}
+            />
+          </div>
+        );
+      },
     }),
   ];
-
-  const table = useReactTable({
-    columns,
-    data: stakeableGateways,
-    getCoreRowModel: getCoreRowModel<TableData>(),
-    getSortedRowModel: getSortedRowModel(), //provide a sorting row model
-    state: { sorting },
-    onSortingChange: setSorting,
-  });
 
   return (
     <div>
       <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
         <div className="grow text-sm text-mid">Delegate Stake</div>
       </div>
-      <table className="w-full border-x border-b border-grey-500">
-        <thead className="text-xs text-low">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const sortState = header.column.getIsSorted();
-                return (
-                  <th key={header.id} className="py-[7.5px] pl-[24px]">
-                    <button
-                      className="flex items-center gap-1 text-left"
-                      onClick={() => {
-                        setSorting([
-                          {
-                            id: header.column.id,
-                            desc: sortState
-                              ? sortState === 'desc'
-                                ? false
-                                : true
-                              : header.column.columnDef.sortDescFirst ?? true,
-                          },
-                        ]);
-                      }}
-                    >
-                      {header.column.columnDef.header?.toString()}
-                      {header.column.columnDef.id === 'eay' && (
-                        <Tooltip message={EAY_TOOLTIP_TEXT}>
-                          <InfoIcon className='h-full'/>
-                        </Tooltip>
-                      )}
-                      {sortState ? (
-                        sortState === 'desc' ? (
-                          <SortDesc />
-                        ) : (
-                          <SortAsc />
-                        )
-                      ) : (
-                        <div className="w-[16px]" />
-                      )}
-                    </button>
-                  </th>
-                );
-              })}
-              <th></th>
-            </tr>
-          ))}
-        </thead>
-        <tbody className="text-sm">
-          {table.getRowModel().rows.map((row) => {
-            const owner = row.renderValue('owner') as string;
-
-            return (
-              <tr
-                key={row.id}
-                className="border-t border-grey-500 text-low *:py-[16px] *:pl-[24px]"
-              >
-                <td>{row.getValue('label')}</td>
-                <td>
-                  <div className="text-gradient">
-                    <a
-                      href={`https://${row.getValue('domain')}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {row.getValue('domain')}
-                    </a>{' '}
-                  </div>
-                </td>
-                <td className="text-mid">
-                  <a
-                    href={`https://viewblock.io/arweave/address/${owner}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {owner}
-                  </a>
-                </td>
-                <td>{row.original.failedConsecutiveEpochs}</td>
-                <td>{row.original.rewardRatio}</td>
-                <td>
-                  {row.original.eay < 0
-                    ? 'N/A'
-                    : `${formatWithCommas(row.original.eay)}%`}
-                </td>
-                <td className="pr-[24px]">
-                  <Button
-                    buttonType={ButtonType.PRIMARY}
-                    active={true}
-                    title="Stake"
-                    text="Stake"
-                    onClick={() => {
-                      setStakingModalWalletAddress(
-                        row.getValue('owner') as string,
-                      );
-                    }}
-                  />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <TableView
+        columns={columns as ColumnDef<TableData, unknown>[]}
+        data={stakeableGateways}
+        isLoading={isLoading}
+        noDataFoundText='No stakeable gateways found.'
+        defaultSortingState={{ id: 'rewardRatio', desc: true }}
+      />
       {stakingModalWalletAddress && (
         <StakingModal
           open={!!stakingModalWalletAddress}

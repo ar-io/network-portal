@@ -1,19 +1,13 @@
 import { mIOToken } from '@ar.io/sdk/web';
 import Header from '@src/components/Header';
+import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import { SortAsc, SortDesc } from '@src/components/icons';
 import useGateways from '@src/hooks/useGateways';
 import { formatWithCommas } from '@src/utils';
-import {
-  SortingState,
-  createColumnHelper,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Banner from './Banner';
+import { useNavigate } from 'react-router-dom';
 
 interface TableData {
   label: string;
@@ -31,23 +25,15 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const Gateways = () => {
-  const { data: gateways } = useGateways();
+  const { isLoading, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   const navigate = useNavigate();
-
-  const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: 'totalStake',
-      desc: true,
-    },
-  ]);
 
   useEffect(() => {
     const tableData: Array<TableData> = !gateways
       ? ([] as Array<TableData>)
       : Object.entries(gateways).reduce((acc, [owner, gateway]) => {
-          console.log(gateway);
           return [
             ...acc,
             {
@@ -86,11 +72,39 @@ const Gateways = () => {
       id: 'domain',
       header: 'Domain',
       sortDescFirst: false,
+      cell: ({ row }) => (
+        <div className="text-gradient">
+          <a
+            href={`https://${row.getValue('domain')}`}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {row.getValue('domain')}
+          </a>{' '}
+        </div>
+      ),
     }),
     columnHelper.accessor('owner', {
       id: 'owner',
       header: 'Address',
       sortDescFirst: false,
+      cell: ({ row }) => (
+        <div className="text-mid">
+          <a
+            href={`https://viewblock.io/arweave/address/${row.getValue('owner')}`}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {row.getValue('owner')}
+          </a>
+        </div>
+      ),
     }),
     columnHelper.accessor('start', {
       id: 'start',
@@ -101,6 +115,24 @@ const Gateways = () => {
       id: 'totalStake',
       header: 'Total Stake',
       sortDescFirst: true,
+      cell: ({ row }) => (
+        <Tooltip
+          message={
+            <div>
+              <div>
+                Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
+                IO
+              </div>
+              <div className="mt-1">
+                Total Delegated Stake:{' '}
+                {formatWithCommas(row.original.totalDelegatedStake)} IO
+              </div>
+            </div>
+          }
+        >
+          {formatWithCommas(row.getValue('totalStake'))}
+        </Tooltip>
+      ),
     }),
     columnHelper.accessor('status', {
       id: 'status',
@@ -119,128 +151,25 @@ const Gateways = () => {
     }),
   ];
 
-  const table = useReactTable({
-    columns,
-    data: tableData,
-    getCoreRowModel: getCoreRowModel<TableData>(),
-    getSortedRowModel: getSortedRowModel(), //provide a sorting row model
-    state: { sorting },
-    onSortingChange: setSorting,
-  });
-
   return (
-    <div className="h-screen overflow-y-scroll">
+    <div className="flex h-screen flex-col gap-[24px] overflow-y-scroll">
       <Header />
       <Banner />
-      <div className="mt-2 flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
-        <div className="grow text-sm text-mid">Gateways</div>
+      <div className="mb-[32px]">
+        <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
+          <div className="grow text-sm text-mid">Gateways</div>
+        </div>
+        <TableView
+          columns={columns as ColumnDef<TableData, unknown>[]}
+          data={tableData}
+          defaultSortingState={{ id: 'totalStake', desc: true }}
+          isLoading={isLoading}
+          noDataFoundText='Unable to fetch gateways.'
+          onRowClick={(row) => {
+            navigate(`/gateways/${row.owner}`);
+          }}
+        />
       </div>
-      {tableData && (
-        <table className="mb-[32px] w-full border-x border-b border-grey-500">
-          <thead className="text-xs text-low">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  const sortState = header.column.getIsSorted();
-                  return (
-                    <th key={header.id} className="py-[7.5px] pl-[24px]">
-                      <button
-                        className="flex items-center gap-1 text-left"
-                        onClick={() => {
-                          setSorting([
-                            {
-                              id: header.column.id,
-                              desc: sortState
-                                ? sortState === 'desc'
-                                  ? false
-                                  : true
-                                : header.column.columnDef.sortDescFirst ?? true,
-                            },
-                          ]);
-                        }}
-                      >
-                        {header.column.columnDef.header?.toString()}
-                        {sortState ? (
-                          sortState === 'desc' ? (
-                            <SortDesc />
-                          ) : (
-                            <SortAsc />
-                          )
-                        ) : (
-                          <div className="w-[16px]" />
-                        )}
-                      </button>
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="text-sm">
-            {table.getRowModel().rows.map((row) => {
-              const stake = `${formatWithCommas(row.getValue('totalStake'))} IO`;
-              const stakeTooltip = (
-                <div>
-                  <div>
-                    Operator Stake:{' '}
-                    {formatWithCommas(row.original.operatorStake)} IO
-                  </div>
-                  <div className="mt-1">
-                    Total Delegated Stake:{' '}
-                    {formatWithCommas(row.original.totalDelegatedStake)} IO
-                  </div>
-                </div>
-              );
-              const owner = row.renderValue('owner') as string;
-
-              return (
-                <tr
-                  key={row.id}
-                  className="cursor-pointer border-t border-grey-500 text-low *:py-[16px] *:pl-[24px]"
-                  onClick={() => {
-                    navigate(`/gateways/${owner}`);
-                  }}
-                >
-                  <td>{row.getValue('label')}</td>
-                  <td>
-                    <div className="text-gradient">
-                      <a
-                        href={`https://${row.getValue('domain')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        {row.getValue('domain')}
-                      </a>{' '}
-                    </div>
-                  </td>
-                  <td className="text-mid">
-                    <a
-                      href={`https://viewblock.io/arweave/address/${owner}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                    >
-                      {owner}
-                    </a>
-                  </td>
-                  <td>{row.renderValue('start')}</td>
-                  <td>
-                    <Tooltip message={stakeTooltip}>{stake}</Tooltip>
-                  </td>
-                  <td>{row.renderValue('status')}</td>
-                  <td>{row.renderValue('rewardRatio')}%</td>
-                  <td>{row.renderValue('failedConsecutiveEpochs')}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
     </div>
   );
 };

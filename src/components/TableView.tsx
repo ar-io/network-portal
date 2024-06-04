@@ -37,7 +37,6 @@ const TableView = <T, S>({
     onSortingChange: setSorting,
   });
 
-  console.log(isLoading, table.getRowModel().rows.length);
 
   return (
     <>

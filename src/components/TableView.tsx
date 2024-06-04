@@ -108,7 +108,7 @@ const TableView = <T, S>({
           <Placeholder className="w-full" />
         </div>
       )}
-      {table.getRowCount() === 0 && (
+      {!isLoading && table.getRowCount() === 0 && (
         <div className="flex h-[100px] items-center justify-center border-x border-b border-grey-500 text-low">
           {noDataFoundText} 
         </div>

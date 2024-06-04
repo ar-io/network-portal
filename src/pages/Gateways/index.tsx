@@ -31,9 +31,7 @@ const Gateways = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const tableData: Array<TableData> = !gateways
-      ? ([] as Array<TableData>)
-      : Object.entries(gateways).reduce((acc, [owner, gateway]) => {
+    const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce((acc: Array<TableData>, [owner, gateway]) => {
           return [
             ...acc,
             {
@@ -57,7 +55,7 @@ const Gateways = () => {
               failedConsecutiveEpochs: gateway.stats.failedConsecutiveEpochs,
             },
           ];
-        }, [] as Array<TableData>);
+        }, []);
     setTableData(tableData);
   }, [gateways]);
 

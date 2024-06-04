@@ -10,7 +10,7 @@ export const ARNS_REGISTRY_ADDRESS = new ArweaveTransactionID(
 export const IO_PROCESS_ID = new ArweaveTransactionID(
     'GaQrvEMKBpkjofgnBi_B3IgIDmY_XYelVLB6GcRGrHc',
 );
-export const GATEWAY_CONTRACT_URL = `https://viewblock.io/arweave/contract/${ARNS_REGISTRY_ADDRESS.toString()}`;
+export const GATEWAY_CONTRACT_URL = `https://www.ao.link/entity/${IO_PROCESS_ID.toString()}`;
 
 export const DEFAULT_ARWEAVE_PROTOCOL =
   process.env.VITE_GATEWAY_PROTOCOL ?? 'https';

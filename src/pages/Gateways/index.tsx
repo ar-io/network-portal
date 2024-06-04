@@ -60,7 +60,7 @@ const Gateways = () => {
   }, [gateways]);
 
   // Define columns for the table
-  const columns = [
+  const columns:ColumnDef<TableData, any>[] = [
     columnHelper.accessor('label', {
       id: 'label',
       header: 'Label',
@@ -158,7 +158,7 @@ const Gateways = () => {
           <div className="grow text-sm text-mid">Gateways</div>
         </div>
         <TableView
-          columns={columns as ColumnDef<TableData, unknown>[]}
+          columns={columns}
           data={tableData}
           defaultSortingState={{ id: 'totalStake', desc: true }}
           isLoading={isLoading}

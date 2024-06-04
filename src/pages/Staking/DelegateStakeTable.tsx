@@ -66,7 +66,7 @@ const DelegateStake = () => {
   }, [gateways, protocolBalance, walletAddress]);
 
   // Define columns for the table
-  const columns = [
+  const columns:ColumnDef<TableData,any>[] = [
     columnHelper.accessor('label', {
       id: 'label',
       header: 'Label',
@@ -161,7 +161,7 @@ const DelegateStake = () => {
         <div className="grow text-sm text-mid">Delegate Stake</div>
       </div>
       <TableView
-        columns={columns as ColumnDef<TableData, unknown>[]}
+        columns={columns}
         data={stakeableGateways}
         isLoading={isLoading}
         noDataFoundText='No stakeable gateways found.'

@@ -59,7 +59,7 @@ const ActiveStakes = () => {
   }, [gateways, walletAddress]);
 
   // Define columns for the table
-  const columns = [
+  const columns:ColumnDef<TableData,any>[] = [
     columnHelper.accessor('gateway.settings.label', {
       id: 'label',
       header: 'Label',
@@ -180,7 +180,7 @@ const ActiveStakes = () => {
         )}
       </div>
       <TableView
-        columns={columns as ColumnDef<TableData, unknown>[]}
+        columns={columns}
         data={activeStakes}
         isLoading={isLoading}
         noDataFoundText='No active stakes found.'

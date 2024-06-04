@@ -18,6 +18,7 @@ import {
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
+import { log } from '@src/constants';
 
 const DEFAULT_FORM_STATE = {
   label: '',
@@ -35,13 +36,7 @@ const DEFAULT_PORT = 443;
 const DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO = 0;
 const DEFAULT_DELEGATED_STAKING = 100;
 
-const StartGatewayModal = ({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) => {
+const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
@@ -177,7 +172,7 @@ const StartGatewayModal = ({
           properties: propertiesIdEnabled
             ? String(formState.propertiesId)
             : DEFAULT_FORM_STATE.propertiesId,
-          observerAddress: String(formState.observerAddress),
+          observerWallet: String(formState.observerAddress),
 
           // GatewayStakingSettings
           allowDelegatedStaking: delegatedStakingEnabled,
@@ -199,8 +194,7 @@ const StartGatewayModal = ({
         const { id: txID } =
           await arioWriteableSDK.joinNetwork(joinNetworkParams);
 
-        // TODO: replace with logger call at INFO level when logger reinstated
-        console.log('Join Network txID:', txID);
+        log.info(`Join Network txID: ${txID}`);
 
         if (walletAddress) {
           updatePendingDataCache(walletAddress.toString(), {
@@ -232,7 +226,7 @@ const StartGatewayModal = ({
   };
 
   return (
-    <BaseModal open={open} onClose={closeDialog}>
+    <BaseModal onClose={closeDialog}>
       <div className="w-[680px] text-left">
         <div className="pb-[12px] text-[24px] text-high">Start Gateway</div>
         <div className="flex text-sm text-low">
@@ -280,21 +274,23 @@ const StartGatewayModal = ({
             />
           </div>
         </div>
-        <BlockingMessageModal
-          open={showBlockingMessageModal}
-          onClose={() => setShowBlockingMessageModal(false)}
-          message="Sign the following data with your wallet to proceed."
-        ></BlockingMessageModal>
-        <SuccessModal
-          open={showSuccessModal}
-          onClose={() => {
-            resetForm();
-            setShowSuccessModal(false);
-            onClose();
-          }}
-          title="Congratulations"
-          bodyText="You have successfully joined the network."
-        />
+        {showBlockingMessageModal && (
+          <BlockingMessageModal
+            onClose={() => setShowBlockingMessageModal(false)}
+            message="Sign the following data with your wallet to proceed."
+          ></BlockingMessageModal>
+        )}
+        {showSuccessModal && (
+          <SuccessModal
+            onClose={() => {
+              resetForm();
+              setShowSuccessModal(false);
+              onClose();
+            }}
+            title="Congratulations"
+            bodyText="You have successfully joined the network."
+          />
+        )}
       </div>
     </BaseModal>
   );

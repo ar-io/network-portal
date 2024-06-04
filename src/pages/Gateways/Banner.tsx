@@ -40,7 +40,7 @@ const Banner = () => {
       }
     >
       <button
-        className="group relative mt-[24px] h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
+        className="group relative h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
         onClick={() => {
           if (walletAddress) {
             navigate(`/gateways/${walletAddress.toString()}`);
@@ -72,11 +72,10 @@ const Banner = () => {
           </div>
         </div>
       </button>
-      <ConnectModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-      <StartGatewayModal
-        open={startGatewayOpen}
-        onClose={() => setStartGatewayOpen(false)}
-      />
+      {loginOpen && <ConnectModal onClose={() => setLoginOpen(false)} />}
+      {startGatewayOpen && (
+        <StartGatewayModal onClose={() => setStartGatewayOpen(false)} />
+      )}
     </div>
   ) : (
     <div>
@@ -110,11 +109,10 @@ const Banner = () => {
           </div>
         </div>
       </button>
-      <ConnectModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-      <StartGatewayModal
-        open={startGatewayOpen}
-        onClose={() => setStartGatewayOpen(false)}
-      />
+      {loginOpen && <ConnectModal onClose={() => setLoginOpen(false)} />}
+      {startGatewayOpen && (
+        <StartGatewayModal onClose={() => setStartGatewayOpen(false)} />
+      )}
     </div>
   );
 };

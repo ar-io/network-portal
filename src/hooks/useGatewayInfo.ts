@@ -1,9 +1,10 @@
+import { mIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import {
   getPendingDataCache,
   storePendingDataCache,
 } from '@src/store/persistent';
-import { formatWalletAddress, formatWithCommas, mioToIo } from '@src/utils';
+import { formatWalletAddress, formatWithCommas } from '@src/utils';
 import { useEffect } from 'react';
 
 export enum GatewayStatus {
@@ -12,7 +13,7 @@ export enum GatewayStatus {
   NOT_FOUND,
 }
 
-const GATEWAY_POLLING_INTERVAL_MS = 15_000 // 15 seconds
+const GATEWAY_POLLING_INTERVAL_MS = 15_000; // 15 seconds
 
 export const useGatewayInfo = () => {
   const gateway = useGlobalState((state) => state.gateway);
@@ -62,8 +63,11 @@ export const useGatewayInfo = () => {
         `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`,
       ],
       ['Observer Wallet', formatWalletAddress(gateway.observerAddress)],
-      ['Joined', new Date(gateway.startTimestamp).toLocaleString()],
-      ['Stake (IO)', formatWithCommas(mioToIo(gateway.operatorStake))],
+      ['Joined at', new Date(gateway.startTimestamp).toLocaleString()],
+      [
+        'Stake (IO)',
+        formatWithCommas(new mIOToken(gateway.operatorStake).toIO().valueOf()),
+      ],
       ['Status', gateway.status],
       ['Reward Ratio', gateway.settings.delegateRewardShareRatio],
     ];
@@ -86,7 +90,12 @@ export const useGatewayInfo = () => {
         observerWallet ? formatWalletAddress(observerWallet) : '',
       ],
       ['Joined at', 'PENDING'],
-      ['Stake (IO)', formatWithCommas(mioToIo(operatorStake.valueOf()))],
+      [
+        'Stake (IO)',
+        formatWithCommas(
+          new mIOToken(operatorStake.valueOf()).toIO().valueOf(),
+        ),
+      ],
       ['Status', 'PENDING'],
       ['Reward Ratio', delegateRewardShareRatio],
     ];

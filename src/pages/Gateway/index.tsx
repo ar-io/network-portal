@@ -1,4 +1,4 @@
-import { IOToken, UpdateGatewaySettingsParams } from '@ar.io/sdk/web';
+import { IOToken, UpdateGatewaySettingsParams, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import FormRow, { RowType } from '@src/components/forms/FormRow';
@@ -26,12 +26,12 @@ import {
   GatewaySettingsUpdate,
   OperatorStakeUpdate,
 } from '@src/store/persistent';
-import { mioToIo } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
+import { log } from '@src/constants';
 
 const StatsBox = ({
   title,
@@ -103,7 +103,7 @@ const Gateway = () => {
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
   const maxStake = gateway?.operatorStake
-    ? mioToIo(gateway.operatorStake) + (balances?.io || 0)
+    ? new mIOToken(gateway.operatorStake).toIO().valueOf() + (balances?.io || 0)
     : undefined;
 
   useEffect(() => {
@@ -254,15 +254,15 @@ const Gateway = () => {
       ownerId: ownerId || '',
       observerAddress: gateway.observerAddress || '',
       properties: gateway.settings.properties || '',
-      stake: mioToIo(gateway.operatorStake || 0) + '',
+      stake: new mIOToken(gateway.operatorStake || 0).toIO().valueOf() + '',
       status: gateway.status || '',
       note: gateway.settings.note || '',
-      delegatedStake: mioToIo(gateway.totalDelegatedStake || 0) + '',
+      delegatedStake: new mIOToken(gateway.totalDelegatedStake || 0).toIO().valueOf() + '',
       autoStake: gateway.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
       delegateRewardShareRatio:
         (gateway.settings.delegateRewardShareRatio || 0) + '',
-      minDelegatedStake: mioToIo(gateway.settings.minDelegatedStake || 0) + '',
+      minDelegatedStake: new mIOToken(gateway.settings.minDelegatedStake || 0).toIO().valueOf() + '',
     };
     setInitialState(initialState);
     setFormState(initialState);
@@ -308,7 +308,7 @@ const Gateway = () => {
         note: changed.note as string,
         properties: changed.properties as string,
         autoStake: changed.autoStake as boolean,
-        observerAddress: changed.observerAddress as string,
+        observerWallet: changed.observerAddress as string,
       };
 
       setShowBlockingMessageModal(true);
@@ -327,8 +327,7 @@ const Gateway = () => {
           const { id: txID } = await arIOWriteableSDK.updateGatewaySettings(
             updateGatewaySettingsParams,
           );
-          // TODO: replace with logger call at INFO level when logger reinstated
-          console.log(`Update Gateway Settings txID: ${txID}`);
+          log.info(`Update Gateway Settings txID: ${txID}`);
 
           const pendingGatewaySettingsUpdate: GatewaySettingsUpdate = {
             txid: await txID,
@@ -339,15 +338,14 @@ const Gateway = () => {
         }
 
         if (operatorStake !== undefined && gateway) {
-          const stakeDiff = operatorStake - mioToIo(gateway.operatorStake || 0);
+          const stakeDiff = operatorStake - new mIOToken(gateway.operatorStake || 0).toIO().valueOf();
 
           if (stakeDiff > 0) {
             const { id: txID } = await arIOWriteableSDK.increaseOperatorStake({
               qty: new IOToken(stakeDiff).toMIO(),
             });
 
-            // TODO: replace with logger call at INFO level when logger reinstated
-            console.log(`Increase Operator Stake txID: ${txID}`);
+            log.info(`Increase Operator Stake txID: ${txID}`);
 
             const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
               txid: await txID,
@@ -361,8 +359,7 @@ const Gateway = () => {
               qty: new IOToken(Math.abs(stakeDiff)).toMIO(),
             });
 
-            // TODO: replace with logger call at INFO level when logger reinstated
-            console.log(`Decrease Operator Stake txID: ${txID}`);
+            log.info(`Decrease Operator Stake txID: ${txID}`);
 
             const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
               txid: await txID,
@@ -392,7 +389,7 @@ const Gateway = () => {
           <div className="px-[24px] py-[16px]">
             <div className="text-high">Stats</div>
           </div>
-          <StatsBox title="Start Block" value={gateway?.start} />
+          <StatsBox title="Start Time" value={gateway?.startTimestamp ? new Date(gateway?.startTimestamp).toLocaleString() : 'N/A'} />
           <StatsBox
             title="Uptime"
             value={
@@ -475,14 +472,12 @@ const Gateway = () => {
       </div>
       {showBlockingMessageModal && (
         <BlockingMessageModal
-          open={showBlockingMessageModal}
           onClose={() => setShowBlockingMessageModal(false)}
           message="Sign the following data with your wallet to proceed."
         ></BlockingMessageModal>
       )}
       {showSuccessModal && (
         <SuccessModal
-          open={showSuccessModal}
           onClose={() => {
             setShowSuccessModal(false);
             setEditing(false);

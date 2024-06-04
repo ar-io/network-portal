@@ -1,11 +1,10 @@
-import { IO } from '@ar.io/sdk/web';
+import { IO, mIOToken } from '@ar.io/sdk/web';
 import { IO_PROCESS_ID } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
 import { WALLET_TYPES } from '@src/types';
-import { mioToIo } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { showErrorToast } from '@src/utils/toast';
 import Ar from 'arweave/web/ar';
@@ -54,7 +53,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
           ]);
 
           const arBalance = +AR.winstonToAr(winstonBalance);
-          const ioBalance = mioToIo(mioBalance);
+          const ioBalance = new mIOToken(mioBalance).toIO().valueOf();
 
           setBalances(arBalance, ioBalance);
         } catch (error) {

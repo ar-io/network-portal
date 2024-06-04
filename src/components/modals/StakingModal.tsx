@@ -1,16 +1,20 @@
 import { IOToken, mIOToken } from '@ar.io/sdk/web';
+import { EAY_TOOLTIP_TEXT, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
+import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import {
   validateIOAmount,
   validateUnstakeAmount,
   validateWalletAddress,
 } from '../forms/validation';
+import { InfoIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
@@ -20,11 +24,13 @@ const DisplayRow = ({
   value,
   className,
   isLink = false,
+  rightIcon,
 }: {
   label: string;
   value: string;
   isLink?: boolean;
   className?: string;
+  rightIcon?: React.ReactNode;
 }) => {
   return (
     <div className={`flex items-center text-[13px] ${className}`}>
@@ -40,14 +46,16 @@ const DisplayRow = ({
           {value}
         </a>
       ) : (
-        <div className="text-left text-low">{value}</div>
+        <div className="flex gap-[4px] text-left text-low">
+          {value}
+          {rightIcon}
+        </div>
       )}
     </div>
   );
 };
 
 const StakingModal = ({
-  open,
   onClose,
   ownerWallet,
 }: {
@@ -77,12 +85,13 @@ const StakingModal = ({
     ownerWalletAddress: gatewayOwnerWallet,
   });
 
+  const allowDelegatedStaking =
+    gateway?.settings.allowDelegatedStaking ?? false;
+
   const delegateData = walletAddress
-    ? (gateway?.delegates[walletAddress?.toString()] as any)
+    ? gateway?.delegates[walletAddress?.toString()]
     : undefined;
-  const currentStake = new mIOToken(
-    (delegateData?.delegatedStake as number) ?? 0,
-  )
+  const currentStake = new mIOToken(delegateData?.delegatedStake ?? 0)
     .toIO()
     .valueOf();
 
@@ -91,11 +100,12 @@ const StakingModal = ({
       ? currentStake + parseFloat(amountToStake)
       : currentStake - parseFloat(amountToUnstake);
   const rewardsInfo = useRewardsInfo(gateway, newTotalStake);
-  const EAY = rewardsInfo && newTotalStake > 0
-    ? (rewardsInfo.EAY * 100).toLocaleString('en-us', {
-        maximumFractionDigits: 2,
-      }) + ' %'
-    : '-';
+  const EAY =
+    rewardsInfo && newTotalStake > 0
+      ? (rewardsInfo.EAY * 100).toLocaleString('en-us', {
+          maximumFractionDigits: 2,
+        }) + '%'
+      : '-';
 
   const existingStake = new mIOToken(delegateData?.delegatedStake ?? 0)
     .toIO()
@@ -120,7 +130,7 @@ const StakingModal = ({
   };
 
   const isFormValid = () => {
-    if (!gateway) {
+    if (!gateway || (tab == 0 && !allowDelegatedStaking)) {
       return false;
     }
     if (tab == 0) {
@@ -146,11 +156,11 @@ const StakingModal = ({
     }
   };
 
-  const disableInput = !gateway
-    ? true
-    : tab == 0
-      ? balances.io < minRequiredStakeToAdd
-      : currentStake <= 0;
+  const disableInput =
+    !gateway ||
+    (tab == 0 &&
+      (balances.io < minRequiredStakeToAdd || !allowDelegatedStaking)) ||
+    (tab == 1 && currentStake <= 0);
 
   const submitForm = async () => {
     if (walletAddress && arIOWriteableSDK && gateway && isFormValid()) {
@@ -163,16 +173,14 @@ const StakingModal = ({
             qty: new IOToken(parseFloat(amountToStake)).toMIO(),
           });
 
-          // TODO: replace with logger call at INFO level when logger reinstated
-          console.log('Increase Delegate Stake txID:', txID);
+          log.info(`Increase Delegate Stake txID: ${txID}`);
         } else {
           const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
             target: gatewayOwnerWallet,
             qty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
           });
 
-          // TODO: replace with logger call at INFO level when logger reinstated
-          console.log('Decrease Delegate Stake txID:', txID);
+          log.info(`Decrease Delegate Stake txID: ${txID}`);
         }
         setShowSuccessModal(true);
       } catch (e: any) {
@@ -190,11 +198,13 @@ const StakingModal = ({
     cannotStake:
       balances.io < minRequiredStakeToAdd
         ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
-        : undefined,
+        : !allowDelegatedStaking
+          ? 'Gateway does not allow delegated staking.'
+          : undefined,
   };
 
   return (
-    <BaseModal open={open} onClose={onClose} useDefaultPadding={false}>
+    <BaseModal onClose={onClose} useDefaultPadding={false}>
       <div className="w-[456px]">
         <div className="grid grid-cols-2">
           <button
@@ -212,24 +222,31 @@ const StakingModal = ({
         </div>
         <div className="flex flex-col p-[32px]">
           <div className="text-left text-sm text-mid">Gateway Owner:</div>
-          <input
-            className={
-              'mt-3 size-full rounded-md border border-grey-800 bg-grey-1000 px-[24px] py-[12px] text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
-            }
-            type="text"
-            placeholder="Enter wallet address for Gateway"
-            value={userEnteredWalletAddress}
-            onChange={(e) => {
-              setUserEnteredWalletAddress(e.target.value);
-            }}
-          />
+          {ownerWallet ? (
+            <div className="py-[12px] text-left text-sm text-mid">
+              {ownerWallet}
+            </div>
+          ) : (
+            <input
+              className={
+                'mt-3 size-full rounded-md border border-grey-800 bg-grey-1000 px-[24px] py-[12px] text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+              }
+              type="text"
+              placeholder="Enter wallet address for Gateway"
+              value={userEnteredWalletAddress}
+              onChange={(e) => {
+                setUserEnteredWalletAddress(e.target.value);
+              }}
+              maxLength={43}
+            />
+          )}
           <div className="mt-[32px] flex items-center">
             <div className="text-left text-sm text-mid">Amount:</div>
             <div className="grow"></div>
             <div className="text-left text-xs text-low">
               {tab == 0
-                ? balances && `Available: ${balances.io} IO`
-                : `Available to Unstake: ${currentStake} IO`}
+                ? balances && `Available: ${formatWithCommas(balances.io)} IO`
+                : `Available to Unstake: ${formatWithCommas(currentStake)} IO`}
             </div>
           </div>
           <div className="mt-3 flex h-[52px] items-center overflow-hidden rounded-md border border-grey-800">
@@ -245,7 +262,7 @@ const StakingModal = ({
               onChange={(e) => {
                 const textValue = e.target.value;
 
-                if (textValue && isNaN(e.target.value as unknown as number)) {
+                if (textValue && isNaN(+e.target.value)) {
                   return;
                 }
 
@@ -257,8 +274,10 @@ const StakingModal = ({
               }}
             ></input>
             {tab == 0 &&
+              gateway &&
               (amountToStake?.length > 0 ||
-                balances.io < minRequiredStakeToAdd) &&
+                balances.io < minRequiredStakeToAdd ||
+                !allowDelegatedStaking) &&
               (errorMessages.cannotStake || errorMessages.stakeAmount) && (
                 <ErrorMessageIcon
                   errorMessage={
@@ -305,12 +324,26 @@ const StakingModal = ({
               value={gateway ? gateway.settings.fqdn : '-'}
             />
 
-            <DisplayRow className="py-[4px]" label="EAY:" value={EAY} />
+            <DisplayRow
+              className="py-[4px]"
+              label="EAY:"
+              value={EAY}
+              rightIcon={
+                <Tooltip message={EAY_TOOLTIP_TEXT}>
+                  <InfoIcon />
+                </Tooltip>
+              }
+            />
 
             <DisplayRow
               className="py-[4px]"
               label="Unlock Period:"
               value="21 days"
+              rightIcon={
+                <Tooltip message="21 days is the standard unstaking period.">
+                  <InfoIcon />
+                </Tooltip>
+              }
             />
           </div>
         </div>
@@ -325,7 +358,7 @@ const StakingModal = ({
             <DisplayRow
               className="py-[4px]"
               label="Remaining Balance:"
-              value={`${remainingBalance} IO`}
+              value={`${remainingBalance !== '-' ? formatWithCommas(+remainingBalance) : remainingBalance} IO`}
             />
           )}
           <DisplayRow
@@ -334,8 +367,8 @@ const StakingModal = ({
             value={`${
               isFormValid()
                 ? tab == 0
-                  ? currentStake + parseFloat(amountToStake)
-                  : currentStake - parseFloat(amountToUnstake)
+                  ? formatWithCommas(currentStake + parseFloat(amountToStake))
+                  : formatWithCommas(currentStake - parseFloat(amountToUnstake))
                 : '-'
             } IO`}
           />
@@ -355,14 +388,12 @@ const StakingModal = ({
         </div>
         {showBlockingMessageModal && (
           <BlockingMessageModal
-            open={showBlockingMessageModal}
             onClose={() => setShowBlockingMessageModal(false)}
             message="Sign the following data with your wallet to proceed."
           ></BlockingMessageModal>
         )}
         {showSuccessModal && (
           <SuccessModal
-            open={showSuccessModal}
             onClose={() => {
               setShowSuccessModal(false);
               onClose();

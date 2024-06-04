@@ -19,23 +19,24 @@
     "vis": "yarn vite-bundle-visualizer"
   },
   "dependencies": {
-    "@ar.io/sdk": "^1.0.7",
+    "@ar.io/sdk": "1.1.0",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^1.7.19",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@sentry/browser": "^7.101.1",
     "@sentry/react": "^7.101.1",
     "@tanstack/react-query": "^5.35.1",
+    "@tanstack/react-table": "^8.17.3",
     "arweave": "^1.15.0",
     "axios": "^1.6.7",
     "axios-retry": "^4.0.0",
+    "loglevel": "^1.9.1",
     "lottie-react": "^2.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.22.1",
     "tailwindcss-animate": "^1.0.7",
-    "winston": "^3.11.0",
     "zustand": "^4.5.1"
   },
   "devDependencies": {

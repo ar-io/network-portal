@@ -40,7 +40,7 @@ const DelegateStake = () => {
   useEffect(() => {
     const stakeableGateways: Array<TableData> =
       !walletAddress || !gateways || !protocolBalance
-        ? ([] as Array<TableData>)
+        ? []
         : Object.entries(gateways).reduce((acc, [owner, gateway]) => {
             if (gateway.settings.allowDelegatedStaking) {
               return [
@@ -66,7 +66,7 @@ const DelegateStake = () => {
   }, [gateways, protocolBalance, walletAddress]);
 
   // Define columns for the table
-  const columns:ColumnDef<TableData,any>[] = [
+  const columns: ColumnDef<TableData, any>[] = [
     columnHelper.accessor('label', {
       id: 'label',
       header: 'Label',
@@ -116,7 +116,7 @@ const DelegateStake = () => {
     }),
     columnHelper.accessor('eay', {
       id: 'eay',
-      header: () => ( 
+      header: () => (
         <div className="flex gap-[4px]">
           EAY
           <Tooltip message={EAY_TOOLTIP_TEXT}>
@@ -164,7 +164,7 @@ const DelegateStake = () => {
         columns={columns}
         data={stakeableGateways}
         isLoading={isLoading}
-        noDataFoundText='No stakeable gateways found.'
+        noDataFoundText="No stakeable gateways found."
         defaultSortingState={{ id: 'rewardRatio', desc: true }}
       />
       {stakingModalWalletAddress && (

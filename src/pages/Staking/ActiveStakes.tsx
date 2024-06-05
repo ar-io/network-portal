@@ -109,17 +109,8 @@ const ActiveStakes = () => {
     }),
     columnHelper.accessor('pendingWithdrawals', {
       id: 'pendingWithdrawals',
-      header: 'Pending Withdrawals (IO)',
+      header: 'Pending Withdrawals',
       sortDescFirst: true,
-      cell: ({ row }) => (
-        <div
-          className={
-            row.original.pendingWithdrawals > 0 ? 'text-high' : 'text-low'
-          }
-        >
-          {`${new mIOToken(row.original.pendingWithdrawals).toIO().valueOf()}`}
-        </div>
-      ),
     }),
     columnHelper.display({
       id: 'action',

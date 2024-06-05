@@ -1,3 +1,4 @@
+import { IO_PROCESS_ID } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -8,12 +9,8 @@ const useProtocolBalance = () => {
     queryKey: ['protocolBalance', arIOReadSDK],
     queryFn: () => {
       if (arIOReadSDK) {
-        return arIOReadSDK.getState().then((v) => {
-          return arIOReadSDK.getBalance({
-            // using 'as any' to read owner property from the object 
-            // The value exists in the object but is not currently specified in ar.io SDK ArIOState type 
-            address: (v as any).owner as string
-          });
+        return arIOReadSDK.getBalance({
+          address: IO_PROCESS_ID.toString(),
         });
       }
       throw new Error('Error: Arweave IO Read SDK is not initialized');

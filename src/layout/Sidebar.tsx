@@ -1,4 +1,4 @@
-import { ARIO_DOCS_URL, GATEWAY_CONTRACT_URL } from '@src/constants';
+import { ARIO_DOCS_URL, IO_PROCESS_INFO_URL } from '@src/constants';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -23,7 +23,7 @@ const ROUTES_PRIMARY = [
 
 const ROUTES_SECONDARY = [
   { title: 'Docs', icon: <DocsIcon />, path: ARIO_DOCS_URL },
-  { title: 'Contract', icon: <ContractIcon />, path: GATEWAY_CONTRACT_URL },
+  { title: 'Process', icon: <ContractIcon />, path: IO_PROCESS_INFO_URL },
 ];
 
 const Sidebar = () => {

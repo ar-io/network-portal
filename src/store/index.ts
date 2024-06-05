@@ -1,9 +1,9 @@
 import {
-  IO,
-  IOReadable,
-  IOWriteable,
   AoEpochData,
   AoGateway,
+  AoIORead,
+  AoIOWrite,
+  IO,
 } from '@ar.io/sdk/web';
 import {
   DEFAULT_ARWEAVE_HOST,
@@ -28,8 +28,8 @@ export type PendingGatewayUpdates = {
 export type GlobalState = {
   theme: ThemeType;
   arweave: Arweave;
-  arIOReadSDK: IOReadable;
-  arIOWriteableSDK?: IOWriteable;
+  arIOReadSDK: AoIORead;
+  arIOWriteableSDK?: AoIOWrite;
   blockHeight?: number;
   currentEpoch?: AoEpochData;
   walletAddress?: ArweaveTransactionID;
@@ -52,7 +52,7 @@ export type GlobalStateActions = {
     wallet?: ArweaveWalletConnector,
   ) => void;
   setGateway: (gateway?: AoGateway) => void;
-  setArIOWriteableSDK: (arIOWriteableSDK?: IOWriteable) => void;
+  setArIOWriteableSDK: (arIOWriteableSDK?: AoIOWrite) => void;
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
   reset: () => void;
@@ -109,7 +109,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
     this.set({ gateway });
   };
 
-  setArIOWriteableSDK = (arIOWriteableSDK?: IOWriteable) => {
+  setArIOWriteableSDK = (arIOWriteableSDK?: AoIOWrite) => {
     this.set({ arIOWriteableSDK });
   };
 

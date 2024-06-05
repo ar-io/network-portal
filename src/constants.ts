@@ -1,4 +1,4 @@
-import { ARNS_DEVNET_REGISTRY_TX } from '@ar.io/sdk/web';
+import { ARNS_DEVNET_REGISTRY_TX, ioDevnetProcessId } from '@ar.io/sdk/web';
 import * as loglevel from 'loglevel';
 
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
@@ -8,9 +8,10 @@ export const ARNS_REGISTRY_ADDRESS = new ArweaveTransactionID(
   process.env.VITE_ARNS_REGISTRY_ADDRESS ?? ARNS_DEVNET_REGISTRY_TX,
 );
 export const IO_PROCESS_ID = new ArweaveTransactionID(
-    'GaQrvEMKBpkjofgnBi_B3IgIDmY_XYelVLB6GcRGrHc',
+  process.env.VITE_IO_PROCESS_ID ?? ioDevnetProcessId
 );
-export const GATEWAY_CONTRACT_URL = `https://www.ao.link/entity/${IO_PROCESS_ID.toString()}`;
+
+export const IO_PROCESS_INFO_URL = `https://www.ao.link/entity/${IO_PROCESS_ID.toString()}`;
 
 export const DEFAULT_ARWEAVE_PROTOCOL =
   process.env.VITE_GATEWAY_PROTOCOL ?? 'https';

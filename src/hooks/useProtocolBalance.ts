@@ -10,7 +10,9 @@ const useProtocolBalance = () => {
       if (arIOReadSDK) {
         return arIOReadSDK.getState().then((v) => {
           return arIOReadSDK.getBalance({
-            address: (v as any).owner
+            // using 'as any' to read owner property from the object 
+            // The value exists in the object but is not currently specified in ar.io SDK ArIOState type 
+            address: (v as any).owner as string
           });
         });
       }

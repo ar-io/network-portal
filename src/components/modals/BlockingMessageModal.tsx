@@ -3,16 +3,14 @@ import arioLoading from '../../animations/ario-spinner.json';
 import BaseModal from './BaseModal';
 
 const BlockingMessageModal = ({
-  open,
   onClose,
   message,
 }: {
-  open: boolean;
   onClose: () => void;
   message: string;
 }) => {
   return (
-    <BaseModal open={open} onClose={onClose} showCloseButton={false}>
+    <BaseModal onClose={onClose} showCloseButton={false}>
       <div className="flex w-[392px] flex-col items-center justify-center">
         <div className="flex size-[72px] items-center pb-[16px]">
           <Lottie

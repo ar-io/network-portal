@@ -3,20 +3,18 @@ import { ReactElement } from 'react';
 import { CloseIcon } from '../icons';
 
 const BaseModal = ({
-  open,
   onClose,
   children,
   showCloseButton = true,
   useDefaultPadding = true,
 }: {
-  open: boolean;
   onClose: () => void;
   children: ReactElement;
   showCloseButton?: boolean;
   useDefaultPadding?: boolean;
 }) => {
   return (
-    <Dialog open={open} onClose={() => {}} className="relative z-10">
+    <Dialog open={true} onClose={() => {}} className="relative z-10">
       <div
         className="fixed inset-0 w-screen bg-neutrals-1100/80"
         aria-hidden="true"

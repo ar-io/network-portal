@@ -7,10 +7,8 @@ import { ArConnectIcon, ConnectIcon } from '../icons';
 import BaseModal from './BaseModal';
 
 const ConnectModal = ({
-  open,
   onClose,
 }: {
-  open: boolean;
   onClose: () => void;
 }) => {
   const [connecting, setConnecting] = useState<boolean>(false);
@@ -46,7 +44,7 @@ const ConnectModal = ({
   };
 
   return (
-    <BaseModal open={open} onClose={onClose}>
+    <BaseModal onClose={onClose}>
       <div className='w-[392px]'>
         <div className="flex grow justify-center pb-[16px]">
           <ConnectIcon className="size-[24px]" />

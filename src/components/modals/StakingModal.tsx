@@ -1,5 +1,5 @@
 import { IOToken, mIOToken } from '@ar.io/sdk/web';
-import { log } from '@src/constants';
+import { EAY_TOOLTIP_TEXT, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
@@ -7,12 +7,14 @@ import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import {
   validateIOAmount,
   validateUnstakeAmount,
   validateWalletAddress,
 } from '../forms/validation';
+import { InfoIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
@@ -22,11 +24,13 @@ const DisplayRow = ({
   value,
   className,
   isLink = false,
+  rightIcon,
 }: {
   label: string;
   value: string;
   isLink?: boolean;
   className?: string;
+  rightIcon?: React.ReactNode;
 }) => {
   return (
     <div className={`flex items-center text-[13px] ${className}`}>
@@ -42,7 +46,10 @@ const DisplayRow = ({
           {value}
         </a>
       ) : (
-        <div className="text-left text-low">{value}</div>
+        <div className="flex gap-[4px] text-left text-low">
+          {value}
+          {rightIcon}
+        </div>
       )}
     </div>
   );
@@ -97,7 +104,7 @@ const StakingModal = ({
     rewardsInfo && newTotalStake > 0
       ? (rewardsInfo.EAY * 100).toLocaleString('en-us', {
           maximumFractionDigits: 2,
-        }) + ' %'
+        }) + '%'
       : '-';
 
   const existingStake = new mIOToken(delegateData?.delegatedStake ?? 0)
@@ -317,12 +324,26 @@ const StakingModal = ({
               value={gateway ? gateway.settings.fqdn : '-'}
             />
 
-            <DisplayRow className="py-[4px]" label="EAY:" value={EAY} />
+            <DisplayRow
+              className="py-[4px]"
+              label="EAY:"
+              value={EAY}
+              rightIcon={
+                <Tooltip message={EAY_TOOLTIP_TEXT}>
+                  <InfoIcon />
+                </Tooltip>
+              }
+            />
 
             <DisplayRow
               className="py-[4px]"
               label="Unlock Period:"
               value="21 days"
+              rightIcon={
+                <Tooltip message="21 days is the standard unstaking period.">
+                  <InfoIcon />
+                </Tooltip>
+              }
             />
           </div>
         </div>

@@ -40,7 +40,7 @@ const Banner = () => {
       }
     >
       <button
-        className="group relative mt-[24px] h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
+        className="group relative h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
         onClick={() => {
           if (walletAddress) {
             navigate(`/gateways/${walletAddress.toString()}`);

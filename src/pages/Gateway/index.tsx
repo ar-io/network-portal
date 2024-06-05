@@ -23,6 +23,7 @@ import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
@@ -60,6 +61,8 @@ const formatUptime = (uptime: number) => {
 };
 
 const Gateway = () => {
+  const queryClient = useQueryClient();
+
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const balances = useGlobalState((state) => state.balances);
@@ -342,6 +345,15 @@ const Gateway = () => {
             log.info(`Decrease Operator Stake txID: ${txID}`);
           }
         }
+
+        queryClient.invalidateQueries({
+          queryKey: ['gateway', walletAddress.toString()],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['gateways'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {

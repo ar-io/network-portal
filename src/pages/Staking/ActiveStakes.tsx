@@ -9,6 +9,7 @@ import { log } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
@@ -22,6 +23,8 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const ActiveStakes = () => {
+  const queryClient = useQueryClient();
+
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
@@ -47,7 +50,7 @@ const ActiveStakes = () => {
                 ...acc,
                 {
                   owner: key,
-                  delegatedStake: delegate.delegatedStake, 
+                  delegatedStake: delegate.delegatedStake,
                   gateway,
                   pendingWithdrawals: Object.keys(delegate.vaults).length,
                 },
@@ -157,6 +160,15 @@ const ActiveStakes = () => {
             log.info(`Decrease Delegate Stake txID: ${txID}`);
           }
         }
+
+        queryClient.invalidateQueries({
+          queryKey: ['gateway', walletAddress.toString()],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['gateways'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {

@@ -18,7 +18,6 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
   const setWalletStateInitialized = useGlobalState(
     (state) => state.setWalletStateInitialized,
   );
-  const setGateway = useGlobalState((state) => state.setGateway);
 
   const wallet = useGlobalState((state) => state.wallet);
   const updateWallet = useGlobalState((state) => state.updateWallet);
@@ -80,20 +79,6 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
       setArIOWriteableSDK(undefined);
     }
   }, [setArIOWriteableSDK, wallet]);
-
-  useEffect(() => {
-    if (walletAddress) {
-      const update = async () => {
-        const gateway = await arIOReadSDK.getGateway({
-          address: walletAddress.toString(),
-        });
-        setGateway(gateway);
-      };
-      update();
-    } else {
-      setGateway(undefined);
-    }
-  }, [arIOReadSDK, setGateway, walletAddress]);
 
   const updateIfConnected = async () => {
     const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);

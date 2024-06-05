@@ -36,9 +36,10 @@ const ConnectedLandingPage = () => {
   const topPanels = [
     {
       title: 'Total Protocol Balance',
-      balance: protocolBalance
-        ? formatWithCommas(new mIOToken(protocolBalance).toIO().valueOf())
-        : undefined,
+      balance:
+        protocolBalance !== undefined
+          ? formatWithCommas(new mIOToken(protocolBalance).toIO().valueOf())
+          : undefined,
     },
     {
       title: 'Your Balance',
@@ -46,7 +47,10 @@ const ConnectedLandingPage = () => {
     },
     {
       title: 'Amount Staking',
-      balance: amountStaking ? formatWithCommas(amountStaking) : undefined,
+      balance:
+        amountStaking !== undefined
+          ? formatWithCommas(amountStaking)
+          : undefined,
     },
   ];
 

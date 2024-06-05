@@ -5,6 +5,7 @@ import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import Tooltip from '../Tooltip';
@@ -63,6 +64,8 @@ const StakingModal = ({
   onClose: () => void;
   ownerWallet?: string;
 }) => {
+  const queryClient = useQueryClient();
+
   const balances = useGlobalState((state) => state.balances);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
@@ -182,6 +185,16 @@ const StakingModal = ({
 
           log.info(`Decrease Delegate Stake txID: ${txID}`);
         }
+
+        queryClient.invalidateQueries({
+          queryKey: ['gateway', walletAddress.toString()],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['gateways'],
+          refetchType: 'all',
+        });
+
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);

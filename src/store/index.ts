@@ -1,10 +1,4 @@
-import {
-  AoEpochData,
-  AoGateway,
-  AoIORead,
-  AoIOWrite,
-  IO,
-} from '@ar.io/sdk/web';
+import { AoEpochData, AoIORead, AoIOWrite, IO } from '@ar.io/sdk/web';
 import {
   DEFAULT_ARWEAVE_HOST,
   DEFAULT_ARWEAVE_PORT,
@@ -28,7 +22,6 @@ export type GlobalState = {
   currentEpoch?: AoEpochData;
   walletAddress?: ArweaveTransactionID;
   wallet?: ArweaveWalletConnector;
-  gateway?: AoGateway;
   balances: {
     ar: number;
     io: number;
@@ -44,7 +37,6 @@ export type GlobalStateActions = {
     walletAddress?: ArweaveTransactionID,
     wallet?: ArweaveWalletConnector,
   ) => void;
-  setGateway: (gateway?: AoGateway) => void;
   setArIOWriteableSDK: (arIOWriteableSDK?: AoIOWrite) => void;
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
@@ -89,10 +81,6 @@ export class GlobalStateActionBase implements GlobalStateActions {
     wallet?: ArweaveWalletConnector,
   ) => {
     this.set({ walletAddress, wallet });
-  };
-
-  setGateway = (gateway?: AoGateway) => {
-    this.set({ gateway });
   };
 
   setArIOWriteableSDK = (arIOWriteableSDK?: AoIOWrite) => {

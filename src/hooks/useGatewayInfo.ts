@@ -1,15 +1,19 @@
 import { mIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { formatWalletAddress, formatWithCommas } from '@src/utils';
+import useGateway from './useGateway';
 
 export enum GatewayStatus {
-  PENDING,
+  LOADING,
   FOUND,
   NOT_FOUND,
 }
 
 export const useGatewayInfo = () => {
-  const gateway = useGlobalState((state) => state.gateway);
+  const walletAddress = useGlobalState((state) => state.walletAddress);
+  const { isLoading, data: gateway } = useGateway({
+    ownerWalletAddress: walletAddress?.toString(),
+  });
 
   let gatewayInfo: Array<[string, string | number]>;
 
@@ -33,7 +37,11 @@ export const useGatewayInfo = () => {
     gatewayInfo = [];
   }
 
-  const gatewayStatus = gateway ? GatewayStatus.FOUND : GatewayStatus.NOT_FOUND;
+  const gatewayStatus = gateway
+    ? GatewayStatus.FOUND
+    : isLoading
+      ? GatewayStatus.LOADING
+      : GatewayStatus.NOT_FOUND;
 
   return { gatewayInfo, gatewayStatus };
 };

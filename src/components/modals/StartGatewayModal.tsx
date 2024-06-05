@@ -2,6 +2,7 @@ import { IOToken } from '@ar.io/sdk/web';
 import { log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
@@ -36,6 +37,8 @@ const DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO = 0;
 const DEFAULT_DELEGATED_STAKING = 100;
 
 const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
+  const queryClient = useQueryClient();
+
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
@@ -195,6 +198,15 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
           await arioWriteableSDK.joinNetwork(joinNetworkParams);
 
         log.info(`Join Network txID: ${txID}`);
+
+        queryClient.invalidateQueries({
+          queryKey: ['gateway', walletAddress?.toString()],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['gateways'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {

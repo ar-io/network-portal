@@ -9,8 +9,6 @@ import useProtocolBalance from './useProtocolBalance';
 
 const useRewardsInfo = (gateway: AoGateway | undefined, userStake: number) => {
   const { data: gateways } = useGateways();
-  //   const [rewardsInfo, setRewardsInfo] = useState<GatewayRewards>();
-
   const { data: protocolBalance } = useProtocolBalance();
 
   let res: UserRewards | undefined = undefined;

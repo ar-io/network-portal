@@ -6,7 +6,7 @@ const useProtocolBalance = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const queryResults = useQuery({
-    queryKey: ['protocolBalance', arIOReadSDK],
+    queryKey: ['protocolBalance'],
     queryFn: () => {
       if (arIOReadSDK) {
         return arIOReadSDK.getBalance({

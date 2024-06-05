@@ -56,7 +56,7 @@ const ConnectedLandingPage = () => {
         {topPanels.map((panel, index) => (
           <div
             key={index}
-            className="rounded-xl border border-grey-600 px-[24px] py-[20px]"
+            className="rounded-xl border border-grey-600 px-[24px] py-[20px] text-center"
           >
             <div className="text-sm text-mid">{panel.title}</div>
             <div className="m-auto my-[12px] flex w-fit gap-[8px]">

@@ -168,16 +168,16 @@ const StakingModal = ({
 
       try {
         if (tab == 0) {
-          const { id: txID } = await arIOWriteableSDK.increaseDelegateStake({
+          const { id: txID } = await arIOWriteableSDK.delegateStake({
             target: gatewayOwnerWallet,
-            qty: new IOToken(parseFloat(amountToStake)).toMIO(),
+            stakeQty: new IOToken(parseFloat(amountToStake)).toMIO(),
           });
 
           log.info(`Increase Delegate Stake txID: ${txID}`);
         } else {
           const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
             target: gatewayOwnerWallet,
-            qty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
+            decreaseQty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
           });
 
           log.info(`Decrease Delegate Stake txID: ${txID}`);

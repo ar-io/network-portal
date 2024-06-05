@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk/web';
+import { AoGateway, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import TableView from '@src/components/TableView';
 import { GearIcon } from '@src/components/icons';
@@ -99,12 +99,17 @@ const ActiveStakes = () => {
     }),
     columnHelper.accessor('delegatedStake', {
       id: 'delegatedStake',
-      header: 'Current Stake',
+      header: 'Current Stake (IO)',
       sortDescFirst: true,
+      cell: ({ row }) => (
+        <div className='text-mid'>
+          {`${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`}
+        </div>
+      ),
     }),
     columnHelper.accessor('pendingWithdrawals', {
       id: 'pendingWithdrawals',
-      header: 'Pending Withdrawals',
+      header: 'Pending Withdrawals (IO)',
       sortDescFirst: true,
       cell: ({ row }) => (
         <div
@@ -112,7 +117,7 @@ const ActiveStakes = () => {
             row.original.pendingWithdrawals > 0 ? 'text-high' : 'text-low'
           }
         >
-          {`${row.original.pendingWithdrawals}`}
+          {`${new mIOToken(row.original.pendingWithdrawals).toIO().valueOf()}`}
         </div>
       ),
     }),

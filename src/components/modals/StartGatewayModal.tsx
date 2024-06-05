@@ -1,6 +1,6 @@
-import { IOToken, JoinNetworkParams } from '@ar.io/sdk/web';
+import { IOToken } from '@ar.io/sdk/web';
+import { log } from '@src/constants';
 import { useGlobalState } from '@src/store';
-import { updatePendingDataCache } from '@src/store/persistent';
 import { showErrorToast } from '@src/utils/toast';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
@@ -18,7 +18,6 @@ import {
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import { log } from '@src/constants';
 
 const DEFAULT_FORM_STATE = {
   label: '',
@@ -31,7 +30,7 @@ const DEFAULT_FORM_STATE = {
   note: '',
 };
 
-const DEFAULT_PROTOCOL = 'https';
+const DEFAULT_PROTOCOL = 'https' as const;
 const DEFAULT_PORT = 443;
 const DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO = 0;
 const DEFAULT_DELEGATED_STAKING = 100;
@@ -160,7 +159,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     if (formValid && arioWriteableSDK) {
       try {
         setShowBlockingMessageModal(true);
-        const joinNetworkParams: JoinNetworkParams = {
+        const joinNetworkParams = {
           // GatewayConnectionSettings
           protocol: DEFAULT_PROTOCOL,
           fqdn: String(formState.address),
@@ -172,7 +171,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
           properties: propertiesIdEnabled
             ? String(formState.propertiesId)
             : DEFAULT_FORM_STATE.propertiesId,
-          observerWallet: String(formState.observerAddress),
+          observerAddress: String(formState.observerAddress),
 
           // GatewayStakingSettings
           allowDelegatedStaking: delegatedStakingEnabled,
@@ -185,8 +184,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
               : DEFAULT_DELEGATED_STAKING,
           ).toMIO(),
           autoStake: true,
-
-          qty: new IOToken(parseFloat(String(formState.stake))).toMIO(),
+          operatorStake: new IOToken(
+            parseFloat(String(formState.stake)),
+          ).toMIO(),
         };
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK
@@ -196,11 +196,6 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
         log.info(`Join Network txID: ${txID}`);
 
-        if (walletAddress) {
-          updatePendingDataCache(walletAddress.toString(), {
-            pendingJoinNetworkParams: joinNetworkParams,
-          });
-        }
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);

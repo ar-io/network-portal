@@ -18,20 +18,15 @@ import {
 import { EditIcon, StatsArrowIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
+import { log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
-import usePendingGatewayUpdates from '@src/hooks/usePendingGatewayUpdates';
-import { PendingGatewayUpdates, useGlobalState } from '@src/store';
-import {
-  GatewaySettingsUpdate,
-  OperatorStakeUpdate,
-} from '@src/store/persistent';
+import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
-import { log } from '@src/constants';
 
 const StatsBox = ({
   title,
@@ -68,8 +63,6 @@ const Gateway = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const balances = useGlobalState((state) => state.balances);
-
-  const { addPendingGatewayUpdates } = usePendingGatewayUpdates();
 
   const params = useParams();
 
@@ -257,12 +250,15 @@ const Gateway = () => {
       stake: new mIOToken(gateway.operatorStake || 0).toIO().valueOf() + '',
       status: gateway.status || '',
       note: gateway.settings.note || '',
-      delegatedStake: new mIOToken(gateway.totalDelegatedStake || 0).toIO().valueOf() + '',
+      delegatedStake:
+        new mIOToken(gateway.totalDelegatedStake || 0).toIO().valueOf() + '',
       autoStake: gateway.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
       delegateRewardShareRatio:
         (gateway.settings.delegateRewardShareRatio || 0) + '',
-      minDelegatedStake: new mIOToken(gateway.settings.minDelegatedStake || 0).toIO().valueOf() + '',
+      minDelegatedStake:
+        new mIOToken(gateway.settings.minDelegatedStake || 0).toIO().valueOf() +
+        '',
     };
     setInitialState(initialState);
     setFormState(initialState);
@@ -303,7 +299,9 @@ const Gateway = () => {
         label: changed.label as string,
         minDelegatedStake:
           formState.allowDelegatedStaking && changed.minDelegatedStake
-            ? new IOToken(parseFloat(changed.minDelegatedStake as string)).toMIO()
+            ? new IOToken(
+                parseFloat(changed.minDelegatedStake as string),
+              ).toMIO()
             : undefined,
         note: changed.note as string,
         properties: changed.properties as string,
@@ -312,11 +310,6 @@ const Gateway = () => {
       };
 
       setShowBlockingMessageModal(true);
-
-      const updates: PendingGatewayUpdates = {
-        operatorStakeUpdates: [],
-        gatewaySettingsUpdates: [],
-      };
 
       try {
         if (
@@ -328,50 +321,28 @@ const Gateway = () => {
             updateGatewaySettingsParams,
           );
           log.info(`Update Gateway Settings txID: ${txID}`);
-
-          const pendingGatewaySettingsUpdate: GatewaySettingsUpdate = {
-            txid: await txID,
-            params: updateGatewaySettingsParams,
-          };
-
-          updates.gatewaySettingsUpdates.push(pendingGatewaySettingsUpdate);
         }
 
         if (operatorStake !== undefined && gateway) {
-          const stakeDiff = operatorStake - new mIOToken(gateway.operatorStake || 0).toIO().valueOf();
+          const stakeDiff =
+            operatorStake -
+            new mIOToken(gateway.operatorStake || 0).toIO().valueOf();
 
           if (stakeDiff > 0) {
             const { id: txID } = await arIOWriteableSDK.increaseOperatorStake({
-              qty: new IOToken(stakeDiff).toMIO(),
+              increaseQty: new IOToken(stakeDiff).toMIO(),
             });
 
             log.info(`Increase Operator Stake txID: ${txID}`);
-
-            const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
-              txid: await txID,
-              type: 'increase',
-              qty: stakeDiff,
-            };
-
-            updates.operatorStakeUpdates.push(pendingOperatorStakeUpdate);
           } else if (stakeDiff < 0) {
             const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake({
-              qty: new IOToken(Math.abs(stakeDiff)).toMIO(),
+              decreaseQty: new IOToken(Math.abs(stakeDiff)).toMIO(),
             });
 
             log.info(`Decrease Operator Stake txID: ${txID}`);
-
-            const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
-              txid: await txID,
-              type: 'decrease',
-              qty: Math.abs(stakeDiff),
-            };
-
-            updates.operatorStakeUpdates.push(pendingOperatorStakeUpdate);
           }
         }
 
-        addPendingGatewayUpdates(updates);
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
@@ -389,7 +360,14 @@ const Gateway = () => {
           <div className="px-[24px] py-[16px]">
             <div className="text-high">Stats</div>
           </div>
-          <StatsBox title="Start Time" value={gateway?.startTimestamp ? new Date(gateway?.startTimestamp).toLocaleString() : 'N/A'} />
+          <StatsBox
+            title="Start Time"
+            value={
+              gateway?.startTimestamp
+                ? new Date(gateway?.startTimestamp).toLocaleString()
+                : 'N/A'
+            }
+          />
           <StatsBox
             title="Uptime"
             value={

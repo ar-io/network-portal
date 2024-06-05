@@ -31,14 +31,8 @@ const Banner = () => {
 
   const { gatewayInfo, gatewayStatus } = useGatewayInfo();
 
-  return gatewayStatus !== GatewayStatus.NOT_FOUND ? (
-    <div
-      className={
-        gatewayStatus == GatewayStatus.PENDING
-          ? 'pointer-events-none'
-          : undefined
-      }
-    >
+  return gatewayStatus == GatewayStatus.FOUND ? (
+    <div>
       <button
         className="group relative h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
         onClick={() => {

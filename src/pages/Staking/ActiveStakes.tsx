@@ -47,7 +47,7 @@ const ActiveStakes = () => {
                 ...acc,
                 {
                   owner: key,
-                  delegatedStake: delegate.delegatedStake,
+                  delegatedStake: delegate.delegatedStake, 
                   gateway,
                   pendingWithdrawals: Object.keys(delegate.vaults).length,
                 },
@@ -101,16 +101,23 @@ const ActiveStakes = () => {
       id: 'delegatedStake',
       header: 'Current Stake (IO)',
       sortDescFirst: true,
-      cell: ({ row }) => (
-        <div className='text-mid'>
-          {`${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`}
-        </div>
-      ),
+      cell: ({ row }) => {
+        return `${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`;
+      },
     }),
     columnHelper.accessor('pendingWithdrawals', {
       id: 'pendingWithdrawals',
       header: 'Pending Withdrawals',
       sortDescFirst: true,
+      cell: ({ row }) => (
+        <div
+          className={
+            row.original.pendingWithdrawals > 0 ? 'text-high' : 'text-low'
+          }
+        >
+          {`${row.original.pendingWithdrawals}`}
+        </div>
+      ),
     }),
     columnHelper.display({
       id: 'action',
@@ -144,7 +151,7 @@ const ActiveStakes = () => {
           if (stake.delegatedStake > 0) {
             const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
               target: stake.owner,
-              qty: stake.delegatedStake, // read and write value both in mIO
+              decreaseQty: stake.delegatedStake, // read and write value both in mIO
             });
 
             log.info(`Decrease Delegate Stake txID: ${txID}`);

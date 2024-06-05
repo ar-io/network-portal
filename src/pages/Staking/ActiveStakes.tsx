@@ -1,4 +1,4 @@
-import { Gateway } from '@ar.io/sdk/web';
+import { Gateway, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import TableView from '@src/components/TableView';
 import { GearIcon } from '@src/components/icons';
@@ -101,6 +101,9 @@ const ActiveStakes = () => {
       id: 'delegatedStake',
       header: 'Current Stake',
       sortDescFirst: true,
+      cell: ({ row }) => {
+        return `${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`;
+      },
     }),
     columnHelper.accessor('pendingWithdrawals', {
       id: 'pendingWithdrawals',

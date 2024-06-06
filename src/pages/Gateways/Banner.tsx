@@ -31,8 +31,6 @@ const Banner = () => {
 
   const { gatewayInfo, gatewayStatus } = useGatewayInfo();
 
-  console.log(gatewayInfo, gatewayStatus);
-
   return (
     <div>
       {!walletAddress || gatewayStatus == GatewayStatus.NOT_FOUND ? (
@@ -105,8 +103,10 @@ const Banner = () => {
           </button>
         </div>
       ) : (
-        <div className="group relative h-[120px] w-full overflow-hidden rounded-xl bg-grey-800">
-          <StartGatewayCubes className="visible absolute left-[64px] top-0 z-0" />
+        <div className="relative h-[120px] w-full justify-center overflow-hidden rounded-xl bg-grey-800 ">
+          <div className="h-full content-center text-center text-sm text-low">
+            Loading gateway information...
+          </div>
         </div>
       )}
       {loginOpen && <ConnectModal onClose={() => setLoginOpen(false)} />}

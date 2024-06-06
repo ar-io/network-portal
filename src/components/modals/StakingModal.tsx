@@ -1,5 +1,5 @@
 import { IOToken, mIOToken } from '@ar.io/sdk/web';
-import { EAY_TOOLTIP_TEXT, log } from '@src/constants';
+import { EAY_TOOLTIP_TEXT, WRITE_OPTIONS, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
@@ -171,17 +171,23 @@ const StakingModal = ({
 
       try {
         if (tab == 0) {
-          const { id: txID } = await arIOWriteableSDK.delegateStake({
-            target: gatewayOwnerWallet,
-            stakeQty: new IOToken(parseFloat(amountToStake)).toMIO(),
-          });
+          const { id: txID } = await arIOWriteableSDK.delegateStake(
+            {
+              target: gatewayOwnerWallet,
+              stakeQty: new IOToken(parseFloat(amountToStake)).toMIO(),
+            },
+            WRITE_OPTIONS,
+          );
 
           log.info(`Increase Delegate Stake txID: ${txID}`);
         } else {
-          const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
-            target: gatewayOwnerWallet,
-            decreaseQty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
-          });
+          const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
+            {
+              target: gatewayOwnerWallet,
+              decreaseQty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
+            },
+            WRITE_OPTIONS,
+          );
 
           log.info(`Decrease Delegate Stake txID: ${txID}`);
         }

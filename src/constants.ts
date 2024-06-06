@@ -3,12 +3,24 @@ import * as loglevel from 'loglevel';
 
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
+export const APP_NAME = 'AR-IO-NETWORK-PORTAL';
+export const APP_VERSION = '1.0.0';
+export const WRITE_OPTIONS = {
+  tags: [
+    {
+      name: 'App-Name',
+      value: APP_NAME,
+    },
+    { name: 'App-Version', value: APP_VERSION },
+  ],
+};
+
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARNS_REGISTRY_ADDRESS = new ArweaveTransactionID(
   process.env.VITE_ARNS_REGISTRY_ADDRESS ?? ARNS_DEVNET_REGISTRY_TX,
 );
 export const IO_PROCESS_ID = new ArweaveTransactionID(
-  process.env.VITE_IO_PROCESS_ID ?? ioDevnetProcessId
+  process.env.VITE_IO_PROCESS_ID ?? ioDevnetProcessId,
 );
 
 export const IO_PROCESS_INFO_URL = `https://www.ao.link/entity/${IO_PROCESS_ID.toString()}`;

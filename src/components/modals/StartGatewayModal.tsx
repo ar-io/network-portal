@@ -1,5 +1,5 @@
 import { IOToken } from '@ar.io/sdk/web';
-import { log } from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -194,8 +194,10 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK
         // await delay(5000);
-        const { id: txID } =
-          await arioWriteableSDK.joinNetwork(joinNetworkParams);
+        const { id: txID } = await arioWriteableSDK.joinNetwork(
+          joinNetworkParams,
+          WRITE_OPTIONS,
+        );
 
         log.info(`Join Network txID: ${txID}`);
 

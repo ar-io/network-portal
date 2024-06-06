@@ -18,7 +18,7 @@ import {
 import { EditIcon, StatsArrowIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
-import { log } from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { useGlobalState } from '@src/store';
@@ -322,6 +322,7 @@ const Gateway = () => {
         ) {
           const { id: txID } = await arIOWriteableSDK.updateGatewaySettings(
             updateGatewaySettingsParams,
+            WRITE_OPTIONS,
           );
           log.info(`Update Gateway Settings txID: ${txID}`);
         }
@@ -332,15 +333,21 @@ const Gateway = () => {
             new mIOToken(gateway.operatorStake || 0).toIO().valueOf();
 
           if (stakeDiff > 0) {
-            const { id: txID } = await arIOWriteableSDK.increaseOperatorStake({
-              increaseQty: new IOToken(stakeDiff).toMIO(),
-            });
+            const { id: txID } = await arIOWriteableSDK.increaseOperatorStake(
+              {
+                increaseQty: new IOToken(stakeDiff).toMIO(),
+              },
+              WRITE_OPTIONS,
+            );
 
             log.info(`Increase Operator Stake txID: ${txID}`);
           } else if (stakeDiff < 0) {
-            const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake({
-              decreaseQty: new IOToken(Math.abs(stakeDiff)).toMIO(),
-            });
+            const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake(
+              {
+                decreaseQty: new IOToken(Math.abs(stakeDiff)).toMIO(),
+              },
+              WRITE_OPTIONS,
+            );
 
             log.info(`Decrease Operator Stake txID: ${txID}`);
           }

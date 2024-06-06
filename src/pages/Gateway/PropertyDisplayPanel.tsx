@@ -17,7 +17,7 @@ const DisplayRow = ({
           {label}
         </div>
       </div>
-      <div className="h-[39px] content-center border-t border-grey-900 pl-[24px] text-sm text-low">
+      <div className="flex h-[39px] flex-col content-center justify-center border-t border-grey-900 pl-[24px] text-sm text-low">
         {value === undefined ? (
           <Placeholder />
         ) : typeof value === 'boolean' ? (

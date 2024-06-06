@@ -36,4 +36,4 @@ loglevel.setLevel('info');
 export const log = loglevel;
 
 export const EAY_TOOLTIP_TEXT =
-  'EAY = Estimated yield ratio determined by the projecting the current nominal reward conditions over the course of a year. Does NOT include potential observation rewards.';
+  'EAY = Estimated yield ratio determined by projecting the current nominal reward conditions over the course of a year. Does NOT include potential observation rewards.';

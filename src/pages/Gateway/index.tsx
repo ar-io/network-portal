@@ -396,7 +396,7 @@ const Gateway = () => {
           />
           {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
         </div>
-        <div className="size-full grow overflow-y-auto text-clip rounded-xl border border-transparent-100-16">
+        <div className="size-full grow text-clip rounded-xl border border-transparent-100-16">
           <div className="flex items-center py-[16px] pl-[24px] pr-[12px]">
             <div className="text-sm text-high">General Information</div>
             <div className="flex grow gap-[24px]" />

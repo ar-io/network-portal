@@ -4,10 +4,10 @@ import Sidebar from './Sidebar';
 
 function AppRouterLayout() {
   return (
-    <div className="h-screen w-screen dark:bg-grey-1000 dark:text-grey-100">
+    <div className="h-screen w-full dark:bg-grey-1000 dark:text-grey-100">
       <div className="flex pr-[24px]">
         <Sidebar />
-        <div className="grow">
+        <div className="w-full grow">
           <Outlet />
         </div>
       </div>

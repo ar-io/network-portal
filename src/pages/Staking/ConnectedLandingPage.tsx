@@ -55,7 +55,7 @@ const ConnectedLandingPage = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-[24px] overflow-y-scroll py-[24px]">
+    <div className="flex flex-col gap-[24px] py-[24px]">
       <div className="grid grid-cols-3 gap-[24px]">
         {topPanels.map((panel, index) => (
           <div

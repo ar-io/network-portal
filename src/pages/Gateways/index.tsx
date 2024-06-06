@@ -151,7 +151,7 @@ const Gateways = () => {
   ];
 
   return (
-    <div className="flex h-screen flex-col gap-[24px] overflow-y-scroll">
+    <div className="flex h-screen flex-col gap-[24px] overflow-scroll">
       <Header />
       <Banner />
       <div className="mb-[32px]">

@@ -10,3 +10,4 @@ import { TextDecoder, TextEncoder } from 'util';
 global.React = React;
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
+global.fetch = require('node-fetch');

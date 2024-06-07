@@ -1,4 +1,4 @@
-import { Gateway, IOToken } from '@ar.io/sdk/web';
+import { AoGateway, IOToken } from '@ar.io/sdk/web';
 import {
   GatewayRewards,
   calculateGatewayRewards,
@@ -15,7 +15,7 @@ describe('rewards.ts', () => {
         settings: {
           delegateRewardShareRatio: 50,
         },
-      } as Gateway;
+      } as AoGateway;
 
       const result = calculateGatewayRewards(
         protocolBalance,

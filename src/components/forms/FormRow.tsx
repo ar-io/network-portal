@@ -42,6 +42,7 @@ const FormRow = ({
   rightComponent,
   validateProperty,
   readOnly,
+  showModified = true,
 }: {
   formPropertyName: string;
   placeholder?: string;
@@ -57,6 +58,7 @@ const FormRow = ({
   rightComponent?: JSX.Element;
   validateProperty?: (value: string) => string | undefined;
   readOnly?: boolean;
+  showModified?: boolean;
 }) => {
   const roundStyle = ROUND_STYLES[rowType];
 
@@ -65,7 +67,8 @@ const FormRow = ({
 
   const value = formState[formPropertyName];
 
-  const modified = initialState && initialState[formPropertyName] !== value;
+  const modified =
+    showModified && initialState && initialState[formPropertyName] !== value;
 
   const clearFormError = () => {
     const cleared = { ...errorMessages };

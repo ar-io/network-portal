@@ -6,7 +6,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
-import FormSwitch from '../forms/FormSwitch';
 import { FormRowDef, isFormValid } from '../forms/formData';
 import {
   validateDomainName,
@@ -26,6 +25,7 @@ const DEFAULT_FORM_STATE = {
   observerAddress: '',
   propertiesId: 'FH1aVetOoulPGqgYukj0VE0wIhDy90WiQoV3U2PeY44',
   stake: '',
+  allowDelegatedStaking: false,
   delegatedStaking: '',
   delegatedStakingShareRatio: '',
   note: '',
@@ -46,11 +46,6 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     useState<Record<string, string | boolean>>(DEFAULT_FORM_STATE);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const [delegatedStakingEnabled, setDelegatedStakingEnabled] =
-    useState<boolean>(false);
-  const [propertiesIdEnabled, setPropertiesIdEnabled] =
-    useState<boolean>(false);
-
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -63,6 +58,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       };
     });
   }, [walletAddress]);
+
+  const allowDelegatedStaking = formState.allowDelegatedStaking as boolean;
 
   const formRowDefs: FormRowDef[] = [
     {
@@ -87,29 +84,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     {
       formPropertyName: 'propertiesId',
       label: '*Properties ID:',
-      enabled: propertiesIdEnabled,
       placeholder: DEFAULT_FORM_STATE.propertiesId,
       validateProperty: validateTransactionId('Properties ID'),
-      rightComponent: (
-        <div className="pr-[12px]">
-          <FormSwitch
-            checked={propertiesIdEnabled}
-            onChange={(v) => {
-              if (!v) {
-                const cleared = { ...formErrors };
-                delete cleared['propertiesId'];
-                setFormErrors(cleared);
-                setFormState({
-                  ...formState,
-                  propertiesId: DEFAULT_FORM_STATE.propertiesId,
-                });
-              }
-              setPropertiesIdEnabled(v);
-            }}
-            title={`${propertiesIdEnabled ? 'Disable' : 'Enable'} Custom Properties ID`}
-          />
-        </div>
-      ),
     },
     {
       formPropertyName: 'stake',
@@ -118,32 +94,27 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       validateProperty: validateIOAmount('Stake', 10000),
     },
     {
+      formPropertyName: 'allowDelegatedStaking',
+      label: 'Delegated Staking:',
+    },
+    {
       formPropertyName: 'minDelegatedStake',
-      label: 'Delegated Staking (IO):',
-      enabled: delegatedStakingEnabled,
-      placeholder: delegatedStakingEnabled
+      label: 'Minimum Delegated Stake (IO):',
+      enabled: allowDelegatedStaking,
+      placeholder: allowDelegatedStaking
         ? 'Minimum 100 IO'
-        : 'Delegated Staking Off',
+        : 'Enable Delegated Staking to set this value.',
       validateProperty: validateIOAmount('Minimum Delegated Stake', 100),
-      rightComponent: (
-        <div className="pr-[12px]">
-          <FormSwitch
-            checked={delegatedStakingEnabled}
-            onChange={setDelegatedStakingEnabled}
-            title={`${delegatedStakingEnabled ? 'Disable' : 'Enable'} Delegated Staking`}
-          />
-        </div>
-      ),
     },
     {
       formPropertyName: 'delegatedStakingShareRatio',
-      label: 'Delegated Staking Share Ratio:',
-      enabled: delegatedStakingEnabled,
-      placeholder: delegatedStakingEnabled
+      label: 'Reward Share Ratio:',
+      enabled: allowDelegatedStaking,
+      placeholder: allowDelegatedStaking
         ? 'Enter value 0-100'
         : 'Enable Delegated Staking to set this value.',
       validateProperty: validateNumberRange(
-        'Delegated Staking Share Ratio',
+        'Reward Share Ratio',
         0,
         100,
       ),
@@ -161,6 +132,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
     if (formValid && arioWriteableSDK) {
       try {
+        const allowDelegatedStaking =
+          formState.allowDelegatedStaking as boolean;
         setShowBlockingMessageModal(true);
         const joinNetworkParams = {
           // GatewayConnectionSettings
@@ -171,18 +144,16 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
           // GatewayMetadata
           note: String(formState.note),
           label: String(formState.label),
-          properties: propertiesIdEnabled
-            ? String(formState.propertiesId)
-            : DEFAULT_FORM_STATE.propertiesId,
+          properties: String(formState.propertiesId),
           observerAddress: String(formState.observerAddress),
 
           // GatewayStakingSettings
-          allowDelegatedStaking: delegatedStakingEnabled,
-          delegateRewardShareRatio: delegatedStakingEnabled
+          allowDelegatedStaking,
+          delegateRewardShareRatio: allowDelegatedStaking
             ? parseFloat(String(formState.delegatedStakingShareRatio))
             : DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO,
           minDelegatedStake: new IOToken(
-            delegatedStakingEnabled
+            allowDelegatedStaking
               ? parseFloat(String(formState.minDelegatedStake))
               : DEFAULT_DELEGATED_STAKING,
           ).toMIO(),
@@ -224,8 +195,6 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       ...DEFAULT_FORM_STATE,
       observerAddress: walletAddress?.toString() ?? '',
     });
-    setDelegatedStakingEnabled(false);
-    setPropertiesIdEnabled(false);
     setFormErrors({});
   };
 
@@ -252,6 +221,16 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
                 setFormState={setFormState}
                 errorMessages={formErrors}
                 setErrorMessages={setFormErrors}
+                showModified={false}
+                initialState={
+                  rowDef.formPropertyName === 'propertiesId' ||
+                  rowDef.formPropertyName === 'observerAddress'
+                    ? {
+                        ...DEFAULT_FORM_STATE,
+                        observerAddress: walletAddress?.toString() ?? '',
+                      }
+                    : undefined
+                }
                 {...rowDef}
               />
             );

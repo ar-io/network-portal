@@ -9,6 +9,7 @@ import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import ActiveStakes from './ActiveStakes';
 import DelegateStake from './DelegateStakeTable';
+import { IO_LABEL } from '@src/constants';
 
 const ConnectedLandingPage = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
@@ -67,7 +68,7 @@ const ConnectedLandingPage = () => {
               <div className="text-[42px] leading-none text-high">
                 {panel.balance ?? <Placeholder />}
               </div>
-              <div className="text-sm text-high">IO</div>
+              <div className="text-sm text-high">{IO_LABEL}</div>
             </div>
           </div>
         ))}

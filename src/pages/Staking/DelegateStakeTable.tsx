@@ -111,8 +111,9 @@ const DelegateStake = () => {
     }),
     columnHelper.accessor('rewardRatio', {
       id: 'rewardRatio',
-      header: 'Reward Ratio',
+      header: 'Reward Share Ratio',
       sortDescFirst: true,
+      cell: ({ row }) => `${row.original.rewardRatio}%`
     }),
     columnHelper.accessor('eay', {
       id: 'eay',

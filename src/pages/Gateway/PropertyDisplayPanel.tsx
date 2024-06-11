@@ -1,5 +1,6 @@
 import { AoGateway, mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
+import { IO_LABEL } from '@src/constants';
 
 const DisplayRow = ({
   label,
@@ -68,7 +69,7 @@ const PropertyDisplayPanel = ({
           value: gateway?.settings.delegateRewardShareRatio,
         },
         {
-          label: 'Minimum Delegated Stake (IO)',
+          label: `Minimum Delegated Stake (${IO_LABEL})`,
           value: new mIOToken(gateway?.settings.minDelegatedStake || 0)
             .toIO()
             .valueOf(),
@@ -91,7 +92,7 @@ const PropertyDisplayPanel = ({
       type: 'tx',
     },
     {
-      label: 'Gateway Stake (IO):',
+      label: `Gateway Stake (${IO_LABEL}):`,
       value: gateway?.operatorStake
         ? new mIOToken(gateway?.operatorStake).toIO().valueOf()
         : undefined,
@@ -99,7 +100,7 @@ const PropertyDisplayPanel = ({
     { label: 'Status:', value: gateway?.status },
     { label: 'Note:', value: gateway?.settings.note },
     {
-      label: 'Total Delegated Stake (IO):',
+      label: `Total Delegated Stake (${IO_LABEL}):`,
       value: new mIOToken(gateway?.totalDelegatedStake || 0).toIO().valueOf(),
     },
     { label: 'Reward Auto Stake:', value: gateway?.settings.autoStake },

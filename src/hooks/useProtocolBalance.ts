@@ -13,7 +13,7 @@ const useProtocolBalance = () => {
           address: IO_PROCESS_ID.toString(),
         });
       }
-      throw new Error('Error: Arweave IO Read SDK is not initialized');
+      throw new Error('Error: ArIO Read SDK is not initialized');
     },
   });
 

@@ -7,6 +7,7 @@ import {
   validateUnstakeAmount,
   validateWalletAddress,
 } from '@src/components/forms/validation';
+import { IO_LABEL } from '@src/constants';
 
 describe('Form Validation Functions', () => {
   describe('validateString', () => {
@@ -97,11 +98,11 @@ describe('Form Validation Functions', () => {
   });
 
   describe('validateIOAmount', () => {
-    const validator = validateIOAmount('IO Amount', 10, 100);
+    const validator = validateIOAmount('tIO Amount', 10, 100);
 
     it('should fail for empty string', () => {
       expect(validator('')).toEqual(
-        'IO Amount must be a number from 10 to 100 IO.',
+        `tIO Amount must be a number from 10 to 100 ${IO_LABEL}.`,
       );
     });
 
@@ -110,8 +111,10 @@ describe('Form Validation Functions', () => {
     });
 
     it('should fail for invalid number string', () => {
-      expect(validator('true')).toEqual('IO Amount must be a number.');
-      expect(validator('10 IO')).toEqual('IO Amount must be a number.');
+      expect(validator('true')).toEqual(`tIO Amount must be a number.`);
+      expect(validator('10 IO')).toEqual(
+        `tIO Amount must be a number.`,
+      );
     });
   });
 
@@ -152,7 +155,7 @@ describe('Form Validation Functions', () => {
     it('should fail for invalid unstake amount', () => {
       expect(validator('true')).toEqual('Unstake Amount must be a number.');
       expect(validator('1000')).toEqual(
-        'Unstake Amount cannot be greater than your current stake of 100 IO.',
+        `Unstake Amount cannot be greater than your current stake of 100 ${IO_LABEL}.`,
       );
     });
   });

@@ -3,7 +3,7 @@ import * as loglevel from 'loglevel';
 
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
-export const APP_NAME = 'AR-IO-NETWORK-PORTAL';
+export const APP_NAME = 'AR-IO-Network-Portal-App';
 export const APP_VERSION = '1.0.0';
 export const WRITE_OPTIONS = {
   tags: [

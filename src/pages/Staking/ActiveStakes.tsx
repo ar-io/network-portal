@@ -2,14 +2,11 @@ import { AoGateway, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import TableView from '@src/components/TableView';
 import { GearIcon } from '@src/components/icons';
-import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import StakingModal from '@src/components/modals/StakingModal';
-import SuccessModal from '@src/components/modals/SuccessModal';
-import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
+import UnstakeAllModal from '@src/components/modals/UnstakeAllModal';
+import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
-import { showErrorToast } from '@src/utils/toast';
-import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
@@ -23,17 +20,12 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const ActiveStakes = () => {
-  const queryClient = useQueryClient();
-
   const walletAddress = useGlobalState((state) => state.walletAddress);
-  const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
   const { isLoading, data: gateways } = useGateways();
   const [activeStakes, setActiveStakes] = useState<Array<TableData>>([]);
 
-  const [showBlockingMessageModal, setShowBlockingMessageModal] =
-    useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showUnstakeAllModal, setShowUnstakeAllModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
 
@@ -145,43 +137,6 @@ const ActiveStakes = () => {
   const hasDelegatedStake =
     activeStakes?.some((v) => v.delegatedStake > 0) ?? false;
 
-  const withdrawAll = async () => {
-    if (walletAddress && arIOWriteableSDK && hasDelegatedStake) {
-      setShowBlockingMessageModal(true);
-
-      try {
-        for (const stake of activeStakes) {
-          if (stake.delegatedStake > 0) {
-            const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
-              {
-                target: stake.owner,
-                decreaseQty: stake.delegatedStake, // read and write value both in mIO
-              },
-              WRITE_OPTIONS,
-            );
-
-            log.info(`Decrease Delegate Stake txID: ${txID}`);
-          }
-        }
-
-        queryClient.invalidateQueries({
-          queryKey: ['gateway', walletAddress.toString()],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
-          refetchType: 'all',
-        });
-
-        setShowSuccessModal(true);
-      } catch (e: any) {
-        showErrorToast(`${e}`);
-      } finally {
-        setShowBlockingMessageModal(false);
-      }
-    }
-  };
-
   return (
     <div>
       <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
@@ -193,7 +148,7 @@ const ActiveStakes = () => {
             active={true}
             title="Withdraw All"
             text="Withdraw All"
-            onClick={withdrawAll}
+            onClick={() => setShowUnstakeAllModal(true)}
           />
         )}
       </div>
@@ -207,26 +162,17 @@ const ActiveStakes = () => {
           desc: true,
         }}
       />
+      {showUnstakeAllModal && (
+        <UnstakeAllModal
+          activeStakes={activeStakes}
+          onClose={() => setShowUnstakeAllModal(false)}
+        />
+      )}
       {stakingModalWalletAddress && (
         <StakingModal
           open={!!stakingModalWalletAddress}
           onClose={() => setStakingModalWalletAddress(undefined)}
           ownerWallet={stakingModalWalletAddress}
-        />
-      )}
-      {showBlockingMessageModal && (
-        <BlockingMessageModal
-          onClose={() => setShowBlockingMessageModal(false)}
-          message="Sign the following data with your wallet to proceed."
-        ></BlockingMessageModal>
-      )}
-      {showSuccessModal && (
-        <SuccessModal
-          onClose={() => {
-            setShowSuccessModal(false);
-          }}
-          title="Congratulations"
-          bodyText="You have successfully withdrawn all stakes."
         />
       )}
     </div>

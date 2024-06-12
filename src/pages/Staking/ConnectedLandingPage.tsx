@@ -2,6 +2,7 @@ import { mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import { PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
+import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -9,7 +10,6 @@ import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import ActiveStakes from './ActiveStakes';
 import DelegateStake from './DelegateStakeTable';
-import { IO_LABEL } from '@src/constants';
 
 const ConnectedLandingPage = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);

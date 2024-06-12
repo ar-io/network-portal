@@ -19,6 +19,7 @@ import { InfoIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
+import UnstakeWarning from './UnstakeWarning';
 
 const DisplayRow = ({
   label,
@@ -354,16 +355,10 @@ const StakingModal = ({
               }
             />
 
-            <DisplayRow
-              className="py-[4px]"
-              label="Unlock Period:"
-              value="21 days"
-              rightIcon={
-                <Tooltip message="21 days is the standard unstaking period.">
-                  <InfoIcon />
-                </Tooltip>
-              }
-            />
+            <div className="pt-[16px] text-left">
+            <UnstakeWarning />
+            </div>
+
           </div>
         </div>
         <div className="flex size-full flex-col p-[32px]">

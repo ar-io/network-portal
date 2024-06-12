@@ -1,27 +1,30 @@
-import { Gateway, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import TableView from '@src/components/TableView';
 import { GearIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
-import { log } from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
 interface TableData {
   owner: string;
   delegatedStake: number;
-  gateway: Gateway;
+  gateway: AoGateway;
   pendingWithdrawals: number;
 }
 
 const columnHelper = createColumnHelper<TableData>();
 
 const ActiveStakes = () => {
+  const queryClient = useQueryClient();
+
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
@@ -59,7 +62,7 @@ const ActiveStakes = () => {
   }, [gateways, walletAddress]);
 
   // Define columns for the table
-  const columns:ColumnDef<TableData,any>[] = [
+  const columns: ColumnDef<TableData, any>[] = [
     columnHelper.accessor('gateway.settings.label', {
       id: 'label',
       header: 'Label',
@@ -99,7 +102,7 @@ const ActiveStakes = () => {
     }),
     columnHelper.accessor('delegatedStake', {
       id: 'delegatedStake',
-      header: 'Current Stake',
+      header: 'Current Stake (IO)',
       sortDescFirst: true,
       cell: ({ row }) => {
         return `${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`;
@@ -149,14 +152,26 @@ const ActiveStakes = () => {
       try {
         for (const stake of activeStakes) {
           if (stake.delegatedStake > 0) {
-            const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
-              target: stake.owner,
-              qty: stake.delegatedStake, // read and write value both in mIO
-            });
+            const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
+              {
+                target: stake.owner,
+                decreaseQty: stake.delegatedStake, // read and write value both in mIO
+              },
+              WRITE_OPTIONS,
+            );
 
             log.info(`Decrease Delegate Stake txID: ${txID}`);
           }
         }
+
+        queryClient.invalidateQueries({
+          queryKey: ['gateway', walletAddress.toString()],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['gateways'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {
@@ -186,7 +201,7 @@ const ActiveStakes = () => {
         columns={columns}
         data={activeStakes}
         isLoading={isLoading}
-        noDataFoundText='No active stakes found.'
+        noDataFoundText="No active stakes found."
         defaultSortingState={{
           id: 'delegatedStake',
           desc: true,

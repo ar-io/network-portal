@@ -1,62 +1,46 @@
+import { AoEpochData, AoIORead, AoIOWrite, IO } from '@ar.io/sdk/web';
 import {
-  ArIO,
-  ArIOReadable,
-  ArIOWritable,
-  EpochDistributionData,
-  Gateway,
-} from '@ar.io/sdk/web';
-import {
-  ARNS_REGISTRY_ADDRESS,
   DEFAULT_ARWEAVE_HOST,
   DEFAULT_ARWEAVE_PORT,
   DEFAULT_ARWEAVE_PROTOCOL,
+  IO_PROCESS_ID,
   THEME_TYPES,
 } from '@src/constants';
 import { ArweaveWalletConnector } from '@src/types';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import Arweave from 'arweave/web';
 import { create } from 'zustand';
-import { GatewaySettingsUpdate, OperatorStakeUpdate } from './persistent';
 
 export type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];
-
-export type PendingGatewayUpdates = {
-  gatewaySettingsUpdates: GatewaySettingsUpdate[];
-  operatorStakeUpdates: OperatorStakeUpdate[];
-};
 
 export type GlobalState = {
   theme: ThemeType;
   arweave: Arweave;
-  arIOReadSDK: ArIOReadable;
-  arIOWriteableSDK?: ArIOWritable;
+  arIOReadSDK: AoIORead;
+  arIOWriteableSDK?: AoIOWrite;
   blockHeight?: number;
-  currentEpoch?: EpochDistributionData;
+  currentEpoch?: AoEpochData;
   walletAddress?: ArweaveTransactionID;
   wallet?: ArweaveWalletConnector;
-  gateway?: Gateway;
   balances: {
     ar: number;
     io: number;
   };
   walletStateInitialized: boolean;
-  pendingGatewayUpdates: PendingGatewayUpdates; 
 };
 
 export type GlobalStateActions = {
   setTheme: (theme: ThemeType) => void;
   setBlockHeight: (blockHeight: number) => void;
-  setCurrentEpoch: (currentEpoch: EpochDistributionData) => void;
+  setCurrentEpoch: (currentEpoch: AoEpochData) => void;
   updateWallet: (
     walletAddress?: ArweaveTransactionID,
     wallet?: ArweaveWalletConnector,
   ) => void;
-  setGateway: (gateway?: Gateway) => void;
-  setArIOWriteableSDK: (arIOWriteableSDK?: ArIOWritable) => void;
+  setArIOWriteableSDK: (arIOWriteableSDK?: AoIOWrite) => void;
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
   reset: () => void;
-  setPendingGatewayUpdates: (pendingGatewayUpdates: PendingGatewayUpdates) => void;
 };
 
 export const initialGlobalState: GlobalState = {
@@ -66,16 +50,12 @@ export const initialGlobalState: GlobalState = {
     protocol: DEFAULT_ARWEAVE_PROTOCOL,
     port: DEFAULT_ARWEAVE_PORT,
   }),
-  arIOReadSDK: ArIO.init({ contractTxId: ARNS_REGISTRY_ADDRESS.toString() }),
+  arIOReadSDK: IO.init({ processId: IO_PROCESS_ID.toString() }),
   balances: {
     ar: 0,
     io: 0,
   },
   walletStateInitialized: false,
-  pendingGatewayUpdates: {
-    gatewaySettingsUpdates: [],
-    operatorStakeUpdates: [],
-  },
 };
 export class GlobalStateActionBase implements GlobalStateActions {
   constructor(
@@ -92,7 +72,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
     this.set({ blockHeight });
   };
 
-  setCurrentEpoch = (currentEpoch: EpochDistributionData) => {
+  setCurrentEpoch = (currentEpoch: AoEpochData) => {
     this.set({ currentEpoch });
   };
 
@@ -103,11 +83,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
     this.set({ walletAddress, wallet });
   };
 
-  setGateway = (gateway?: Gateway) => {
-    this.set({ gateway });
-  };
-
-  setArIOWriteableSDK = (arIOWriteableSDK?: ArIOWritable) => {
+  setArIOWriteableSDK = (arIOWriteableSDK?: AoIOWrite) => {
     this.set({ arIOWriteableSDK });
   };
 
@@ -121,10 +97,6 @@ export class GlobalStateActionBase implements GlobalStateActions {
 
   reset = () => {
     this.set({ ...this.initialGlobalState }, true);
-  };
-
-  setPendingGatewayUpdates = (pendingGatewayUpdates: PendingGatewayUpdates) => {
-    this.set({ pendingGatewayUpdates });
   };
 }
 

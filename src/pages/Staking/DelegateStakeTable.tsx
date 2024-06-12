@@ -126,11 +126,11 @@ const DelegateStake = () => {
       ),
       sortDescFirst: true,
       cell: ({ row }) => (
-        <td>
+        <div>
           {row.original.eay < 0
             ? 'N/A'
             : `${formatWithCommas(row.original.eay)}%`}
-        </td>
+        </div>
       ),
     }),
 

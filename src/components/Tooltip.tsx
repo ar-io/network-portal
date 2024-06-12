@@ -12,7 +12,9 @@ const Tooltip = ({
     <div className="relative flex">
       <ReactTooltip.Provider>
         <ReactTooltip.Root delayDuration={0}>
-          <ReactTooltip.Trigger>{children}</ReactTooltip.Trigger>
+          <ReactTooltip.Trigger asChild={true}>
+            <div>{children}</div>
+          </ReactTooltip.Trigger>
           <ReactTooltip.Portal>
             <ReactTooltip.Content
               className={`z-50 mb-[4px] w-fit max-w-[400px] rounded-md border border-grey-500 bg-containerL0 px-[24px] py-[12px]`}

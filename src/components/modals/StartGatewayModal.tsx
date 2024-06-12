@@ -1,7 +1,8 @@
-import { IOToken, JoinNetworkParams } from '@ar.io/sdk/web';
+import { IOToken } from '@ar.io/sdk/web';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
-import { updatePendingDataCache } from '@src/store/persistent';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
@@ -18,12 +19,11 @@ import {
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import { log } from '@src/constants';
 
 const DEFAULT_FORM_STATE = {
   label: '',
   address: '',
-  observerWallet: '',
+  observerAddress: '',
   propertiesId: 'FH1aVetOoulPGqgYukj0VE0wIhDy90WiQoV3U2PeY44',
   stake: '',
   delegatedStaking: '',
@@ -31,12 +31,14 @@ const DEFAULT_FORM_STATE = {
   note: '',
 };
 
-const DEFAULT_PROTOCOL = 'https';
+const DEFAULT_PROTOCOL = 'https' as const;
 const DEFAULT_PORT = 443;
 const DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO = 0;
 const DEFAULT_DELEGATED_STAKING = 100;
 
 const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
+  const queryClient = useQueryClient();
+
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
@@ -57,7 +59,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     setFormState((currentState) => {
       return {
         ...currentState,
-        observerWallet: walletAddress?.toString() ?? '',
+        observerAddress: walletAddress?.toString() ?? '',
       };
     });
   }, [walletAddress]);
@@ -78,7 +80,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       validateProperty: validateDomainName('Address'),
     },
     {
-      formPropertyName: 'observerWallet',
+      formPropertyName: 'observerAddress',
       label: '*Observer Wallet:',
       validateProperty: validateWalletAddress('Observer Wallet'),
     },
@@ -160,7 +162,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     if (formValid && arioWriteableSDK) {
       try {
         setShowBlockingMessageModal(true);
-        const joinNetworkParams: JoinNetworkParams = {
+        const joinNetworkParams = {
           // GatewayConnectionSettings
           protocol: DEFAULT_PROTOCOL,
           fqdn: String(formState.address),
@@ -172,7 +174,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
           properties: propertiesIdEnabled
             ? String(formState.propertiesId)
             : DEFAULT_FORM_STATE.propertiesId,
-          observerWallet: String(formState.observerWallet),
+          observerAddress: String(formState.observerAddress),
 
           // GatewayStakingSettings
           allowDelegatedStaking: delegatedStakingEnabled,
@@ -185,22 +187,29 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
               : DEFAULT_DELEGATED_STAKING,
           ).toMIO(),
           autoStake: true,
-
-          qty: new IOToken(parseFloat(String(formState.stake))).toMIO(),
+          operatorStake: new IOToken(
+            parseFloat(String(formState.stake)),
+          ).toMIO(),
         };
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK
         // await delay(5000);
-        const { id: txID } =
-          await arioWriteableSDK.joinNetwork(joinNetworkParams);
+        const { id: txID } = await arioWriteableSDK.joinNetwork(
+          joinNetworkParams,
+          WRITE_OPTIONS,
+        );
 
         log.info(`Join Network txID: ${txID}`);
 
-        if (walletAddress) {
-          updatePendingDataCache(walletAddress.toString(), {
-            pendingJoinNetworkParams: joinNetworkParams,
-          });
-        }
+        queryClient.invalidateQueries({
+          queryKey: ['gateway', walletAddress?.toString()],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['gateways'],
+          refetchType: 'all',
+        });
+
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
@@ -213,7 +222,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
   const resetForm = () => {
     setFormState({
       ...DEFAULT_FORM_STATE,
-      observerWallet: walletAddress?.toString() ?? '',
+      observerAddress: walletAddress?.toString() ?? '',
     });
     setDelegatedStakingEnabled(false);
     setPropertiesIdEnabled(false);

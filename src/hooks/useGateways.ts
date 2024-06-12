@@ -5,7 +5,7 @@ const useGateways = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const queryResults = useQuery({
-    queryKey: ['gateways', arIOReadSDK],
+    queryKey: ['gateways'],
     queryFn: () => {
       if (arIOReadSDK) {
         return arIOReadSDK.getGateways();

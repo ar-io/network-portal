@@ -1,5 +1,5 @@
-import { ArIO, mIOToken } from '@ar.io/sdk/web';
-import { ARNS_REGISTRY_ADDRESS } from '@src/constants';
+import { IO, mIOToken } from '@ar.io/sdk/web';
+import { IO_PROCESS_ID } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
@@ -18,7 +18,6 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
   const setWalletStateInitialized = useGlobalState(
     (state) => state.setWalletStateInitialized,
   );
-  const setGateway = useGlobalState((state) => state.setGateway);
 
   const wallet = useGlobalState((state) => state.wallet);
   const updateWallet = useGlobalState((state) => state.updateWallet);
@@ -70,8 +69,8 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
       const signer = wallet.signer;
 
       if (signer) {
-        const writeable = ArIO.init({
-          contractTxId: ARNS_REGISTRY_ADDRESS.toString(),
+        const writeable = IO.init({
+          processId: IO_PROCESS_ID.toString(),
           signer,
         });
         setArIOWriteableSDK(writeable);
@@ -80,20 +79,6 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
       setArIOWriteableSDK(undefined);
     }
   }, [setArIOWriteableSDK, wallet]);
-
-  useEffect(() => {
-    if (walletAddress) {
-      const update = async () => {
-        const gateway = await arIOReadSDK.getGateway({
-          address: walletAddress.toString(),
-        });
-        setGateway(gateway);
-      };
-      update();
-    } else {
-      setGateway(undefined);
-    }
-  }, [arIOReadSDK, setGateway, walletAddress]);
 
   const updateIfConnected = async () => {
     const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);

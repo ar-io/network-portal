@@ -1,4 +1,4 @@
-import { Gateway, IOToken, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, IOToken, mIOToken } from '@ar.io/sdk/web';
 
 const EPOCHS_PER_YEAR = 52;
 const EPOCH_DISTRIBUTION_RATIO = 0.0025; // 0.25%
@@ -20,7 +20,7 @@ export interface UserRewards {
 export const calculateGatewayRewards = (
   protocolBalance: IOToken,
   totalGateways: number,
-  gateway: Gateway,
+  gateway: AoGateway,
 ): GatewayRewards => {
   const epochRewards = protocolBalance.valueOf() * EPOCH_DISTRIBUTION_RATIO;
   const baseGatewayReward =
@@ -34,7 +34,7 @@ export const calculateGatewayRewards = (
     baseGatewayReward * gatewayRewardShareRatio,
   );
 
-  // Return -1 if totalDelegatedStake is 0. This signals 0 stake and allows calling 
+  // Return -1 if totalDelegatedStake is 0. This signals 0 stake and allows calling
   // code to use the value for sorting purposes.
   const EEY =
     totalDelegatedStake.valueOf() > 0

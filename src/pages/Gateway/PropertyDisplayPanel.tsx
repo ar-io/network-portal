@@ -1,4 +1,4 @@
-import { Gateway, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 
 const DisplayRow = ({
@@ -17,7 +17,7 @@ const DisplayRow = ({
           {label}
         </div>
       </div>
-      <div className="h-[39px] content-center border-t border-grey-900 pl-[24px] text-sm text-low">
+      <div className="flex h-[39px] flex-col content-center justify-center border-t border-grey-900 pl-[24px] text-sm text-low">
         {value === undefined ? (
           <Placeholder />
         ) : typeof value === 'boolean' ? (
@@ -55,7 +55,7 @@ const PropertyDisplayPanel = ({
   gateway,
 }: {
   ownerId?: string;
-  gateway?: Gateway;
+  gateway?: AoGateway;
 }) => {
   const gatewayAddress = gateway
     ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`
@@ -82,7 +82,7 @@ const PropertyDisplayPanel = ({
     { label: 'Owner Wallet:', value: ownerId, type: 'address' },
     {
       label: 'Observer Wallet:',
-      value: gateway?.observerWallet,
+      value: gateway?.observerAddress,
       type: 'address',
     },
     {

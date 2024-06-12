@@ -18,20 +18,16 @@ import {
 import { EditIcon, StatsArrowIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
-import usePendingGatewayUpdates from '@src/hooks/usePendingGatewayUpdates';
-import { PendingGatewayUpdates, useGlobalState } from '@src/store';
-import {
-  GatewaySettingsUpdate,
-  OperatorStakeUpdate,
-} from '@src/store/persistent';
+import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
-import { log } from '@src/constants';
 
 const StatsBox = ({
   title,
@@ -65,11 +61,11 @@ const formatUptime = (uptime: number) => {
 };
 
 const Gateway = () => {
+  const queryClient = useQueryClient();
+
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const balances = useGlobalState((state) => state.balances);
-
-  const { addPendingGatewayUpdates } = usePendingGatewayUpdates();
 
   const params = useParams();
 
@@ -110,13 +106,13 @@ const Gateway = () => {
     setInitialState((currentState) => {
       return {
         ...currentState,
-        observerWallet: walletAddress?.toString() ?? '',
+        observerAddress: walletAddress?.toString() ?? '',
       };
     });
     setFormState((currentState) => {
       return {
         ...currentState,
-        observerWallet: walletAddress?.toString() ?? '',
+        observerAddress: walletAddress?.toString() ?? '',
       };
     });
   }, [walletAddress]);
@@ -177,7 +173,7 @@ const Gateway = () => {
       readOnly: true,
     },
     {
-      formPropertyName: 'observerWallet',
+      formPropertyName: 'observerAddress',
       label: 'Observer Wallet:',
       rowType: RowType.TOP,
       validateProperty: validateWalletAddress('Observer Wallet'),
@@ -252,17 +248,20 @@ const Gateway = () => {
       label: gateway.settings.label || '',
       fqdn: gateway.settings.fqdn || '',
       ownerId: ownerId || '',
-      observerWallet: gateway.observerWallet || '',
+      observerAddress: gateway.observerAddress || '',
       properties: gateway.settings.properties || '',
       stake: new mIOToken(gateway.operatorStake || 0).toIO().valueOf() + '',
       status: gateway.status || '',
       note: gateway.settings.note || '',
-      delegatedStake: new mIOToken(gateway.totalDelegatedStake || 0).toIO().valueOf() + '',
+      delegatedStake:
+        new mIOToken(gateway.totalDelegatedStake || 0).toIO().valueOf() + '',
       autoStake: gateway.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
       delegateRewardShareRatio:
         (gateway.settings.delegateRewardShareRatio || 0) + '',
-      minDelegatedStake: new mIOToken(gateway.settings.minDelegatedStake || 0).toIO().valueOf() + '',
+      minDelegatedStake:
+        new mIOToken(gateway.settings.minDelegatedStake || 0).toIO().valueOf() +
+        '',
     };
     setInitialState(initialState);
     setFormState(initialState);
@@ -303,20 +302,17 @@ const Gateway = () => {
         label: changed.label as string,
         minDelegatedStake:
           formState.allowDelegatedStaking && changed.minDelegatedStake
-            ? new IOToken(parseFloat(changed.minDelegatedStake as string)).toMIO()
+            ? new IOToken(
+                parseFloat(changed.minDelegatedStake as string),
+              ).toMIO()
             : undefined,
         note: changed.note as string,
         properties: changed.properties as string,
         autoStake: changed.autoStake as boolean,
-        observerWallet: changed.observerWallet as string,
+        observerWallet: changed.observerAddress as string,
       };
 
       setShowBlockingMessageModal(true);
-
-      const updates: PendingGatewayUpdates = {
-        operatorStakeUpdates: [],
-        gatewaySettingsUpdates: [],
-      };
 
       try {
         if (
@@ -326,52 +322,46 @@ const Gateway = () => {
         ) {
           const { id: txID } = await arIOWriteableSDK.updateGatewaySettings(
             updateGatewaySettingsParams,
+            WRITE_OPTIONS,
           );
           log.info(`Update Gateway Settings txID: ${txID}`);
-
-          const pendingGatewaySettingsUpdate: GatewaySettingsUpdate = {
-            txid: await txID,
-            params: updateGatewaySettingsParams,
-          };
-
-          updates.gatewaySettingsUpdates.push(pendingGatewaySettingsUpdate);
         }
 
         if (operatorStake !== undefined && gateway) {
-          const stakeDiff = operatorStake - new mIOToken(gateway.operatorStake || 0).toIO().valueOf();
+          const stakeDiff =
+            operatorStake -
+            new mIOToken(gateway.operatorStake || 0).toIO().valueOf();
 
           if (stakeDiff > 0) {
-            const { id: txID } = await arIOWriteableSDK.increaseOperatorStake({
-              qty: new IOToken(stakeDiff).toMIO(),
-            });
+            const { id: txID } = await arIOWriteableSDK.increaseOperatorStake(
+              {
+                increaseQty: new IOToken(stakeDiff).toMIO(),
+              },
+              WRITE_OPTIONS,
+            );
 
             log.info(`Increase Operator Stake txID: ${txID}`);
-
-            const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
-              txid: await txID,
-              type: 'increase',
-              qty: stakeDiff,
-            };
-
-            updates.operatorStakeUpdates.push(pendingOperatorStakeUpdate);
           } else if (stakeDiff < 0) {
-            const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake({
-              qty: new IOToken(Math.abs(stakeDiff)).toMIO(),
-            });
+            const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake(
+              {
+                decreaseQty: new IOToken(Math.abs(stakeDiff)).toMIO(),
+              },
+              WRITE_OPTIONS,
+            );
 
             log.info(`Decrease Operator Stake txID: ${txID}`);
-
-            const pendingOperatorStakeUpdate: OperatorStakeUpdate = {
-              txid: await txID,
-              type: 'decrease',
-              qty: Math.abs(stakeDiff),
-            };
-
-            updates.operatorStakeUpdates.push(pendingOperatorStakeUpdate);
           }
         }
 
-        addPendingGatewayUpdates(updates);
+        queryClient.invalidateQueries({
+          queryKey: ['gateway', walletAddress.toString()],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['gateways'],
+          refetchType: 'all',
+        });
+
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
@@ -389,7 +379,14 @@ const Gateway = () => {
           <div className="px-[24px] py-[16px]">
             <div className="text-high">Stats</div>
           </div>
-          <StatsBox title="Start Block" value={gateway?.start} />
+          <StatsBox
+            title="Start Time"
+            value={
+              gateway?.startTimestamp
+                ? new Date(gateway?.startTimestamp).toLocaleString()
+                : 'N/A'
+            }
+          />
           <StatsBox
             title="Uptime"
             value={
@@ -406,7 +403,7 @@ const Gateway = () => {
           />
           {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
         </div>
-        <div className="size-full grow overflow-y-auto text-clip rounded-xl border border-transparent-100-16">
+        <div className="size-full grow text-clip rounded-xl border border-transparent-100-16">
           <div className="flex items-center py-[16px] pl-[24px] pr-[12px]">
             <div className="text-sm text-high">General Information</div>
             <div className="flex grow gap-[24px]" />

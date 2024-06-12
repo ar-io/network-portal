@@ -13,7 +13,7 @@ interface TableData {
   label: string;
   domain: string;
   owner: string;
-  start: number;
+  start: Date;
   totalDelegatedStake: number; // IO
   operatorStake: number; // IO
   totalStake: number; // IO
@@ -38,7 +38,7 @@ const Gateways = () => {
               label: gateway.settings.label,
               domain: gateway.settings.fqdn,
               owner: owner,
-              start: gateway.start,
+              start: new Date(gateway.startTimestamp),
               totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
                 .toIO()
                 .valueOf(),
@@ -108,6 +108,7 @@ const Gateways = () => {
       id: 'start',
       header: 'Start',
       sortDescFirst: true,
+      cell: ({ row }) => row.original.start.toLocaleString(),
     }),
     columnHelper.accessor('totalStake', {
       id: 'totalStake',
@@ -150,7 +151,7 @@ const Gateways = () => {
   ];
 
   return (
-    <div className="flex h-screen flex-col gap-[24px] overflow-y-scroll">
+    <div className="flex h-screen flex-col gap-[24px] overflow-scroll">
       <Header />
       <Banner />
       <div className="mb-[32px]">

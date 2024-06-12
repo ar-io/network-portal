@@ -1,10 +1,11 @@
 import { IOToken, mIOToken } from '@ar.io/sdk/web';
-import { EAY_TOOLTIP_TEXT, log } from '@src/constants';
+import { EAY_TOOLTIP_TEXT, WRITE_OPTIONS, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import Tooltip from '../Tooltip';
@@ -63,6 +64,8 @@ const StakingModal = ({
   onClose: () => void;
   ownerWallet?: string;
 }) => {
+  const queryClient = useQueryClient();
+
   const balances = useGlobalState((state) => state.balances);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
@@ -168,20 +171,36 @@ const StakingModal = ({
 
       try {
         if (tab == 0) {
-          const { id: txID } = await arIOWriteableSDK.increaseDelegateStake({
-            target: gatewayOwnerWallet,
-            qty: new IOToken(parseFloat(amountToStake)).toMIO(),
-          });
+          const { id: txID } = await arIOWriteableSDK.delegateStake(
+            {
+              target: gatewayOwnerWallet,
+              stakeQty: new IOToken(parseFloat(amountToStake)).toMIO(),
+            },
+            WRITE_OPTIONS,
+          );
 
           log.info(`Increase Delegate Stake txID: ${txID}`);
         } else {
-          const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake({
-            target: gatewayOwnerWallet,
-            qty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
-          });
+          const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
+            {
+              target: gatewayOwnerWallet,
+              decreaseQty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
+            },
+            WRITE_OPTIONS,
+          );
 
           log.info(`Decrease Delegate Stake txID: ${txID}`);
         }
+
+        queryClient.invalidateQueries({
+          queryKey: ['gateway', walletAddress.toString()],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['gateways'],
+          refetchType: 'all',
+        });
+
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);

@@ -36,9 +36,10 @@ const ConnectedLandingPage = () => {
   const topPanels = [
     {
       title: 'Total Protocol Balance',
-      balance: protocolBalance
-        ? formatWithCommas(new mIOToken(protocolBalance).toIO().valueOf())
-        : undefined,
+      balance:
+        protocolBalance !== undefined
+          ? formatWithCommas(new mIOToken(protocolBalance).toIO().valueOf())
+          : undefined,
     },
     {
       title: 'Your Balance',
@@ -46,12 +47,15 @@ const ConnectedLandingPage = () => {
     },
     {
       title: 'Amount Staking',
-      balance: amountStaking ? formatWithCommas(amountStaking) : undefined,
+      balance:
+        amountStaking !== undefined
+          ? formatWithCommas(amountStaking)
+          : undefined,
     },
   ];
 
   return (
-    <div className="flex flex-col gap-[24px] overflow-y-scroll py-[24px]">
+    <div className="flex flex-col gap-[24px] py-[24px]">
       <div className="grid grid-cols-3 gap-[24px]">
         {topPanels.map((panel, index) => (
           <div

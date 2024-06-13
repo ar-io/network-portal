@@ -69,7 +69,7 @@ const PropertyDisplayPanel = ({
           value: gateway?.settings.delegateRewardShareRatio,
         },
         {
-          label: `Minimum Delegated Stake (${IO_LABEL})`,
+          label: `Minimum Delegated Stake (${IO_LABEL}):`,
           value: new mIOToken(gateway?.settings.minDelegatedStake || 0)
             .toIO()
             .valueOf(),
@@ -112,7 +112,7 @@ const PropertyDisplayPanel = ({
   ];
 
   return (
-    <div className="grid grid-cols-[221px_auto]">
+    <div className="grid grid-cols-[225px_auto]">
       {gatewayRows.map(({ label, value, type }, index) => (
         <DisplayRow key={index} label={label} value={value} type={type} />
       ))}

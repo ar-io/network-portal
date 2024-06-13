@@ -19,7 +19,7 @@
     "vis": "yarn vite-bundle-visualizer"
   },
   "dependencies": {
-    "@ar.io/sdk": "1.2.0-alpha.1",
+    "@ar.io/sdk": "1.2.0-alpha.3",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^1.7.19",
     "@radix-ui/react-tooltip": "^1.0.7",

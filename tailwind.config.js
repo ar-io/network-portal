@@ -15,9 +15,8 @@ export default {
         sans: ['Rubik', 'sans-serif'],
       },
       boxShadow: {
-        'one': '0px 0px 0px 16px rgba(14, 14, 15, 0.70)',
-      }
-
+        one: '0px 0px 0px 16px rgba(14, 14, 15, 0.70)',
+      },
     },
     colors: {
       ...colors,
@@ -38,8 +37,8 @@ export default {
       low: '#7F7F87',
       link: '#A3A3AD',
       containerL0: '#09090A',
-      containerL3: '#1E1E24'
+      containerL3: '#1E1E24',
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwind-scrollbar'), require('tailwindcss-animate')],
 };

@@ -39,8 +39,8 @@ const TableView = <T, S>({
 
   return (
     <>
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full border-x border-b border-grey-500">
+      <div className="overflow-x-auto scrollbar">
+        <table className="w-full table-auto border-x border-b border-grey-500">
           <thead className="text-xs text-low">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>

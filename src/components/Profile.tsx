@@ -11,6 +11,7 @@ import {
   WalletIcon,
 } from './icons';
 import ConnectModal from './modals/ConnectModal';
+import { IO_LABEL } from '@src/constants';
 
 // eslint-disable-next-line react/display-name
 const CustomPopoverButton = forwardRef<HTMLButtonElement>((props, ref) => {
@@ -52,7 +53,7 @@ const Profile = () => {
           </div>
         </div>
         <div className="rounded-[6px] border border-grey-800 py-[12px]">
-          <div className="px-[16px] text-xs text-low">IO Balance</div>
+          <div className="px-[16px] text-xs text-low">{IO_LABEL} Balance</div>
           <div className="border-b border-grey-800 px-[16px] pb-[12px] pt-[4px] text-high">
             {formatBalance(balances.io)}
           </div>

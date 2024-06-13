@@ -6,8 +6,9 @@ import useGateways from '@src/hooks/useGateways';
 import { formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-import Banner from './Banner';
 import { useNavigate } from 'react-router-dom';
+import Banner from './Banner';
+import { IO_LABEL } from '@src/constants';
 
 interface TableData {
   label: string;
@@ -31,36 +32,37 @@ const Gateways = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce((acc: Array<TableData>, [owner, gateway]) => {
-          return [
-            ...acc,
-            {
-              label: gateway.settings.label,
-              domain: gateway.settings.fqdn,
-              owner: owner,
-              start: new Date(gateway.startTimestamp),
-              totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
-                .toIO()
-                .valueOf(),
-              operatorStake: new mIOToken(gateway.operatorStake)
-                .toIO()
-                .valueOf(),
-              totalStake: new mIOToken(
-                gateway.totalDelegatedStake + gateway.operatorStake,
-              )
-                .toIO()
-                .valueOf(),
-              status: gateway.status,
-              rewardRatio: gateway.settings.delegateRewardShareRatio,
-              failedConsecutiveEpochs: gateway.stats.failedConsecutiveEpochs,
-            },
-          ];
-        }, []);
+    const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
+      (acc: Array<TableData>, [owner, gateway]) => {
+        return [
+          ...acc,
+          {
+            label: gateway.settings.label,
+            domain: gateway.settings.fqdn,
+            owner: owner,
+            start: new Date(gateway.startTimestamp),
+            totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
+              .toIO()
+              .valueOf(),
+            operatorStake: new mIOToken(gateway.operatorStake).toIO().valueOf(),
+            totalStake: new mIOToken(
+              gateway.totalDelegatedStake + gateway.operatorStake,
+            )
+              .toIO()
+              .valueOf(),
+            status: gateway.status,
+            rewardRatio: gateway.settings.delegateRewardShareRatio,
+            failedConsecutiveEpochs: gateway.stats.failedConsecutiveEpochs,
+          },
+        ];
+      },
+      [],
+    );
     setTableData(tableData);
   }, [gateways]);
 
   // Define columns for the table
-  const columns:ColumnDef<TableData, any>[] = [
+  const columns: ColumnDef<TableData, any>[] = [
     columnHelper.accessor('label', {
       id: 'label',
       header: 'Label',
@@ -120,11 +122,11 @@ const Gateways = () => {
             <div>
               <div>
                 Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
-                IO
+                {IO_LABEL} 
               </div>
               <div className="mt-1">
                 Total Delegated Stake:{' '}
-                {formatWithCommas(row.original.totalDelegatedStake)} IO
+                {formatWithCommas(row.original.totalDelegatedStake)} {IO_LABEL}
               </div>
             </div>
           }
@@ -140,8 +142,9 @@ const Gateways = () => {
     }),
     columnHelper.accessor('rewardRatio', {
       id: 'rewardRatio',
-      header: 'Reward Ratio',
+      header: 'Reward Share Ratio',
       sortDescFirst: true,
+      cell: ({ row }) => `${row.original.rewardRatio}%`,
     }),
     columnHelper.accessor('failedConsecutiveEpochs', {
       id: 'failedConsecutiveEpochs',
@@ -163,7 +166,7 @@ const Gateways = () => {
           data={tableData}
           defaultSortingState={{ id: 'totalStake', desc: true }}
           isLoading={isLoading}
-          noDataFoundText='Unable to fetch gateways.'
+          noDataFoundText="Unable to fetch gateways."
           onRowClick={(row) => {
             navigate(`/gateways/${row.owner}`);
           }}

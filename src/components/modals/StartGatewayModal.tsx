@@ -1,5 +1,5 @@
 import { IOToken } from '@ar.io/sdk/web';
-import { WRITE_OPTIONS, log } from '@src/constants';
+import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -89,8 +89,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     },
     {
       formPropertyName: 'stake',
-      label: '*Stake (IO):',
-      placeholder: 'Minimum 10000 IO',
+      label: `*Stake (${IO_LABEL}):`,
+      placeholder: `Minimum 10000 ${IO_LABEL}`,
       validateProperty: validateIOAmount('Stake', 10000),
     },
     {
@@ -99,10 +99,10 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     },
     {
       formPropertyName: 'minDelegatedStake',
-      label: 'Minimum Delegated Stake (IO):',
+      label: `Minimum Delegated Stake (${IO_LABEL}):`,
       enabled: allowDelegatedStaking,
       placeholder: allowDelegatedStaking
-        ? 'Minimum 100 IO'
+        ? `Minimum 100 ${IO_LABEL}`
         : 'Enable Delegated Staking to set this value.',
       validateProperty: validateIOAmount('Minimum Delegated Stake', 100),
     },
@@ -113,11 +113,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       placeholder: allowDelegatedStaking
         ? 'Enter value 0-100'
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateNumberRange(
-        'Reward Share Ratio',
-        0,
-        100,
-      ),
+      validateProperty: validateNumberRange('Reward Share Ratio', 0, 100),
     },
     {
       formPropertyName: 'note',

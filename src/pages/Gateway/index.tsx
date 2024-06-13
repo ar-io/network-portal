@@ -18,7 +18,7 @@ import {
 import { EditIcon, StatsArrowIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
-import { WRITE_OPTIONS, log } from '@src/constants';
+import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { useGlobalState } from '@src/store';
@@ -186,9 +186,9 @@ const Gateway = () => {
     },
     {
       formPropertyName: 'stake',
-      label: 'Gateway Stake (IO):',
+      label: `Gateway Stake (${IO_LABEL}):`,
       rowType: RowType.BOTTOM,
-      placeholder: 'Minimum 10000 IO',
+      placeholder: `Minimum 10000 ${IO_LABEL}`,
       validateProperty: validateIOAmount('Stake', 10000, maxStake),
     },
     {
@@ -205,7 +205,7 @@ const Gateway = () => {
     },
     {
       formPropertyName: 'delegatedStake',
-      label: 'Total Delegated Stake (IO):',
+      label: `Total Delegated Stake (${IO_LABEL}):`,
       rowType: RowType.SINGLE,
       readOnly: true,
     },
@@ -231,11 +231,11 @@ const Gateway = () => {
     },
     {
       formPropertyName: 'minDelegatedStake',
-      label: 'Minimum Delegated Stake (IO):',
+      label: `Minimum Delegated Stake (${IO_LABEL}):`,
       rowType: RowType.LAST,
       enabled: delegatedStakingEnabled,
       placeholder: delegatedStakingEnabled
-        ? 'Minimum 100 IO'
+        ? `Minimum 100 ${IO_LABEL}`
         : 'Enable Delegated Staking to set this value.',
       validateProperty: validateIOAmount('Minumum Delegated Stake ', 100),
     },

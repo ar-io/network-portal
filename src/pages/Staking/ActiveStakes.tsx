@@ -5,7 +5,7 @@ import { GearIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
-import { WRITE_OPTIONS, log } from '@src/constants';
+import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -102,7 +102,7 @@ const ActiveStakes = () => {
     }),
     columnHelper.accessor('delegatedStake', {
       id: 'delegatedStake',
-      header: 'Current Stake (IO)',
+      header: `Current Stake (${IO_LABEL})`,
       sortDescFirst: true,
       cell: ({ row }) => {
         return `${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`;

@@ -31,6 +31,7 @@ import StatsArrowIcon from './stats_arrow.svg?react';
 import SuccessCheck from './success_check.svg?react';
 import ToastCloseIcon from './toast_close.svg?react';
 import WalletIcon from './wallet.svg?react';
+import WarningIcon from './warning.svg?react';
 
 export {
   ArConnectIcon,
@@ -65,4 +66,5 @@ export {
   SuccessCheck,
   ToastCloseIcon,
   WalletIcon,
+  WarningIcon,
 };

@@ -23,7 +23,7 @@ export const Button = ({
   icon?: ReactElement;
   rightIcon?: ReactElement;
   title: string;
-  text?: string;
+  text?: ReactElement | string;
   active?: boolean;
   onClick?: MouseEventHandler;
 }) => {

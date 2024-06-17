@@ -3,10 +3,11 @@ import * as ReactTooltip from '@radix-ui/react-tooltip';
 const Tooltip = ({
   message,
   children,
+  useMaxWidth = true,
 }: {
   message: React.ReactNode;
-  tooltipPadding?: number;
   children: React.ReactNode;
+  useMaxWidth?: boolean;
 }) => {
   return (
     <div className="relative flex">
@@ -17,7 +18,7 @@ const Tooltip = ({
           </ReactTooltip.Trigger>
           <ReactTooltip.Portal>
             <ReactTooltip.Content
-              className={`z-50 mb-[4px] w-fit max-w-[400px] rounded-md border border-grey-500 bg-containerL0 px-[24px] py-[12px]`}
+              className={`z-50 mb-[4px] w-fit ${useMaxWidth ? 'max-w-[400px]' : undefined} rounded-md border border-grey-500 bg-containerL0 px-[24px] py-[12px]`}
             >
               {/* <ReactTooltip.Arrow className={`${marginBottom}`} /> */}
               <div className="text-sm text-low">{message}</div>

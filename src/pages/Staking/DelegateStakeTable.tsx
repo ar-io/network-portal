@@ -1,4 +1,5 @@
 import { mIOToken } from '@ar.io/sdk/web';
+import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
@@ -92,17 +93,7 @@ const DelegateStake = () => {
       id: 'owner',
       header: 'Address',
       sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="text-mid">
-          <a
-            href={`https://viewblock.io/arweave/address/${row.getValue('owner')}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {row.getValue('owner')}
-          </a>
-        </div>
-      ),
+      cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
     }),
     columnHelper.accessor('failedConsecutiveEpochs', {
       id: 'failedConsecutiveEpochs',
@@ -113,7 +104,7 @@ const DelegateStake = () => {
       id: 'rewardRatio',
       header: 'Reward Share Ratio',
       sortDescFirst: true,
-      cell: ({ row }) => `${row.original.rewardRatio}%`
+      cell: ({ row }) => `${row.original.rewardRatio}%`,
     }),
     columnHelper.accessor('eay', {
       id: 'eay',

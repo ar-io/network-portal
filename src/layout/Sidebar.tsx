@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '@src/components/Button';
 import {
   ArioLogoIcon,
+  BinocularsIcon,
   CloseDrawerIcon,
   ContractIcon,
   DocsIcon,
@@ -18,7 +19,7 @@ const ROUTES_PRIMARY = [
   // { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { title: 'Gateways', icon: <GatewaysIcon />, path: '/gateways' },
   { title: 'Staking', icon: <StakingIcon />, path: '/staking' },
-  // { title: 'Observers', icon: <BinocularsIcon />, path: '/observers' },
+  { title: 'Observers', icon: <BinocularsIcon />, path: '/observers' },
 ];
 
 const ROUTES_SECONDARY = [

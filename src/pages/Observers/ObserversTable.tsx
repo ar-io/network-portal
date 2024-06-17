@@ -6,6 +6,7 @@ import useObservers from '@src/hooks/useObservers';
 import { formatPercentage } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface TableData {
   label: string;
@@ -21,6 +22,9 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const ObserversTable = () => {
+
+  const navigate = useNavigate();
+
   const { isLoading, data: observers } = useObservers();
   const { isLoading: gatewaysLoading, data: gateways } = useGateways();
   const { isLoading: observationsLoading, data: observations } =
@@ -150,6 +154,9 @@ const ObserversTable = () => {
         isLoading={isLoading && gatewaysLoading && observationsLoading}
         noDataFoundText="No prescribed observers found."
         defaultSortingState={{ id: 'ncw', desc: true }}
+        onRowClick={(row) => {
+          navigate(`/gateways/${row.gatewayAddress}`);
+        }}
       />
     </div>
   );

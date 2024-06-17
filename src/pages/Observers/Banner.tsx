@@ -42,8 +42,8 @@ const Banner = () => {
 
   const prescribedStatus = prescribed
     ? observations?.reports[walletAddress?.toString() || '']
-      ? 'Prescribed - Submitted'
-      : 'Prescribed - Pending'
+      ? 'Prescribed - Report Submitted'
+      : 'Prescribed - Report Pending'
     : 'Not prescribed for this epoch';
 
   const numFailedGatewaysFound = myObserver

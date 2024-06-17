@@ -1,8 +1,11 @@
 import { Popover } from '@headlessui/react';
+import { IO_LABEL } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { formatBalance, formatWalletAddress } from '@src/utils';
 import { forwardRef, useState } from 'react';
 import Button, { ButtonType } from './Button';
+import CopyButton from './CopyButton';
+import Tooltip from './Tooltip';
 import {
   ConnectIcon,
   GearIcon,
@@ -11,7 +14,6 @@ import {
   WalletIcon,
 } from './icons';
 import ConnectModal from './modals/ConnectModal';
-import { IO_LABEL } from '@src/constants';
 
 // eslint-disable-next-line react/display-name
 const CustomPopoverButton = forwardRef<HTMLButtonElement>((props, ref) => {
@@ -48,9 +50,27 @@ const Profile = () => {
       >
         <div className="flex gap-[8px] py-[20px]">
           <WalletIcon />
-          <div className="text-sm text-high">
-            {formatWalletAddress(walletAddress.toString())}
+
+          <div className="flex gap-2 align-middle text-mid">
+            <a
+              href={`https://viewblock.io/arweave/address/${walletAddress.toString()}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Tooltip
+                message={
+                  <div className="text-high">{walletAddress.toString()}</div>
+                }
+                useMaxWidth={false}
+              >
+                {formatWalletAddress(walletAddress.toString())}
+              </Tooltip>
+            </a>
           </div>
+          <CopyButton textToCopy={walletAddress.toString()} />
         </div>
         <div className="rounded-[6px] border border-grey-800 py-[12px]">
           <div className="px-[16px] text-xs text-low">{IO_LABEL} Balance</div>
@@ -91,11 +111,7 @@ const Profile = () => {
         text="Connect"
         onClick={() => setIsModalOpen(true)}
       />
-      {isModalOpen && (
-        <ConnectModal
-          onClose={() => setIsModalOpen(false)}
-        />
-      )}
+      {isModalOpen && <ConnectModal onClose={() => setIsModalOpen(false)} />}
     </div>
   ) : (
     <div></div>

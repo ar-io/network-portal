@@ -142,7 +142,7 @@ const Gateways = () => {
   ];
 
   return (
-    <div className="scrollbar flex h-screen max-w-full flex-col gap-[24px] overflow-auto pr-[24px]">
+    <div className="flex h-screen max-w-full flex-col gap-[24px] overflow-auto pr-[24px] scrollbar">
       <Header />
       <Banner />
       <div className="mb-[32px]">

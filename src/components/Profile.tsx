@@ -6,13 +6,7 @@ import { forwardRef, useState } from 'react';
 import Button, { ButtonType } from './Button';
 import CopyButton from './CopyButton';
 import Tooltip from './Tooltip';
-import {
-  ConnectIcon,
-  GearIcon,
-  LogoutIcon,
-  StakingIcon,
-  WalletIcon,
-} from './icons';
+import { ConnectIcon, LogoutIcon, WalletIcon } from './icons';
 import ConnectModal from './modals/ConnectModal';
 
 // eslint-disable-next-line react/display-name

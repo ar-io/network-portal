@@ -83,12 +83,6 @@ const Profile = () => {
           </div>
         </div>
         <div className="flex flex-col gap-[12px] py-[12px] text-mid">
-          <button className="flex items-center gap-[8px]">
-            <GearIcon /> Gateway Management
-          </button>
-          <button className="flex items-center gap-[8px]">
-            <StakingIcon /> Delegated Staking
-          </button>
           <button
             className="flex items-center gap-[8px]"
             title="Logout"

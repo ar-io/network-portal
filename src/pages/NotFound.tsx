@@ -1,7 +1,7 @@
-function NotFound() {
+const NotFound = () => {
   return (
-    <div>
-      <h1>Not Found</h1>
+    <div className="flex size-full items-center justify-center">
+        <p>Page Not Found</p>
     </div>
   );
 }

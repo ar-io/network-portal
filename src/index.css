@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .text-gradient {
+    @apply bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end bg-clip-text text-transparent;
+  }
+}

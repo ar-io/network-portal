@@ -10,7 +10,7 @@ const Staking = () => {
     <div
       className={
         walletAddress
-          ? 'h-screen w-full overflow-y-scroll'
+          ? 'h-screen w-full overflow-y-auto pr-[24px] scrollbar'
           : 'flex size-full flex-col gap-[24px] pb-[24px]'
       }
     >

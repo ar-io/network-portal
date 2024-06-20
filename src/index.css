@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-grey-1000 scrollbar-thumb-grey-400 scrollbar-track-grey-1100;
+  }
+}
+
 @layer components {
   .text-gradient {
     @apply bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end bg-clip-text text-transparent;

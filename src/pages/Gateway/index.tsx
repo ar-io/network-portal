@@ -372,7 +372,7 @@ const Gateway = () => {
   };
 
   return (
-    <div>
+    <div className="overflow-y-auto pr-[24px] scrollbar">
       <GatewayHeader gatewayName={gateway?.settings.label} />
       <div className="my-[24px] flex gap-[24px]">
         <div className="h-fit w-[270px] rounded-xl border border-transparent-100-16 text-sm">
@@ -447,7 +447,7 @@ const Gateway = () => {
               ))}
           </div>
           {editing ? (
-            <div className=" grid grid-cols-[221px_auto] overflow-hidden border-t border-grey-500">
+            <div className=" grid grid-cols-[225px_auto] overflow-hidden border-t border-grey-500">
               {formRowDefs.map((rowDef, index) => {
                 return (
                   <FormRow

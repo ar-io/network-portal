@@ -28,6 +28,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
+import { formatDate } from '@src/utils';
 
 const StatsBox = ({
   title,
@@ -383,7 +384,7 @@ const Gateway = () => {
             title="Start Time"
             value={
               gateway?.startTimestamp
-                ? new Date(gateway?.startTimestamp).toLocaleString()
+                ? formatDate(new Date(gateway?.startTimestamp))
                 : 'N/A'
             }
           />

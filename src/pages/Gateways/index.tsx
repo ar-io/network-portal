@@ -5,7 +5,7 @@ import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
 import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
-import { formatWithCommas } from '@src/utils';
+import { formatDate, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -98,7 +98,7 @@ const Gateways = () => {
       id: 'start',
       header: 'Start',
       sortDescFirst: true,
-      cell: ({ row }) => row.original.start.toLocaleString(),
+      cell: ({ row }) => formatDate(row.original.start),
     }),
     columnHelper.accessor('totalStake', {
       id: 'totalStake',

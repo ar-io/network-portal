@@ -37,10 +37,41 @@ export const formatBalance = (ar: number) => {
 };
 
 /** Format number with commas, with maximum one fraction digit */
-export function formatWithCommas(num: number) {
+export const formatWithCommas = (num: number) => {
   return COMMA_NUMBER_FORMAT.format(num);
+};
+
+/** Format number in range 0-1 to percentage (0 - 100%) string. */
+export const formatPercentage = (num: number) => {
+  return `${(num * 100).toFixed(2)}%`;
+};
+
+/** Format address to first 7...last 7 */
+export const formatAddress = (address: string) => {
+  const shownCount = 7;
+  return `${address.slice(0, shownCount)}...${address.slice(
+    address.length - shownCount,
+    address.length,
+  )}`;
+};
+
+/** Convert Date object to format of YYYY-MM-DD HH:MM:SS AM/PM */
+export function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const day = String(date.getDate()).padStart(2, '0');
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+
+  return `${year}-${month}-${day}, ${hours}:${minutes}:${seconds} ${ampm}`;
 }
 
-/** Utility for simulating delay times. Useful for development work and testing; 
+/** Utility for simulating delay times. Useful for development work and testing;
  * do not use in production code. */
 export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));

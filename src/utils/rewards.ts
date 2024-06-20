@@ -1,6 +1,6 @@
 import { AoGateway, IOToken, mIOToken } from '@ar.io/sdk/web';
 
-const EPOCHS_PER_YEAR = 52;
+const EPOCHS_PER_YEAR = 365;
 const EPOCH_DISTRIBUTION_RATIO = 0.0025; // 0.25%
 const GATEWAY_REWARDS_RATIO = 0.95; // 95%
 // const OBSERVER_REWARDS_RATIO = .05; // 5%

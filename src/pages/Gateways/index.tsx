@@ -1,14 +1,15 @@
 import { mIOToken } from '@ar.io/sdk/web';
+import AddressCell from '@src/components/AddressCell';
 import Header from '@src/components/Header';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
+import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
-import { formatWithCommas } from '@src/utils';
+import { formatDate, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Banner from './Banner';
-import { IO_LABEL } from '@src/constants';
 
 interface TableData {
   label: string;
@@ -91,26 +92,13 @@ const Gateways = () => {
       id: 'owner',
       header: 'Address',
       sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="text-mid">
-          <a
-            href={`https://viewblock.io/arweave/address/${row.getValue('owner')}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            {row.getValue('owner')}
-          </a>
-        </div>
-      ),
+      cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
     }),
     columnHelper.accessor('start', {
       id: 'start',
       header: 'Start',
       sortDescFirst: true,
-      cell: ({ row }) => row.original.start.toLocaleString(),
+      cell: ({ row }) => formatDate(row.original.start),
     }),
     columnHelper.accessor('totalStake', {
       id: 'totalStake',
@@ -122,7 +110,7 @@ const Gateways = () => {
             <div>
               <div>
                 Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
-                {IO_LABEL} 
+                {IO_LABEL}
               </div>
               <div className="mt-1">
                 Total Delegated Stake:{' '}
@@ -154,7 +142,7 @@ const Gateways = () => {
   ];
 
   return (
-    <div className="flex h-screen flex-col gap-[24px] overflow-scroll">
+    <div className="flex h-screen max-w-full flex-col gap-[24px] overflow-auto pr-[24px] scrollbar">
       <Header />
       <Banner />
       <div className="mb-[32px]">

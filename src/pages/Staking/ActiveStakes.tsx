@@ -1,4 +1,5 @@
 import { AoGateway, mIOToken } from '@ar.io/sdk/web';
+import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import TableView from '@src/components/TableView';
 import { GearIcon } from '@src/components/icons';
@@ -80,17 +81,7 @@ const ActiveStakes = () => {
       id: 'owner',
       header: 'Address',
       sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="text-mid">
-          <a
-            href={`https://viewblock.io/arweave/address/${row.getValue('owner')}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {row.getValue('owner')}
-          </a>
-        </div>
-      ),
+      cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
     }),
     columnHelper.accessor('delegatedStake', {
       id: 'delegatedStake',

@@ -28,7 +28,7 @@ describe('rewards.ts', () => {
       );
       expect(result.rewardsSharedPerEpoch.valueOf()).toBeCloseTo(197.91, 1);
       expect(result.EEY).toBeCloseTo(0.004);
-      expect(result.EAY).toBeCloseTo(0.2058);
+      expect(result.EAY).toBeCloseTo(1.4447916691);
     });
   });
 
@@ -45,7 +45,7 @@ describe('rewards.ts', () => {
       const result = calculateUserRewards(gatewayRewards, userDelegatedStake);
 
       expect(result.EEY).toBeCloseTo(0.0036);
-      expect(result.EAY).toBeCloseTo(0.1871);
+      expect(result.EAY).toBeCloseTo(1.3134027272727273);
     });
   });
 });

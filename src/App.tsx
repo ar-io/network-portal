@@ -20,7 +20,7 @@ import NotFound from './pages/NotFound';
 const Gateways = React.lazy(() => import('./pages/Gateways'));
 const Gateway = React.lazy(() => import('./pages/Gateway'));
 const Staking = React.lazy(() => import('./pages/Staking'));
-// const Observers = React.lazy(() => import('./pages/Observers'));
+const Observers = React.lazy(() => import('./pages/Observers'));
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
 
@@ -66,7 +66,7 @@ function App() {
           }
         />
         ,
-        {/*<Route
+        <Route
           path="observers"
           element={
             <Suspense fallback={<Loading />}>
@@ -74,7 +74,7 @@ function App() {
             </Suspense>
           }
         />
-        , */}
+        ,
         <Route path="*" element={<Navigate to="/" />} />
       </Route>,
     ),

@@ -44,5 +44,5 @@ export const useGatewayInfo = () => {
       ? GatewayStatus.LOADING
       : GatewayStatus.NOT_FOUND;
 
-  return { gatewayInfo, gatewayStatus };
+  return { gatewayInfo, gateway, gatewayStatus };
 };

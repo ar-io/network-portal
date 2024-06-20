@@ -37,10 +37,24 @@ export const formatBalance = (ar: number) => {
 };
 
 /** Format number with commas, with maximum one fraction digit */
-export function formatWithCommas(num: number) {
+export const formatWithCommas = (num: number) => {
   return COMMA_NUMBER_FORMAT.format(num);
-}
+};
 
-/** Utility for simulating delay times. Useful for development work and testing; 
+/** Format number in range 0-1 to percentage (0 - 100%) string. */
+export const formatPercentage = (num: number) => {
+  return `${(num * 100).toFixed(2)}%`;
+};
+
+/** Format address to first 7...last 7 */
+export const formatAddress = (address: string) => {
+  const shownCount = 7;
+  return `${address.slice(0, shownCount)}...${address.slice(
+    address.length - shownCount,
+    address.length,
+  )}`;
+};
+
+/** Utility for simulating delay times. Useful for development work and testing;
  * do not use in production code. */
 export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));

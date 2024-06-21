@@ -33,8 +33,6 @@ const ObserversTable = () => {
     Array<TableData>
   >([]);
 
-  console.log(gateways)
-
   useEffect(() => {
     if (!observers || !gateways || !observations) {
       return;

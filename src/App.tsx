@@ -6,7 +6,7 @@ import {
   Navigate,
   Route,
   RouterProvider,
-  createBrowserRouter,
+  createHashRouter,
   createRoutesFromElements,
 } from 'react-router-dom';
 
@@ -22,7 +22,7 @@ const Gateway = React.lazy(() => import('./pages/Gateway'));
 const Staking = React.lazy(() => import('./pages/Staking'));
 const Observers = React.lazy(() => import('./pages/Observers'));
 
-const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createBrowserRouter);
+const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createHashRouter);
 
 const queryClient = new QueryClient();
 

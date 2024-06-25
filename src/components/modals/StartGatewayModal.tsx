@@ -34,7 +34,7 @@ const DEFAULT_FORM_STATE = {
 const DEFAULT_PROTOCOL = 'https' as const;
 const DEFAULT_PORT = 443;
 const DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO = 0;
-const DEFAULT_DELEGATED_STAKING = 100;
+const DEFAULT_DELEGATED_STAKING = 500;
 
 const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
   const queryClient = useQueryClient();
@@ -90,8 +90,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     {
       formPropertyName: 'stake',
       label: `*Stake (${IO_LABEL}):`,
-      placeholder: `Minimum 10000 ${IO_LABEL}`,
-      validateProperty: validateIOAmount('Stake', 10000),
+      placeholder: `Minimum 50000 ${IO_LABEL}`,
+      validateProperty: validateIOAmount('Stake', 50000),
     },
     {
       formPropertyName: 'allowDelegatedStaking',
@@ -102,9 +102,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       label: `Minimum Delegated Stake (${IO_LABEL}):`,
       enabled: allowDelegatedStaking,
       placeholder: allowDelegatedStaking
-        ? `Minimum 100 ${IO_LABEL}`
+        ? `Minimum 500 ${IO_LABEL}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount('Minimum Delegated Stake', 100),
+      validateProperty: validateIOAmount('Minimum Delegated Stake', 500),
     },
     {
       formPropertyName: 'delegatedStakingShareRatio',

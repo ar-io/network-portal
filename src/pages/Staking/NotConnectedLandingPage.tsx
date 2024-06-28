@@ -7,11 +7,11 @@ const NotConnectedLandingPage = () => {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
 
   return (
-    <div className="flex h-full grow items-center justify-center rounded-xl border border-grey-800">
-      <div className="fixed overflow-hidden">
+    <div className="relative grid grow place-items-center overflow-hidden rounded-xl border border-grey-800 py-[24px]">
+      <div className="absolute col-start-1 row-start-1 overflow-hidden">
         <StakingSplash />
       </div>
-      <div className="z-10 rounded-xl border border-grey-800 bg-grey-1000 p-[56px] text-center shadow-one">
+      <div className="col-start-1 row-start-1 z-10 self-center rounded-xl border border-grey-800 bg-grey-1000 p-[56px] text-center shadow-one">
         <div className="text-gradient text-2xl">
           Connect your wallet to start staking.
         </div>

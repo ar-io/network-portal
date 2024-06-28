@@ -6,7 +6,13 @@ import { forwardRef, useState } from 'react';
 import Button, { ButtonType } from './Button';
 import CopyButton from './CopyButton';
 import Tooltip from './Tooltip';
-import { ConnectIcon, LogoutIcon, WalletIcon } from './icons';
+import {
+  ClockRewindIcon,
+  ConnectIcon,
+  LinkArrowIcon,
+  LogoutIcon,
+  WalletIcon,
+} from './icons';
 import ConnectModal from './modals/ConnectModal';
 
 // eslint-disable-next-line react/display-name
@@ -40,9 +46,9 @@ const Profile = () => {
 
       <Popover.Panel
         className="absolute right-0 z-50 mt-[10px] w-[240px] 
-      rounded-[12px] border border-grey-800 bg-grey-1000 px-[16px] text-sm shadow-md"
+      rounded-[12px] border border-grey-800 bg-grey-1000 text-sm shadow-xl"
       >
-        <div className="flex gap-[8px] py-[20px]">
+        <div className="flex gap-[8px] px-[16px] py-[20px] ">
           <WalletIcon />
 
           <div className="flex gap-2 align-middle text-mid">
@@ -66,7 +72,7 @@ const Profile = () => {
           </div>
           <CopyButton textToCopy={walletAddress.toString()} />
         </div>
-        <div className="rounded-[6px] border border-grey-800 py-[12px]">
+        <div className="mx-[16px] rounded-[6px] border border-grey-800 py-[12px]">
           <div className="px-[16px] text-xs text-low">{IO_LABEL} Balance</div>
           <div className="border-b border-grey-800 px-[16px] pb-[12px] pt-[4px] text-high">
             {formatBalance(balances.io)}
@@ -76,7 +82,22 @@ const Profile = () => {
             {formatBalance(balances.ar)}
           </div>
         </div>
-        <div className="flex flex-col gap-[12px] py-[12px] text-mid">
+        <div className="flex flex-col gap-[12px] px-[24px] py-[12px] text-mid">
+          <button
+            className="flex items-center"
+            title="Transaction History"
+            onClick={async () => {
+              window.open(
+                `https://ao.link/#/entity/${walletAddress.toString()}`,
+                '_blank',
+              );
+            }}
+          >
+            <ClockRewindIcon className="mr-[8px]" /> Transaction History{' '}
+            <LinkArrowIcon />
+          </button>
+        </div>
+        <div className="bg-btn-secondary-default flex flex-col gap-[12px] px-[24px] py-[12px] text-mid">
           <button
             className="flex items-center gap-[8px]"
             title="Logout"

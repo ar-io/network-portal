@@ -30,6 +30,7 @@ export default {
       'btn-primary-gradient-end': 'rgba(0, 0, 0 0.06)',
       'btn-primary-outer-gradient-start': '#EEB3BFA3',
       'btn-primary-outer-gradient-end': '#DF9BE808',
+      'btn-secondary-default': '#212124',
       divider: '#232329',
       // these correspond to textHigh, textMid, textLow
       high: '#CACAD6',

@@ -3,6 +3,7 @@ import AddressCell from '@src/components/AddressCell';
 import Header from '@src/components/Header';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
+import { StreakDownArrowIcon, StreakUpArrowIcon } from '@src/components/icons';
 import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { formatDate, formatWithCommas } from '@src/utils';
@@ -21,7 +22,7 @@ interface TableData {
   totalStake: number; // IO
   status: string;
   rewardRatio: number;
-  failedConsecutiveEpochs: number;
+  streak: number;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -35,6 +36,7 @@ const Gateways = () => {
   useEffect(() => {
     const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
       (acc: Array<TableData>, [owner, gateway]) => {
+        gateway.stats.passedConsecutiveEpochs;
         return [
           ...acc,
           {
@@ -53,7 +55,10 @@ const Gateways = () => {
               .valueOf(),
             status: gateway.status,
             rewardRatio: gateway.settings.delegateRewardShareRatio,
-            failedConsecutiveEpochs: gateway.stats.failedConsecutiveEpochs,
+            streak:
+              gateway.stats.failedConsecutiveEpochs > 0
+                ? -gateway.stats.failedConsecutiveEpochs
+                : gateway.stats.passedConsecutiveEpochs,
           },
         ];
       },
@@ -134,10 +139,31 @@ const Gateways = () => {
       sortDescFirst: true,
       cell: ({ row }) => `${row.original.rewardRatio}%`,
     }),
-    columnHelper.accessor('failedConsecutiveEpochs', {
-      id: 'failedConsecutiveEpochs',
-      header: 'Offline Epochs',
+    columnHelper.accessor('streak', {
+      id: 'streak',
+      header: 'Streak',
       sortDescFirst: true,
+      cell: ({ row }) => {
+        const streak = row.original.streak;
+        if (streak === 0) {
+          return '';
+        }
+
+        const colorClasses =
+          streak > 0
+            ? 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up'
+            : 'border-text-red/[.56] bg-text-red/[.1] text-text-red';
+        const icon =
+          streak > 0 ? <StreakUpArrowIcon /> : <StreakDownArrowIcon />;
+
+        return (
+          <div
+            className={`flex w-fit items-center gap-[4px] rounded-xl border py-[2px] pl-[7px] pr-[9px] ${colorClasses}`}
+          >
+            {icon} {Math.abs(streak)}
+          </div>
+        );
+      },
     }),
   ];
 

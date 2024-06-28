@@ -30,6 +30,7 @@ export default {
       'btn-primary-gradient-end': 'rgba(0, 0, 0 0.06)',
       'btn-primary-outer-gradient-start': '#EEB3BFA3',
       'btn-primary-outer-gradient-end': '#DF9BE808',
+      'btn-secondary-default': '#212124',
       divider: '#232329',
       // these correspond to textHigh, textMid, textLow
       high: '#CACAD6',
@@ -38,6 +39,8 @@ export default {
       link: '#A3A3AD',
       containerL0: '#09090A',
       containerL3: '#1E1E24',
+      'streak-up': '#3DB7C2',
+      'text-red': '#DB4354',
     },
   },
   plugins: [require('tailwind-scrollbar'), require('tailwindcss-animate')],

@@ -3,6 +3,7 @@ import ArConnectIcon from './arconnect.svg?react';
 import ArioLogoIcon from './ario.svg?react';
 import BannerRightChevron from './banner_right_chevron.svg?react';
 import BinocularsIcon from './binoculars.svg?react';
+import ClockRewindIcon from './clock_rewind.svg?react';
 import CloseIcon from './close.svg?react';
 import CloseDrawerIcon from './close_drawer.svg?react';
 import ConnectIcon from './connect.svg?react';
@@ -32,6 +33,8 @@ import StakingIcon from './staking.svg?react';
 import StakingSplash from './staking_splash.svg?react';
 import StartGatewayCubes from './start_gateway_cubes.svg?react';
 import StatsArrowIcon from './stats_arrow.svg?react';
+import StreakDownArrowIcon from './streak_down_arrow.svg?react';
+import StreakUpArrowIcon from './streak_up_arrow.svg?react';
 import SuccessCheck from './success_check.svg?react';
 import ToastCloseIcon from './toast_close.svg?react';
 import WalletIcon from './wallet.svg?react';
@@ -42,12 +45,13 @@ export {
   ArioLogoIcon,
   BannerRightChevron,
   BinocularsIcon,
+  ClockRewindIcon,
   CloseDrawerIcon,
   CloseIcon,
   ConnectIcon,
   ContractIcon,
-  CopyIcon,
   CopyCheckedIcon,
+  CopyIcon,
   DashboardIcon,
   DocsIcon,
   EditIcon,
@@ -71,6 +75,8 @@ export {
   StakingSplash,
   StartGatewayCubes,
   StatsArrowIcon,
+  StreakDownArrowIcon,
+  StreakUpArrowIcon,
   SuccessCheck,
   ToastCloseIcon,
   WalletIcon,

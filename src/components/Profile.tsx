@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { Popover } from '@headlessui/react';
 import { IO_LABEL } from '@src/constants';
 import { useGlobalState } from '@src/store';
@@ -46,7 +47,7 @@ const Profile = () => {
 
       <Popover.Panel
         className="absolute right-0 z-50 mt-[10px] w-[240px] 
-      rounded-[12px] border border-grey-800 bg-grey-1000 text-sm shadow-xl"
+      overflow-clip rounded-[12px] border border-grey-800 bg-grey-1000 text-sm shadow-xl"
       >
         <div className="flex gap-[8px] px-[16px] py-[20px] ">
           <WalletIcon />
@@ -93,8 +94,8 @@ const Profile = () => {
               );
             }}
           >
-            <ClockRewindIcon className="mr-[8px]" /> Transaction History{' '}
-            <LinkArrowIcon />
+            <ClockRewindIcon className="mr-[8px]" /> Transaction History
+            <LinkArrowIcon className="ml-[4px]" />
           </button>
         </div>
         <div className="bg-btn-secondary-default flex flex-col gap-[12px] px-[24px] py-[12px] text-mid">

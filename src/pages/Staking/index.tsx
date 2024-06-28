@@ -11,7 +11,7 @@ const Staking = () => {
       className={
         walletAddress
           ? 'h-screen w-full overflow-y-auto pr-[24px] scrollbar'
-          : 'flex size-full flex-col gap-[24px] pb-[24px]'
+          : 'flex size-full flex-col gap-[24px] pb-[24px] pr-[24px]'
       }
     >
       <Header />

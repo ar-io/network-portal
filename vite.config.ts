@@ -33,7 +33,7 @@ export default defineConfig({
         ]
       : []),
   ],
-  base: '/',
+  base: '',
   define: {
     'process.env': process.env,
     VITE_CONFIG: {

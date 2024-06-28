@@ -20,6 +20,7 @@ interface TableData {
   owner: string;
   failedConsecutiveEpochs: number;
   rewardRatio: number;
+  totalDelegatedStake: number;
   eay: number;
 }
 
@@ -53,6 +54,9 @@ const DelegateStake = () => {
                   failedConsecutiveEpochs:
                     gateway.stats.failedConsecutiveEpochs,
                   rewardRatio: gateway.settings.delegateRewardShareRatio,
+                  totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
+                    .toIO()
+                    .valueOf(),
                   eay: calculateGatewayRewards(
                     new mIOToken(protocolBalance).toIO(),
                     Object.keys(gateways).length,
@@ -94,6 +98,11 @@ const DelegateStake = () => {
       header: 'Address',
       sortDescFirst: false,
       cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+    }),
+    columnHelper.accessor('totalDelegatedStake', {
+      id: 'totalDelegatedStake',
+      header: 'Total Stake',
+      sortDescFirst: true,
     }),
     columnHelper.accessor('failedConsecutiveEpochs', {
       id: 'failedConsecutiveEpochs',
@@ -157,7 +166,7 @@ const DelegateStake = () => {
         data={stakeableGateways}
         isLoading={isLoading}
         noDataFoundText="No stakeable gateways found."
-        defaultSortingState={{ id: 'rewardRatio', desc: true }}
+        defaultSortingState={{ id: 'totalDelegatedStake', desc: true }}
       />
       {stakingModalWalletAddress && (
         <StakingModal

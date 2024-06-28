@@ -39,6 +39,8 @@ export default {
       link: '#A3A3AD',
       containerL0: '#09090A',
       containerL3: '#1E1E24',
+      'streak-up': '#3DB7C2',
+      'text-red': '#DB4354',
     },
   },
   plugins: [require('tailwind-scrollbar'), require('tailwindcss-animate')],

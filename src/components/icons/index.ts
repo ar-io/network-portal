@@ -33,6 +33,8 @@ import StakingIcon from './staking.svg?react';
 import StakingSplash from './staking_splash.svg?react';
 import StartGatewayCubes from './start_gateway_cubes.svg?react';
 import StatsArrowIcon from './stats_arrow.svg?react';
+import StreakDownArrowIcon from './streak_down_arrow.svg?react';
+import StreakUpArrowIcon from './streak_up_arrow.svg?react';
 import SuccessCheck from './success_check.svg?react';
 import ToastCloseIcon from './toast_close.svg?react';
 import WalletIcon from './wallet.svg?react';
@@ -48,8 +50,8 @@ export {
   CloseIcon,
   ConnectIcon,
   ContractIcon,
-  CopyIcon,
   CopyCheckedIcon,
+  CopyIcon,
   DashboardIcon,
   DocsIcon,
   EditIcon,
@@ -73,6 +75,8 @@ export {
   StakingSplash,
   StartGatewayCubes,
   StatsArrowIcon,
+  StreakDownArrowIcon,
+  StreakUpArrowIcon,
   SuccessCheck,
   ToastCloseIcon,
   WalletIcon,

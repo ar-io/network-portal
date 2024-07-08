@@ -28,7 +28,8 @@ export const IO_PROCESS_INFO_URL = `https://www.ao.link/#/entity/${IO_PROCESS_ID
 export const DEFAULT_ARWEAVE_PROTOCOL =
   process.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
-  process.env.VITE_GATEWAY_HOST ?? 'ar-io.dev';
+  // process.env.VITE_GATEWAY_HOST ?? 'ar-io.dev';
+  process.env.VITE_GATEWAY_HOST ?? 'arweave.net';
 export const DEFAULT_ARWEAVE_PORT =
   Number(process.env.VITE_GATEWAY_PORT) ?? 443;
 

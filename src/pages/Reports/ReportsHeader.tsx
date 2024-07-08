@@ -1,16 +1,10 @@
 import { AoGateway } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
-import {
-  BinocularsIcon,
-  GatewayIcon,
-  HeaderSeparatorIcon,
-  ReportsIcon,
-} from '@src/components/icons';
+import { GatewayIcon, HeaderSeparatorIcon } from '@src/components/icons';
 import { Link, useParams } from 'react-router-dom';
 
-const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
-
+const ReportsHeader = ({ gateway }: { gateway?: AoGateway }) => {
   const params = useParams();
 
   const ownerId = params?.ownerId;
@@ -23,10 +17,14 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
         </div>
         <HeaderSeparatorIcon />
         {gateway ? (
-          <div className="text-low">{gateway.settings.label}</div>
+          <Link className="text-mid" to={`/gateways/${ownerId}`}>
+            {gateway.settings.label}
+          </Link>
         ) : (
           <Placeholder />
         )}
+        <HeaderSeparatorIcon />
+        <div>Reports</div>
         <div className="grow" />
         <div className="items-center">
           <Profile />
@@ -35,24 +33,7 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
       <div className="flex items-center gap-[12px] rounded-b-xl bg-grey-900 py-[20px] pl-[24px]">
         <GatewayIcon />
         {gateway ? (
-          <>
-            <div className="text-high">{gateway.settings.label}</div>
-            <div className="grow"></div>
-            <div className="flex">
-              <div className="pr-[24px] text-sm text-mid">
-                <Link className="flex gap-[8px] " to={`/gateways/${ownerId}/reports`}>
-                  <ReportsIcon />
-                  Reports
-                </Link>
-              </div>
-              <div className="border-l border-grey-400 px-[24px] text-sm text-mid">
-                <button className="flex gap-[8px] ">
-                  <BinocularsIcon />
-                  Observe
-                </button>
-              </div>
-            </div>
-          </>
+          <div className="text-high">{gateway.settings.label}</div>
         ) : (
           <Placeholder />
         )}
@@ -61,4 +42,4 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
   );
 };
 
-export default GatewayHeader;
+export default ReportsHeader;

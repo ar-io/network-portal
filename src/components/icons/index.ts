@@ -27,6 +27,7 @@ import ObserversConnectIcon from './observers_connect_icon.svg?react';
 import OpenDrawerIcon from './open_drawer.svg?react';
 import PinkArrowIcon from './pink_arrow.svg?react';
 import ResetIcon from './reset.svg?react';
+import ReportsIcon from './reports.svg?react';
 import SortAsc from './sort_asc.svg?react';
 import SortDesc from './sort_desc.svg?react';
 import StakingIcon from './staking.svg?react';
@@ -69,6 +70,7 @@ export {
   OpenDrawerIcon,
   PinkArrowIcon,
   ResetIcon,
+  ReportsIcon,
   SortAsc,
   SortDesc,
   StakingIcon,

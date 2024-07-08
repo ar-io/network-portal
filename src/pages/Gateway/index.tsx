@@ -374,7 +374,7 @@ const Gateway = () => {
 
   return (
     <div className="overflow-y-auto pr-[24px] scrollbar">
-      <GatewayHeader gatewayName={gateway?.settings.label} />
+      <GatewayHeader gateway={gateway} />
       <div className="my-[24px] flex gap-[24px]">
         <div className="h-fit w-[270px] rounded-xl border border-transparent-100-16 text-sm">
           <div className="px-[24px] py-[16px]">

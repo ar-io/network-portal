@@ -42,7 +42,7 @@ const ObserversTable = () => {
       (acc, observer) => {
         const gateway = gateways[observer.gatewayAddress];
 
-        const submitted = observations.reports[observer.gatewayAddress];
+        const submitted = observations.reports[observer.observerAddress];
         const status = submitted ? 'Submitted' : 'Pending';
         const numFailedGatewaysFound = submitted
           ? Object.values(observations.failureSummaries).reduce(

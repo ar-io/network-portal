@@ -64,7 +64,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment: production 
-    if: ${{ github.ref == 'refs/heads/develop' }}
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4

@@ -3,7 +3,6 @@ import { DEFAULT_ARWEAVE_HOST } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import arweaveGraphql from 'arweave-graphql';
-import { useState } from 'react';
 
 export interface ReportTransactionData {
   txid: string;
@@ -19,31 +18,40 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
 
   const startEpoch = useGlobalState((state) => state.currentEpoch);
 
-  const [epochIndex, setEpochIndex] = useState<number | undefined>();
-  const [completed, setCompleted] = useState(false);
+  const observerAddress = gateway?.observerAddress;
   const gatewayStart = gateway?.startTimestamp;
 
   const queryResults = useInfiniteQuery({
     queryKey: ['reports', ownerId],
-    queryFn: async () => {
-      if (!arIOReadSDK || !startEpoch || !ownerId || !gatewayStart) {
+    queryFn: async ({ pageParam }) => {
+      console.log("Epoch index to start page load from: ", pageParam);
+      if (
+        !arIOReadSDK ||
+        !startEpoch ||
+        !gatewayStart ||
+        !observerAddress ||
+        !pageParam
+      ) {
         throw new Error(
-          'arIOReadSDK, startEpoch, ownerId, or gatewayStart not available',
+          'arIOReadSDK, startEpoch, ownerId, observerAddress, or gatewayStart not available',
         );
       }
 
-      let epochIndexToFetch = epochIndex || startEpoch.epochIndex;
+      let epochIndexToFetch = pageParam;
 
       let data: ReportTransactionData[] = [];
+      let completed = false;
+
+      const windowSize = 10;
 
       // 10 epochs at a time and at least 10 data points, up until gateway start time
-      while (data.length < 10) {
+      while (data.length < windowSize) {
         // load ten epochs at a time
         const batchedEpochIndicies = Array.from(
-          { length: 10 },
+          { length: windowSize },
           (_, i) => epochIndexToFetch - i,
         );
-        epochIndexToFetch -= 10;
+        epochIndexToFetch -= windowSize;
 
         const epochs = await Promise.all(
           batchedEpochIndicies.map((epochIndex) =>
@@ -58,7 +66,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
         const reportTransactionData = await Promise.all(
           filtered.map((epoch) =>
             arIOReadSDK.getObservations(epoch).then((observations) => {
-              const txid = observations.reports[ownerId];
+              const txid = observations.reports[observerAddress];
 
               return txid
                 ? {
@@ -66,7 +74,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
                     failedGateways: Object.values(
                       observations.failureSummaries,
                     ).reduce((acc, summary) => {
-                      return summary.includes(ownerId) ? acc + 1 : acc;
+                      return summary.includes(observerAddress) ? acc + 1 : acc;
                     }, 0),
                   }
                 : undefined;
@@ -112,18 +120,20 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
           data = data.concat(recordData);
         }
 
-        if (filtered.length < 10) {
-          setCompleted(true);
+        if (filtered.length < windowSize) {
+          completed = true;
           break;
         }
       }
-      setEpochIndex(epochIndexToFetch);
+      // setEpochIndex(epochIndexToFetch);
 
-      return data.length ? data : undefined;
+      return {
+        data,
+        nextEpochIndex: completed ? undefined : epochIndexToFetch,
+      };
     },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages, lastPageParam) =>
-      lastPage && !completed ? lastPageParam + 1 : undefined,
+    initialPageParam: startEpoch?.epochIndex,
+    getNextPageParam: (lastPage) => lastPage?.nextEpochIndex,
   });
 
   return queryResults;

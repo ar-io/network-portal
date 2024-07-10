@@ -88,15 +88,15 @@
     "prettier-plugin-organize-imports": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "rimraf": "^5.0.5",
-    "tailwindcss": "^3.4.1",
     "tailwind-scrollbar": "^3.1.0",
+    "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
     "vite": "^5.1.0",
     "vite-bundle-visualizer": "^1.0.1",
-    "vite-plugin-node-polyfills": "^0.21.0",
+    "vite-plugin-node-polyfills": "^0.22.0",
     "vite-plugin-svgr": "^4.2.0"
   },
   "lint-staged": {

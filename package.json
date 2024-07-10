@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "yarn clean && tsc --build tsconfig.build.json && NODE_OPTIONS=--max-old-space-size=32768 vite build",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && rm -f dist-*",
     "dev": "NODE_ENV=prod VITE_GITHUB_HASH=local vite",
     "format": "prettier --write .",
     "lint:fix": "eslint --fix .",
@@ -16,7 +16,8 @@
     "test:coverage": "NODE_ENV=test jest --coverage",
     "prepare": "husky || true",
     "pre-commit": "lint-staged",
-    "vis": "yarn vite-bundle-visualizer"
+    "vis": "yarn vite-bundle-visualizer",
+    "deploy": "yarn build && permaweb-deploy --ant-process ${DEPLOY_ANT_PROCESS_ID}"
   },
   "dependencies": {
     "@ar.io/sdk": "1.2.0-alpha.15",
@@ -85,6 +86,7 @@
     "lint-staged": "^15.2.2",
     "lodash": "^4.17.21",
     "nyc": "^15.1.0",
+    "permaweb-deploy": "^1.1.5",
     "postcss": "^8.4.35",
     "prettier": "^3.2.5",
     "prettier-plugin-organize-imports": "^3.2.4",

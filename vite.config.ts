@@ -2,9 +2,8 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
-import svgr from 'vite-plugin-svgr';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
-
+import svgr from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -38,6 +37,8 @@ export default defineConfig({
   ],
   base: '',
   define: {
+    'process.env': process.env,
+    'process.version': `"${process.version}"`,
     VITE_CONFIG: {
       version: JSON.stringify(process.env.npm_package_version),
     },

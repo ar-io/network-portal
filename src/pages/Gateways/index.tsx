@@ -36,7 +36,6 @@ const Gateways = () => {
   useEffect(() => {
     const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
       (acc: Array<TableData>, [owner, gateway]) => {
-        gateway.stats.passedConsecutiveEpochs;
         return [
           ...acc,
           {

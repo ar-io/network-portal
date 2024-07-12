@@ -293,7 +293,7 @@ const Gateway = () => {
         ? parseFloat(changed.stake as string)
         : undefined;
 
-      const updateGatewaySettingsParams: UpdateGatewaySettingsParams = {
+      const updateGatewaySettingsParams: UpdateGatewaySettingsParams & { observerAddress: string }= {
         allowDelegatedStaking: changed.allowDelegatedStaking as boolean,
         delegateRewardShareRatio:
           formState.allowDelegatedStaking && changed.delegateRewardShareRatio
@@ -310,7 +310,7 @@ const Gateway = () => {
         note: changed.note as string,
         properties: changed.properties as string,
         autoStake: changed.autoStake as boolean,
-        observerWallet: changed.observerAddress as string,
+        observerAddress: changed.observerAddress as string,
       };
 
       setShowBlockingMessageModal(true);

@@ -36,3 +36,11 @@ export DEPLOY_KEY=[base64 encoded version of wallet keyfile]
 ```
 
 For local testing, you can create a deploy.sh script with the above values defined, run `source deploy.sh`, then use `yarn deploy`. 
+
+## Resources
+
+* [ar.io](https://ar.io)
+* [ar.io Whitepaper](https://whitepaper_ar-io.arweave.net/)
+* [ar.io SDK](https://github.com/ar-io/ar-io-sdk)
+* [arweave](https://arweave.org) 
+* [ao](https://ao.arweave.net/)

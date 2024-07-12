@@ -2,6 +2,7 @@ import { AoGateway } from '@ar.io/sdk';
 import TableView from '@src/components/TableView';
 import useReports, { ReportTransactionData } from '@src/hooks/useReports';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { useNavigate } from 'react-router-dom';
 
 const columnHelper = createColumnHelper<ReportTransactionData>();
 
@@ -12,7 +13,7 @@ const ReportsTable = ({
   ownerId: string;
   gateway: AoGateway;
 }) => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const {
     isLoading,
@@ -66,6 +67,9 @@ const ReportsTable = ({
         isLoading={isLoading}
         noDataFoundText="No reports found."
         defaultSortingState={{ id: 'timestamp', desc: true }}
+        onRowClick={(row) => {
+          navigate(`/gateways/${ownerId}/reports/${row.txid}`);
+        }}
       />
       {hasNextPage && (
         <button onClick={() => fetchNextPage()}>Load More</button>

@@ -24,7 +24,6 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
   const queryResults = useInfiniteQuery({
     queryKey: ['reports', ownerId],
     queryFn: async ({ pageParam }) => {
-      console.log("Epoch index to start page load from: ", pageParam);
       if (
         !arIOReadSDK ||
         !startEpoch ||

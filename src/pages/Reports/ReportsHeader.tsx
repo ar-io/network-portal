@@ -1,7 +1,7 @@
 import { AoGateway } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
-import { GatewayIcon, HeaderSeparatorIcon } from '@src/components/icons';
+import { HeaderSeparatorIcon, ReportsIcon } from '@src/components/icons';
 import { Link, useParams } from 'react-router-dom';
 
 const ReportsHeader = ({ gateway }: { gateway?: AoGateway }) => {
@@ -31,7 +31,7 @@ const ReportsHeader = ({ gateway }: { gateway?: AoGateway }) => {
         </div>
       </div>
       <div className="flex items-center gap-[12px] rounded-b-xl bg-grey-900 py-[20px] pl-[24px]">
-        <GatewayIcon />
+        <ReportsIcon />
         {gateway ? (
           <div className="text-high">{gateway.settings.label}</div>
         ) : (

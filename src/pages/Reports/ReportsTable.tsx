@@ -1,6 +1,7 @@
 import { AoGateway } from '@ar.io/sdk';
 import TableView from '@src/components/TableView';
 import useReports, { ReportTransactionData } from '@src/hooks/useReports';
+import { formatDate } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,9 +31,10 @@ const ReportsTable = ({
       sortDescFirst: false,
     }),
     columnHelper.accessor('timestamp', {
-      id: 'timestamp',
-      header: 'Timestamp',
+      id: 'generatedAt',
+      header: 'Generated At',
       sortDescFirst: false,
+      cell: ({row}) => formatDate(new Date(row.original.timestamp)),
     }),
     columnHelper.accessor('size', {
       id: 'size',

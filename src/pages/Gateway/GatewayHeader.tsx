@@ -10,7 +10,6 @@ import {
 import { Link, useParams } from 'react-router-dom';
 
 const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
-
   const params = useParams();
 
   const ownerId = params?.ownerId;
@@ -40,16 +39,22 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
             <div className="grow"></div>
             <div className="flex">
               <div className="pr-[24px] text-sm text-mid">
-                <Link className="flex gap-[8px] " to={`/gateways/${ownerId}/reports`}>
+                <Link
+                  className="flex gap-[8px] "
+                  to={`/gateways/${ownerId}/reports`}
+                >
                   <ReportsIcon />
                   Reports
                 </Link>
               </div>
               <div className="border-l border-grey-400 px-[24px] text-sm text-mid">
-                <button className="flex gap-[8px] ">
+                <Link
+                  className="flex gap-[8px] "
+                  to={`/gateways/${ownerId}/observe`}
+                >
                   <BinocularsIcon />
                   Observe
-                </button>
+                </Link>
               </div>
             </div>
           </>

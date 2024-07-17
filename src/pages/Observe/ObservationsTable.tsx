@@ -1,66 +1,65 @@
-import AddressCell from '@src/components/AddressCell';
 import Bubble from '@src/components/Bubble';
 import TableView from '@src/components/TableView';
-import { ReportData } from '@src/types';
+import { observationsDB } from '@src/store/observationsDB';
+import { formatDate } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 
 interface TableData {
-  observedHost: string;
-  expectedOwner: string;
-  observedOwner?: string;
+  timestamp: Date;
+  arnsNames: string;
   ownershipResult: boolean;
-
   arnsResult: boolean;
-
   overallResult: boolean;
 }
 
 const columnHelper = createColumnHelper<TableData>();
 
-const ReportsTable = ({ reportData }: { reportData: ReportData }) => {
+const ObservationsTable = ({ gatewayAddress }: { gatewayAddress: string }) => {
+  const observations = useLiveQuery(async () => {
+    return observationsDB.observations
+      .where('gatewayAddress')
+      .equals(gatewayAddress)
+      .toArray();
+  });
+
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   useEffect(() => {
-    const tableData: Array<TableData> = Object.entries(
-      reportData.gatewayAssessments,
-    ).map(([observedHost, assessment]) => {
-      return {
-        observedHost: observedHost,
-        expectedOwner: assessment.ownershipAssessment.expectedWallets.join(),
-        observedOwner: assessment.ownershipAssessment.observedWallet,
-        ownershipResult: assessment.ownershipAssessment.pass,
-        arnsResult: assessment.arnsAssessments.pass,
-        overallResult: assessment.pass,
-      };
-    });
-    setTableData(tableData);
-  }, [reportData]);
+    if (observations) {
+      const tableData: Array<TableData> = observations.map(
+        (observation) => {
+
+          const assessment = observation.assessment;
+
+          const arnsNames = Object.keys(assessment.arnsAssessments.chosenNames).join(', ');
+
+          return {
+            timestamp: new Date(observation.timestamp), 
+            arnsNames, 
+            ownershipResult: assessment.ownershipAssessment.pass,
+            arnsResult: assessment.arnsAssessments.pass,
+            overallResult: assessment.pass,
+          };
+        },
+      );
+      setTableData(tableData);
+    }
+  }, [observations]);
 
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = [
-    columnHelper.accessor('observedHost', {
-      id: 'observedHost',
-      header: 'Observed Host',
-      sortDescFirst: false,
+    columnHelper.accessor('timestamp', {
+      id: 'timestamp',
+      header: 'Timestamp',
+      sortDescFirst: true,
+      cell: ({ row }) => formatDate(new Date(row.original.timestamp)),
     }),
-    columnHelper.accessor('expectedOwner', {
-      id: 'expectedOwner',
-      header: 'Expected Owner',
+    columnHelper.accessor('arnsNames', {
+      id: 'arnsNames',
+      header: 'ArNS Names',
       sortDescFirst: false,
-      cell: ({ row }) => {
-        const expectedWallet = row.original.expectedOwner;
-        return expectedWallet ? <AddressCell address={expectedWallet} /> : '';
-      },
-    }),
-    columnHelper.accessor('observedOwner', {
-      id: 'observedOwner',
-      header: 'Observed Owner',
-      sortDescFirst: false,
-      cell: ({ row }) => {
-        const observedWallet = row.original.observedOwner;
-        return observedWallet ? <AddressCell address={observedWallet} /> : '';
-      },
     }),
     columnHelper.accessor('ownershipResult', {
       id: 'ownershipResult',
@@ -91,11 +90,11 @@ const ReportsTable = ({ reportData }: { reportData: ReportData }) => {
         columns={columns}
         data={tableData || []}
         isLoading={false}
-        noDataFoundText="No reports found."
+        noDataFoundText="No observations found."
         defaultSortingState={{ id: 'timestamp', desc: true }}
       />
     </div>
   );
 };
 
-export default ReportsTable;
+export default ObservationsTable;

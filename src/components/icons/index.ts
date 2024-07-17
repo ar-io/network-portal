@@ -3,6 +3,7 @@ import ArConnectIcon from './arconnect.svg?react';
 import ArioLogoIcon from './ario.svg?react';
 import BannerRightChevron from './banner_right_chevron.svg?react';
 import BinocularsIcon from './binoculars.svg?react';
+import BinocularsGradientIcon from './binoculars_gradient.svg?react';
 import ClockRewindIcon from './clock_rewind.svg?react';
 import CloseIcon from './close.svg?react';
 import CloseDrawerIcon from './close_drawer.svg?react';
@@ -46,6 +47,7 @@ export {
   ArioLogoIcon,
   BannerRightChevron,
   BinocularsIcon,
+  BinocularsGradientIcon,
   ClockRewindIcon,
   CloseDrawerIcon,
   CloseIcon,

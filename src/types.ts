@@ -35,11 +35,13 @@ export interface Assessment {
     pass: boolean;
     prescribedNames: Record<string, ArNSAssessment>;
   };
-  ownershipAssessment: {
-    expectedWallets: string[];
-    observedWallet?: string;
-    pass: boolean;
-  };
+  ownershipAssessment: OwnershipAssessment;
+  pass: boolean;
+}
+
+export interface OwnershipAssessment {
+  expectedWallets: string[];
+  observedWallet?: string;
   pass: boolean;
 }
 
@@ -52,7 +54,7 @@ export interface ArNSAssessment {
   resolvedDataHash: string;
   resolvedId: string;
   resolvedStatusCode: number;
-  timings: {
+  timings?: {
     dns: number;
     download: number;
     firstByte: number;

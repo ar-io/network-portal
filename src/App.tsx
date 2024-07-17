@@ -26,6 +26,7 @@ const Observers = React.lazy(() => import('./pages/Observers'));
 // Sub-Pages
 const Reports = React.lazy(() => import('./pages/Reports'));
 const Report = React.lazy(() => import('./pages/Report'));
+const Observe = React.lazy(() => import('./pages/Observe'));
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createHashRouter);
 
@@ -58,6 +59,14 @@ function App() {
           element={
             <Suspense fallback={<Loading />}>
               <Reports />
+            </Suspense>
+          }
+        />,
+        <Route
+          path="gateways/:ownerId/observe"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Observe />
             </Suspense>
           }
         />,

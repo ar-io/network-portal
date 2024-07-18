@@ -1,6 +1,7 @@
 import Bubble from '@src/components/Bubble';
 import TableView from '@src/components/TableView';
 import { observationsDB } from '@src/store/observationsDB';
+import { Assessment } from '@src/types';
 import { formatDate } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -12,11 +13,20 @@ interface TableData {
   ownershipResult: boolean;
   arnsResult: boolean;
   overallResult: boolean;
+  assessment: Assessment;
 }
 
 const columnHelper = createColumnHelper<TableData>();
 
-const ObservationsTable = ({ gatewayAddress }: { gatewayAddress: string }) => {
+const ObservationsTable = ({
+  gatewayAddress,
+  setSelectedAssessment,
+}: {
+  gatewayAddress: string;
+  setSelectedAssessment: React.Dispatch<
+    React.SetStateAction<Assessment | undefined>
+  >;
+}) => {
   const observations = useLiveQuery(async () => {
     return observationsDB.observations
       .where('gatewayAddress')
@@ -28,22 +38,22 @@ const ObservationsTable = ({ gatewayAddress }: { gatewayAddress: string }) => {
 
   useEffect(() => {
     if (observations) {
-      const tableData: Array<TableData> = observations.map(
-        (observation) => {
+      const tableData: Array<TableData> = observations.map((observation) => {
+        const assessment = observation.assessment;
 
-          const assessment = observation.assessment;
+        const arnsNames = Object.keys(
+          assessment.arnsAssessments.chosenNames,
+        ).join(', ');
 
-          const arnsNames = Object.keys(assessment.arnsAssessments.chosenNames).join(', ');
-
-          return {
-            timestamp: new Date(observation.timestamp), 
-            arnsNames, 
-            ownershipResult: assessment.ownershipAssessment.pass,
-            arnsResult: assessment.arnsAssessments.pass,
-            overallResult: assessment.pass,
-          };
-        },
-      );
+        return {
+          timestamp: new Date(observation.timestamp),
+          arnsNames,
+          ownershipResult: assessment.ownershipAssessment.pass,
+          arnsResult: assessment.arnsAssessments.pass,
+          overallResult: assessment.pass,
+          assessment,
+        };
+      });
       setTableData(tableData);
     }
   }, [observations]);
@@ -92,6 +102,9 @@ const ObservationsTable = ({ gatewayAddress }: { gatewayAddress: string }) => {
         isLoading={false}
         noDataFoundText="No observations found."
         defaultSortingState={{ id: 'timestamp', desc: true }}
+        onRowClick={(row) => {
+          setSelectedAssessment(row.assessment);
+        }}
       />
     </div>
   );

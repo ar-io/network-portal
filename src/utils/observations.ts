@@ -3,7 +3,7 @@
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import { log } from '@src/constants';
 import { ArNSAssessment, Assessment, OwnershipAssessment } from '@src/types';
-import { arrayBufferToBase64Url } from '.';
+import { arrayBufferToBase64Url, fetchWithTimeout } from '.';
 
 const REFERENCE_GATEWAY_FQDN = 'ar-io.dev';
 
@@ -11,7 +11,7 @@ export const assessOwnership = async (
   gateway: AoGatewayWithAddress,
 ): Promise<OwnershipAssessment> => {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}/ar-io/info`,
     );
     if (res.status !== 200) {
@@ -35,7 +35,6 @@ export const assessOwnership = async (
 
     return assessment;
   } catch (error) {
-    log.error('abc', error);
     return {
       expectedWallets: [gateway.gatewayAddress],
       observedWallet: '',
@@ -46,7 +45,18 @@ export const assessOwnership = async (
 
 const fetchArnsData = async (arnsNameURL: string) => {
   try {
-    const res = await fetch(arnsNameURL);
+    const res = await fetchWithTimeout(arnsNameURL);
+
+    if(res.status === 404) {
+      return {
+        statusCode: 404,
+        resolvedId: '',
+        ttlSeconds: '',
+        contentType: '',
+        contentLength: '',
+        dataHashDigest: '',
+      }
+    }
 
     if (res.status !== 200) {
       throw new Error('Unable to fetch ARNS data');
@@ -79,7 +89,11 @@ const assessArNSName = async (
   const gatewayURL = `${gateway.settings.protocol}://${arnsName}.${gateway.settings.fqdn}:${gateway.settings.port}`;
 
   const referenceRes = await fetchArnsData(referenceURL);
+
+  const startTimestamp = Date.now();
   const gatewayRes = await fetchArnsData(gatewayURL);
+
+  const endTimestamp = Date.now(); 
 
   if (!referenceRes) {
     throw new Error('Unable to fetch reference ARNS data');
@@ -97,7 +111,9 @@ const assessArNSName = async (
     resolvedId: gatewayRes?.resolvedId ?? '',
     resolvedStatusCode: gatewayRes?.statusCode ?? 0,
     // FIXME
-    timings: undefined,
+    timings: {
+      total: endTimestamp - startTimestamp,
+    },
   };
   return [arnsName, arnsAssessment];
 };

@@ -55,13 +55,13 @@ export interface ArNSAssessment {
   resolvedId: string;
   resolvedStatusCode: number;
   timings?: {
-    dns: number;
-    download: number;
-    firstByte: number;
-    request: number;
-    tcp: number;
-    tls: number;
-    total: number;
-    wait: number;
+    dns?: number;
+    download?: number;
+    firstByte?: number;
+    request?: number;
+    tcp?: number;
+    tls?: number;
+    total?: number;
+    wait?: number;
   };
 }

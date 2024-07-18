@@ -9,6 +9,7 @@ import {
 } from '@src/components/icons';
 import { log } from '@src/constants';
 import observationDB from '@src/store/observationsDB';
+import { Assessment } from '@src/types';
 import { performAssessment } from '@src/utils/observations';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -20,7 +21,15 @@ const isSearchStringValid = (searchString: string) => {
   );
 };
 
-const ObserveHeader = ({ gateway }: { gateway?: AoGateway }) => {
+const ObserveHeader = ({
+  gateway,
+  setSelectedAssessment,
+}: {
+  gateway?: AoGateway;
+  setSelectedAssessment: React.Dispatch<
+    React.SetStateAction<Assessment | undefined>
+  >;
+}) => {
   const params = useParams();
   const ownerId = params?.ownerId;
 
@@ -29,26 +38,27 @@ const ObserveHeader = ({ gateway }: { gateway?: AoGateway }) => {
   const [runningObservation, setRunningObservation] = useState(false);
 
   const runObservation = async () => {
-      setRunningObservation(true);
-      const assessment = await performAssessment(
-        { ...gateway!, gatewayAddress: ownerId! },
-        [],
-        arnsNamesToSearch
-          .split(',')
-          .reduce(
-            (acc, s) =>
-              s.trim().length > 0 ? [...acc, s.trim()] : acc,
-            [] as string[],
-          ),
-      );
-      log.debug(assessment); 
+    setRunningObservation(true);
+    const assessment = await performAssessment(
+      { ...gateway!, gatewayAddress: ownerId! },
+      [],
+      arnsNamesToSearch
+        .split(',')
+        .reduce(
+          (acc, s) => (s.trim().length > 0 ? [...acc, s.trim()] : acc),
+          [] as string[],
+        ),
+    );
+    log.debug(assessment);
 
-      await observationDB.observations.add({ 
-        gatewayAddress: ownerId!,
-        timestamp: Date.now(),
-        assessment,
-      });
-      setRunningObservation(false);
+    setSelectedAssessment(assessment);
+
+    await observationDB.observations.add({
+      gatewayAddress: ownerId!,
+      timestamp: Date.now(),
+      assessment,
+    });
+    setRunningObservation(false);
   };
 
   return (
@@ -94,7 +104,9 @@ const ObserveHeader = ({ gateway }: { gateway?: AoGateway }) => {
 
         <div
           className={
-            gateway && isSearchStringValid(arnsNamesToSearch) && !runningObservation
+            gateway &&
+            isSearchStringValid(arnsNamesToSearch) &&
+            !runningObservation
               ? undefined
               : 'pointer-events-none opacity-30'
           }

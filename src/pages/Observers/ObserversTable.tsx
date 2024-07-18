@@ -149,7 +149,7 @@ const ObserversTable = () => {
       <TableView
         columns={columns}
         data={observersTableData}
-        isLoading={isLoading && gatewaysLoading && observationsLoading}
+        isLoading={isLoading || gatewaysLoading || observationsLoading}
         noDataFoundText="No prescribed observers found."
         defaultSortingState={{ id: 'ncw', desc: true }}
         onRowClick={(row) => {

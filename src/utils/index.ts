@@ -1,3 +1,4 @@
+import { encode } from 'base64-arraybuffer';
 import { THEME_TYPES } from '../constants';
 
 const COMMA_NUMBER_FORMAT = new Intl.NumberFormat('en-US', {
@@ -75,3 +76,28 @@ export function formatDate(date: Date): string {
 /** Utility for simulating delay times. Useful for development work and testing;
  * do not use in production code. */
 export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+/** Encode from base64 to base64URL (based on code by elliotsayes from https://github.com/elliotsayes/gateway-explorer) */
+export const base64ToBase64url = (base64: string) => {
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=*$/g, '');
+};
+
+/** Encode from arraybuffer to base64URL (based on code by elliotsayes from https://github.com/elliotsayes/gateway-explorer) */
+export const arrayBufferToBase64Url = (arrayBuffer: ArrayBuffer) => {
+  const base64 = encode(arrayBuffer);
+  return base64ToBase64url(base64);
+};
+
+export const fetchWithTimeout = async (resource:string, options?:RequestInit, timeout?:number) => {
+  
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout ?? 10_000);
+
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal  
+  });
+  clearTimeout(id);
+
+  return response;
+}

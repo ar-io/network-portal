@@ -1,4 +1,4 @@
-import { ARWEAVE_TX_REGEX } from '@ar.io/sdk/web';
+import { ARWEAVE_TX_REGEX, AoGatewayWithAddress } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -26,9 +26,18 @@ const useGateway = ({
         );
       }
 
-      if (arIOReadSDK && ownerWalletAddress) {
-        return arIOReadSDK.getGateway({ address: ownerWalletAddress });
-      }
+      if (arIOReadSDK) {
+        return arIOReadSDK
+          .getGateway({ address: ownerWalletAddress })
+          .then((gateway) => {
+            return gateway
+              ? ({
+                  ...gateway,
+                  gatewayAddress: ownerWalletAddress,
+                } as AoGatewayWithAddress)
+              : undefined;
+          });
+      } 
     },
   });
 

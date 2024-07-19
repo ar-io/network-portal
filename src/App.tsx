@@ -16,11 +16,17 @@ import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
 
+// Main Pages
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Gateways = React.lazy(() => import('./pages/Gateways'));
 const Gateway = React.lazy(() => import('./pages/Gateway'));
 const Staking = React.lazy(() => import('./pages/Staking'));
 const Observers = React.lazy(() => import('./pages/Observers'));
+
+// Sub-Pages
+const Reports = React.lazy(() => import('./pages/Reports'));
+const Report = React.lazy(() => import('./pages/Report'));
+const Observe = React.lazy(() => import('./pages/Observe'));
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createHashRouter);
 
@@ -40,6 +46,30 @@ function App() {
           }
         />
         , */}
+        <Route
+          path="gateways/:ownerId/reports/:reportId"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Report />
+            </Suspense>
+          }
+        />,
+        <Route
+          path="gateways/:ownerId/reports"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Reports />
+            </Suspense>
+          }
+        />,
+        <Route
+          path="gateways/:ownerId/observe"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Observe />
+            </Suspense>
+          }
+        />,
         <Route
           path="gateways/:ownerId"
           element={

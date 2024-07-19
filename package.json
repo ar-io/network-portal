@@ -20,7 +20,7 @@
     "deploy": "yarn build && permaweb-deploy --ant-process ${DEPLOY_ANT_PROCESS_ID}"
   },
   "dependencies": {
-    "@ar.io/sdk": "2.0.0",
+    "@ar.io/sdk": "2.0.2",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^1.7.19",
     "@radix-ui/react-tooltip": "^1.0.7",
@@ -28,8 +28,14 @@
     "@sentry/react": "^7.101.1",
     "@tanstack/react-query": "^5.35.1",
     "@tanstack/react-table": "^8.17.3",
+    "arweave": "^1.15.0",
+    "arweave-graphql": "^0.0.5",
     "axios": "^1.6.7",
     "axios-retry": "^4.0.0",
+    "base64-arraybuffer": "^1.0.2",
+    "dexie": "^4.0.8",
+    "dexie-react-hooks": "^1.1.7",
+    "fflate": "^0.8.2",
     "loglevel": "^1.9.1",
     "lottie-react": "^2.4.0",
     "react": "^18.2.0",

@@ -1,4 +1,4 @@
-import { ARNS_DEVNET_REGISTRY_TX, ioDevnetProcessId } from '@ar.io/sdk/web';
+import { ioDevnetProcessId } from '@ar.io/sdk/web';
 import * as loglevel from 'loglevel';
 
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
@@ -16,9 +16,6 @@ export const WRITE_OPTIONS = {
 };
 
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
-export const ARNS_REGISTRY_ADDRESS = new ArweaveTransactionID(
-  process.env.VITE_ARNS_REGISTRY_ADDRESS ?? ARNS_DEVNET_REGISTRY_TX,
-);
 export const IO_PROCESS_ID = new ArweaveTransactionID(
   process.env.VITE_IO_PROCESS_ID ?? ioDevnetProcessId,
 );
@@ -28,7 +25,8 @@ export const IO_PROCESS_INFO_URL = `https://www.ao.link/#/entity/${IO_PROCESS_ID
 export const DEFAULT_ARWEAVE_PROTOCOL =
   process.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
-  process.env.VITE_GATEWAY_HOST ?? 'ar-io.dev';
+  // process.env.VITE_GATEWAY_HOST ?? 'ar-io.dev';
+  process.env.VITE_GATEWAY_HOST ?? 'arweave.net';
 export const DEFAULT_ARWEAVE_PORT =
   Number(process.env.VITE_GATEWAY_PORT) ?? 443;
 

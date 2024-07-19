@@ -16,10 +16,6 @@ const Report = () => {
 
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
-  // const { isLoading, data } = useReport(reportId);
-
-  // const reportData = data as ReportData;
-
   return (
     <div className="flex h-screen max-w-full flex-col gap-[24px] overflow-auto pr-[24px] scrollbar">
       <ObserveHeader

@@ -10,7 +10,6 @@ export interface ReportTransactionData {
   timestamp: number;
   size: number;
   version: string;
-  // results: string
 }
 
 const useReports = (ownerId?: string, gateway?: AoGateway) => {
@@ -124,7 +123,6 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
           break;
         }
       }
-      // setEpochIndex(epochIndexToFetch);
 
       return {
         data,

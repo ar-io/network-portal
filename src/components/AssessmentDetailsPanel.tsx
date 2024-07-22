@@ -1,4 +1,3 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk';
 import { Dialog } from '@headlessui/react';
 import {
   CaretDoubleRightIcon,
@@ -11,6 +10,7 @@ import {
 import { ArNSAssessment, Assessment } from '@src/types';
 import { useState } from 'react';
 import Bubble from './Bubble';
+import Placeholder from './Placeholder';
 
 const ArNSAssessmentPanel = ({
   arnsName,
@@ -22,7 +22,7 @@ const ArNSAssessmentPanel = ({
   chosen: boolean;
 }) => {
   const [timingsPanelOpen, setTimingsPanelOpen] = useState(false);
-
+  
   return (
     <div className="rounded border border-grey-500 text-xs">
       <div className="p-3">
@@ -48,7 +48,9 @@ const ArNSAssessmentPanel = ({
             <div>
               Status Code:{' '}
               <span className="text-mid">
-                {arnsAssessment.resolvedStatusCode}
+                {arnsAssessment.resolvedStatusCode == 404
+                  ? '404 (Unregistered ArNS Name)'
+                  : arnsAssessment.resolvedStatusCode}
               </span>
             </div>
           </div>
@@ -109,6 +111,11 @@ const ArNSAssessmentPanel = ({
             Expected: {arnsAssessment.expectedDataHash}
           </div>
         )}
+        {!arnsAssessment.pass && arnsAssessment.failureReason && (
+          <div className="pt-3 italic">
+            Failure Reason: {arnsAssessment.failureReason}
+          </div>
+        )}
       </div>
       {arnsAssessment.timings && (
         <div className="border-t border-grey-500">
@@ -119,9 +126,48 @@ const ArNSAssessmentPanel = ({
             </button>
           </div>
           {timingsPanelOpen && arnsAssessment.timings && (
-            <div className="flex gap-1 px-3 pb-3">
-              <TimerIcon className="size-4" />
-              <div>Total: {arnsAssessment.timings.total} ms</div>
+            <div className="flex flex-col gap-1 px-3 pb-3">
+              <div className="flex gap-1">
+                <TimerIcon className="size-4" />
+                <div className="text-high">
+                  Total: {arnsAssessment.timings.total} ms
+                </div>
+              </div>
+              {arnsAssessment.timings.dns !== undefined && (
+                <div className="pl-5 text-low">
+                  DNS: {arnsAssessment.timings.dns} ms
+                </div>
+              )}
+              {arnsAssessment.timings.download !== undefined && (
+                <div className="pl-5 text-low">
+                  Download: {arnsAssessment.timings.download} ms
+                </div>
+              )}
+              {arnsAssessment.timings.firstByte !== undefined && (
+                <div className="pl-5 text-low">
+                  First Byte: {arnsAssessment.timings.firstByte} ms
+                </div>
+              )}
+              {arnsAssessment.timings.request !== undefined && (
+                <div className="pl-5 text-low">
+                  Request: {arnsAssessment.timings.request} ms
+                </div>
+              )}
+              {arnsAssessment.timings.tcp !== undefined && (
+                <div className="pl-5 text-low">
+                  TCP: {arnsAssessment.timings.tcp} ms
+                </div>
+              )}
+              {arnsAssessment.timings.tls !== undefined && (
+                <div className="pl-5 text-low">
+                  TLS: {arnsAssessment.timings.tls} ms
+                </div>
+              )}
+              {arnsAssessment.timings.wait !== undefined && (
+                <div className="pl-5 text-low">
+                  Wait: {arnsAssessment.timings.wait} ms
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -131,11 +177,11 @@ const ArNSAssessmentPanel = ({
 };
 
 const AssessmentDetailsPanel = ({
-  gateway,
+  observedHost,
   assessment,
   onClose,
 }: {
-  gateway: AoGatewayWithAddress;
+  observedHost?: string;
   assessment: Assessment;
   onClose: () => void;
 }) => {
@@ -162,7 +208,7 @@ const AssessmentDetailsPanel = ({
             <div className="text-xl text-high">Observation Details</div>
 
             <div className="flex rounded bg-grey-500 p-3">
-              <div>{gateway.settings.fqdn}</div>
+              <div>{observedHost ?? <Placeholder />}</div>
               <div className="flex grow justify-end">
                 <Bubble value={assessment.pass} additionalClasses="text-xs" />
               </div>
@@ -232,7 +278,7 @@ const AssessmentDetailsPanel = ({
                         key={arnsName}
                         arnsName={arnsName}
                         arnsAssessment={arnsAssessment}
-                        chosen={true}
+                        chosen={false}
                       />
                     </>
                   ),

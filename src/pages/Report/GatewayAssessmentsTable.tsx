@@ -1,7 +1,9 @@
+import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
+import AssessmentDetailsPanel from '@src/components/AssessmentDetailsPanel';
 import Bubble from '@src/components/Bubble';
 import TableView from '@src/components/TableView';
-import { ReportData } from '@src/types';
+import { Assessment, ReportData } from '@src/types';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
@@ -14,12 +16,22 @@ interface TableData {
   arnsResult: boolean;
 
   overallResult: boolean;
+  assessment: Assessment;
 }
 
 const columnHelper = createColumnHelper<TableData>();
 
-const ReportsTable = ({ reportData }: { reportData: ReportData }) => {
+const GatewayAssessmentsTable = ({
+  gateway,
+  reportData,
+}: {
+  gateway?: AoGatewayWithAddress;
+  reportData: ReportData;
+}) => {
   const [tableData, setTableData] = useState<Array<TableData>>([]);
+
+  const [observedHost, setObservedHost] = useState<string>(); 
+  const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
   useEffect(() => {
     const tableData: Array<TableData> = Object.entries(
@@ -32,6 +44,7 @@ const ReportsTable = ({ reportData }: { reportData: ReportData }) => {
         ownershipResult: assessment.ownershipAssessment.pass,
         arnsResult: assessment.arnsAssessments.pass,
         overallResult: assessment.pass,
+        assessment: assessment,
       };
     });
     setTableData(tableData);
@@ -83,7 +96,7 @@ const ReportsTable = ({ reportData }: { reportData: ReportData }) => {
   ];
 
   return (
-    <div>
+    <div className='mb-[24px]'>
       <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
         <div className="grow text-sm text-mid">Reports</div>
       </div>
@@ -93,9 +106,20 @@ const ReportsTable = ({ reportData }: { reportData: ReportData }) => {
         isLoading={false}
         noDataFoundText="No reports found."
         defaultSortingState={{ id: 'timestamp', desc: true }}
+        onRowClick={(row) => {
+          setObservedHost(row.observedHost);
+          setSelectedAssessment(row.assessment)
+        }}
       />
+      {selectedAssessment && gateway && (
+        <AssessmentDetailsPanel
+          observedHost={observedHost}
+          assessment={selectedAssessment}
+          onClose={() => setSelectedAssessment(undefined)}
+        />
+      )}
     </div>
   );
 };
 
-export default ReportsTable;
+export default GatewayAssessmentsTable;

@@ -32,7 +32,7 @@ const Report = () => {
       )}
       {selectedAssessment && gateway && (
         <AssessmentDetailsPanel
-          gateway={gateway}
+          observedHost={gateway.settings.fqdn}
           assessment={selectedAssessment}
           onClose={() => setSelectedAssessment(undefined)}
         />

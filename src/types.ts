@@ -51,6 +51,7 @@ export interface ArNSAssessment {
   expectedId: string;
   expectedStatusCode: number;
   pass: boolean;
+  failureReason?: string;
   resolvedDataHash: string;
   resolvedId: string;
   resolvedStatusCode: number;

@@ -7,13 +7,7 @@ const Staking = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
 
   return (
-    <div
-      className={
-        walletAddress
-          ? 'h-screen w-full overflow-y-auto pr-[24px] scrollbar'
-          : 'flex size-full flex-col gap-[24px] pb-[24px] pr-[24px]'
-      }
-    >
+    <div className={'h-screen w-full overflow-y-auto pr-[24px] scrollbar'}>
       <Header />
       {walletAddress ? <ConnectedLandingPage /> : <NotConnectedLandingPage />}
     </div>

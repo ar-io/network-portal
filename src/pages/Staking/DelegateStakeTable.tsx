@@ -6,7 +6,7 @@ import Tooltip from '@src/components/Tooltip';
 import { InfoIcon } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
-import { EAY_TOOLTIP_TEXT } from '@src/constants';
+import { EAY_TOOLTIP_TEXT, IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -104,7 +104,7 @@ const DelegateStake = () => {
     }),
     columnHelper.accessor('totalDelegatedStake', {
       id: 'totalDelegatedStake',
-      header: 'Total Stake',
+      header: `Total Stake (${IO_LABEL})`,
       sortDescFirst: true,
     }),
     columnHelper.accessor('failedConsecutiveEpochs', {

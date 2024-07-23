@@ -108,7 +108,7 @@ const Gateways = () => {
     }),
     columnHelper.accessor('totalStake', {
       id: 'totalStake',
-      header: 'Total Stake',
+      header: `Total Stake (${IO_LABEL})`,
       sortDescFirst: true,
       cell: ({ row }) => (
         <Tooltip

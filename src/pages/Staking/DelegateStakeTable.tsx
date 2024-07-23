@@ -6,7 +6,11 @@ import Tooltip from '@src/components/Tooltip';
 import { InfoIcon } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
-import { EAY_TOOLTIP_TEXT, IO_LABEL } from '@src/constants';
+import {
+  EAY_TOOLTIP_FORMULA,
+  EAY_TOOLTIP_TEXT,
+  IO_LABEL,
+} from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -123,7 +127,14 @@ const DelegateStake = () => {
       header: () => (
         <div className="flex gap-[4px]">
           EAY
-          <Tooltip message={EAY_TOOLTIP_TEXT}>
+          <Tooltip
+            message={
+              <div>
+                <p>{EAY_TOOLTIP_TEXT}</p>
+                <p className="mt-4">{EAY_TOOLTIP_FORMULA}</p>
+              </div>
+            }
+          >
             <InfoIcon className="h-full" />
           </Tooltip>
         </div>
@@ -183,9 +194,9 @@ const DelegateStake = () => {
         />
       )}
 
-        {isConnectModalOpen && (
-          <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
-        )}
+      {isConnectModalOpen && (
+        <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
+      )}
     </div>
   );
 };

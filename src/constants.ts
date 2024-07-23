@@ -47,5 +47,7 @@ export const log = loglevel;
 
 export const EAY_TOOLTIP_TEXT =
   'EAY = Estimated yield ratio determined by projecting the current nominal reward conditions over the course of a year. Does NOT include potential observation rewards.';
+export const EAY_TOOLTIP_FORMULA =
+  'EAY = (RewardsSharePerEpoch / TotalDelegatedStake) * EPOCHS_PER_YEAR';
 
 export const IO_LABEL = 'tIO';

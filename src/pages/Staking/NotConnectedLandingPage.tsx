@@ -1,35 +1,12 @@
-import Button, { ButtonType } from '@src/components/Button';
-import { ConnectIcon, StakingSplash } from '@src/components/icons';
-import ConnectModal from '@src/components/modals/ConnectModal';
-import { useState } from 'react';
+import Banner from './Banner';
+import DelegateStake from './DelegateStakeTable';
 
 const NotConnectedLandingPage = () => {
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
 
   return (
-    <div className="relative grid grow place-items-center overflow-hidden rounded-xl border border-grey-800 py-[24px]">
-      <div className="absolute col-start-1 row-start-1 overflow-hidden">
-        <StakingSplash />
-      </div>
-      <div className="col-start-1 row-start-1 z-10 self-center rounded-xl border border-grey-800 bg-grey-1000 p-[56px] text-center shadow-one">
-        <div className="text-gradient text-2xl">
-          Connect your wallet to start staking.
-        </div>
-        <div className="pt-4 text-sm text-low">Do you even have a wallet?</div>
-        <div className="flex w-full justify-center">
-          <Button
-            className="mt-6 w-fit"
-            buttonType={ButtonType.PRIMARY}
-            icon={<ConnectIcon />}
-            title="Connect"
-            text="Connect"
-            onClick={() => setIsConnectModalOpen(true)}
-          />
-        </div>
-        {isConnectModalOpen && (
-          <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
-        )}
-      </div>
+    <div className="flex max-w-full flex-col gap-[24px] overflow-y-auto py-6 pr-[24px] scrollbar">
+      <Banner />
+      <DelegateStake />
     </div>
   );
 };

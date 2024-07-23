@@ -45,23 +45,26 @@ export interface OwnershipAssessment {
   pass: boolean;
 }
 
+export interface ArNSAssessmentTimings extends Record<string, number | undefined> {
+  dns: number | undefined;
+  download: number | undefined;
+  firstByte: number | undefined;
+  request: number | undefined;
+  tcp: number | undefined;
+  tls: number | undefined;
+  total: number | undefined;
+  wait: number | undefined;
+}
+
 export interface ArNSAssessment {
   assesedAt: number;
   expectedDataHash: string;
   expectedId: string;
   expectedStatusCode: number;
   pass: boolean;
+  failureReason?: string;
   resolvedDataHash: string;
   resolvedId: string;
   resolvedStatusCode: number;
-  timings?: {
-    dns?: number;
-    download?: number;
-    firstByte?: number;
-    request?: number;
-    tcp?: number;
-    tls?: number;
-    total?: number;
-    wait?: number;
-  };
+  timings?: ArNSAssessmentTimings;
 }

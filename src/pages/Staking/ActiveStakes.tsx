@@ -113,7 +113,7 @@ const ActiveStakes = () => {
           <Button
             buttonType={ButtonType.SECONDARY}
             active={true}
-            title="Unstake"
+            title="Manage Stake"
             text=" "
             rightIcon={<GearIcon />}
             onClick={() => {

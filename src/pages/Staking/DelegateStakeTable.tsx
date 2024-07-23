@@ -4,6 +4,7 @@ import Button, { ButtonType } from '@src/components/Button';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
 import { InfoIcon } from '@src/components/icons';
+import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_TEXT } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
@@ -37,11 +38,13 @@ const DelegateStake = () => {
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
 
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
+
   const { data: protocolBalance } = useProtocolBalance();
 
   useEffect(() => {
     const stakeableGateways: Array<TableData> =
-      !walletAddress || !gateways || !protocolBalance
+      !gateways || !protocolBalance
         ? []
         : Object.entries(gateways).reduce((acc, [owner, gateway]) => {
             if (gateway.settings.allowDelegatedStaking) {
@@ -144,10 +147,14 @@ const DelegateStake = () => {
             <Button
               buttonType={ButtonType.PRIMARY}
               active={true}
-              title="Stake"
+              title="Manage Stake"
               text="Stake"
               onClick={() => {
-                setStakingModalWalletAddress(row.getValue('owner') as string);
+                if (walletAddress) {
+                  setStakingModalWalletAddress(row.getValue('owner') as string);
+                } else {
+                  setIsConnectModalOpen(true);
+                }
               }}
             />
           </div>
@@ -175,6 +182,10 @@ const DelegateStake = () => {
           ownerWallet={stakingModalWalletAddress}
         />
       )}
+
+        {isConnectModalOpen && (
+          <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
+        )}
     </div>
   );
 };

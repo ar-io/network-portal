@@ -12,6 +12,16 @@ import { useState } from 'react';
 import Bubble from './Bubble';
 import Placeholder from './Placeholder';
 
+const extraTimingsLabels: Record<string, string> = {
+  dns: 'DNS',
+  download: 'Download',
+  firstByte: 'First Byte',
+  request: 'Request',
+  tcp: 'TCP',
+  tls: 'TLS',
+  wait: 'Wait',
+};
+
 const ArNSAssessmentPanel = ({
   arnsName,
   arnsAssessment,
@@ -22,7 +32,7 @@ const ArNSAssessmentPanel = ({
   chosen: boolean;
 }) => {
   const [timingsPanelOpen, setTimingsPanelOpen] = useState(false);
-  
+
   return (
     <div className="rounded border border-grey-500 text-xs">
       <div className="p-3">
@@ -133,41 +143,16 @@ const ArNSAssessmentPanel = ({
                   Total: {arnsAssessment.timings.total} ms
                 </div>
               </div>
-              {arnsAssessment.timings.dns !== undefined && (
-                <div className="pl-5 text-low">
-                  DNS: {arnsAssessment.timings.dns} ms
-                </div>
-              )}
-              {arnsAssessment.timings.download !== undefined && (
-                <div className="pl-5 text-low">
-                  Download: {arnsAssessment.timings.download} ms
-                </div>
-              )}
-              {arnsAssessment.timings.firstByte !== undefined && (
-                <div className="pl-5 text-low">
-                  First Byte: {arnsAssessment.timings.firstByte} ms
-                </div>
-              )}
-              {arnsAssessment.timings.request !== undefined && (
-                <div className="pl-5 text-low">
-                  Request: {arnsAssessment.timings.request} ms
-                </div>
-              )}
-              {arnsAssessment.timings.tcp !== undefined && (
-                <div className="pl-5 text-low">
-                  TCP: {arnsAssessment.timings.tcp} ms
-                </div>
-              )}
-              {arnsAssessment.timings.tls !== undefined && (
-                <div className="pl-5 text-low">
-                  TLS: {arnsAssessment.timings.tls} ms
-                </div>
-              )}
-              {arnsAssessment.timings.wait !== undefined && (
-                <div className="pl-5 text-low">
-                  Wait: {arnsAssessment.timings.wait} ms
-                </div>
-              )}
+              {Object.entries(extraTimingsLabels)
+                .filter(([key]) => arnsAssessment.timings![key] !== undefined)
+                .map(([key, label]) => {
+                  return (
+                    <div className="pl-5 text-low" key={key}>
+                      {label}: {arnsAssessment.timings![key]}{' '}
+                      ms
+                    </div>
+                  );
+                })}
             </div>
           )}
         </div>

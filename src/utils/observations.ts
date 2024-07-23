@@ -111,9 +111,15 @@ const assessArNSName = async (
     resolvedDataHash: gatewayRes?.dataHashDigest ?? '',
     resolvedId: gatewayRes?.resolvedId ?? '',
     resolvedStatusCode: gatewayRes?.statusCode ?? 0,
-    // FIXME
     timings: {
       total: endTimestamp - startTimestamp,
+      dns: undefined,
+      download: undefined,
+      firstByte: undefined,
+      request: undefined,
+      tcp: undefined,
+      tls: undefined,
+      wait: undefined,
     },
   };
   return [arnsName, arnsAssessment];

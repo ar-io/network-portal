@@ -35,7 +35,7 @@ import ReportsIcon from './reports.svg?react';
 import SortAsc from './sort_asc.svg?react';
 import SortDesc from './sort_desc.svg?react';
 import StakingIcon from './staking.svg?react';
-import StakingSplash from './staking_splash.svg?react';
+import StakingLinesBGIcon from './staking_lines_bg.svg?react';
 import StartGatewayCubes from './start_gateway_cubes.svg?react';
 import StatsArrowIcon from './stats_arrow.svg?react';
 import StreakDownArrowIcon from './streak_down_arrow.svg?react';
@@ -83,7 +83,7 @@ export {
   SortAsc,
   SortDesc,
   StakingIcon,
-  StakingSplash,
+  StakingLinesBGIcon,
   StartGatewayCubes,
   StatsArrowIcon,
   StreakDownArrowIcon,

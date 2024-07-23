@@ -22,7 +22,7 @@ const Report = () => {
     <div className="flex h-screen max-w-full flex-col gap-[24px] overflow-auto pr-[24px] scrollbar">
       <ReportHeader gateway={gateway} reportData={reportData} />
       {isLoading || !reportData ? undefined : reportData ? (
-        <GatewayAssessmentsTable reportData={reportData} />
+        <GatewayAssessmentsTable gateway={gateway} reportData={reportData} />
       ) : (
         <div>Unable to find report with ID {reportId}.</div>
       )}

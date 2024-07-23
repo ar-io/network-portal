@@ -5,6 +5,7 @@ import { log } from '@src/constants';
 import { ArNSAssessment, Assessment, OwnershipAssessment } from '@src/types';
 import { arrayBufferToBase64Url, fetchWithTimeout } from '.';
 
+const NAME_PASS_THRESHOLD = 0.8;
 const REFERENCE_GATEWAY_FQDN = 'ar-io.dev';
 
 export const assessOwnership = async (
@@ -110,9 +111,15 @@ const assessArNSName = async (
     resolvedDataHash: gatewayRes?.dataHashDigest ?? '',
     resolvedId: gatewayRes?.resolvedId ?? '',
     resolvedStatusCode: gatewayRes?.statusCode ?? 0,
-    // FIXME
     timings: {
       total: endTimestamp - startTimestamp,
+      dns: undefined,
+      download: undefined,
+      firstByte: undefined,
+      request: undefined,
+      tcp: undefined,
+      tls: undefined,
+      wait: undefined,
     },
   };
   return [arnsName, arnsAssessment];
@@ -132,9 +139,10 @@ export const performAssessment = async (
     prescribedNames.map((name) => assessArNSName(gateway, name)),
   );
 
-  const arnsAssessmentPass =
-    chosenNamesResults.every((res) => res[1].pass) &&
-    prescribedNamesResults.every((res) => res[1].pass);
+  const nameCount = prescribedNames.length + chosenNames.length;
+  const namePassCount = [...chosenNamesResults, ...prescribedNamesResults]
+  .reduce((count, assessment) => (assessment[1].pass ? count + 1 : count), 0);
+  const arnsAssessmentPass = namePassCount >= nameCount * NAME_PASS_THRESHOLD;
 
   const assessment: Assessment = {
     arnsAssessments: {

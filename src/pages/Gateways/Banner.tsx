@@ -61,7 +61,7 @@ const Banner = () => {
               </div>
 
               <div className="pt-[8px] text-sm text-low">
-                By starting your own gateway, you can earn rewards.
+                By running a gateway, you become a contributor to the ecosystem and can earn rewards.
               </div>
             </div>
           </button>

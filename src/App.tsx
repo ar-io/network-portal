@@ -10,12 +10,12 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom';
 
+import { MathJaxContext } from 'better-react-mathjax';
 import GlobalDataProvider from './components/GlobalDataProvider';
 import WalletProvider from './components/WalletProvider';
 import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
-import {MathJaxContext} from 'better-react-mathjax';
 
 // Main Pages
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));

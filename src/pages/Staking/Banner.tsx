@@ -27,11 +27,12 @@ const Banner = () => {
           <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-[24px] align-middle">
             <div className="flex items-center gap-[8px]">
               <ObserversConnectIcon />
-              <div className="text-gradient">Do you even wallet bro?</div>{' '}
+              <div className="text-gradient">Connect your wallet to start staking
+</div>{' '}
             </div>
 
             <div className="pt-[8px] text-sm text-low">
-              Connect a wallet to splash some cash.
+              By delegating stake to a gateway, you can participate in the network&apos;s reward system.
             </div>
           </div>
         </button>

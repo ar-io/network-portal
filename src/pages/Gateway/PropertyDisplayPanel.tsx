@@ -83,7 +83,7 @@ const PropertyDisplayPanel = ({
     ? [
         {
           label: 'Reward Share Ratio:',
-          value: gateway?.settings.delegateRewardShareRatio,
+          value: `${gateway?.settings.delegateRewardShareRatio}%`,
         },
         {
           label: `Minimum Delegated Stake (${IO_LABEL}):`,

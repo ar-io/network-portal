@@ -53,7 +53,9 @@ const Gateways = () => {
               .toIO()
               .valueOf(),
             status: gateway.status,
-            rewardRatio: gateway.settings.delegateRewardShareRatio,
+            rewardRatio: gateway.settings.allowDelegatedStaking
+              ? gateway.settings.delegateRewardShareRatio
+              : -1,
             streak:
               gateway.stats.failedConsecutiveEpochs > 0
                 ? -gateway.stats.failedConsecutiveEpochs
@@ -136,7 +138,8 @@ const Gateways = () => {
       id: 'rewardRatio',
       header: 'Reward Share Ratio',
       sortDescFirst: true,
-      cell: ({ row }) => `${row.original.rewardRatio}%`,
+      cell: ({ row }) =>
+        row.original.rewardRatio >= 0 ? `${row.original.rewardRatio}%` : 'N/A',
     }),
     columnHelper.accessor('streak', {
       id: 'streak',

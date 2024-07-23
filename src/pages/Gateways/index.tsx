@@ -102,7 +102,7 @@ const Gateways = () => {
     }),
     columnHelper.accessor('start', {
       id: 'start',
-      header: 'Start',
+      header: 'Join Date',
       sortDescFirst: true,
       cell: ({ row }) => formatDate(row.original.start),
     }),

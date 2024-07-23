@@ -1,15 +1,22 @@
 import { AoGateway, mIOToken } from '@ar.io/sdk/web';
+import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
+import ConnectModal from '@src/components/modals/ConnectModal';
+import StakingModal from '@src/components/modals/StakingModal';
 import { IO_LABEL } from '@src/constants';
+import { useGlobalState } from '@src/store';
+import { useState } from 'react';
 
 const DisplayRow = ({
   label,
   value,
   type,
+  rightComponent,
 }: {
   label: string;
   value: string | number | boolean | undefined;
   type?: string;
+  rightComponent?: React.ReactNode;
 }) => {
   return (
     <>
@@ -22,9 +29,12 @@ const DisplayRow = ({
         {value === undefined ? (
           <Placeholder />
         ) : typeof value === 'boolean' ? (
-          <span className={value ? 'text-green-600' : undefined}>
-            {value ? 'Enabled' : 'Disabled'}
-          </span>
+          <div className="flex items-center">
+            <span className={`grow ${value ? 'text-green-600' : undefined}`}>
+              {value ? 'Enabled' : 'Disabled'}
+            </span>
+            {rightComponent}
+          </div>
         ) : type == 'address' || type == 'tx' ? (
           <a
             className="text-high"
@@ -58,6 +68,13 @@ const PropertyDisplayPanel = ({
   ownerId?: string;
   gateway?: AoGateway;
 }) => {
+  const walletAddress = useGlobalState((state) => state.walletAddress);
+
+  const [stakingModalWalletAddress, setStakingModalWalletAddress] =
+    useState<string>();
+
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
+
   const gatewayAddress = gateway
     ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`
     : undefined;
@@ -107,15 +124,49 @@ const PropertyDisplayPanel = ({
     {
       label: 'Delegated Staking:',
       value: gateway?.settings.allowDelegatedStaking,
+      rightComponent: gateway?.settings.allowDelegatedStaking ? (
+        <Button
+          className="mr-2"
+          buttonType={ButtonType.PRIMARY}
+          active={true}
+          title="Manage Stake"
+          text="Stake"
+          onClick={() => {
+            if (walletAddress) {
+              setStakingModalWalletAddress(ownerId);
+            } else {
+              setIsConnectModalOpen(true);
+            }
+          }}
+        />
+      ) : undefined,
     },
     ...conditionalRows,
   ];
 
   return (
     <div className="grid grid-cols-[225px_auto]">
-      {gatewayRows.map(({ label, value, type }, index) => (
-        <DisplayRow key={index} label={label} value={value} type={type} />
+      {gatewayRows.map(({ label, value, type, rightComponent }, index) => (
+        <DisplayRow
+          key={index}
+          label={label}
+          value={value}
+          type={type}
+          rightComponent={rightComponent}
+        />
       ))}
+
+      {stakingModalWalletAddress && (
+        <StakingModal
+          open={!!stakingModalWalletAddress}
+          onClose={() => setStakingModalWalletAddress(undefined)}
+          ownerWallet={stakingModalWalletAddress}
+        />
+      )}
+
+      {isConnectModalOpen && (
+        <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
+      )}
     </div>
   );
 };

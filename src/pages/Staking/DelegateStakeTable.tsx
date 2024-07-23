@@ -26,6 +26,8 @@ interface TableData {
   failedConsecutiveEpochs: number;
   rewardRatio: number;
   totalDelegatedStake: number;
+  totalStake: number;
+  operatorStake: number;
   eay: number;
 }
 
@@ -61,9 +63,19 @@ const DelegateStake = () => {
                   failedConsecutiveEpochs:
                     gateway.stats.failedConsecutiveEpochs,
                   rewardRatio: gateway.settings.delegateRewardShareRatio,
+
                   totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
                     .toIO()
                     .valueOf(),
+                  operatorStake: new mIOToken(gateway.operatorStake)
+                    .toIO()
+                    .valueOf(),
+                  totalStake: new mIOToken(
+                    gateway.totalDelegatedStake + gateway.operatorStake,
+                  )
+                    .toIO()
+                    .valueOf(),
+
                   eay: calculateGatewayRewards(
                     new mIOToken(protocolBalance).toIO(),
                     Object.keys(gateways).length,
@@ -106,10 +118,28 @@ const DelegateStake = () => {
       sortDescFirst: false,
       cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
     }),
-    columnHelper.accessor('totalDelegatedStake', {
-      id: 'totalDelegatedStake',
+    columnHelper.accessor('totalStake', {
+      id: 'totalStake',
       header: `Total Stake (${IO_LABEL})`,
       sortDescFirst: true,
+      cell: ({ row }) => (
+        <Tooltip
+          message={
+            <div>
+              <div>
+                Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
+                {IO_LABEL}
+              </div>
+              <div className="mt-1">
+                Delegated Stake:{' '}
+                {formatWithCommas(row.original.totalDelegatedStake)} {IO_LABEL}
+              </div>
+            </div>
+          }
+        >
+          {formatWithCommas(row.getValue('totalStake'))}
+        </Tooltip>
+      ),
     }),
     columnHelper.accessor('failedConsecutiveEpochs', {
       id: 'failedConsecutiveEpochs',

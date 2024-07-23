@@ -119,7 +119,7 @@ const Gateways = () => {
                 {IO_LABEL}
               </div>
               <div className="mt-1">
-                Total Delegated Stake:{' '}
+                Delegated Stake:{' '}
                 {formatWithCommas(row.original.totalDelegatedStake)} {IO_LABEL}
               </div>
             </div>

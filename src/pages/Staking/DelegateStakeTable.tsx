@@ -17,6 +17,7 @@ import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import { useEffect, useState } from 'react';
 
 interface TableData {
@@ -161,7 +162,9 @@ const DelegateStake = () => {
             message={
               <div>
                 <p>{EAY_TOOLTIP_TEXT}</p>
-                <p className="mt-4">{EAY_TOOLTIP_FORMULA}</p>
+                <p className="mt-4"> 
+                  <MathJax>{EAY_TOOLTIP_FORMULA}</MathJax>
+                </p>
               </div>
             }
           >

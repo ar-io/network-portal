@@ -12,6 +12,7 @@ import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { MathJax } from 'better-react-mathjax';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import Tooltip from '../Tooltip';
@@ -360,7 +361,7 @@ const StakingModal = ({
                   message={
                     <div>
                       <p>{EAY_TOOLTIP_TEXT}</p>
-                      <p className="mt-4">{EAY_TOOLTIP_FORMULA}</p>
+                      <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
                     </div>
                   }
                 >

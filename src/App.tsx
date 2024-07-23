@@ -15,6 +15,7 @@ import WalletProvider from './components/WalletProvider';
 import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
+import {MathJaxContext} from 'better-react-mathjax';
 
 // Main Pages
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));
@@ -53,7 +54,8 @@ function App() {
               <Report />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="gateways/:ownerId/reports"
           element={
@@ -61,7 +63,8 @@ function App() {
               <Reports />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="gateways/:ownerId/observe"
           element={
@@ -69,7 +72,8 @@ function App() {
               <Observe />
             </Suspense>
           }
-        />,
+        />
+        ,
         <Route
           path="gateways/:ownerId"
           element={
@@ -87,7 +91,7 @@ function App() {
           }
         />
         ,
-         <Route
+        <Route
           path="staking"
           element={
             <Suspense fallback={<Loading />}>
@@ -114,7 +118,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <GlobalDataProvider>
         <WalletProvider>
-          <RouterProvider router={router} />
+          <MathJaxContext>
+            <RouterProvider router={router} />
+          </MathJaxContext>
         </WalletProvider>
       </GlobalDataProvider>
     </QueryClientProvider>

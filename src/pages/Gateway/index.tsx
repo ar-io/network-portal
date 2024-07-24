@@ -381,7 +381,7 @@ const Gateway = () => {
             <div className="text-high">Stats</div>
           </div>
           <StatsBox
-            title="Start Time"
+            title="Join Date"
             value={
               gateway?.startTimestamp
                 ? formatDate(new Date(gateway?.startTimestamp))

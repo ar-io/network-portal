@@ -1,11 +1,18 @@
 import { IOToken, mIOToken } from '@ar.io/sdk/web';
-import { EAY_TOOLTIP_TEXT, IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
+import {
+  EAY_TOOLTIP_FORMULA,
+  EAY_TOOLTIP_TEXT,
+  IO_LABEL,
+  WRITE_OPTIONS,
+  log,
+} from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { MathJax } from 'better-react-mathjax';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import Tooltip from '../Tooltip';
@@ -265,7 +272,8 @@ const StakingModal = ({
             <div className="grow"></div>
             <div className="text-left text-xs text-low">
               {tab == 0
-                ? balances && `Available: ${formatWithCommas(balances.io)} ${IO_LABEL}`
+                ? balances &&
+                  `Available: ${formatWithCommas(balances.io)} ${IO_LABEL}`
                 : `Available to Unstake: ${formatWithCommas(currentStake)} ${IO_LABEL}`}
             </div>
           </div>
@@ -349,16 +357,22 @@ const StakingModal = ({
               label="EAY:"
               value={EAY}
               rightIcon={
-                <Tooltip message={EAY_TOOLTIP_TEXT}>
+                <Tooltip
+                  message={
+                    <div>
+                      <p>{EAY_TOOLTIP_TEXT}</p>
+                      <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
+                    </div>
+                  }
+                >
                   <InfoIcon />
                 </Tooltip>
               }
             />
 
             <div className="pt-[16px] text-left">
-            <UnstakeWarning />
+              <UnstakeWarning />
             </div>
-
           </div>
         </div>
         <div className="flex size-full flex-col p-[32px]">

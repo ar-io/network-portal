@@ -6,13 +6,18 @@ import Tooltip from '@src/components/Tooltip';
 import { InfoIcon } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
-import { EAY_TOOLTIP_TEXT } from '@src/constants';
+import {
+  EAY_TOOLTIP_FORMULA,
+  EAY_TOOLTIP_TEXT,
+  IO_LABEL,
+} from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { MathJax } from 'better-react-mathjax';
 import { useEffect, useState } from 'react';
 
 interface TableData {
@@ -22,6 +27,8 @@ interface TableData {
   failedConsecutiveEpochs: number;
   rewardRatio: number;
   totalDelegatedStake: number;
+  totalStake: number;
+  operatorStake: number;
   eay: number;
 }
 
@@ -57,9 +64,19 @@ const DelegateStake = () => {
                   failedConsecutiveEpochs:
                     gateway.stats.failedConsecutiveEpochs,
                   rewardRatio: gateway.settings.delegateRewardShareRatio,
+
                   totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
                     .toIO()
                     .valueOf(),
+                  operatorStake: new mIOToken(gateway.operatorStake)
+                    .toIO()
+                    .valueOf(),
+                  totalStake: new mIOToken(
+                    gateway.totalDelegatedStake + gateway.operatorStake,
+                  )
+                    .toIO()
+                    .valueOf(),
+
                   eay: calculateGatewayRewards(
                     new mIOToken(protocolBalance).toIO(),
                     Object.keys(gateways).length,
@@ -102,10 +119,28 @@ const DelegateStake = () => {
       sortDescFirst: false,
       cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
     }),
-    columnHelper.accessor('totalDelegatedStake', {
-      id: 'totalDelegatedStake',
-      header: 'Total Stake',
+    columnHelper.accessor('totalStake', {
+      id: 'totalStake',
+      header: `Total Stake (${IO_LABEL})`,
       sortDescFirst: true,
+      cell: ({ row }) => (
+        <Tooltip
+          message={
+            <div>
+              <div>
+                Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
+                {IO_LABEL}
+              </div>
+              <div className="mt-1">
+                Delegated Stake:{' '}
+                {formatWithCommas(row.original.totalDelegatedStake)} {IO_LABEL}
+              </div>
+            </div>
+          }
+        >
+          {formatWithCommas(row.getValue('totalStake'))}
+        </Tooltip>
+      ),
     }),
     columnHelper.accessor('failedConsecutiveEpochs', {
       id: 'failedConsecutiveEpochs',
@@ -123,7 +158,14 @@ const DelegateStake = () => {
       header: () => (
         <div className="flex gap-[4px]">
           EAY
-          <Tooltip message={EAY_TOOLTIP_TEXT}>
+          <Tooltip
+            message={
+              <div>
+                <p>{EAY_TOOLTIP_TEXT}</p>
+                <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
+              </div>
+            }
+          >
             <InfoIcon className="h-full" />
           </Tooltip>
         </div>
@@ -183,9 +225,9 @@ const DelegateStake = () => {
         />
       )}
 
-        {isConnectModalOpen && (
-          <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
-        )}
+      {isConnectModalOpen && (
+        <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
+      )}
     </div>
   );
 };

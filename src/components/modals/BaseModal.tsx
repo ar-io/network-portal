@@ -20,16 +20,18 @@ const BaseModal = ({
         aria-hidden="true"
       />
 
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+      <div className="fixed inset-0 flex  w-screen items-center justify-center p-4">
         <Dialog.Panel
-          className={`relative items-stretch rounded-[12px] bg-[#111112] ${useDefaultPadding ? 'p-[32px]' : ''} text-center text-grey-100`}
+          className={`relative flex max-h-full flex-col items-stretch rounded-[12px] bg-[#111112] ${useDefaultPadding ? 'p-[32px]' : ''} text-center text-grey-100`}
         >
           {showCloseButton && (
             <button className="absolute right-[-28px] top-0" onClick={onClose}>
               <CloseIcon />
             </button>
           )}
-          {children}
+          <div className="flex grow flex-col overflow-y-auto scrollbar">
+            {children}
+          </div>
         </Dialog.Panel>
       </div>
     </Dialog>

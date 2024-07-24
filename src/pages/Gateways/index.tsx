@@ -21,7 +21,9 @@ interface TableData {
   operatorStake: number; // IO
   totalStake: number; // IO
   status: string;
-  rewardRatio: number;
+  performance: number;
+  passedEpochCount: number;
+  totalEpochCount: number;
   streak: number;
 }
 
@@ -36,6 +38,10 @@ const Gateways = () => {
   useEffect(() => {
     const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
       (acc: Array<TableData>, [owner, gateway]) => {
+
+        const passedEpochCount = gateway.stats.passedEpochCount;
+        const totalEpochCount = (gateway.stats as any).totalEpochCount;
+
         return [
           ...acc,
           {
@@ -53,9 +59,12 @@ const Gateways = () => {
               .toIO()
               .valueOf(),
             status: gateway.status,
-            rewardRatio: gateway.settings.allowDelegatedStaking
-              ? gateway.settings.delegateRewardShareRatio
-              : -1,
+            performance:
+              totalEpochCount > 0
+                ? passedEpochCount / totalEpochCount
+                : -1,
+            passedEpochCount,
+            totalEpochCount,
             streak:
               gateway.stats.failedConsecutiveEpochs > 0
                 ? -gateway.stats.failedConsecutiveEpochs
@@ -134,12 +143,29 @@ const Gateways = () => {
       header: 'Status',
       sortDescFirst: false,
     }),
-    columnHelper.accessor('rewardRatio', {
-      id: 'rewardRatio',
-      header: 'Reward Share Ratio',
+    columnHelper.accessor('performance', {
+      id: 'performance',
+      header: 'Performance',
       sortDescFirst: true,
       cell: ({ row }) =>
-        row.original.rewardRatio >= 0 ? `${row.original.rewardRatio}%` : 'N/A',
+        row.original.performance < 0 ? (
+          'N/A'
+        ) : (
+          <Tooltip
+            message={
+              <div>
+                <div>
+                  Passed Epoch Count: {row.original.passedEpochCount}
+                </div>
+                <div className="mt-1">
+                  Total Epoch Participation Count: {row.original.totalEpochCount}
+                </div>
+              </div>
+            }
+          >
+            {`${(row.original.performance * 100).toFixed(2)}%`}
+          </Tooltip>
+        ),
     }),
     columnHelper.accessor('streak', {
       id: 'streak',

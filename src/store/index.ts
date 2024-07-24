@@ -27,6 +27,7 @@ export type GlobalState = {
     io: number;
   };
   walletStateInitialized: boolean;
+  ticker: string;
 };
 
 export type GlobalStateActions = {
@@ -40,7 +41,7 @@ export type GlobalStateActions = {
   setArIOWriteableSDK: (arIOWriteableSDK?: AoIOWrite) => void;
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
-  reset: () => void;
+  setTicker: (ticker: string) => void;
 };
 
 export const initialGlobalState: GlobalState = {
@@ -56,6 +57,7 @@ export const initialGlobalState: GlobalState = {
     io: 0,
   },
   walletStateInitialized: false,
+  ticker: 'tIO',
 };
 export class GlobalStateActionBase implements GlobalStateActions {
   constructor(
@@ -95,9 +97,9 @@ export class GlobalStateActionBase implements GlobalStateActions {
     this.set({ walletStateInitialized: initialized });
   };
 
-  reset = () => {
-    this.set({ ...this.initialGlobalState }, true);
-  };
+  setTicker = (ticker: string) => {
+    this.set({ ticker });
+  }
 }
 
 export interface GlobalStateInterface extends GlobalState, GlobalStateActions {}

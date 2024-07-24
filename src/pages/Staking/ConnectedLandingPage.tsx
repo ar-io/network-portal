@@ -2,7 +2,6 @@ import { mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import { PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
-import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -13,6 +12,7 @@ import DelegateStake from './DelegateStakeTable';
 
 const ConnectedLandingPage = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker);
   const [amountStaking, setAmountStaking] = useState<number>();
 
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
@@ -68,7 +68,7 @@ const ConnectedLandingPage = () => {
               <div className="text-[42px] leading-none text-high">
                 {panel.balance ?? <Placeholder />}
               </div>
-              <div className="text-sm text-high">{IO_LABEL}</div>
+              <div className="text-sm text-high">{ticker}</div>
             </div>
           </div>
         ))}

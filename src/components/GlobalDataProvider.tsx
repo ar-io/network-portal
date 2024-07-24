@@ -11,11 +11,16 @@ const GlobalDataProvider = ({
 
   const setBlockHeight = useGlobalState((state) => state.setBlockHeight);
   const setCurrentEpoch = useGlobalState((state) => state.setCurrentEpoch);
+  const setTicker = useGlobalState((state) => state.setTicker);
   const arweave = useGlobalState((state) => state.arweave);
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   useEffectOnce(() => {
     const update = async () => {
+      // perform this first as retrieving the current epic takes some time 
+      const {Ticker} = await arioReadSDK.getInfo();
+      setTicker(Ticker);
+
       const currentEpoch = await arioReadSDK.getCurrentEpoch();
       setCurrentEpoch(currentEpoch);
     };

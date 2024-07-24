@@ -18,7 +18,7 @@ import {
 import { EditIcon, StatsArrowIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
-import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { useGlobalState } from '@src/store';
@@ -67,6 +67,7 @@ const Gateway = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const balances = useGlobalState((state) => state.balances);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const params = useParams();
 
@@ -187,10 +188,10 @@ const Gateway = () => {
     },
     {
       formPropertyName: 'stake',
-      label: `Gateway Stake (${IO_LABEL}):`,
+      label: `Gateway Stake (${ticker}):`,
       rowType: RowType.BOTTOM,
-      placeholder: `Minimum 50000 ${IO_LABEL}`,
-      validateProperty: validateIOAmount('Stake', 50000, maxStake),
+      placeholder: `Minimum 50000 ${ticker}`,
+      validateProperty: validateIOAmount('Stake', ticker, 50000, maxStake),
     },
     {
       formPropertyName: 'status',
@@ -206,7 +207,7 @@ const Gateway = () => {
     },
     {
       formPropertyName: 'delegatedStake',
-      label: `Total Delegated Stake (${IO_LABEL}):`,
+      label: `Total Delegated Stake (${ticker}):`,
       rowType: RowType.SINGLE,
       readOnly: true,
     },
@@ -232,13 +233,13 @@ const Gateway = () => {
     },
     {
       formPropertyName: 'minDelegatedStake',
-      label: `Minimum Delegated Stake (${IO_LABEL}):`,
+      label: `Minimum Delegated Stake (${ticker}):`,
       rowType: RowType.LAST,
       enabled: delegatedStakingEnabled,
       placeholder: delegatedStakingEnabled
-        ? `Minimum 500 ${IO_LABEL}`
+        ? `Minimum 500 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount('Minumum Delegated Stake ', 500),
+      validateProperty: validateIOAmount('Minumum Delegated Stake', ticker, 500),
     },
   ];
 

@@ -25,7 +25,10 @@ interface TableData {
   domain: string;
   owner: string;
   failedConsecutiveEpochs: number;
-  rewardRatio: number;
+  rewardShareRatio: number;
+  performance: number;
+  passedEpochCount: number;
+  totalEpochCount: number;
   totalDelegatedStake: number;
   totalStake: number;
   operatorStake: number;
@@ -55,6 +58,9 @@ const DelegateStake = () => {
         ? []
         : Object.entries(gateways).reduce((acc, [owner, gateway]) => {
             if (gateway.settings.allowDelegatedStaking) {
+              const passedEpochCount = gateway.stats.passedEpochCount;
+              const totalEpochCount = (gateway.stats as any).totalEpochCount;
+
               return [
                 ...acc,
                 {
@@ -63,8 +69,13 @@ const DelegateStake = () => {
                   owner,
                   failedConsecutiveEpochs:
                     gateway.stats.failedConsecutiveEpochs,
-                  rewardRatio: gateway.settings.delegateRewardShareRatio,
 
+                  rewardShareRatio: gateway.settings.allowDelegatedStaking
+                    ? gateway.settings.delegateRewardShareRatio
+                    : -1,
+                  performance: totalEpochCount > 0 ? gateway.stats.passedEpochCount / totalEpochCount : -1,
+                  passedEpochCount,
+                  totalEpochCount,
                   totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
                     .toIO()
                     .valueOf(),
@@ -142,16 +153,41 @@ const DelegateStake = () => {
         </Tooltip>
       ),
     }),
+    columnHelper.accessor('rewardShareRatio', {
+      id: 'rewardShareRatio',
+      header: 'Reward Share Ratio',
+      sortDescFirst: true,
+      cell: ({ row }) =>
+        row.original.rewardShareRatio >= 0 ? `${row.original.rewardShareRatio}%` : 'N/A',
+    }),
     columnHelper.accessor('failedConsecutiveEpochs', {
       id: 'failedConsecutiveEpochs',
       header: 'Offline Epochs',
       sortDescFirst: true,
     }),
-    columnHelper.accessor('rewardRatio', {
-      id: 'rewardRatio',
-      header: 'Reward Share Ratio',
+    columnHelper.accessor('performance', {
+      id: 'performance',
+      header: 'Performance',
       sortDescFirst: true,
-      cell: ({ row }) => `${row.original.rewardRatio}%`,
+      cell: ({ row }) =>
+        row.original.performance < 0 ? (
+          'N/A'
+        ) : (
+          <Tooltip
+            message={
+              <div>
+                <div>
+                  Passed Epoch Count: {row.original.passedEpochCount}
+                </div>
+                <div className="mt-1">
+                  Total Epoch Participation Count: {row.original.totalEpochCount}
+                </div>
+              </div>
+            }
+          >
+            {`${(row.original.performance * 100).toFixed(2)}%`}
+          </Tooltip>
+        ),
     }),
     columnHelper.accessor('eay', {
       id: 'eay',

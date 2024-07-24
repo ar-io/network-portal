@@ -3,7 +3,6 @@ import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
-import { IO_LABEL } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
 
@@ -69,6 +68,7 @@ const PropertyDisplayPanel = ({
   gateway?: AoGateway;
 }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
@@ -86,7 +86,7 @@ const PropertyDisplayPanel = ({
           value: `${gateway?.settings.delegateRewardShareRatio}%`,
         },
         {
-          label: `Minimum Delegated Stake (${IO_LABEL}):`,
+          label: `Minimum Delegated Stake (${ticker}):`,
           value: new mIOToken(gateway?.settings.minDelegatedStake || 0)
             .toIO()
             .valueOf(),
@@ -109,7 +109,7 @@ const PropertyDisplayPanel = ({
       type: 'tx',
     },
     {
-      label: `Gateway Stake (${IO_LABEL}):`,
+      label: `Gateway Stake (${ticker}):`,
       value: gateway?.operatorStake
         ? new mIOToken(gateway?.operatorStake).toIO().valueOf()
         : undefined,
@@ -117,7 +117,7 @@ const PropertyDisplayPanel = ({
     { label: 'Status:', value: gateway?.status },
     { label: 'Note:', value: gateway?.settings.note },
     {
-      label: `Total Delegated Stake (${IO_LABEL}):`,
+      label: `Total Delegated Stake (${ticker}):`,
       value: new mIOToken(gateway?.totalDelegatedStake || 0).toIO().valueOf(),
     },
     { label: 'Reward Auto Stake:', value: gateway?.settings.autoStake },

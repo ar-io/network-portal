@@ -9,7 +9,6 @@ import StakingModal from '@src/components/modals/StakingModal';
 import {
   EAY_TOOLTIP_FORMULA,
   EAY_TOOLTIP_TEXT,
-  IO_LABEL,
 } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
@@ -39,6 +38,7 @@ const columnHelper = createColumnHelper<TableData>();
 
 const DelegateStake = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const { isLoading, data: gateways } = useGateways();
   const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
@@ -132,7 +132,7 @@ const DelegateStake = () => {
     }),
     columnHelper.accessor('totalStake', {
       id: 'totalStake',
-      header: `Total Stake (${IO_LABEL})`,
+      header: `Total Stake (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => (
         <Tooltip
@@ -140,11 +140,11 @@ const DelegateStake = () => {
             <div>
               <div>
                 Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
-                {IO_LABEL}
+                {ticker}
               </div>
               <div className="mt-1">
                 Delegated Stake:{' '}
-                {formatWithCommas(row.original.totalDelegatedStake)} {IO_LABEL}
+                {formatWithCommas(row.original.totalDelegatedStake)} {ticker}
               </div>
             </div>
           }

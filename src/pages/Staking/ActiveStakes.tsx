@@ -5,7 +5,6 @@ import TableView from '@src/components/TableView';
 import { GearIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import UnstakeAllModal from '@src/components/modals/UnstakeAllModal';
-import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
@@ -22,6 +21,7 @@ const columnHelper = createColumnHelper<TableData>();
 
 const ActiveStakes = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker); 
 
   const { isLoading, data: gateways } = useGateways();
   const [activeStakes, setActiveStakes] = useState<Array<TableData>>([]);
@@ -85,7 +85,7 @@ const ActiveStakes = () => {
     }),
     columnHelper.accessor('delegatedStake', {
       id: 'delegatedStake',
-      header: `Current Stake (${IO_LABEL})`,
+      header: `Current Stake (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => {
         return `${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`;

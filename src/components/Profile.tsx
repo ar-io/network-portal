@@ -1,6 +1,5 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { Popover } from '@headlessui/react';
-import { IO_LABEL } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { formatBalance, formatWalletAddress } from '@src/utils';
 import { forwardRef, useState } from 'react';
@@ -40,6 +39,7 @@ const Profile = () => {
   const balances = useGlobalState((state) => state.balances);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker);
 
   return walletAddress ? (
     <Popover className="relative">
@@ -74,7 +74,7 @@ const Profile = () => {
           <CopyButton textToCopy={walletAddress.toString()} />
         </div>
         <div className="mx-[16px] rounded-[6px] border border-grey-800 py-[12px]">
-          <div className="px-[16px] text-xs text-low">{IO_LABEL} Balance</div>
+          <div className="px-[16px] text-xs text-low">{ticker} Balance</div>
           <div className="border-b border-grey-800 px-[16px] pb-[12px] pt-[4px] text-high">
             {formatBalance(balances.io)}
           </div>

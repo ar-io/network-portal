@@ -1,5 +1,5 @@
 import { IOToken } from '@ar.io/sdk/web';
-import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -41,6 +41,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const [formState, setFormState] =
     useState<Record<string, string | boolean>>(DEFAULT_FORM_STATE);
@@ -89,9 +90,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     },
     {
       formPropertyName: 'stake',
-      label: `*Stake (${IO_LABEL}):`,
-      placeholder: `Minimum 50000 ${IO_LABEL}`,
-      validateProperty: validateIOAmount('Stake', 50000),
+      label: `*Stake (${ticker}):`,
+      placeholder: `Minimum 50000 ${ticker}`,
+      validateProperty: validateIOAmount('Stake', ticker, 50000),
     },
     {
       formPropertyName: 'allowDelegatedStaking',
@@ -99,12 +100,12 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     },
     {
       formPropertyName: 'minDelegatedStake',
-      label: `Minimum Delegated Stake (${IO_LABEL}):`,
+      label: `Minimum Delegated Stake (${ticker}):`,
       enabled: allowDelegatedStaking,
       placeholder: allowDelegatedStaking
-        ? `Minimum 500 ${IO_LABEL}`
+        ? `Minimum 500 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount('Minimum Delegated Stake', 500),
+      validateProperty: validateIOAmount('Minimum Delegated Stake', ticker, 500),
     },
     {
       formPropertyName: 'delegatedStakingShareRatio',

@@ -2,7 +2,6 @@ import { IOToken, mIOToken } from '@ar.io/sdk/web';
 import {
   EAY_TOOLTIP_FORMULA,
   EAY_TOOLTIP_TEXT,
-  IO_LABEL,
   WRITE_OPTIONS,
   log,
 } from '@src/constants';
@@ -77,6 +76,7 @@ const StakingModal = ({
   const balances = useGlobalState((state) => state.balances);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const [tab, setTab] = useState<number>(0);
   const [userEnteredWalletAddress, setUserEnteredWalletAddress] =
@@ -130,11 +130,13 @@ const StakingModal = ({
     address: validateWalletAddress('Gateway Owner'),
     stakeAmount: validateIOAmount(
       'Stake Amount',
+      ticker,
       minRequiredStakeToAdd,
       balances.io,
     ),
     unstakeAmount: validateUnstakeAmount(
       'Unstake Amount',
+      ticker,
       existingStake,
       minDelegatedStake,
     ),
@@ -273,8 +275,8 @@ const StakingModal = ({
             <div className="text-left text-xs text-low">
               {tab == 0
                 ? balances &&
-                  `Available: ${formatWithCommas(balances.io)} ${IO_LABEL}`
-                : `Available to Unstake: ${formatWithCommas(currentStake)} ${IO_LABEL}`}
+                  `Available: ${formatWithCommas(balances.io)} ${ticker}`
+                : `Available to Unstake: ${formatWithCommas(currentStake)} ${ticker}`}
             </div>
           </div>
           <div className="mt-3 flex h-[52px] items-center overflow-hidden rounded-md border border-grey-800">
@@ -285,7 +287,7 @@ const StakingModal = ({
               disabled={disableInput}
               readOnly={disableInput}
               type="text"
-              placeholder={`Enter amount of ${IO_LABEL} to ${tab == 0 ? 'stake' : 'unstake'}`}
+              placeholder={`Enter amount of ${ticker} to ${tab == 0 ? 'stake' : 'unstake'}`}
               value={tab == 0 ? amountToStake : amountToUnstake}
               onChange={(e) => {
                 const textValue = e.target.value;
@@ -336,7 +338,7 @@ const StakingModal = ({
               <DisplayRow
                 className="border-b border-divider pb-[16px]"
                 label="Existing Stake:"
-                value={`${existingStake} ${IO_LABEL}`}
+                value={`${existingStake} ${ticker}`}
               />
             )}
             <DisplayRow
@@ -386,7 +388,7 @@ const StakingModal = ({
             <DisplayRow
               className="py-[4px]"
               label="Remaining Balance:"
-              value={`${remainingBalance !== '-' ? formatWithCommas(+remainingBalance) : remainingBalance} ${IO_LABEL}`}
+              value={`${remainingBalance !== '-' ? formatWithCommas(+remainingBalance) : remainingBalance} ${ticker}`}
             />
           )}
           <DisplayRow
@@ -398,7 +400,7 @@ const StakingModal = ({
                   ? formatWithCommas(currentStake + parseFloat(amountToStake))
                   : formatWithCommas(currentStake - parseFloat(amountToUnstake))
                 : '-'
-            } ${IO_LABEL}`}
+            } ${ticker}`}
           />
           <div
             className={
@@ -409,8 +411,8 @@ const StakingModal = ({
               className="mt-[32px] h-[52px] w-full"
               onClick={submitForm}
               buttonType={ButtonType.PRIMARY}
-              title={tab == 0 ? `Stake ${IO_LABEL}` : `Unstake ${IO_LABEL}`}
-              text={tab == 0 ? `Stake ${IO_LABEL}` : `Unstake ${IO_LABEL}`}
+              title={tab == 0 ? `Stake ${ticker}` : `Unstake ${ticker}`}
+              text={tab == 0 ? `Stake ${ticker}` : `Unstake ${ticker}`}
             />
           </div>
         </div>

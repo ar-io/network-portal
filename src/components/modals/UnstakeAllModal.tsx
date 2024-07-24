@@ -1,5 +1,5 @@
 import { AoGateway, mIOToken } from '@ar.io/sdk/web';
-import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useState } from 'react';
@@ -25,6 +25,7 @@ const UnstakeAllModal = ({
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const sorted = activeStakes.sort(
     (a, b) => b.delegatedStake - a.delegatedStake,
@@ -105,7 +106,7 @@ const UnstakeAllModal = ({
                   </td>
                   <td className="py-[8px] text-right text-mid ">
                     {new mIOToken(stake.delegatedStake).toIO().valueOf()}{' '}
-                    {IO_LABEL}
+                    {ticker}
                   </td>
                 </tr>
               ))}
@@ -122,7 +123,7 @@ const UnstakeAllModal = ({
             <div className="mt-[4px] flex text-sm text-mid">
               <div className="grow">Total Withdrawal:</div>
               <div>
-                {new mIOToken(totalWithdrawalMIO).toIO().valueOf()} {IO_LABEL}
+                {new mIOToken(totalWithdrawalMIO).toIO().valueOf()} {ticker}
               </div>
             </div>
 

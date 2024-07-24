@@ -4,13 +4,13 @@ import Header from '@src/components/Header';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
 import { StreakDownArrowIcon, StreakUpArrowIcon } from '@src/components/icons';
-import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { formatDate, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Banner from './Banner';
+import { useGlobalState } from '@src/store';
 
 interface TableData {
   label: string;
@@ -30,6 +30,9 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const Gateways = () => {
+
+  const ticker = useGlobalState((state) => state.ticker);
+
   const { isLoading, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
@@ -117,7 +120,7 @@ const Gateways = () => {
     }),
     columnHelper.accessor('totalStake', {
       id: 'totalStake',
-      header: `Total Stake (${IO_LABEL})`,
+      header: `Total Stake (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => (
         <Tooltip
@@ -125,11 +128,11 @@ const Gateways = () => {
             <div>
               <div>
                 Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
-                {IO_LABEL}
+                {ticker}
               </div>
               <div className="mt-1">
                 Delegated Stake:{' '}
-                {formatWithCommas(row.original.totalDelegatedStake)} {IO_LABEL}
+                {formatWithCommas(row.original.totalDelegatedStake)} {ticker}
               </div>
             </div>
           }

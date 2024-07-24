@@ -49,5 +49,3 @@ export const EAY_TOOLTIP_TEXT =
   'EAY = Estimated yield ratio determined by projecting the current nominal reward conditions over the course of a year. Does NOT include potential observation rewards.';
 export const EAY_TOOLTIP_FORMULA =
   '\\(EAY = \\frac{RewardsSharedPerEpoch}{TotalDelegatedStake} * EpochsPerYear\\)';
-
-export const IO_LABEL = 'tIO';

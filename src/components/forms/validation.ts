@@ -1,5 +1,4 @@
 import { ARWEAVE_TX_REGEX, FQDN_REGEX } from '@ar.io/sdk/web';
-import { IO_LABEL } from '@src/constants';
 
 /* Higher-order functions that return a FormValidationFunction for use with FormRowDefs */
 
@@ -49,6 +48,7 @@ export const validateTransactionId = (
 
 export const validateIOAmount = (
   propertyName: string,
+  ticker: string,
   min: number,
   max?: number,
 ): FormValidationFunction => {
@@ -59,15 +59,15 @@ export const validateIOAmount = (
       if (isNaN(value)) {
         return `${propertyName} must be a number.`;
       } else if (max <= min && value < min) {
-        return `${propertyName} must be a number >= ${min} ${IO_LABEL}.`;
+        return `${propertyName} must be a number >= ${min} ${ticker}.`;
       }
 
       return value < min || value > max
-        ? `${propertyName} must be a number from ${min} to ${max} ${IO_LABEL}.`
+        ? `${propertyName} must be a number from ${min} to ${max} ${ticker}.`
         : undefined;
     }
     return value < min || isNaN(value)
-      ? `${propertyName} must be a number >= ${min} ${IO_LABEL}.`
+      ? `${propertyName} must be a number >= ${min} ${ticker}.`
       : undefined;
   };
 };
@@ -88,6 +88,7 @@ export const validateNumberRange = (
 
 export const validateUnstakeAmount = (
   propertyName: string,
+  ticker: string,
   currentStake: number,
   minDelegatedStake: number,
 ): FormValidationFunction => {
@@ -99,11 +100,11 @@ export const validateUnstakeAmount = (
     }
 
     if (value < 1) {
-      return `${propertyName} must be at least 1 ${IO_LABEL}.`;
+      return `${propertyName} must be at least 1 ${ticker}.`;
     }
 
     if (value > currentStake) {
-      return `${propertyName} cannot be greater than your current stake of ${currentStake} ${IO_LABEL}.`;
+      return `${propertyName} cannot be greater than your current stake of ${currentStake} ${ticker}.`;
     }
 
     if (
@@ -111,7 +112,7 @@ export const validateUnstakeAmount = (
       value != minDelegatedStake &&
       value != currentStake
     ) {
-      return `Withdrawing this amount will put you below the gateway's minimum stake of ${minDelegatedStake} ${IO_LABEL}. You can either: withdraw a smaller amount so your remaining stake is above the minimum - or - withdraw your full delegated stake.`;
+      return `Withdrawing this amount will put you below the gateway's minimum stake of ${minDelegatedStake} ${ticker}. You can either: withdraw a smaller amount so your remaining stake is above the minimum - or - withdraw your full delegated stake.`;
     }
 
     return undefined;

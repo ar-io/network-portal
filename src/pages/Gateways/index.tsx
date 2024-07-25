@@ -38,8 +38,6 @@ const Gateways = () => {
 
   const navigate = useNavigate();
 
-  console.log(gateways)
-
   useEffect(() => {
     const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
       (acc: Array<TableData>, [owner, gateway]) => {

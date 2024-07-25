@@ -47,7 +47,7 @@ const TableView = <T, S>({
                 {headerGroup.headers.map((header) => {
                   const sortState = header.column.getIsSorted();
                   return (
-                    <th key={header.id} className="py-[7.5px] pl-[24px]">
+                    <th key={header.id} className="py-2 pl-6">
                       <button
                         className="flex items-center gap-1 text-left"
                         onClick={() => {
@@ -74,7 +74,7 @@ const TableView = <T, S>({
                             <SortAsc />
                           )
                         ) : (
-                          <div className="w-[16px]" />
+                          <div className="w-4" />
                         )}
                       </button>
                     </th>
@@ -88,7 +88,7 @@ const TableView = <T, S>({
               return (
                 <tr
                   key={row.id}
-                  className={`border-t border-grey-500 text-low *:py-[16px] *:pl-[24px] ${onRowClick ? 'cursor-pointer' : ''}`}
+                  className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
                   onClick={
                     onRowClick ? () => onRowClick(row.original) : undefined
                   }
@@ -108,12 +108,12 @@ const TableView = <T, S>({
         </table>
       </div>
       {isLoading && (
-        <div className="flex items-center justify-center border-x border-b border-grey-500 px-[24px] py-[16px] text-low">
+        <div className="flex items-center justify-center border-x border-b border-grey-500 px-6 py-4 text-low">
           <Placeholder className="w-full" />
         </div>
       )}
       {!isLoading && table.getRowCount() === 0 && (
-        <div className="flex h-[100px] items-center justify-center border-x border-b border-grey-500 text-low">
+        <div className="flex h-[6.25rem] items-center justify-center border-x border-b border-grey-500 text-low">
           {noDataFoundText}
         </div>
       )}

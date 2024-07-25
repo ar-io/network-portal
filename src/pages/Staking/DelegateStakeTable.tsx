@@ -192,7 +192,7 @@ const DelegateStake = () => {
     columnHelper.accessor('eay', {
       id: 'eay',
       header: () => (
-        <div className="flex gap-[4px]">
+        <div className="flex gap-1">
           EAY
           <Tooltip
             message={
@@ -221,7 +221,7 @@ const DelegateStake = () => {
       header: '',
       cell: ({ row }) => {
         return (
-          <div className="pr-[24px]">
+          <div className="pr-6">
             <Button
               buttonType={ButtonType.PRIMARY}
               active={true}
@@ -243,7 +243,7 @@ const DelegateStake = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-4 pl-6 pr-3">
         <div className="grow text-sm text-mid">Delegate Stake</div>
       </div>
       <TableView
@@ -251,7 +251,7 @@ const DelegateStake = () => {
         data={stakeableGateways}
         isLoading={isLoading}
         noDataFoundText="No stakeable gateways found."
-        defaultSortingState={{ id: 'totalDelegatedStake', desc: true }}
+        defaultSortingState={{ id: 'totalStake', desc: true }}
       />
       {stakingModalWalletAddress && (
         <StakingModal

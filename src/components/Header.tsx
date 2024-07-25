@@ -10,36 +10,36 @@ const Header = () => {
   const { isLoading: gatewaysLoading, data: gateways } = useGateways();
 
   return (
-    <header className="mt-[24px] flex h-[72px] rounded-[12px] border py-[16px] pl-[24px] pr-[16px] leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
-      <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r pr-6 dark:border-transparent-100-8">
-        <div className="text-[12px] text-high">
+    <header className="mt-6 flex h-[4.5rem] rounded-xl border py-4 pl-6 pr-4 leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
+      <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r pr-6 dark:border-transparent-100-8">
+        <div className="text-xs text-high">
           {currentEpoch?.epochIndex !== undefined
             ? currentEpoch.epochIndex.toLocaleString('en-US')
             : NBSP}
         </div>
-        <div className="pt-[4px] text-[12px] leading-none text-low">
+        <div className="pt-1 text-xs leading-none text-low">
           AR.IO EPOCH
         </div>
       </div>
-      <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r px-6 dark:border-transparent-100-8">
-        <div className="text-[12px] text-high">
+      <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-6 dark:border-transparent-100-8">
+        <div className="text-xs text-high">
           {blockHeight ? blockHeight.toLocaleString('en-US') : NBSP}
         </div>
-        <div className="pt-[4px] text-[12px] leading-none text-low">
+        <div className="pt-1 text-xs leading-none text-low">
           ARWEAVE BLOCK
         </div>
       </div>
-      <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r px-6 dark:border-transparent-100-8">
-        <div className="text-[12px] text-high">
+      <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-6 dark:border-transparent-100-8">
+        <div className="text-xs text-high">
           {gatewaysLoading ? (
-            <Placeholder className='h-[17px]'/>
+            <Placeholder className='h-[1.0625rem]'/>
           ) : gateways ? (
             Object.keys(gateways).length
           ) : (
             NBSP
           )}
         </div>
-        <div className="pt-[4px] text-[12px] leading-none text-low">
+        <div className="pt-1 text-xs leading-none text-low">
           TOTAL GATEWAYS
         </div>
       </div>

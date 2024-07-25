@@ -45,12 +45,12 @@ const ConnectModal = ({
 
   return (
     <BaseModal onClose={onClose}>
-      <div className='w-[392px]'>
-        <div className="flex grow justify-center pb-[16px]">
-          <ConnectIcon className="size-[24px]" />
+      <div className='w-[24.5rem]'>
+        <div className="flex grow justify-center pb-4">
+          <ConnectIcon className="size-6" />
         </div>
-        <h2 className="pb-[16px] text-2xl text-high">Connect Your Wallet</h2>
-        <div className="flex grow justify-center pb-[32px]">
+        <h2 className="pb-4 text-2xl text-high">Connect Your Wallet</h2>
+        <div className="flex grow justify-center pb-8">
           <Button
             onClick={() => {
               if (!connecting) {
@@ -58,12 +58,12 @@ const ConnectModal = ({
               }
             }}
             active={true}
-            icon={<ArConnectIcon className="size-[16px]" />}
+            icon={<ArConnectIcon className="size-4" />}
             title="Connect with ArConnect"
             text="Connect with ArConnect"
           />
         </div>
-        <div className="flex grow justify-center gap-[4px] text-sm">
+        <div className="flex grow justify-center gap-1 text-sm">
           <div className="text-low">Don&apos;t have a wallet?</div>
 
           <a

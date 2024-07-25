@@ -22,11 +22,11 @@ const BaseModal = ({
 
       <div className="fixed inset-0 flex  w-screen items-center justify-center p-4">
         <Dialog.Panel
-          className={`relative flex max-h-full flex-col items-stretch rounded-[12px] bg-[#111112] ${useDefaultPadding ? 'p-[32px]' : ''} text-center text-grey-100`}
+          className={`relative flex max-h-full flex-col items-stretch rounded-xl bg-[#111112] ${useDefaultPadding ? 'p-8' : ''} text-center text-grey-100`}
         >
           {showCloseButton && (
-            <button className="absolute right-[-28px] top-0" onClick={onClose}>
-              <CloseIcon />
+            <button className="absolute -right-7 top-0" onClick={onClose}>
+              <CloseIcon className="size-5" />
             </button>
           )}
           <div className="flex grow flex-col overflow-y-auto scrollbar">

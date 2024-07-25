@@ -38,6 +38,8 @@ const Gateways = () => {
 
   const navigate = useNavigate();
 
+  console.log(gateways)
+
   useEffect(() => {
     const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
       (acc: Array<TableData>, [owner, gateway]) => {
@@ -185,11 +187,11 @@ const Gateways = () => {
             ? 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up'
             : 'border-text-red/[.56] bg-text-red/[.1] text-text-red';
         const icon =
-          streak > 0 ? <StreakUpArrowIcon /> : <StreakDownArrowIcon />;
+          streak > 0 ? <StreakUpArrowIcon className='size-3'/> : <StreakDownArrowIcon className='size-3'/>;
 
         return (
           <div
-            className={`flex w-fit items-center gap-[4px] rounded-xl border py-[2px] pl-[7px] pr-[9px] ${colorClasses}`}
+            className={`flex w-fit items-center gap-1 rounded-xl border py-0.5 pl-[.4375rem] pr-[.5625rem] ${colorClasses}`}
           >
             {icon} {Math.abs(streak)}
           </div>
@@ -199,11 +201,11 @@ const Gateways = () => {
   ];
 
   return (
-    <div className="flex h-screen max-w-full flex-col gap-[24px] overflow-auto pr-[24px] scrollbar">
+    <div className="flex h-screen max-w-full flex-col gap-6 overflow-auto pr-6 scrollbar">
       <Header />
       <Banner />
-      <div className="mb-[32px]">
-        <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
+      <div className="mb-8">
+        <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
           <div className="grow text-sm text-mid">Gateways</div>
         </div>
         <TableView

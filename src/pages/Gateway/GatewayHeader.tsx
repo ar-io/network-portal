@@ -15,12 +15,12 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
   const ownerId = params?.ownerId;
 
   return (
-    <header className="mt-[24px] flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
-      <div className="flex items-center gap-[12px] py-[20px] pl-[24px] pr-[16px] text-sm">
+    <header className="mt-6 flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
+      <div className="flex items-center gap-3 py-5 pl-6 pr-4 text-sm">
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <HeaderSeparatorIcon />
+        <HeaderSeparatorIcon className="size-4" />
         {gateway ? (
           <div className="text-low">{gateway.settings.label}</div>
         ) : (
@@ -31,28 +31,28 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
           <Profile />
         </div>
       </div>
-      <div className="flex items-center gap-[12px] rounded-b-xl bg-grey-900 py-[20px] pl-[24px]">
-        <GatewayIcon />
+      <div className="flex items-center gap-3 rounded-b-xl bg-grey-900 py-5 pl-6">
+        <GatewayIcon className="h-3 w-4" />
         {gateway ? (
           <>
             <div className="text-high">{gateway.settings.label}</div>
             <div className="grow"></div>
             <div className="flex">
-              <div className="pr-[24px] text-sm text-mid">
+              <div className="pr-6 text-sm text-mid">
                 <Link
-                  className="flex gap-[8px] "
+                  className="flex gap-2 "
                   to={`/gateways/${ownerId}/reports`}
                 >
-                  <ReportsIcon />
+                  <ReportsIcon className="size-4" />
                   Reports
                 </Link>
               </div>
-              <div className="border-l border-grey-400 px-[24px] text-sm text-mid">
+              <div className="border-l border-grey-400 px-6 text-sm text-mid">
                 <Link
-                  className="flex gap-[8px] "
+                  className="flex gap-2 "
                   to={`/gateways/${ownerId}/observe`}
                 >
-                  <BinocularsIcon />
+                  <BinocularsIcon className="size-4" />
                   Observe
                 </Link>
               </div>

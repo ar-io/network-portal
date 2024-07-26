@@ -15,7 +15,7 @@ const Reports = () => {
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
 
   return (
-    <div className="flex h-screen max-w-full flex-col gap-[24px] overflow-auto pr-[24px] scrollbar">
+    <div className="flex h-screen max-w-full flex-col gap-6 overflow-auto pr-6 scrollbar">
       <ReportsHeader gateway={gateway} />
       {isLoading || !currentEpoch ? (
         undefined

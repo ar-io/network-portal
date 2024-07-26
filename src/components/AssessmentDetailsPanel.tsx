@@ -49,9 +49,9 @@ const ArNSAssessmentPanel = ({
           <div>
             {arnsAssessment.expectedStatusCode ===
             arnsAssessment.resolvedStatusCode ? (
-              <CheckSquareIcon />
+              <CheckSquareIcon className="size-5" />
             ) : (
-              <FailSquareIcon />
+              <FailSquareIcon className="size-5" />
             )}
           </div>
           <div className="flex grow items-center text-high">
@@ -67,16 +67,16 @@ const ArNSAssessmentPanel = ({
         </div>
         {arnsAssessment.expectedStatusCode !==
           arnsAssessment.resolvedStatusCode && (
-          <div className="pl-[24px] italic">
+          <div className="pl-6 italic">
             Expected: {arnsAssessment.expectedStatusCode}
           </div>
         )}
         <div className="flex gap-1">
           <div>
             {arnsAssessment.expectedId === arnsAssessment.resolvedId ? (
-              <CheckSquareIcon />
+              <CheckSquareIcon className="size-5" />
             ) : (
-              <FailSquareIcon />
+              <FailSquareIcon className="size-5" />
             )}
           </div>
           <div className="flex grow items-center text-high">
@@ -91,7 +91,7 @@ const ArNSAssessmentPanel = ({
           </div>
         </div>
         {arnsAssessment.expectedId !== arnsAssessment.resolvedId && (
-          <div className="pl-[24px] italic">
+          <div className="pl-6 italic">
             Expected: {arnsAssessment.expectedId}
           </div>
         )}
@@ -99,9 +99,9 @@ const ArNSAssessmentPanel = ({
           <div>
             {arnsAssessment.expectedDataHash ===
             arnsAssessment.resolvedDataHash ? (
-              <CheckSquareIcon />
+              <CheckSquareIcon className="size-5" />
             ) : (
-              <FailSquareIcon />
+              <FailSquareIcon className="size-5" />
             )}
           </div>
           <div className="flex grow items-center text-high">
@@ -117,7 +117,7 @@ const ArNSAssessmentPanel = ({
         </div>
         {arnsAssessment.expectedDataHash !==
           arnsAssessment.resolvedDataHash && (
-          <div className="pl-[24px] italic">
+          <div className="pl-6 italic">
             Expected: {arnsAssessment.expectedDataHash}
           </div>
         )}
@@ -148,8 +148,7 @@ const ArNSAssessmentPanel = ({
                 .map(([key, label]) => {
                   return (
                     <div className="pl-5 text-low" key={key}>
-                      {label}: {arnsAssessment.timings![key]}{' '}
-                      ms
+                      {label}: {arnsAssessment.timings![key]} ms
                     </div>
                   );
                 })}
@@ -177,7 +176,7 @@ const AssessmentDetailsPanel = ({
         aria-hidden="true"
       />
 
-      <div className="fixed right-0 top-0 h-screen w-[576px]">
+      <div className="fixed right-0 top-0 h-screen w-[36rem]">
         <Dialog.Panel
           className={
             'relative flex h-full flex-col bg-grey-800 text-sm text-mid'

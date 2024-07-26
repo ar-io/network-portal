@@ -20,11 +20,11 @@ const DisplayRow = ({
   return (
     <>
       <div className="border-t border-grey-900">
-        <div className="h-[39px] bg-grey-1000 px-[24px] py-[12px] text-xs text-low">
+        <div className=" bg-grey-1000 px-6 py-3 text-xs text-low">
           {label}
         </div>
       </div>
-      <div className="flex h-[39px] flex-col content-center justify-center border-t border-grey-900 pl-[24px] text-sm text-low">
+      <div className="flex flex-col content-center justify-center border-t border-grey-900 pl-6 text-sm text-low">
         {value === undefined ? (
           <Placeholder />
         ) : typeof value === 'boolean' ? (
@@ -145,7 +145,7 @@ const PropertyDisplayPanel = ({
   ];
 
   return (
-    <div className="grid grid-cols-[225px_auto]">
+    <div className="grid grid-cols-[14.375rem_auto]">
       {gatewayRows.map(({ label, value, type, rightComponent }, index) => (
         <DisplayRow
           key={index}

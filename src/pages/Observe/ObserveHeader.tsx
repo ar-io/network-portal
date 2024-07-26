@@ -62,12 +62,12 @@ const ObserveHeader = ({
   };
 
   return (
-    <header className="mt-[24px] flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
-      <div className="flex items-center gap-[12px] py-[20px] pl-[24px] pr-[16px] text-sm">
+    <header className="mt-6 flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
+      <div className="flex items-center gap-3 py-5 pl-6 pr-4 text-sm">
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <HeaderSeparatorIcon />
+        <HeaderSeparatorIcon className="size-4"/>
         {gateway ? (
           <Link className="text-mid" to={`/gateways/${ownerId}`}>
             {gateway.settings.label}
@@ -75,7 +75,7 @@ const ObserveHeader = ({
         ) : (
           <Placeholder />
         )}
-        <HeaderSeparatorIcon />
+        <HeaderSeparatorIcon className="size-4"/>
         <Link className="text-mid" to={`/gateways/${ownerId}/reports`}>
           Observe
         </Link>
@@ -84,14 +84,14 @@ const ObserveHeader = ({
           <Profile />
         </div>
       </div>
-      <div className="flex items-center gap-[12px] rounded-b-xl bg-grey-900 px-[24px] py-[20px]">
-        <BinocularsIcon />
+      <div className="flex items-center gap-3 rounded-b-xl bg-grey-900 px-6 py-5">
+        <BinocularsIcon className="size-4" />
         <div className="text-high">Observe</div>
         <div className="grow" />
         <div className="text-xs text-high">ArNS names:</div>
         <input
           className={
-            'h-7 w-[200px] rounded-md border border-grey-700 bg-grey-1000 p-[12px] text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+            'h-7 w-[12.5rem] rounded-md border border-grey-700 bg-grey-1000 p-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
           }
           type="text"
           disabled={!gateway}
@@ -115,7 +115,7 @@ const ObserveHeader = ({
             title="Run Observation"
             buttonType={ButtonType.PRIMARY}
             text="Run Observation"
-            icon={<BinocularsGradientIcon />}
+            icon={<BinocularsGradientIcon className="size-4" />}
             onClick={() => runObservation()}
           />
         </div>

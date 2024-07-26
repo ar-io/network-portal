@@ -13,12 +13,12 @@ const SuccessModal = ({
 }) => {
   return (
     <BaseModal onClose={onClose}>
-      <div className="w-[392px]">
-        <div className="flex grow justify-center pb-[12px]">
-          <SuccessCheck className="size-[32px]" />
+      <div className="w-[24.5rem]">
+        <div className="flex grow justify-center pb-3">
+          <SuccessCheck className="size-8" />
         </div>
-        <div className="pb-[12px] text-2xl text-high">{title}</div>
-        <div className="pb-[32px] text-center  text-low">{bodyText}</div>
+        <div className="pb-3 text-2xl text-high">{title}</div>
+        <div className="pb-8 text-center  text-low">{bodyText}</div>
         <div className="flex grow justify-center">
           <Button
             onClick={onClose}

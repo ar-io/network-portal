@@ -20,18 +20,18 @@ const CopyButton = ({ textToCopy }: { textToCopy: string }) => {
   return (
     <div className="relative">
       <div
-        className={`${copiedVisible ? 'visible' : 'invisible'} absolute left-[-28px] top-[-48px] rounded-lg border border-grey-500 bg-containerL0 p-2`}
+        className={`${copiedVisible ? 'visible' : 'invisible'} absolute -left-7 -top-12 rounded-lg border border-grey-500 bg-containerL0 p-2`}
       >
         Copied!
         <div
-          className={`absolute bottom-[-5px] left-[30px] size-[10px] rotate-45 border border-grey-500 bg-containerL0 [clip-path:polygon(0%_100%,100%_0,100%_100%)]    `}
+          className={`absolute bottom-[-.3125rem] left-[1.875rem] size-2.5 rotate-45 border border-grey-500 bg-containerL0 [clip-path:polygon(0%_100%,100%_0,100%_100%)]`}
         />
       </div>
       <button onClick={copyAction}>
         {copiedVisible ? (
-          <CopyCheckedIcon className="size-[16px] opacity-65" />
+          <CopyCheckedIcon className="size-4 opacity-65" />
         ) : (
-          <CopyIcon className="size-[16px] opacity-65" />
+          <CopyIcon className="size-4 opacity-65" />
         )}
       </button>
     </div>

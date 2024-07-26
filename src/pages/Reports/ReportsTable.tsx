@@ -60,7 +60,7 @@ const ReportsTable = ({
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
         <div className="grow text-sm text-mid">Reports</div>
       </div>
       <TableView

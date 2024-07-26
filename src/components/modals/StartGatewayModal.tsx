@@ -72,8 +72,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     {
       formPropertyName: 'address',
       label: '*Address:',
-      leftComponent: <div className="pl-[24px] text-xs text-low">https://</div>,
-      rightComponent: <div className="pr-[24px] text-xs text-low">:443</div>,
+      leftComponent: <div className="pl-6 text-xs text-low">https://</div>,
+      rightComponent: <div className="pr-6 text-xs text-low">:443</div>,
 
       validateProperty: validateDomainName('Address'),
     },
@@ -202,14 +202,14 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <BaseModal onClose={closeDialog}>
-      <div className="w-[680px] text-left">
-        <div className="pb-[12px] text-[24px] text-high">Start Gateway</div>
+      <div className="w-[42.5rem] text-left">
+        <div className="pb-3 text-2xl text-high">Start Gateway</div>
         <div className="flex text-sm text-low">
           Owner ID:&nbsp;
           <span className="text-link">{walletAddress?.toString()}</span>
         </div>
 
-        <div className="mt-[32px] grid grid-cols-[221px_auto] overflow-hidden rounded-md outline outline-grey-500">
+        <div className="mt-8 grid grid-cols-[14.375rem_auto] overflow-hidden rounded-md outline outline-grey-500">
           {formRowDefs.map((rowDef, index) => {
             return (
               <FormRow
@@ -233,9 +233,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
             );
           })}
         </div>
-        <div className="mt-[32px] flex w-full grow justify-end gap-[11px]">
+        <div className="mt-8 flex w-full grow justify-end gap-[.6875rem]">
           <Button
-            className="w-[100px]"
+            className="w-[6.25rem]"
             onClick={closeDialog}
             active={true}
             title="Cancel"
@@ -249,7 +249,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
             }
           >
             <Button
-              className="w-[100px]"
+              className="w-[6.25rem]"
               onClick={() => {
                 submitForm();
               }}

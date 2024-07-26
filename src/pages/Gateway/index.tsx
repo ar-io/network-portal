@@ -22,13 +22,13 @@ import { WRITE_OPTIONS, log } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { useGlobalState } from '@src/store';
+import { formatDate } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
-import { formatDate } from '@src/utils';
 
 const StatsBox = ({
   title,
@@ -38,12 +38,12 @@ const StatsBox = ({
   value: string | number | undefined;
 }) => {
   return (
-    <div className="flex flex-col gap-[4px] border-t border-transparent-100-16 px-[24px] py-[16px]">
+    <div className="flex flex-col gap-1 border-t border-transparent-100-16 px-6 py-4">
       <div className="text-xs text-low">{title}</div>
-      <div className="flex gap-[4px]">
-        <StatsArrowIcon />
+      <div className="flex gap-1">
+        <StatsArrowIcon className="size-4" />
         {value !== undefined ? (
-          <div className="text-sm text-mid">{value}</div>
+          <div className="text-nowrap text-sm text-mid">{value}</div>
         ) : (
           <Placeholder />
         )}
@@ -164,8 +164,8 @@ const Gateway = () => {
       formPropertyName: 'fqdn',
       label: 'Address:',
       rowType: RowType.BOTTOM,
-      leftComponent: <div className="pl-[24px] text-xs text-low">https://</div>,
-      rightComponent: <div className="pr-[24px] text-xs text-low">:443</div>,
+      leftComponent: <div className="pl-6 text-xs text-low">https://</div>,
+      rightComponent: <div className="pr-6 text-xs text-low">:443</div>,
       validateProperty: validateDomainName('Address'),
     },
     {
@@ -239,7 +239,11 @@ const Gateway = () => {
       placeholder: delegatedStakingEnabled
         ? `Minimum 500 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount('Minumum Delegated Stake', ticker, 500),
+      validateProperty: validateIOAmount(
+        'Minumum Delegated Stake',
+        ticker,
+        500,
+      ),
     },
   ];
 
@@ -374,11 +378,11 @@ const Gateway = () => {
   };
 
   return (
-    <div className="overflow-y-auto pr-[24px] scrollbar">
+    <div className="flex h-screen max-w-full flex-col overflow-y-auto pr-6 scrollbar">
       <GatewayHeader gateway={gateway} />
-      <div className="my-[24px] flex gap-[24px]">
-        <div className="h-fit w-[270px] rounded-xl border border-transparent-100-16 text-sm">
-          <div className="px-[24px] py-[16px]">
+      <div className="my-6 flex gap-6">
+        <div className="size-fit rounded-xl border border-transparent-100-16 text-sm">
+          <div className="px-6 py-4">
             <div className="text-high">Stats</div>
           </div>
           <StatsBox
@@ -386,7 +390,7 @@ const Gateway = () => {
             value={
               gateway?.startTimestamp
                 ? formatDate(new Date(gateway?.startTimestamp))
-                : 'N/A'
+                : undefined
             }
           />
           <StatsBox
@@ -401,20 +405,24 @@ const Gateway = () => {
           />
           <StatsBox
             title="Delegates"
-            value={Object.keys(gateway?.delegates || {}).length}
+            value={
+              gateway?.delegates
+                ? Object.keys(gateway.delegates).length
+                : undefined
+            }
           />
           {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
         </div>
-        <div className="size-full grow text-clip rounded-xl border border-transparent-100-16">
-          <div className="flex items-center py-[16px] pl-[24px] pr-[12px]">
+        <div className="size-full grow overflow-hidden rounded-xl border border-transparent-100-16">
+          <div className="flex items-center py-4 pl-6 pr-3">
             <div className="text-sm text-high">General Information</div>
-            <div className="flex grow gap-[24px]" />
+            <div className="flex grow gap-6" />
             {ownerId === walletAddress?.toString() &&
               (editing ? (
                 <>
                   <div className="flex">
                     <Button
-                      className="h-[30px]"
+                      className="h-[1.875rem]"
                       title="Cancel"
                       text="Cancel"
                       buttonType={ButtonType.SECONDARY}
@@ -422,12 +430,12 @@ const Gateway = () => {
                     />
                   </div>
                   {!isFormValid({ formRowDefs, formValues: formState }) ? (
-                    <div className="pl-[24px] text-sm text-red-600">
+                    <div className="pl-6 text-sm text-red-600">
                       Invalid Entry
                     </div>
                   ) : numFormChanges > 0 ? (
                     <Button
-                      className="last:text-gradient h-[30px]"
+                      className="last:text-gradient h-[1.875rem]"
                       title={`Save ${numFormChanges} changes`}
                       text={`Save ${numFormChanges} changes`}
                       buttonType={ButtonType.SECONDARY}
@@ -439,17 +447,17 @@ const Gateway = () => {
                 </>
               ) : (
                 <Button
-                  className="h-[30px]"
+                  className="h-[1.875rem]"
                   title="Edit"
                   text="Edit"
-                  icon={<EditIcon />}
+                  icon={<EditIcon className="size-3" />}
                   active={true}
                   onClick={startEditing}
                 />
               ))}
           </div>
           {editing ? (
-            <div className=" grid grid-cols-[225px_auto] overflow-hidden border-t border-grey-500">
+            <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
               {formRowDefs.map((rowDef, index) => {
                 return (
                   <FormRow

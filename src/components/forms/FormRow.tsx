@@ -19,10 +19,12 @@ const ROUND_STYLES = {
 };
 
 const ModifiedDot = ({ className }: { className: string }) => (
-  <div className={`size-[15px] ${className}`}>
-    <div className={`absolute size-[15px] rounded-[10px] bg-green-600/20`} />
+  <div className={`size-[0.9375rem] ${className}`}>
     <div
-      className={`absolute left-[5px] top-[5px] size-[5px] rounded-[10px]  bg-green-600`}
+      className={`absolute size-[0.9375rem] rounded-[0.625rem] bg-green-600/20`}
+    />
+    <div
+      className={`absolute left-[.3125rem] top-[.3125rem] size-[.3125rem] rounded-[0.625rem]  bg-green-600`}
     />
   </div>
 );
@@ -89,17 +91,15 @@ const FormRow = ({
   return (
     <>
       <div className="bg-grey-900 pb-px">
-        <div className="h-[39px] bg-grey-1000 px-[24px] py-[12px] text-xs text-low">
-          {label}
-        </div>
+        <div className="bg-grey-1000 px-6 py-3 text-xs text-low">{label}</div>
       </div>
       {readOnly ? (
-        <div className="h-[40px] content-center border-b border-grey-800 px-[24px] text-sm text-low">
+        <div className="content-center border-b border-grey-800 px-6 text-sm text-low">
           {value}
         </div>
       ) : typeof value === 'boolean' ? (
-        <div className="relative flex content-center items-center border-b border-grey-800 px-[24px] ">
-          <div className="h-[40px] grow content-center text-sm">
+        <div className="relative flex content-center items-center border-b border-grey-800 px-6 ">
+          <div className="grow content-center text-sm">
             <span className={value ? 'text-green-600' : 'text-low'}>
               {value ? 'Enabled' : 'Disabled'}
             </span>
@@ -116,26 +116,24 @@ const FormRow = ({
           />
 
           {modified && (
-            // using fixed position to avoid the modified dot from being clipped by the overflow-hidden parent
-            // may need to revisit if form parent placement changes to not be flush right with viewport
-            <ModifiedDot className="fixed right-[17.5px] z-10" />
+            <ModifiedDot className="absolute right-[-0.46785rem] z-10" />
           )}
         </div>
       ) : (
         <div
           className={[
-            'relative h-[40px] overflow-hidden from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r',
+            'relative overflow-hidden from-gradient-primary-start to-gradient-primary-end p-px focus-within:bg-gradient-to-r',
             hasError ? 'bg-red-600' : 'bg-grey-800 focus-within:p-px',
             roundStyle,
           ].join(' ')}
         >
           <div
-            className={`flex h-[38px] items-center gap-[3px] overflow-hidden bg-grey-1000 ${roundStyle}`}
+            className={`flex items-center gap-[.1875rem] overflow-hidden bg-grey-1000 ${roundStyle}`}
           >
             {leftComponent}
             <input
               className={
-                'size-full overflow-hidden border-none bg-grey-1000 px-[24px] py-[12px] text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+                'size-full overflow-hidden border-none bg-grey-1000 px-6 py-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
               }
               type="text"
               disabled={!enabled}
@@ -170,15 +168,13 @@ const FormRow = ({
             {enabled &&
               initialState &&
               initialState[formPropertyName] !== value && (
-                <button className="pr-[16px]" onClick={resetFormValue}>
-                  <ResetIcon />
+                <button className="pr-4" onClick={resetFormValue}>
+                  <ResetIcon className="size-[1.125rem]" />
                 </button>
               )}
             {rightComponent}
             {enabled && modified && (
-              // using fixed position to avoid the modified dot from being clipped by the overflow-hidden parent
-              // may need to revisit if form parent placement changes to not be flush right with viewport
-              <ModifiedDot className="fixed right-[17.5px] z-10" />
+              <ModifiedDot className="absolute right-[-0.46785rem] z-10" />
             )}
           </div>
         </div>

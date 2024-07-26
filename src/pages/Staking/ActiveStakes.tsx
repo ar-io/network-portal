@@ -5,7 +5,6 @@ import TableView from '@src/components/TableView';
 import { GearIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import UnstakeAllModal from '@src/components/modals/UnstakeAllModal';
-import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
@@ -22,6 +21,7 @@ const columnHelper = createColumnHelper<TableData>();
 
 const ActiveStakes = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker); 
 
   const { isLoading, data: gateways } = useGateways();
   const [activeStakes, setActiveStakes] = useState<Array<TableData>>([]);
@@ -85,7 +85,7 @@ const ActiveStakes = () => {
     }),
     columnHelper.accessor('delegatedStake', {
       id: 'delegatedStake',
-      header: `Current Stake (${IO_LABEL})`,
+      header: `Current Stake (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => {
         return `${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`;
@@ -115,7 +115,7 @@ const ActiveStakes = () => {
             active={true}
             title="Manage Stake"
             text=" "
-            rightIcon={<GearIcon />}
+            rightIcon={<GearIcon className="size-4" />}
             onClick={() => {
               setStakingModalWalletAddress(row.original.owner);
             }}
@@ -130,12 +130,12 @@ const ActiveStakes = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
         <div className="grow text-sm text-mid">Active Stakes</div>
         {hasDelegatedStake && (
           <Button
             buttonType={ButtonType.SECONDARY}
-            className="*:text-gradient h-[30px]"
+            className="*:text-gradient h-[1.875rem]"
             active={true}
             title="Withdraw All"
             text="Withdraw All"

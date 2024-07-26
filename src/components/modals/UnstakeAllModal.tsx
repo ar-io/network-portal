@@ -1,5 +1,5 @@
 import { AoGateway, mIOToken } from '@ar.io/sdk/web';
-import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useState } from 'react';
@@ -25,6 +25,7 @@ const UnstakeAllModal = ({
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const sorted = activeStakes.sort(
     (a, b) => b.delegatedStake - a.delegatedStake,
@@ -78,22 +79,22 @@ const UnstakeAllModal = ({
   return (
     <>
       <BaseModal onClose={onClose} useDefaultPadding={false}>
-        <div className="w-[455px] text-left">
-          <div className="px-[32px]  pb-[16px] pt-[24px]">
+        <div className="w-[28.4375rem] text-left">
+          <div className="px-8  pb-4 pt-6">
             <div className="text-lg text-high">Unstake All</div>
-            <div className="flex pt-[8px] text-xs text-low">
+            <div className="flex pt-2 text-xs text-low">
               Withdraw all delegated stakes.
             </div>
           </div>
 
-          <div className="border-y border-grey-800 p-[32px]">
-            <table className="mb-[32px] w-full table-auto">
+          <div className="border-y border-grey-800 p-8">
+            <table className="mb-8 w-full table-auto">
               {withDelegatedStake.map((stake, index) => (
                 <tr key={index} className="text-sm">
-                  <td className="py-[8px] text-low ">
+                  <td className="py-2 text-low ">
                     {stake.gateway.settings.label}
                   </td>
-                  <td className="py-[8px]">
+                  <td className="py-2">
                     <a
                       className="text-gradient"
                       href={`https://${stake.gateway.settings.fqdn}`}
@@ -103,9 +104,9 @@ const UnstakeAllModal = ({
                       {stake.gateway.settings.fqdn}
                     </a>
                   </td>
-                  <td className="py-[8px] text-right text-mid ">
+                  <td className="py-2 text-right text-mid ">
                     {new mIOToken(stake.delegatedStake).toIO().valueOf()}{' '}
-                    {IO_LABEL}
+                    {ticker}
                   </td>
                 </tr>
               ))}
@@ -114,24 +115,24 @@ const UnstakeAllModal = ({
             <UnstakeWarning />
           </div>
 
-          <div className="px-[32px] pb-[32px] pt-[24px]">
-            <div className="flex gap-[8px] text-sm text-mid">
+          <div className="px-8 pb-8 pt-6">
+            <div className="flex gap-2 text-sm text-mid">
               <div className="grow">Fee:</div>
               <div>- AR</div>
             </div>
-            <div className="mt-[4px] flex text-sm text-mid">
+            <div className="mt-1 flex text-sm text-mid">
               <div className="grow">Total Withdrawal:</div>
               <div>
-                {new mIOToken(totalWithdrawalMIO).toIO().valueOf()} {IO_LABEL}
+                {new mIOToken(totalWithdrawalMIO).toIO().valueOf()} {ticker}
               </div>
             </div>
 
-            <div className="mt-[24px] flex grow justify-center">
+            <div className="mt-6 flex grow justify-center">
               <Button
                 onClick={processWithdrawAll}
                 buttonType={ButtonType.PRIMARY}
                 title="Unstake"
-                text={<div className="py-[8px]">Unstake</div>}
+                text={<div className="py-2">Unstake</div>}
                 className="w-full"
               />
             </div>

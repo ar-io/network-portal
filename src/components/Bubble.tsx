@@ -5,7 +5,7 @@ const Bubble = ({ value, customText, additionalClasses }: { value: boolean, cust
 
   return (
     <div
-      className={`flex w-fit items-center gap-[4px] rounded-xl border px-[9px] py-[2px] ${colorClasses} ${additionalClasses}`}
+      className={`flex w-fit items-center gap-1 rounded-xl border px-2 py-0.5 ${colorClasses} ${additionalClasses}`}
     >
       {customText ? customText : value ? 'Passed' : 'Failed'}
     </div>

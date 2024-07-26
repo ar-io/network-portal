@@ -1,6 +1,5 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { Popover } from '@headlessui/react';
-import { IO_LABEL } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { formatBalance, formatWalletAddress } from '@src/utils';
 import { forwardRef, useState } from 'react';
@@ -22,7 +21,7 @@ const CustomPopoverButton = forwardRef<HTMLButtonElement>((props, ref) => {
     <Button
       forwardRef={ref}
       buttonType={ButtonType.PRIMARY}
-      icon={<ConnectIcon />}
+      icon={<ConnectIcon className="size-4" />}
       title="Profile"
       {...props}
     />
@@ -40,17 +39,18 @@ const Profile = () => {
   const balances = useGlobalState((state) => state.balances);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker);
 
   return walletAddress ? (
     <Popover className="relative">
       <Popover.Button as={CustomPopoverButton} />
 
       <Popover.Panel
-        className="absolute right-0 z-50 mt-[10px] w-[240px] 
-      overflow-clip rounded-[12px] border border-grey-800 bg-grey-1000 text-sm shadow-xl"
+        className="absolute right-0 z-50 mt-2.5 w-fit 
+      overflow-clip rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl"
       >
-        <div className="flex gap-[8px] px-[16px] py-[20px] ">
-          <WalletIcon />
+        <div className="flex gap-2 px-4 py-5 ">
+          <WalletIcon className="size-4" />
 
           <div className="flex gap-2 align-middle text-mid">
             <a
@@ -73,17 +73,17 @@ const Profile = () => {
           </div>
           <CopyButton textToCopy={walletAddress.toString()} />
         </div>
-        <div className="mx-[16px] rounded-[6px] border border-grey-800 py-[12px]">
-          <div className="px-[16px] text-xs text-low">{IO_LABEL} Balance</div>
-          <div className="border-b border-grey-800 px-[16px] pb-[12px] pt-[4px] text-high">
+        <div className="mx-4  rounded-md border border-grey-800 py-3">
+          <div className="px-4 text-xs text-low">{ticker} Balance</div>
+          <div className="border-b border-grey-800 px-4 pb-3 pt-1 text-high">
             {formatBalance(balances.io)}
           </div>
-          <div className="px-[16px] pt-[12px] text-xs text-low">AR Balance</div>
-          <div className="px-[16px] pt-[4px] text-high">
+          <div className="px-4 pt-3 text-xs text-low">AR Balance</div>
+          <div className="px-4 pt-1 text-high">
             {formatBalance(balances.ar)}
           </div>
         </div>
-        <div className="flex flex-col gap-[12px] px-[24px] py-[12px] text-mid">
+        <div className="flex flex-col gap-3 text-nowrap px-6 py-3 text-mid">
           <button
             className="flex items-center"
             title="Transaction History"
@@ -94,20 +94,21 @@ const Profile = () => {
               );
             }}
           >
-            <ClockRewindIcon className="mr-[8px]" /> Transaction History
-            <LinkArrowIcon className="ml-[4px]" />
+            <ClockRewindIcon className="mr-2 h-4 w-[.9375rem]" /> Transaction
+            History
+            <LinkArrowIcon className="ml-1 size-3" />
           </button>
         </div>
-        <div className="bg-btn-secondary-default flex flex-col gap-[12px] px-[24px] py-[12px] text-mid">
+        <div className="flex flex-col gap-3 bg-btn-secondary-default px-6 py-3 text-mid">
           <button
-            className="flex items-center gap-[8px]"
+            className="flex items-center gap-2"
             title="Logout"
             onClick={async () => {
               await wallet?.disconnect();
               updateWallet(undefined, undefined);
             }}
           >
-            <LogoutIcon /> Logout
+            <LogoutIcon className="size-4" /> Logout
           </button>
         </div>
       </Popover.Panel>
@@ -116,7 +117,7 @@ const Profile = () => {
     <div>
       <Button
         buttonType={ButtonType.PRIMARY}
-        icon={<ConnectIcon />}
+        icon={<ConnectIcon className="size-4" />}
         title="Connect"
         text="Connect"
         onClick={() => setIsModalOpen(true)}

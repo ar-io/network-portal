@@ -1,5 +1,5 @@
 import { IOToken } from '@ar.io/sdk/web';
-import { IO_LABEL, WRITE_OPTIONS, log } from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -41,6 +41,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const [formState, setFormState] =
     useState<Record<string, string | boolean>>(DEFAULT_FORM_STATE);
@@ -71,8 +72,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     {
       formPropertyName: 'address',
       label: '*Address:',
-      leftComponent: <div className="pl-[24px] text-xs text-low">https://</div>,
-      rightComponent: <div className="pr-[24px] text-xs text-low">:443</div>,
+      leftComponent: <div className="pl-6 text-xs text-low">https://</div>,
+      rightComponent: <div className="pr-6 text-xs text-low">:443</div>,
 
       validateProperty: validateDomainName('Address'),
     },
@@ -89,9 +90,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     },
     {
       formPropertyName: 'stake',
-      label: `*Stake (${IO_LABEL}):`,
-      placeholder: `Minimum 50000 ${IO_LABEL}`,
-      validateProperty: validateIOAmount('Stake', 50000),
+      label: `*Stake (${ticker}):`,
+      placeholder: `Minimum 50000 ${ticker}`,
+      validateProperty: validateIOAmount('Stake', ticker, 50000),
     },
     {
       formPropertyName: 'allowDelegatedStaking',
@@ -99,12 +100,12 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     },
     {
       formPropertyName: 'minDelegatedStake',
-      label: `Minimum Delegated Stake (${IO_LABEL}):`,
+      label: `Minimum Delegated Stake (${ticker}):`,
       enabled: allowDelegatedStaking,
       placeholder: allowDelegatedStaking
-        ? `Minimum 500 ${IO_LABEL}`
+        ? `Minimum 500 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount('Minimum Delegated Stake', 500),
+      validateProperty: validateIOAmount('Minimum Delegated Stake', ticker, 500),
     },
     {
       formPropertyName: 'delegatedStakingShareRatio',
@@ -201,14 +202,14 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <BaseModal onClose={closeDialog}>
-      <div className="w-[680px] text-left">
-        <div className="pb-[12px] text-[24px] text-high">Start Gateway</div>
+      <div className="w-[42.5rem] text-left">
+        <div className="pb-3 text-2xl text-high">Start Gateway</div>
         <div className="flex text-sm text-low">
           Owner ID:&nbsp;
           <span className="text-link">{walletAddress?.toString()}</span>
         </div>
 
-        <div className="mt-[32px] grid grid-cols-[221px_auto] overflow-hidden rounded-md outline outline-grey-500">
+        <div className="mt-8 grid grid-cols-[14.375rem_auto] overflow-hidden rounded-md outline outline-grey-500">
           {formRowDefs.map((rowDef, index) => {
             return (
               <FormRow
@@ -232,9 +233,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
             );
           })}
         </div>
-        <div className="mt-[32px] flex w-full grow justify-end gap-[11px]">
+        <div className="mt-8 flex w-full grow justify-end gap-[.6875rem]">
           <Button
-            className="w-[100px]"
+            className="w-[6.25rem]"
             onClick={closeDialog}
             active={true}
             title="Cancel"
@@ -248,7 +249,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
             }
           >
             <Button
-              className="w-[100px]"
+              className="w-[6.25rem]"
               onClick={() => {
                 submitForm();
               }}

@@ -9,7 +9,6 @@ import StakingModal from '@src/components/modals/StakingModal';
 import {
   EAY_TOOLTIP_FORMULA,
   EAY_TOOLTIP_TEXT,
-  IO_LABEL,
 } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
@@ -39,6 +38,7 @@ const columnHelper = createColumnHelper<TableData>();
 
 const DelegateStake = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const { isLoading, data: gateways } = useGateways();
   const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
@@ -132,7 +132,7 @@ const DelegateStake = () => {
     }),
     columnHelper.accessor('totalStake', {
       id: 'totalStake',
-      header: `Total Stake (${IO_LABEL})`,
+      header: `Total Stake (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => (
         <Tooltip
@@ -140,11 +140,11 @@ const DelegateStake = () => {
             <div>
               <div>
                 Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
-                {IO_LABEL}
+                {ticker}
               </div>
               <div className="mt-1">
                 Delegated Stake:{' '}
-                {formatWithCommas(row.original.totalDelegatedStake)} {IO_LABEL}
+                {formatWithCommas(row.original.totalDelegatedStake)} {ticker}
               </div>
             </div>
           }
@@ -192,7 +192,7 @@ const DelegateStake = () => {
     columnHelper.accessor('eay', {
       id: 'eay',
       header: () => (
-        <div className="flex gap-[4px]">
+        <div className="flex gap-1">
           EAY
           <Tooltip
             message={
@@ -221,7 +221,7 @@ const DelegateStake = () => {
       header: '',
       cell: ({ row }) => {
         return (
-          <div className="pr-[24px]">
+          <div className="pr-6">
             <Button
               buttonType={ButtonType.PRIMARY}
               active={true}
@@ -243,7 +243,7 @@ const DelegateStake = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-4 pl-6 pr-3">
         <div className="grow text-sm text-mid">Delegate Stake</div>
       </div>
       <TableView
@@ -251,7 +251,7 @@ const DelegateStake = () => {
         data={stakeableGateways}
         isLoading={isLoading}
         noDataFoundText="No stakeable gateways found."
-        defaultSortingState={{ id: 'totalDelegatedStake', desc: true }}
+        defaultSortingState={{ id: 'totalStake', desc: true }}
       />
       {stakingModalWalletAddress && (
         <StakingModal

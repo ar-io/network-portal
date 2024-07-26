@@ -4,13 +4,13 @@ import Header from '@src/components/Header';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
 import { StreakDownArrowIcon, StreakUpArrowIcon } from '@src/components/icons';
-import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import { formatDate, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Banner from './Banner';
+import { useGlobalState } from '@src/store';
 
 interface TableData {
   label: string;
@@ -30,6 +30,9 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const Gateways = () => {
+
+  const ticker = useGlobalState((state) => state.ticker);
+
   const { isLoading, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
@@ -117,7 +120,7 @@ const Gateways = () => {
     }),
     columnHelper.accessor('totalStake', {
       id: 'totalStake',
-      header: `Total Stake (${IO_LABEL})`,
+      header: `Total Stake (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => (
         <Tooltip
@@ -125,11 +128,11 @@ const Gateways = () => {
             <div>
               <div>
                 Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
-                {IO_LABEL}
+                {ticker}
               </div>
               <div className="mt-1">
                 Delegated Stake:{' '}
-                {formatWithCommas(row.original.totalDelegatedStake)} {IO_LABEL}
+                {formatWithCommas(row.original.totalDelegatedStake)} {ticker}
               </div>
             </div>
           }
@@ -182,11 +185,11 @@ const Gateways = () => {
             ? 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up'
             : 'border-text-red/[.56] bg-text-red/[.1] text-text-red';
         const icon =
-          streak > 0 ? <StreakUpArrowIcon /> : <StreakDownArrowIcon />;
+          streak > 0 ? <StreakUpArrowIcon className='size-3'/> : <StreakDownArrowIcon className='size-3'/>;
 
         return (
           <div
-            className={`flex w-fit items-center gap-[4px] rounded-xl border py-[2px] pl-[7px] pr-[9px] ${colorClasses}`}
+            className={`flex w-fit items-center gap-1 rounded-xl border py-0.5 pl-[.4375rem] pr-[.5625rem] ${colorClasses}`}
           >
             {icon} {Math.abs(streak)}
           </div>
@@ -196,11 +199,11 @@ const Gateways = () => {
   ];
 
   return (
-    <div className="flex h-screen max-w-full flex-col gap-[24px] overflow-auto pr-[24px] scrollbar">
+    <div className="flex h-screen max-w-full flex-col gap-6 overflow-auto pr-6 scrollbar">
       <Header />
       <Banner />
-      <div className="mb-[32px]">
-        <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[15px] pl-[24px] pr-[13px]">
+      <div className="mb-8">
+        <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
           <div className="grow text-sm text-mid">Gateways</div>
         </div>
         <TableView

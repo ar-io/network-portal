@@ -34,7 +34,7 @@ export const Button = ({
     ].join(' ');
 
     const btnClassNames =
-      'inline-flex size-full items-center gap-[11px] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[11px] py-[5px] shadow-inner';
+      'inline-flex size-full items-center gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.6875rem] py-[.3125rem] shadow-inner';
 
     return (
       <div className={classNames}>
@@ -55,11 +55,11 @@ export const Button = ({
     );
   } else if (buttonType === ButtonType.SECONDARY) {
     const baseClassNames =
-      'h-[34px] rounded-[6px] flex items-center space-x-[11px] px-[11px] py-[5px] text-[14px]';
+      'h-[2.125rem]  rounded-md flex items-center space-x-[.6875rem] px-[.6875rem] py-[.3125rem] text-sm';
     const activeClassNames =
       'bg-gradient-to-b shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] dark:bg-[#212124] text-high';
     const nonActiveClassnames =
-      'hover:rounded-[6px] hover:bg-gradient-to-b hover:shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] hover:dark:bg-[#212124] text-mid';
+      'hover: rounded-md hover:bg-gradient-to-b hover:shadow-[0px_0px_0px_1px_#050505,0px_1px_0px_0px_rgba(86,86,86,0.25)_inset] dark:from-[rgba(102,102,102,.06)] dark:to-[rgba(0,0,0,0.06)] hover:dark:bg-[#212124] text-mid';
 
     const buttonClassNames = [
       baseClassNames,
@@ -76,7 +76,7 @@ export const Button = ({
         {icon}
         {text && (
           <div
-            className={`flex grow items-center space-x-[4px] leading-none ${icon ? 'justify-start' : 'justify-center'}`}
+            className={`flex grow items-center space-x-1 leading-none ${icon ? 'justify-start' : 'justify-center'}`}
           >
             {text} {rightIcon}
           </div>

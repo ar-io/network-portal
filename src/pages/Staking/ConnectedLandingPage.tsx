@@ -2,7 +2,6 @@ import { mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import { PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
-import { IO_LABEL } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -13,6 +12,7 @@ import DelegateStake from './DelegateStakeTable';
 
 const ConnectedLandingPage = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const ticker = useGlobalState((state) => state.ticker);
   const [amountStaking, setAmountStaking] = useState<number>();
 
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
@@ -56,26 +56,26 @@ const ConnectedLandingPage = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-[24px] py-[24px]">
-      <div className="grid grid-cols-3 gap-[24px]">
+    <div className="flex flex-col gap-6 py-6">
+      <div className="grid grid-cols-3 gap-6">
         {topPanels.map((panel, index) => (
           <div
             key={index}
-            className="rounded-xl border border-grey-600 px-[24px] py-[20px] text-center"
+            className="rounded-xl border border-grey-600 px-6 py-5 text-center"
           >
             <div className="text-sm text-mid">{panel.title}</div>
-            <div className="m-auto my-[12px] flex w-fit gap-[8px]">
-              <div className="text-[42px] leading-none text-high">
+            <div className="m-auto my-3 flex w-fit gap-2">
+              <div className="text-[2.6rem] leading-none text-high">
                 {panel.balance ?? <Placeholder />}
               </div>
-              <div className="text-sm text-high">{IO_LABEL}</div>
+              <div className="text-sm text-high">{ticker}</div>
             </div>
           </div>
         ))}
       </div>
 
       <button
-        className="group relative h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
+        className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
         onClick={() => {
           setIsStakingModalOpen(true);
         }}
@@ -86,13 +86,13 @@ bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-
         >
           <div className="size-full overflow-hidden rounded-xl bg-grey-800"></div>
         </div>
-        <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-[24px] align-middle">
-          <div className="flex items-center gap-[8px]">
+        <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
+          <div className="flex items-center gap-2">
             <div className="text-gradient">Delegate your Stake</div>{' '}
-            <PinkArrowIcon />
+            <PinkArrowIcon className='size-3'/>
           </div>
 
-          <div className="pt-[8px] text-sm text-low">
+          <div className="pt-2 text-sm text-low">
             Quick Stake by entering a wallet address to delegate to.
           </div>
         </div>

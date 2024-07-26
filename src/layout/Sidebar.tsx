@@ -16,15 +16,31 @@ import {
 } from '../components/icons';
 
 const ROUTES_PRIMARY = [
-  // { title: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { title: 'Gateways', icon: <GatewaysIcon />, path: '/gateways' },
-  { title: 'Staking', icon: <StakingIcon />, path: '/staking' },
-  { title: 'Observers', icon: <BinocularsIcon />, path: '/observers' },
+  // { title: 'Dashboard', icon: <DashboardIcon className="size-4" />, path: '/dashboard' },
+  {
+    title: 'Gateways',
+    icon: <GatewaysIcon className="size-4" />,
+    path: '/gateways',
+  },
+  {
+    title: 'Staking',
+    icon: <StakingIcon className="size-4" />,
+    path: '/staking',
+  },
+  {
+    title: 'Observers',
+    icon: <BinocularsIcon className="size-4" />,
+    path: '/observers',
+  },
 ];
 
 const ROUTES_SECONDARY = [
-  { title: 'Docs', icon: <DocsIcon />, path: ARIO_DOCS_URL },
-  { title: 'Process', icon: <ContractIcon />, path: IO_PROCESS_INFO_URL },
+  { title: 'Docs', icon: <DocsIcon className="size-4" />, path: ARIO_DOCS_URL },
+  {
+    title: 'Process',
+    icon: <ContractIcon className="size-4" />,
+    path: IO_PROCESS_INFO_URL,
+  },
 ];
 
 const Sidebar = () => {
@@ -39,19 +55,19 @@ const Sidebar = () => {
     localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
 
-  const sideBarClasses = `flex h-screen w-[${sidebarOpen ? '264px' : '90px'}] flex-col p-[24px]
+  const sideBarClasses = `flex h-screen w-fit flex-col p-6
   dark:bg-grey-1000 dark:text-mid`;
 
   return (
     <aside className={sideBarClasses}>
-      <div className="flex h-[36px] pb-[64px]">
-        <ArioLogoIcon />
+      <div className="flex h-9 pb-16">
+        <ArioLogoIcon className="h-[1.6875rem] w-[2.125rem]" />
         {sidebarOpen && (
-          <div className="pl-[12px]">
-            <p className="align-top text-[14px] leading-none text-neutrals-100">
+          <div className="pl-3">
+            <p className="align-top text-sm leading-none text-neutrals-100">
               NETWORK PORTAL
             </p>
-            <p className="text-[12px]">by ar.io</p>
+            <p className="text-xs">by ar.io</p>
           </div>
         )}
       </div>
@@ -72,13 +88,13 @@ const Sidebar = () => {
       </div>
       <div className="grow"></div>
       <hr className="text-divider" />
-      <div className="py-[12px]">
+      <div className="py-3">
         {ROUTES_SECONDARY.map(({ title, icon, path }, index) => (
           <Button
             key={index}
             className="w-full"
             icon={icon}
-            rightIcon={<LinkArrowIcon />}
+            rightIcon={<LinkArrowIcon className="size-3" />}
             title={path}
             text={sidebarOpen ? title : undefined}
             onClick={() => {
@@ -88,12 +104,16 @@ const Sidebar = () => {
         ))}
       </div>
       <hr className="text-divider" />
-      <div className="pt-[24px]">
+      <div className="pt-6">
         <div
           className={sidebarOpen ? 'flex justify-end' : 'flex justify-center'}
         >
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? <CloseDrawerIcon /> : <OpenDrawerIcon />}
+            {sidebarOpen ? (
+              <CloseDrawerIcon className="size-5" />
+            ) : (
+              <OpenDrawerIcon className="size-5" />
+            )}
           </button>
         </div>
       </div>

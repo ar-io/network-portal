@@ -14,9 +14,9 @@ import { useNavigate } from 'react-router-dom';
 
 const InfoSection = ({ label, value }: { label: string; value: string }) => {
   return (
-    <div className="inline-flex h-[38px] flex-col items-start justify-start gap-1 border-r px-[48px] text-left dark:border-transparent-100-8">
-      <div className="pt-[4px] text-[12px] leading-none text-low">{label}</div>
-      <div className="text-nowrap text-[12px] text-mid">{value}</div>
+    <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-12 text-left dark:border-transparent-100-8">
+      <div className="pt-1 text-xs leading-none text-low">{label}</div>
+      <div className="text-nowrap text-xs text-mid">{value}</div>
     </div>
   );
 };
@@ -36,7 +36,7 @@ const Banner = () => {
       {!walletAddress || gatewayStatus == GatewayStatus.NOT_FOUND ? (
         <div>
           <button
-            className="group relative h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
+            className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
             onClick={() => {
               if (!walletAddress) {
                 setLoginOpen(true);
@@ -50,18 +50,19 @@ const Banner = () => {
        bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
             >
               <div className="size-full overflow-hidden rounded-xl bg-grey-800">
-                <StartGatewayCubes className="relative -top-px left-[63px] z-0" />
+                <StartGatewayCubes className="relative -top-px left-[calc(4rem-1px)] z-0" />
               </div>
             </div>
-            <StartGatewayCubes className="visible absolute left-[64px] top-0 z-0 group-hover:invisible" />
-            <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-[24px] align-middle">
-              <div className="flex items-center gap-[8px]">
+            <StartGatewayCubes className="visible absolute left-16 top-0 z-0 group-hover:invisible" />
+            <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
+              <div className="flex items-center gap-2">
                 <div className="text-gradient">Start your own gateway</div>{' '}
-                <PinkArrowIcon />
+                <PinkArrowIcon className="size-3" />
               </div>
 
-              <div className="pt-[8px] text-sm text-low">
-                By running a gateway, you become a contributor to the ecosystem and can earn rewards.
+              <div className="pt-2 text-sm text-low">
+                By running a gateway, you become a contributor to the ecosystem
+                and can earn rewards.
               </div>
             </div>
           </button>
@@ -69,7 +70,7 @@ const Banner = () => {
       ) : gatewayStatus == GatewayStatus.FOUND ? (
         <div>
           <button
-            className="group relative h-[120px] w-full overflow-hidden rounded-xl bg-grey-800"
+            className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
             onClick={() => {
               if (walletAddress) {
                 navigate(`/gateways/${walletAddress.toString()}`);
@@ -81,20 +82,20 @@ const Banner = () => {
         from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
             >
               <div className="relative size-full overflow-hidden rounded-xl bg-grey-800">
-                <StartGatewayCubes className="absolute right-[-11px] top-[-6px] z-0" />
+                <StartGatewayCubes className="absolute right-[calc(-.625rem-1px)] top-[calc(-.3125rem-1px)] z-0" />
               </div>
             </div>
-            <StartGatewayCubes className="visible absolute right-[-10px] top-[-5px] z-0  group-hover:invisible" />
-            <BannerRightChevron className="invisible absolute right-[16px] top-[16px] group-hover:visible" />
-            <div className="absolute top-0 z-10 flex size-full flex-col bg-transparent py-[24px] align-middle">
-              <div className="flex items-center gap-[12px] pl-[24px]">
-                <GatewayIcon className="block group-hover:hidden" />
-                <GatewayHoverIcon className="hidden group-hover:block" />
+            <StartGatewayCubes className="visible absolute right-[-.625rem] top-[-.3125rem] z-0  group-hover:invisible" />
+            <BannerRightChevron className="invisible absolute right-4 top-4 group-hover:visible" />
+            <div className="absolute top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle">
+              <div className="flex items-center gap-3 pl-6">
+                <GatewayIcon className="block h-3 w-4 group-hover:hidden" />
+                <GatewayHoverIcon className="hidden h-3 w-4 group-hover:block" />
                 <div className="group-hover:text-gradient text-sm text-high">
                   My Gateway
                 </div>
               </div>
-              <div className="mt-[12px] flex pl-[6px]">
+              <div className="mt-3 flex pl-1.5">
                 {gatewayInfo.map(([label, value], index) => (
                   <InfoSection key={index} label={label} value={`${value}`} />
                 ))}
@@ -103,7 +104,7 @@ const Banner = () => {
           </button>
         </div>
       ) : (
-        <div className="relative h-[120px] w-full justify-center overflow-hidden rounded-xl bg-grey-800 ">
+        <div className="relative h-[7.5rem] w-full justify-center overflow-hidden rounded-xl bg-grey-800 ">
           <div className="h-full content-center text-center text-sm text-low">
             Loading gateway information...
           </div>

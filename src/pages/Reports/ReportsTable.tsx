@@ -1,4 +1,5 @@
 import { AoGateway } from '@ar.io/sdk';
+import Placeholder from '@src/components/Placeholder';
 import TableView from '@src/components/TableView';
 import useReports, { ReportTransactionData } from '@src/hooks/useReports';
 import { formatDate } from '@src/utils';
@@ -21,6 +22,7 @@ const ReportsTable = ({
     data: reports,
     hasNextPage,
     fetchNextPage,
+    isFetchingNextPage
   } = useReports(ownerId, gateway);
 
   // Define columns for the table
@@ -34,7 +36,7 @@ const ReportsTable = ({
       id: 'generatedAt',
       header: 'Generated At',
       sortDescFirst: false,
-      cell: ({row}) => formatDate(new Date(row.original.timestamp)),
+      cell: ({ row }) => formatDate(new Date(row.original.timestamp)),
     }),
     columnHelper.accessor('size', {
       id: 'size',
@@ -68,13 +70,19 @@ const ReportsTable = ({
         data={data || []}
         isLoading={isLoading}
         noDataFoundText="No reports found."
-        defaultSortingState={{ id: 'timestamp', desc: true }}
+        defaultSortingState={{ id: 'generatedAt', desc: true }}
         onRowClick={(row) => {
           navigate(`/gateways/${ownerId}/reports/${row.txid}`);
         }}
       />
       {hasNextPage && (
-        <button onClick={() => fetchNextPage()}>Load More</button>
+        <div className="flex w-full items-center justify-center border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
+          {isLoading || isFetchingNextPage ? (
+            <Placeholder className='grow'/>
+          ) : (
+            <button onClick={() => fetchNextPage()}>Load More</button>
+          )}
+        </div>
       )}
     </div>
   );

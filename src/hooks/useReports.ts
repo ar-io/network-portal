@@ -25,10 +25,10 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
     queryFn: async ({ pageParam }) => {
       if (
         !arIOReadSDK ||
-        !startEpoch ||
+        startEpoch === undefined ||
         !gatewayStart ||
         !observerAddress ||
-        !pageParam
+        pageParam === undefined
       ) {
         throw new Error(
           'arIOReadSDK, startEpoch, ownerId, observerAddress, or gatewayStart not available',
@@ -52,7 +52,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
         epochIndexToFetch -= windowSize;
 
         const epochs = await Promise.all(
-          batchedEpochIndicies.map((epochIndex) =>
+          batchedEpochIndicies.filter(v => v >= 0).map((epochIndex) =>
             arIOReadSDK.getEpoch({ epochIndex }),
           ),
         );
@@ -110,7 +110,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
                 ),
                 size: parseInt(transaction.node.data.size),
                 version:
-                  tags.find((tag) => tag.name === 'App-Version')?.value || '',
+                  tags.find((tag) => tag.name === 'AR-IO-Observer-Report-Version')?.value || '',
               };
             },
           );
@@ -118,7 +118,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
           data = data.concat(recordData);
         }
 
-        if (filtered.length < windowSize) {
+        if (filtered.length < windowSize || epochIndexToFetch < 0) {
           completed = true;
           break;
         }

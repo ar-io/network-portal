@@ -20,7 +20,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn ${{ matrix.step }}
 
   deploy-to-firebase:
@@ -37,7 +37,7 @@ jobs:
 
       - name: Install and Build 🔧
         run: |
-          yarn install --frozen-lockfile
+          yarn install --frozen-lockfile --ignore-engines
           yarn build
         env:
           # FOR BUILD
@@ -74,7 +74,7 @@ jobs:
 
       - name: Install, Build, and Deploy 🔧
         run: |
-          yarn install --frozen-lockfile
+          yarn install --frozen-lockfile --ignore-engines
           yarn deploy 
         env:
           # FOR BUILD

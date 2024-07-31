@@ -104,6 +104,15 @@ const Gateway = () => {
     ? new mIOToken(gateway.operatorStake).toIO().valueOf() + (balances?.io || 0)
     : undefined;
 
+  const weightFields: Array<[string, number | undefined]> = [
+    ['Stake', gateway?.weights?.stakeWeight],
+    ['Tenure', gateway?.weights?.tenureWeight],
+    ['Gateway Reward Ratio', gateway?.weights?.gatewayRewardRatioWeight],
+    ['Observer Reward Ratio', gateway?.weights?.observerRewardRatioWeight],
+    ['Composite', gateway?.weights?.compositeWeight],
+    ['Normalized', gateway?.weights?.normalizedCompositeWeight],
+  ];
+
   useEffect(() => {
     setInitialState((currentState) => {
       return {
@@ -381,39 +390,61 @@ const Gateway = () => {
     <div className="flex h-screen max-w-full flex-col overflow-y-auto pr-6 scrollbar">
       <GatewayHeader gateway={gateway} />
       <div className="my-6 flex gap-6">
-        <div className="size-fit rounded-xl border border-transparent-100-16 text-sm">
-          <div className="px-6 py-4">
-            <div className="text-high">Stats</div>
+        <div className="flex flex-col gap-6">
+          <div className="size-fit rounded-xl border border-transparent-100-16 text-sm">
+            <div className="px-6 py-4">
+              <div className="text-high">Stats</div>
+            </div>
+            <StatsBox
+              title="Join Date"
+              value={
+                gateway?.startTimestamp
+                  ? formatDate(new Date(gateway?.startTimestamp))
+                  : undefined
+              }
+            />
+            <StatsBox
+              title="Uptime"
+              value={
+                healthCheckRes.isError
+                  ? 'N/A'
+                  : healthCheckRes.isLoading
+                    ? undefined
+                    : formatUptime(healthCheckRes.data?.uptime)
+              }
+            />
+            <StatsBox
+              title="Delegates"
+              value={
+                gateway?.delegates
+                  ? Object.keys(gateway.delegates).length
+                  : undefined
+              }
+            />
+            {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
           </div>
-          <StatsBox
-            title="Join Date"
-            value={
-              gateway?.startTimestamp
-                ? formatDate(new Date(gateway?.startTimestamp))
-                : undefined
-            }
-          />
-          <StatsBox
-            title="Uptime"
-            value={
-              healthCheckRes.isError
-                ? 'N/A'
-                : healthCheckRes.isLoading
-                  ? undefined
-                  : formatUptime(healthCheckRes.data?.uptime)
-            }
-          />
-          <StatsBox
-            title="Delegates"
-            value={
-              gateway?.delegates
-                ? Object.keys(gateway.delegates).length
-                : undefined
-            }
-          />
-          {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
+
+          {gateway?.weights && (
+            <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
+              <div className="px-6 py-4">
+                <div className="text-high">Weights</div>
+              </div>
+
+              {weightFields.map(([title, value], index) => (
+                <div
+                  key={`weights${index}`}
+                  className="flex items-center border-t border-transparent-100-16 px-6 py-4"
+                >
+                  <div className="grow text-xs text-low">{title}:</div>
+                  <div className="text-right text-sm">
+                    {value ? value.toFixed(3) : <Placeholder />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="size-full grow overflow-hidden rounded-xl border border-transparent-100-16">
+        <div className="h-fit w-full grow overflow-hidden rounded-xl border border-transparent-100-16">
           <div className="flex items-center py-4 pl-6 pr-3">
             <div className="text-sm text-high">General Information</div>
             <div className="flex grow gap-6" />

@@ -18,6 +18,7 @@ import { calculateGatewayRewards } from '@src/utils/rewards';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface TableData {
   label: string;
@@ -51,6 +52,8 @@ const DelegateStake = () => {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
 
   const { data: protocolBalance } = useProtocolBalance();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stakeableGateways: Array<TableData> =
@@ -118,6 +121,7 @@ const DelegateStake = () => {
             href={`https://${row.getValue('domain')}`}
             target="_blank"
             rel="noreferrer"
+            onClick={(e) => e.stopPropagation()} 
           >
             {row.getValue('domain')}
           </a>{' '}
@@ -227,7 +231,8 @@ const DelegateStake = () => {
               active={true}
               title="Manage Stake"
               text="Stake"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 if (walletAddress) {
                   setStakingModalWalletAddress(row.getValue('owner') as string);
                 } else {
@@ -252,6 +257,9 @@ const DelegateStake = () => {
         isLoading={isLoading}
         noDataFoundText="No stakeable gateways found."
         defaultSortingState={{ id: 'totalStake', desc: true }}
+        onRowClick={(row) => {
+          navigate(`/gateways/${row.owner}`);
+        }}
       />
       {stakingModalWalletAddress && (
         <StakingModal

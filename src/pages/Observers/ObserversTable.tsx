@@ -22,7 +22,6 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const ObserversTable = () => {
-
   const navigate = useNavigate();
 
   const { isLoading, data: observers } = useObservers();
@@ -92,6 +91,7 @@ const ObserversTable = () => {
             href={`https://${row.getValue('domain')}`}
             target="_blank"
             rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
           >
             {row.getValue('domain')}
           </a>{' '}
@@ -137,7 +137,7 @@ const ObserversTable = () => {
       id: 'failedGateways',
       header: 'Failed Gateways',
       sortDescFirst: true,
-      cell: ({ row }) => row.original.failedGateways || "Pending",
+      cell: ({ row }) => row.original.failedGateways || 'Pending',
     }),
   ];
 

@@ -54,7 +54,7 @@ const DisplayRow = ({
           {value}
         </a>
       ) : (
-        <div className="flex gap-1 text-left text-low items-center">
+        <div className="flex items-center gap-1 text-left text-low">
           {value}
           {rightIcon}
         </div>

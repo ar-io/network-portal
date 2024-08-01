@@ -1,4 +1,3 @@
-import { ArconnectSigner } from '@ar.io/sdk/web';
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export interface Equatable<T> {
@@ -10,7 +9,7 @@ export interface ArweaveWalletConnector {
   disconnect(): Promise<void>;
   getWalletAddress(): Promise<ArweaveTransactionID>;
   // getGatewayConfig(): Promise<ApiConfig>;
-  signer?: ArconnectSigner;
+  signer?: Window['arweaveWallet'];
 }
 
 export enum WALLET_TYPES {
@@ -45,7 +44,8 @@ export interface OwnershipAssessment {
   pass: boolean;
 }
 
-export interface ArNSAssessmentTimings extends Record<string, number | undefined> {
+export interface ArNSAssessmentTimings
+  extends Record<string, number | undefined> {
   dns: number | undefined;
   download: number | undefined;
   firstByte: number | undefined;

@@ -9,6 +9,7 @@ import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface TableData {
   owner: string;
@@ -29,6 +30,8 @@ const ActiveStakes = () => {
   const [showUnstakeAllModal, setShowUnstakeAllModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const activeStakes: Array<TableData> =
@@ -71,6 +74,7 @@ const ActiveStakes = () => {
             href={`https://${row.getValue('domain')}`}
             target="_blank"
             rel="noreferrer"
+            onClick={(e) => e.stopPropagation()} 
           >
             {row.getValue('domain')}
           </a>{' '}
@@ -116,7 +120,8 @@ const ActiveStakes = () => {
             title="Manage Stake"
             text=" "
             rightIcon={<GearIcon className="size-4" />}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setStakingModalWalletAddress(row.original.owner);
             }}
           />
@@ -151,6 +156,9 @@ const ActiveStakes = () => {
         defaultSortingState={{
           id: 'delegatedStake',
           desc: true,
+        }}
+        onRowClick={(row) => {
+          navigate(`/gateways/${row.owner}`);
         }}
       />
       {showUnstakeAllModal && (

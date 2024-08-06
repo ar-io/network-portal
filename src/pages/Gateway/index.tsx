@@ -1,4 +1,4 @@
-import { IOToken, UpdateGatewaySettingsParams, mIOToken } from '@ar.io/sdk/web';
+import { IOToken, AoUpdateGatewaySettingsParams, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import FormRow, { RowType } from '@src/components/forms/FormRow';
@@ -307,7 +307,7 @@ const Gateway = () => {
         ? parseFloat(changed.stake as string)
         : undefined;
 
-      const updateGatewaySettingsParams: UpdateGatewaySettingsParams = {
+      const updateGatewaySettingsParams: AoUpdateGatewaySettingsParams = {
         allowDelegatedStaking: changed.allowDelegatedStaking as boolean,
         delegateRewardShareRatio:
           formState.allowDelegatedStaking && changed.delegateRewardShareRatio
@@ -319,7 +319,7 @@ const Gateway = () => {
           formState.allowDelegatedStaking && changed.minDelegatedStake
             ? new IOToken(
                 parseFloat(changed.minDelegatedStake as string),
-              ).toMIO()
+              ).toMIO().valueOf()
             : undefined,
         note: changed.note as string,
         properties: changed.properties as string,

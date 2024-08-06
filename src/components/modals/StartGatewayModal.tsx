@@ -153,11 +153,11 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
             allowDelegatedStaking
               ? parseFloat(String(formState.minDelegatedStake))
               : DEFAULT_DELEGATED_STAKING,
-          ).toMIO(),
+          ).toMIO().valueOf(),
           autoStake: true,
           operatorStake: new IOToken(
             parseFloat(String(formState.stake)),
-          ).toMIO(),
+          ).toMIO().valueOf(),
         };
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK

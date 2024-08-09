@@ -205,7 +205,7 @@ const AssessmentDetailsPanel = ({
 
                   <div className="flex grow justify-end">
                     <Bubble
-                      value={assessment.pass}
+                      value={assessment.ownershipAssessment.pass}
                       additionalClasses="text-xs"
                     />
                   </div>

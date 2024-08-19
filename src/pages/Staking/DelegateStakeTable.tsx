@@ -197,7 +197,7 @@ const DelegateStake = () => {
       id: 'eay',
       header: () => (
         <div className="flex gap-1">
-          EAY
+          Delegate EAY
           <Tooltip
             message={
               <div>
@@ -215,7 +215,7 @@ const DelegateStake = () => {
         <div>
           {row.original.eay < 0
             ? 'N/A'
-            : `${formatWithCommas(row.original.eay)}%`}
+            : `${formatWithCommas(row.original.eay * 100)}%`}
         </div>
       ),
     }),

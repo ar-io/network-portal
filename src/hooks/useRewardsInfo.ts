@@ -7,28 +7,29 @@ import {
 import useGateways from './useGateways';
 import useProtocolBalance from './useProtocolBalance';
 
-const useRewardsInfo = (gateway: AoGateway | undefined, userStake: number) => {
+const useRewardsInfo = (
+  gateway: AoGateway | undefined,
+  userStake: number
+) => {
   const { data: gateways } = useGateways();
   const { data: protocolBalance } = useProtocolBalance();
 
   let res: UserRewards | undefined = undefined;
 
-  if (
-    gateways &&
-    gateway &&
-    protocolBalance &&
-    protocolBalance > 0 &&
-    userStake > 0
-  ) {
+  if (gateways && gateway && protocolBalance && protocolBalance > 0 && !isNaN(userStake)) {
     const numGateways = gateways ? Object.keys(gateways).length : 0;
     const gatewayRewards = calculateGatewayRewards(
       new mIOToken(protocolBalance).toIO(),
       numGateways,
       gateway,
     );
+
+    console.log(userStake)
+
     const userRewards = calculateUserRewards(
       gatewayRewards,
-      new IOToken(userStake),
+      new IOToken(Math.abs(userStake)),
+      userStake < 0
     );
     res = userRewards;
   }

@@ -1,8 +1,8 @@
 import { AoGateway, IOToken, mIOToken } from '@ar.io/sdk/web';
 
 const EPOCHS_PER_YEAR = 365;
-const EPOCH_DISTRIBUTION_RATIO = 0.0025; // 0.25%
-const GATEWAY_REWARDS_RATIO = 0.95; // 95%
+const EPOCH_DISTRIBUTION_RATIO = 0.0005; // 0.05%
+const GATEWAY_REWARDS_RATIO = 0.9; // 90%
 // const OBSERVER_REWARDS_RATIO = .05; // 5%
 
 export interface GatewayRewards {
@@ -53,8 +53,11 @@ export const calculateGatewayRewards = (
 export const calculateUserRewards = (
   gatewayRewards: GatewayRewards,
   userDelegatedStake: IOToken,
+  removingStake = false
 ): UserRewards => {
-  const delegatedStake = userDelegatedStake.valueOf();
+  const multiplier = removingStake ? -1 : 1;
+  const delegatedStake = userDelegatedStake.valueOf() * multiplier;
+
   const stakeProportion =
     delegatedStake /
     (gatewayRewards.totalDelegatedStake.valueOf() + delegatedStake);

@@ -110,7 +110,8 @@ const StakingModal = ({
     tab == 0
       ? currentStake + parseFloat(amountToStake)
       : currentStake - parseFloat(amountToUnstake);
-  const rewardsInfo = useRewardsInfo(gateway, newTotalStake);
+  const newStake = tab == 0 ? parseFloat(amountToStake) : -parseFloat(amountToUnstake);
+  const rewardsInfo = useRewardsInfo(gateway, newStake);
   const EAY =
     rewardsInfo && newTotalStake > 0
       ? (rewardsInfo.EAY * 100).toLocaleString('en-us', {
@@ -356,7 +357,7 @@ const StakingModal = ({
 
             <DisplayRow
               className="py-1"
-              label="EAY:"
+              label="Delegate EAY:"
               value={EAY}
               rightIcon={
                 <Tooltip

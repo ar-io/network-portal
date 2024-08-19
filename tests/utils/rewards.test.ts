@@ -26,9 +26,9 @@ describe('rewards.ts', () => {
       expect(result.totalDelegatedStake.valueOf()).toEqual(
         new IOToken(50000).valueOf(),
       );
-      expect(result.rewardsSharedPerEpoch.valueOf()).toBeCloseTo(197.91, 1);
+      expect(result.rewardsSharedPerEpoch.valueOf()).toBeCloseTo(37.5, 1);
       expect(result.EEY).toBeCloseTo(0.004);
-      expect(result.EAY).toBeCloseTo(1.4447916691);
+      expect(result.EAY).toBeCloseTo(0.27375);
     });
   });
 

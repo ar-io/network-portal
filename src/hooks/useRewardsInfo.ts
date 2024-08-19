@@ -24,8 +24,6 @@ const useRewardsInfo = (
       gateway,
     );
 
-    console.log(userStake)
-
     const userRewards = calculateUserRewards(
       gatewayRewards,
       new IOToken(Math.abs(userStake)),

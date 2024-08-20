@@ -51,4 +51,4 @@ export const EAY_TOOLTIP_FORMULA =
   '\\(EAY = \\frac{RewardsSharedPerEpoch}{TotalDelegatedStake} * EpochsPerYear\\)';
 
 export const OPERATOR_EAY_TOOLTIP_FORMULA =
-  '\\(EAY = \\frac{RewardsSharedPerEpoch}{OperatorStake} * EpochsPerYear\\)';
+  '\\(EAY = \\frac{OperatorRewardsPerEpoch}{OperatorStake} * EpochsPerYear\\)';

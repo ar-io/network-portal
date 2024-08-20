@@ -3,13 +3,14 @@ import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import { InfoIcon } from '@src/components/icons';
+import {
+  InfoIcon,
+  StreakDownArrowIcon,
+  StreakUpArrowIcon,
+} from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
-import {
-  EAY_TOOLTIP_FORMULA,
-  EAY_TOOLTIP_TEXT,
-} from '@src/constants';
+import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -24,7 +25,7 @@ interface TableData {
   label: string;
   domain: string;
   owner: string;
-  failedConsecutiveEpochs: number;
+  streak: number;
   rewardShareRatio: number;
   performance: number;
   passedEpochCount: number;
@@ -70,13 +71,18 @@ const DelegateStake = () => {
                   label: gateway.settings.label,
                   domain: gateway.settings.fqdn,
                   owner,
-                  failedConsecutiveEpochs:
-                    gateway.stats.failedConsecutiveEpochs,
+                  streak:
+                    gateway.stats.failedConsecutiveEpochs > 0
+                      ? -gateway.stats.failedConsecutiveEpochs
+                      : gateway.stats.passedConsecutiveEpochs,
 
                   rewardShareRatio: gateway.settings.allowDelegatedStaking
                     ? gateway.settings.delegateRewardShareRatio
                     : -1,
-                  performance: totalEpochCount > 0 ? gateway.stats.passedEpochCount / totalEpochCount : -1,
+                  performance:
+                    totalEpochCount > 0
+                      ? gateway.stats.passedEpochCount / totalEpochCount
+                      : -1,
                   passedEpochCount,
                   totalEpochCount,
                   totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
@@ -121,7 +127,7 @@ const DelegateStake = () => {
             href={`https://${row.getValue('domain')}`}
             target="_blank"
             rel="noreferrer"
-            onClick={(e) => e.stopPropagation()} 
+            onClick={(e) => e.stopPropagation()}
           >
             {row.getValue('domain')}
           </a>{' '}
@@ -162,37 +168,11 @@ const DelegateStake = () => {
       header: 'Reward Share Ratio',
       sortDescFirst: true,
       cell: ({ row }) =>
-        row.original.rewardShareRatio >= 0 ? `${row.original.rewardShareRatio}%` : 'N/A',
+        row.original.rewardShareRatio >= 0
+          ? `${row.original.rewardShareRatio}%`
+          : 'N/A',
     }),
-    columnHelper.accessor('failedConsecutiveEpochs', {
-      id: 'failedConsecutiveEpochs',
-      header: 'Offline Epochs',
-      sortDescFirst: true,
-    }),
-    columnHelper.accessor('performance', {
-      id: 'performance',
-      header: 'Performance',
-      sortDescFirst: true,
-      cell: ({ row }) =>
-        row.original.performance < 0 ? (
-          'N/A'
-        ) : (
-          <Tooltip
-            message={
-              <div>
-                <div>
-                  Passed Epoch Count: {row.original.passedEpochCount}
-                </div>
-                <div className="mt-1">
-                  Total Epoch Participation Count: {row.original.totalEpochCount}
-                </div>
-              </div>
-            }
-          >
-            {`${(row.original.performance * 100).toFixed(2)}%`}
-          </Tooltip>
-        ),
-    }),
+
     columnHelper.accessor('eay', {
       id: 'eay',
       header: () => (
@@ -218,6 +198,60 @@ const DelegateStake = () => {
             : `${formatWithCommas(row.original.eay * 100)}%`}
         </div>
       ),
+    }),
+    columnHelper.accessor('performance', {
+      id: 'performance',
+      header: 'Performance',
+      sortDescFirst: true,
+      cell: ({ row }) =>
+        row.original.performance < 0 ? (
+          'N/A'
+        ) : (
+          <Tooltip
+            message={
+              <div>
+                <div>Passed Epoch Count: {row.original.passedEpochCount}</div>
+                <div className="mt-1">
+                  Total Epoch Participation Count:{' '}
+                  {row.original.totalEpochCount}
+                </div>
+              </div>
+            }
+          >
+            {`${(row.original.performance * 100).toFixed(2)}%`}
+          </Tooltip>
+        ),
+    }),
+
+    columnHelper.accessor('streak', {
+      id: 'streak',
+      header: 'Streak',
+      sortDescFirst: true,
+      cell: ({ row }) => {
+        const streak = row.original.streak;
+        if (streak === 0) {
+          return '';
+        }
+
+        const colorClasses =
+          streak > 0
+            ? 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up'
+            : 'border-text-red/[.56] bg-text-red/[.1] text-text-red';
+        const icon =
+          streak > 0 ? (
+            <StreakUpArrowIcon className="size-3" />
+          ) : (
+            <StreakDownArrowIcon className="size-3" />
+          );
+
+        return (
+          <div
+            className={`flex w-fit items-center gap-1 rounded-xl border py-0.5 pl-[.4375rem] pr-[.5625rem] ${colorClasses}`}
+          >
+            {icon} {Math.abs(streak)}
+          </div>
+        );
+      },
     }),
 
     columnHelper.display({

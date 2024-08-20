@@ -1,6 +1,11 @@
-import { IOToken, AoUpdateGatewaySettingsParams, mIOToken } from '@ar.io/sdk/web';
+import {
+  AoUpdateGatewaySettingsParams,
+  IOToken,
+  mIOToken,
+} from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
+import Tooltip from '@src/components/Tooltip';
 import FormRow, { RowType } from '@src/components/forms/FormRow';
 import {
   FormRowDef,
@@ -15,17 +20,26 @@ import {
   validateTransactionId,
   validateWalletAddress,
 } from '@src/components/forms/validation';
-import { EditIcon, StatsArrowIcon } from '@src/components/icons';
+import { EditIcon, InfoIcon, StatsArrowIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
-import { WRITE_OPTIONS, log } from '@src/constants';
+import {
+  EAY_TOOLTIP_TEXT,
+  OPERATOR_EAY_TOOLTIP_FORMULA,
+  WRITE_OPTIONS,
+  log,
+} from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
+import useGateways from '@src/hooks/useGateways';
 import useHealthcheck from '@src/hooks/useHealthCheck';
+import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatDate } from '@src/utils';
+import { calculateOperatorRewards } from '@src/utils/rewards';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { MathJax } from 'better-react-mathjax';
+import { ReactNode, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
@@ -34,7 +48,7 @@ const StatsBox = ({
   title,
   value,
 }: {
-  title: string;
+  title: string | ReactNode;
   value: string | number | undefined;
 }) => {
   return (
@@ -68,6 +82,8 @@ const Gateway = () => {
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const balances = useGlobalState((state) => state.balances);
   const ticker = useGlobalState((state) => state.ticker);
+  const { data: protocolBalance } = useProtocolBalance();
+  const { data: gateways } = useGateways();
 
   const params = useParams();
 
@@ -103,6 +119,15 @@ const Gateway = () => {
   const maxStake = gateway?.operatorStake
     ? new mIOToken(gateway.operatorStake).toIO().valueOf() + (balances?.io || 0)
     : undefined;
+
+  const operatorRewards =
+    gateway?.operatorStake && protocolBalance && gateways
+      ? calculateOperatorRewards(
+          new mIOToken(protocolBalance).toIO(),
+          Object.keys(gateways).length,
+          gateway,
+        )
+      : undefined;
 
   const weightFields: Array<[string, number | undefined]> = [
     ['Stake', gateway?.weights?.stakeWeight],
@@ -317,9 +342,9 @@ const Gateway = () => {
         label: changed.label as string,
         minDelegatedStake:
           formState.allowDelegatedStaking && changed.minDelegatedStake
-            ? new IOToken(
-                parseFloat(changed.minDelegatedStake as string),
-              ).toMIO().valueOf()
+            ? new IOToken(parseFloat(changed.minDelegatedStake as string))
+                .toMIO()
+                .valueOf()
             : undefined,
         note: changed.note as string,
         properties: changed.properties as string,
@@ -418,6 +443,30 @@ const Gateway = () => {
               value={
                 gateway?.delegates
                   ? Object.keys(gateway.delegates).length
+                  : undefined
+              }
+            />
+            <StatsBox
+              title={
+                <div className="flex gap-2">
+                  Operator EAY{' '}
+                  <Tooltip
+                    message={
+                      <div>
+                        <p>{EAY_TOOLTIP_TEXT}</p>
+                        <MathJax className="mt-4">
+                          {OPERATOR_EAY_TOOLTIP_FORMULA}
+                        </MathJax>
+                      </div>
+                    }
+                  >
+                    <InfoIcon className="size-4" />
+                  </Tooltip>
+                </div>
+              }
+              value={
+                operatorRewards
+                  ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
                   : undefined
               }
             />

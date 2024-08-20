@@ -12,10 +12,52 @@ export interface GatewayRewards {
   EAY: number;
 }
 
+export interface OperatorRewards {
+  operatorStake: IOToken;
+  rewardsSharedPerEpoch: IOToken;
+  EEY: number;
+  EAY: number;
+}
+
+
 export interface UserRewards {
   EEY: number;
   EAY: number;
 }
+
+
+export const calculateOperatorRewards = (
+  protocolBalance: IOToken,
+  totalGateways: number,
+  gateway: AoGateway,
+): OperatorRewards => {
+  const epochRewards = protocolBalance.valueOf() * EPOCH_DISTRIBUTION_RATIO;
+  const baseGatewayReward =
+    (epochRewards * GATEWAY_REWARDS_RATIO) / totalGateways;
+
+  const gatewayRewardShareRatio =
+    gateway.settings.delegateRewardShareRatio / 100;
+  const operatorStake = new mIOToken(gateway.operatorStake).toIO();
+
+  const rewardsSharedPerEpoch = new IOToken(
+    baseGatewayReward * (1 - gatewayRewardShareRatio),
+  );
+
+  // Return -1 if totalDelegatedStake is 0. This signals 0 stake and allows calling
+  // code to use the value for sorting purposes.
+  const EEY =
+    operatorStake.valueOf() > 0
+      ? rewardsSharedPerEpoch.valueOf() / operatorStake.valueOf()
+      : -1;
+  const EAY = EEY * EPOCHS_PER_YEAR;
+
+  return {
+    operatorStake,
+    rewardsSharedPerEpoch,
+    EEY,
+    EAY,
+  };
+};
 
 export const calculateGatewayRewards = (
   protocolBalance: IOToken,

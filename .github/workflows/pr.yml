@@ -6,11 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        step: [
-            'lint:check',
-            'test',
-            'build',
-          ]
+        step: ['lint:check', 'test', 'build']
     steps:
       - uses: actions/checkout@v3
       - run: yarn install --frozen-lockfile
@@ -40,6 +36,7 @@ jobs:
           VITE_SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
           VITE_GITHUB_HASH: ${{ github.sha }}
+          VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}
 
       # Disribute to Firebase
       - name: Deploy 🚀

@@ -19,6 +19,8 @@ export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const IO_PROCESS_ID = new ArweaveTransactionID(
   process.env.VITE_IO_PROCESS_ID ?? ioDevnetProcessId,
 );
+export const AO_CU_URL =
+  process.env.VITE_AO_CU_URL || 'https://cu.ao-testnet.xyz';
 
 export const IO_PROCESS_INFO_URL = `https://www.ao.link/#/entity/${IO_PROCESS_ID.toString()}`;
 

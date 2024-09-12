@@ -1,5 +1,13 @@
-import { AoEpochData, AoIORead, AoIOWrite, IO } from '@ar.io/sdk/web';
 import {
+  AOProcess,
+  AoEpochData,
+  AoIORead,
+  AoIOWrite,
+  IO,
+} from '@ar.io/sdk/web';
+import { connect } from '@permaweb/aoconnect';
+import {
+  AO_CU_URL,
   DEFAULT_ARWEAVE_HOST,
   DEFAULT_ARWEAVE_PORT,
   DEFAULT_ARWEAVE_PROTOCOL,
@@ -51,7 +59,14 @@ export const initialGlobalState: GlobalState = {
     protocol: DEFAULT_ARWEAVE_PROTOCOL,
     port: DEFAULT_ARWEAVE_PORT,
   }),
-  arIOReadSDK: IO.init({ processId: IO_PROCESS_ID.toString() }),
+  arIOReadSDK: IO.init({
+    process: new AOProcess({
+      processId: IO_PROCESS_ID.toString(),
+      ao: connect({
+        CU_URL: AO_CU_URL,
+      }),
+    }),
+  }),
   balances: {
     ar: 0,
     io: 0,
@@ -99,7 +114,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
 
   setTicker = (ticker: string) => {
     this.set({ ticker });
-  }
+  };
 }
 
 export interface GlobalStateInterface extends GlobalState, GlobalStateActions {}

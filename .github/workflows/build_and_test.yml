@@ -10,11 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        step: [
-            'lint:check',
-            'test',
-            'build',
-          ]
+        step: ['lint:check', 'test', 'build']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v2
@@ -53,6 +49,8 @@ jobs:
           VITE_SENTRY_DSN_PROJECT_URI: ${{ secrets.SENTRY_DSN_PROJECT_URI }}
           VITE_SENTRY_DSN_PROJECT_ID: ${{ secrets.SENTRY_DSN_PROJECT_ID }}
           VITE_GITHUB_HASH: ${{ github.sha }}
+          # ao infra settings
+          VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}
       - name: Add CNAME Record
         run: |
           echo ${{ vars.DOMAIN_NAME }} > dist/CNAME

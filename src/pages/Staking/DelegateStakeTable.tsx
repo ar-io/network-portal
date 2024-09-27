@@ -103,7 +103,7 @@ const DelegateStake = () => {
 
                     eay: calculateGatewayRewards(
                       new mIOToken(protocolBalance).toIO(),
-                      Object.keys(gateways).length,
+                      Object.values(gateways).filter(g => g.status == "joined").length,
                       gateway,
                     ).EAY,
                   },

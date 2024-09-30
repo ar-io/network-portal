@@ -13,16 +13,14 @@ const DisplayRow = ({
   rightComponent,
 }: {
   label: string;
-  value: string | number | boolean | undefined;
+  value: React.ReactNode | string | number | boolean | undefined;
   type?: string;
   rightComponent?: React.ReactNode;
 }) => {
   return (
     <>
       <div className="border-t border-grey-900">
-        <div className=" bg-grey-1000 px-6 py-3 text-xs text-low">
-          {label}
-        </div>
+        <div className=" bg-grey-1000 px-6 py-3 text-xs text-low">{label}</div>
       </div>
       <div className="flex flex-col content-center justify-center border-t border-grey-900 pl-6 text-sm text-low">
         {value === undefined ? (
@@ -79,17 +77,23 @@ const PropertyDisplayPanel = ({
     ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`
     : undefined;
 
+  const gatewayLeaving = gateway?.status == 'leaving';
+
   const conditionalRows = gateway?.settings.allowDelegatedStaking
     ? [
         {
           label: 'Reward Share Ratio:',
-          value: `${gateway?.settings.delegateRewardShareRatio}%`,
+          value: gatewayLeaving
+            ? 'N/A'
+            : `${gateway?.settings.delegateRewardShareRatio}%`,
         },
         {
           label: `Minimum Delegated Stake (${ticker}):`,
-          value: new mIOToken(gateway?.settings.minDelegatedStake || 0)
-            .toIO()
-            .valueOf(),
+          value: gatewayLeaving
+            ? 'N/A'
+            : new mIOToken(gateway?.settings.minDelegatedStake || 0)
+                .toIO()
+                .valueOf(),
         },
       ]
     : [];
@@ -109,21 +113,37 @@ const PropertyDisplayPanel = ({
       type: 'tx',
     },
     {
-      label: `Gateway Stake (${ticker}):`,
-      value: gateway?.operatorStake
-        ? new mIOToken(gateway?.operatorStake).toIO().valueOf()
-        : undefined,
+      label: `Gateway Stake abc (${ticker}):`,
+      value:
+        gateway?.operatorStake != undefined
+          ? new mIOToken(gateway?.operatorStake).toIO().valueOf()
+          : undefined,
     },
-    { label: 'Status:', value: gateway?.status },
+    {
+      label: 'Status:',
+      value:
+        gateway?.status == 'leaving' ? (
+          <div className="text-[#f00]">leaving</div>
+        ) : (
+          gateway?.status
+        ),
+    },
     { label: 'Note:', value: gateway?.settings.note },
     {
       label: `Total Delegated Stake (${ticker}):`,
-      value: new mIOToken(gateway?.totalDelegatedStake || 0).toIO().valueOf(),
+      value: gatewayLeaving
+        ? 'N/A'
+        : gateway?.totalDelegatedStake == undefined
+          ? undefined
+          : new mIOToken(gateway.totalDelegatedStake).toIO().valueOf(),
     },
-    { label: 'Reward Auto Stake:', value: gateway?.settings.autoStake },
+    {
+      label: 'Reward Auto Stake:',
+      value: gatewayLeaving ? 'N/A' : gateway?.settings.autoStake,
+    },
     {
       label: 'Delegated Staking:',
-      value: gateway?.settings.allowDelegatedStaking,
+      value: gatewayLeaving ? 'N/A' : gateway?.settings.allowDelegatedStaking,
       rightComponent: gateway?.settings.allowDelegatedStaking ? (
         <Button
           className="mr-2"

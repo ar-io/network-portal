@@ -34,7 +34,7 @@ const Header = () => {
           {gatewaysLoading ? (
             <Placeholder className='h-[1.0625rem]'/>
           ) : gateways ? (
-            Object.keys(gateways).length
+            Object.values(gateways).filter((g) => g.status === "joined").length
           ) : (
             NBSP
           )}

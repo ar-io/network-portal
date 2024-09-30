@@ -60,53 +60,57 @@ const DelegateStake = () => {
     const stakeableGateways: Array<TableData> =
       !gateways || !protocolBalance
         ? []
-        : Object.entries(gateways).reduce((acc, [owner, gateway]) => {
-            if (gateway.settings.allowDelegatedStaking) {
-              const passedEpochCount = gateway.stats.passedEpochCount;
-              const totalEpochCount = (gateway.stats as any).totalEpochCount;
+        : Object.entries(gateways)
+            .filter((g) => g[1].status === 'joined')
+            .reduce((acc, [owner, gateway]) => {
+              if (gateway.settings.allowDelegatedStaking) {
+                const passedEpochCount = gateway.stats.passedEpochCount;
+                const totalEpochCount = (gateway.stats as any).totalEpochCount;
 
-              return [
-                ...acc,
-                {
-                  label: gateway.settings.label,
-                  domain: gateway.settings.fqdn,
-                  owner,
-                  streak:
-                    gateway.stats.failedConsecutiveEpochs > 0
-                      ? -gateway.stats.failedConsecutiveEpochs
-                      : gateway.stats.passedConsecutiveEpochs,
+                return [
+                  ...acc,
+                  {
+                    label: gateway.settings.label,
+                    domain: gateway.settings.fqdn,
+                    owner,
+                    streak:
+                      gateway.stats.failedConsecutiveEpochs > 0
+                        ? -gateway.stats.failedConsecutiveEpochs
+                        : gateway.stats.passedConsecutiveEpochs,
 
-                  rewardShareRatio: gateway.settings.allowDelegatedStaking
-                    ? gateway.settings.delegateRewardShareRatio
-                    : -1,
-                  performance:
-                    totalEpochCount > 0
-                      ? gateway.stats.passedEpochCount / totalEpochCount
+                    rewardShareRatio: gateway.settings.allowDelegatedStaking
+                      ? gateway.settings.delegateRewardShareRatio
                       : -1,
-                  passedEpochCount,
-                  totalEpochCount,
-                  totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
-                    .toIO()
-                    .valueOf(),
-                  operatorStake: new mIOToken(gateway.operatorStake)
-                    .toIO()
-                    .valueOf(),
-                  totalStake: new mIOToken(
-                    gateway.totalDelegatedStake + gateway.operatorStake,
-                  )
-                    .toIO()
-                    .valueOf(),
+                    performance:
+                      totalEpochCount > 0
+                        ? gateway.stats.passedEpochCount / totalEpochCount
+                        : -1,
+                    passedEpochCount,
+                    totalEpochCount,
+                    totalDelegatedStake: new mIOToken(
+                      gateway.totalDelegatedStake,
+                    )
+                      .toIO()
+                      .valueOf(),
+                    operatorStake: new mIOToken(gateway.operatorStake)
+                      .toIO()
+                      .valueOf(),
+                    totalStake: new mIOToken(
+                      gateway.totalDelegatedStake + gateway.operatorStake,
+                    )
+                      .toIO()
+                      .valueOf(),
 
-                  eay: calculateGatewayRewards(
-                    new mIOToken(protocolBalance).toIO(),
-                    Object.keys(gateways).length,
-                    gateway,
-                  ).EAY,
-                },
-              ];
-            }
-            return acc;
-          }, [] as Array<TableData>);
+                    eay: calculateGatewayRewards(
+                      new mIOToken(protocolBalance).toIO(),
+                      Object.values(gateways).filter(g => g.status == "joined").length,
+                      gateway,
+                    ).EAY,
+                  },
+                ];
+              }
+              return acc;
+            }, [] as Array<TableData>);
     setStakeableGateways(stakeableGateways);
   }, [gateways, protocolBalance, walletAddress]);
 

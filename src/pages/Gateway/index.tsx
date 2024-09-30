@@ -121,10 +121,10 @@ const Gateway = () => {
     : undefined;
 
   const operatorRewards =
-    gateway?.operatorStake && protocolBalance && gateways
+    gateway?.operatorStake != undefined && protocolBalance && gateways
       ? calculateOperatorRewards(
           new mIOToken(protocolBalance).toIO(),
-          Object.keys(gateways).length,
+          Object.values(gateways).filter((g) => g.status == 'joined').length,
           gateway,
         )
       : undefined;
@@ -446,34 +446,37 @@ const Gateway = () => {
                   : undefined
               }
             />
-            <StatsBox
-              title={
-                <div className="flex gap-2">
-                  Operator EAY{' '}
-                  <Tooltip
-                    message={
-                      <div>
-                        <p>{EAY_TOOLTIP_TEXT}</p>
-                        <MathJax className="mt-4">
-                          {OPERATOR_EAY_TOOLTIP_FORMULA}
-                        </MathJax>
-                      </div>
-                    }
-                  >
-                    <InfoIcon className="size-4" />
-                  </Tooltip>
-                </div>
-              }
-              value={
-                operatorRewards
-                  ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
-                  : undefined
-              }
-            />
+
+            {gateway?.status === 'joined' && (
+              <StatsBox
+                title={
+                  <div className="flex gap-2">
+                    Operator EAY{' '}
+                    <Tooltip
+                      message={
+                        <div>
+                          <p>{EAY_TOOLTIP_TEXT}</p>
+                          <MathJax className="mt-4">
+                            {OPERATOR_EAY_TOOLTIP_FORMULA}
+                          </MathJax>
+                        </div>
+                      }
+                    >
+                      <InfoIcon className="size-4" />
+                    </Tooltip>
+                  </div>
+                }
+                value={
+                  operatorRewards != undefined
+                    ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
+                    : undefined
+                }
+              />
+            )}
             {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
           </div>
 
-          {gateway?.weights && (
+          {gateway?.weights && gateway?.status === 'joined' && (
             <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
               <div className="px-6 py-4">
                 <div className="text-high">Weights</div>
@@ -486,7 +489,7 @@ const Gateway = () => {
                 >
                   <div className="grow text-xs text-low">{title}:</div>
                   <div className="text-right text-sm">
-                    {value ? value.toFixed(3) : <Placeholder />}
+                    {value !== undefined ? value.toFixed(3) : <Placeholder />}
                   </div>
                 </div>
               ))}

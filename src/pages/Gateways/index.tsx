@@ -69,6 +69,8 @@ const Gateways = () => {
             passedEpochCount,
             totalEpochCount,
             streak:
+            gateway.status == "leaving" ? 
+            Number.NEGATIVE_INFINITY :
               gateway.stats.failedConsecutiveEpochs > 0
                 ? -gateway.stats.failedConsecutiveEpochs
                 : gateway.stats.passedConsecutiveEpochs,
@@ -178,6 +180,10 @@ const Gateways = () => {
         const streak = row.original.streak;
         if (streak === 0) {
           return '';
+        }
+
+        if (streak === Number.NEGATIVE_INFINITY) {
+          return 'N/A';
         }
 
         const colorClasses =

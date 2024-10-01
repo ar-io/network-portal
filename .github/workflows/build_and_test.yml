@@ -49,6 +49,7 @@ jobs:
           VITE_SENTRY_DSN_PROJECT_URI: ${{ secrets.SENTRY_DSN_PROJECT_URI }}
           VITE_SENTRY_DSN_PROJECT_ID: ${{ secrets.SENTRY_DSN_PROJECT_ID }}
           VITE_GITHUB_HASH: ${{ github.sha }}
+          VITE_IO_PROCESS_ID: ${{ secrets.IO_PROCESS_ID }}
           # ao infra settings
           VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}
       - name: Add CNAME Record

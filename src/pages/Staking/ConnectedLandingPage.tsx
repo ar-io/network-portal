@@ -3,7 +3,6 @@ import Placeholder from '@src/components/Placeholder';
 import { PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import useGateways from '@src/hooks/useGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
@@ -17,7 +16,6 @@ const ConnectedLandingPage = () => {
 
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
 
-  const { data: protocolBalance } = useProtocolBalance();
   const { data: gateways } = useGateways();
   const balances = useGlobalState((state) => state.balances);
 
@@ -36,13 +34,6 @@ const ConnectedLandingPage = () => {
 
   const topPanels = [
     {
-      title: 'Total Protocol Balance',
-      balance:
-        protocolBalance !== undefined
-          ? formatWithCommas(new mIOToken(protocolBalance).toIO().valueOf())
-          : undefined,
-    },
-    {
       title: 'Your Balance',
       balance: formatWithCommas(balances.io),
     },
@@ -57,7 +48,7 @@ const ConnectedLandingPage = () => {
 
   return (
     <div className="flex flex-col gap-6 py-6">
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         {topPanels.map((panel, index) => (
           <div
             key={index}

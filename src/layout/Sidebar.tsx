@@ -106,8 +106,14 @@ const Sidebar = () => {
       <hr className="text-divider" />
       <div className="pt-6">
         <div
-          className={sidebarOpen ? 'flex justify-end' : 'flex justify-center'}
+          className={sidebarOpen ? 'flex items-center justify-end' : 'flex items-center justify-center'}
         >
+          {sidebarOpen && (
+            <div className="grow pl-3 text-xs text-low">
+              v{process.env.npm_package_version}-
+              {process.env.VITE_GITHUB_HASH?.slice(0, 6)}
+            </div>
+          )}
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? (
               <CloseDrawerIcon className="size-5" />

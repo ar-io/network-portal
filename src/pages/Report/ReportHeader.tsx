@@ -3,7 +3,7 @@ import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
 import { HeaderSeparatorIcon, ReportsIcon } from '@src/components/icons';
 import { ReportData } from '@src/types';
-import { formatDate } from '@src/utils';
+import { formatDateTime } from '@src/utils';
 import { Link, useParams } from 'react-router-dom';
 
 const ReportHeader = ({
@@ -66,7 +66,7 @@ const ReportHeader = ({
         )}
         <div>Generated At:</div>
         {reportData ? (
-          <div>{formatDate(new Date(reportData.epochStartTimestamp))}</div>
+          <div>{formatDateTime(new Date(reportData.epochStartTimestamp))}</div>
         ) : (
           <Placeholder />
         )}

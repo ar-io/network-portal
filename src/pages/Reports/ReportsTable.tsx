@@ -2,7 +2,7 @@ import { AoGateway } from '@ar.io/sdk';
 import Placeholder from '@src/components/Placeholder';
 import TableView from '@src/components/TableView';
 import useReports, { ReportTransactionData } from '@src/hooks/useReports';
-import { formatDate } from '@src/utils';
+import { formatDateTime } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,7 +36,7 @@ const ReportsTable = ({
       id: 'generatedAt',
       header: 'Generated At',
       sortDescFirst: false,
-      cell: ({ row }) => formatDate(new Date(row.original.timestamp)),
+      cell: ({ row }) => formatDateTime(new Date(row.original.timestamp)),
     }),
     columnHelper.accessor('size', {
       id: 'size',

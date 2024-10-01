@@ -1,6 +1,6 @@
 import { mIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
-import { formatDate, formatWalletAddress, formatWithCommas } from '@src/utils';
+import { formatDateTime, formatWalletAddress, formatWithCommas } from '@src/utils';
 import useGateway from './useGateway';
 
 export enum GatewayStatus {
@@ -26,7 +26,7 @@ export const useGatewayInfo = () => {
         `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`,
       ],
       ['Observer Wallet', formatWalletAddress(gateway.observerAddress)],
-      ['Joined at', formatDate(new Date(gateway.startTimestamp))],
+      ['Joined at', formatDateTime(new Date(gateway.startTimestamp))],
       [
         `Stake (${ticker})`,
         formatWithCommas(new mIOToken(gateway.operatorStake).toIO().valueOf()),

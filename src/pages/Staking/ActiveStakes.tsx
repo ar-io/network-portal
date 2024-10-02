@@ -141,7 +141,7 @@ const ActiveStakes = () => {
         {hasDelegatedStake && (
           <Button
             buttonType={ButtonType.SECONDARY}
-            className="*:text-gradient h-[1.875rem]"
+            className="*:text-gradient-red h-[1.875rem]"
             active={true}
             title="Withdraw All"
             text="Withdraw All"

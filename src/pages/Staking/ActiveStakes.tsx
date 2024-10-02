@@ -134,7 +134,6 @@ const ActiveStakes = () => {
   const hasDelegatedStake =
     activeStakes?.some((v) => v.delegatedStake > 0) ?? false;
 
-  console.log(activeStakes);
   return (
     <div>
       <div className="flex w-full items-center gap-4 rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">

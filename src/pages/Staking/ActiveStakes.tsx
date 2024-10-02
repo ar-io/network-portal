@@ -115,17 +115,19 @@ const ActiveStakes = () => {
       header: '',
       cell: ({ row }) => {
         return (
-          <Button
-            buttonType={ButtonType.SECONDARY}
-            active={true}
-            title="Manage Stake"
-            text=" "
-            rightIcon={<GearIcon className="size-4" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setStakingModalWalletAddress(row.original.owner);
-            }}
-          />
+          <div className="flex w-full justify-end pr-6">
+            <Button
+              buttonType={ButtonType.SECONDARY}
+              active={true}
+              title="Manage Stake"
+              text=" "
+              rightIcon={<GearIcon className="size-4" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setStakingModalWalletAddress(row.original.owner);
+              }}
+            />
+          </div>
         );
       },
     }),
@@ -136,7 +138,7 @@ const ActiveStakes = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center gap-4 rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
+      <div className="flex w-full items-center gap-4 rounded-t-xl border border-grey-600 px-6 py-[0.9375rem]">
         <div className="grow text-sm text-mid">Active Stakes</div>
         {hasDelegatedStake && (
           <Button
@@ -148,14 +150,14 @@ const ActiveStakes = () => {
             onClick={() => setShowUnstakeAllModal(true)}
           />
         )}
-          <Button
-            buttonType={ButtonType.SECONDARY}
-            className="*:text-gradient h-[1.875rem]"
-            active={true}
-            title="QuickStake"
-            text="QuickStake"
-            onClick={() => setShowQuickStake(true)}
-          />
+        <Button
+          buttonType={ButtonType.SECONDARY}
+          className="*:text-gradient h-[1.875rem]"
+          active={true}
+          title="QuickStake"
+          text="QuickStake"
+          onClick={() => setShowQuickStake(true)}
+        />
       </div>
       <TableView
         columns={columns}

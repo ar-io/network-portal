@@ -41,7 +41,7 @@ const Header = () => {
             NBSP
           )}
         </div>
-        <div className="pt-1 text-xs leading-none text-low">TOTAL GATEWAYS</div>
+        <div className="pt-1 text-xs leading-none text-low">GATEWAYS</div>
       </div>
 
       <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-6 dark:border-transparent-100-8">
@@ -54,7 +54,7 @@ const Header = () => {
             </div>
           )}
         </div>
-        <div className="pt-1 text-xs leading-none text-low">TOTAL PROTOCOL BALANCE</div>
+        <div className="pt-1 text-xs leading-none text-low">PROTOCOL BALANCE</div>
       </div>
       <div className="grow" />
       <div className="content-center">

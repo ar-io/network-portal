@@ -109,14 +109,14 @@ const Sidebar = () => {
           className={sidebarOpen ? 'flex items-center justify-end' : 'flex items-center justify-center'}
         >
           {sidebarOpen && (
-            <div className="grow pl-3 text-xs text-low">
+            <div className="grow pl-3 text-xs text-low/50">
               v{process.env.npm_package_version}-
               {process.env.VITE_GITHUB_HASH?.slice(0, 6)}
             </div>
           )}
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? (
-              <CloseDrawerIcon className="size-5" />
+              <CloseDrawerIcon className="size-5"/>
             ) : (
               <OpenDrawerIcon className="size-5" />
             )}

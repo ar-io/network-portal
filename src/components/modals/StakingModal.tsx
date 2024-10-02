@@ -158,7 +158,7 @@ const StakingModal = ({
     ? balances.io - parseFloat(amountToStake)
     : '-';
 
-  const baseTabClassName = 'text-center py-6';
+  const baseTabClassName = 'text-center py-3';
   const selectedTabClassNames = `${baseTabClassName} bg-grey-700 border-b border-red-400`;
   const nonSelectedTabClassNames = `${baseTabClassName} bg-grey-1000 text-low`;
 
@@ -250,7 +250,7 @@ const StakingModal = ({
             <span className={tab == 1 ? 'text-gradient' : ''}>Unstaking</span>
           </button>
         </div>
-        <div className="flex flex-col p-8">
+        <div className="flex flex-col p-8 pb-2">
           <div className="text-left text-sm text-mid">Gateway Owner:</div>
           {ownerWallet ? (
             <div className="py-3 text-left text-sm text-mid">

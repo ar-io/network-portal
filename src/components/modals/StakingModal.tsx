@@ -368,7 +368,7 @@ const StakingModal = ({
                     </div>
                   }
                 >
-                  <InfoIcon className="size-4" />
+                  <InfoIcon className="size-[1.125rem]" />
                 </Tooltip>
               }
             />

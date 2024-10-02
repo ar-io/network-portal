@@ -113,7 +113,7 @@ const PropertyDisplayPanel = ({
       type: 'tx',
     },
     {
-      label: `Gateway Stake abc (${ticker}):`,
+      label: `Gateway Stake (${ticker}):`,
       value:
         gateway?.operatorStake != undefined
           ? new mIOToken(gateway?.operatorStake).toIO().valueOf()

@@ -2,6 +2,7 @@ import { AoGateway, mIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import ConnectModal from '@src/components/modals/ConnectModal';
+import LeaveNetworkModal from '@src/components/modals/LeaveNetworkModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
@@ -51,7 +52,10 @@ const DisplayRow = ({
             {value}
           </a>
         ) : (
-          value
+          <div className="flex items-center">
+            <div className="grow">{value}</div>
+            {rightComponent}
+          </div>
         )}
       </div>
     </>
@@ -68,10 +72,13 @@ const PropertyDisplayPanel = ({
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
 
+  const isOwnGateway = ownerId && ownerId === walletAddress?.toString();
+
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
 
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
+  const [isLeaveNetworkModalOpen, setLeaveNetworkModalOpen] = useState<boolean>(false);
 
   const gatewayAddress = gateway
     ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`
@@ -127,6 +134,19 @@ const PropertyDisplayPanel = ({
         ) : (
           gateway?.status
         ),
+      rightComponent:
+        isOwnGateway && gateway?.status == 'joined' ? (
+          <Button
+            className="*:*:text-gradient-red mr-2"
+            buttonType={ButtonType.PRIMARY}
+            active={true}
+            title="Leave Network"
+            text="Leave"
+            onClick={() => {
+              setLeaveNetworkModalOpen(true);
+            }}
+          />
+        ) : undefined,
     },
     { label: 'Note:', value: gateway?.settings.note },
     {
@@ -186,6 +206,9 @@ const PropertyDisplayPanel = ({
 
       {isConnectModalOpen && (
         <ConnectModal onClose={() => setIsConnectModalOpen(false)} />
+      )}
+      {isLeaveNetworkModalOpen && (
+        <LeaveNetworkModal onClose={() => setLeaveNetworkModalOpen(false)} />
       )}
     </div>
   );

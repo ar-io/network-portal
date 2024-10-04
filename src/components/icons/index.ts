@@ -45,6 +45,7 @@ import TimerIcon from './timer.svg?react';
 import ToastCloseIcon from './toast_close.svg?react';
 import WalletIcon from './wallet.svg?react';
 import WarningIcon from './warning.svg?react';
+import WarningTriangleIcon from './warning_triangle.svg?react';
 
 export {
   ArConnectIcon,
@@ -93,4 +94,5 @@ export {
   ToastCloseIcon,
   WalletIcon,
   WarningIcon,
+  WarningTriangleIcon,
 };

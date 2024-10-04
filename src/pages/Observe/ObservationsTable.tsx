@@ -2,7 +2,7 @@ import Bubble from '@src/components/Bubble';
 import TableView from '@src/components/TableView';
 import { observationsDB } from '@src/store/observationsDB';
 import { Assessment } from '@src/types';
-import { formatDate } from '@src/utils';
+import { formatDateTime } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
@@ -64,7 +64,7 @@ const ObservationsTable = ({
       id: 'timestamp',
       header: 'Timestamp',
       sortDescFirst: true,
-      cell: ({ row }) => formatDate(new Date(row.original.timestamp)),
+      cell: ({ row }) => formatDateTime(new Date(row.original.timestamp)),
     }),
     columnHelper.accessor('arnsNames', {
       id: 'arnsNames',

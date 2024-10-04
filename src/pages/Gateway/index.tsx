@@ -34,7 +34,7 @@ import useGateways from '@src/hooks/useGateways';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
-import { formatDate } from '@src/utils';
+import { formatDateTime } from '@src/utils';
 import { calculateOperatorRewards } from '@src/utils/rewards';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -424,7 +424,7 @@ const Gateway = () => {
               title="Join Date"
               value={
                 gateway?.startTimestamp
-                  ? formatDate(new Date(gateway?.startTimestamp))
+                  ? formatDateTime(new Date(gateway?.startTimestamp))
                   : undefined
               }
             />

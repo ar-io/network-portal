@@ -80,7 +80,7 @@ export const validateNumberRange = (
   return (v: string) => {
     const value = +v;
 
-    return value < min || value > max || isNaN(value)
+    return v.length == 0 || value < min || value > max || isNaN(value)
       ? `${propertyName} must be a number from ${min} to ${max}.`
       : undefined;
   };

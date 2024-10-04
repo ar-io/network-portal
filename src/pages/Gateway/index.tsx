@@ -132,8 +132,8 @@ const Gateway = () => {
   const weightFields: Array<[string, number | undefined]> = [
     ['Stake', gateway?.weights?.stakeWeight],
     ['Tenure', gateway?.weights?.tenureWeight],
-    ['Gateway Reward Ratio', gateway?.weights?.gatewayRewardRatioWeight],
-    ['Observer Reward Ratio', gateway?.weights?.observerRewardRatioWeight],
+    ['Gateway Performance Ratio', gateway?.weights?.gatewayRewardRatioWeight],
+    ['Observer Performance Ratio', gateway?.weights?.observerRewardRatioWeight],
     ['Composite', gateway?.weights?.compositeWeight],
     ['Normalized', gateway?.weights?.normalizedCompositeWeight],
   ];
@@ -416,7 +416,7 @@ const Gateway = () => {
       <GatewayHeader gateway={gateway} />
       <div className="my-6 flex gap-6">
         <div className="flex flex-col gap-6">
-          <div className="size-fit rounded-xl border border-transparent-100-16 text-sm">
+          <div className="size-fit w-full rounded-xl border border-transparent-100-16 text-sm">
             <div className="px-6 py-4">
               <div className="text-high">Stats</div>
             </div>
@@ -485,9 +485,11 @@ const Gateway = () => {
               {weightFields.map(([title, value], index) => (
                 <div
                   key={`weights${index}`}
-                  className="flex items-center border-t border-transparent-100-16 px-6 py-4"
+                  className="flex items-center gap-4 border-t border-transparent-100-16 px-6 py-4"
                 >
-                  <div className="grow text-xs text-low">{title}:</div>
+                  <div className="grow text-nowrap text-xs text-low">
+                    {title}:
+                  </div>
                   <div className="text-right text-sm">
                     {value !== undefined ? value.toFixed(3) : <Placeholder />}
                   </div>

@@ -1,9 +1,7 @@
 import { mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
-import { PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import useGateways from '@src/hooks/useGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
@@ -17,7 +15,6 @@ const ConnectedLandingPage = () => {
 
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
 
-  const { data: protocolBalance } = useProtocolBalance();
   const { data: gateways } = useGateways();
   const balances = useGlobalState((state) => state.balances);
 
@@ -36,13 +33,6 @@ const ConnectedLandingPage = () => {
 
   const topPanels = [
     {
-      title: 'Total Protocol Balance',
-      balance:
-        protocolBalance !== undefined
-          ? formatWithCommas(new mIOToken(protocolBalance).toIO().valueOf())
-          : undefined,
-    },
-    {
       title: 'Your Balance',
       balance: formatWithCommas(balances.io),
     },
@@ -57,7 +47,7 @@ const ConnectedLandingPage = () => {
 
   return (
     <div className="flex flex-col gap-6 py-6">
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         {topPanels.map((panel, index) => (
           <div
             key={index}
@@ -73,30 +63,6 @@ const ConnectedLandingPage = () => {
           </div>
         ))}
       </div>
-
-      <button
-        className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
-        onClick={() => {
-          setIsStakingModalOpen(true);
-        }}
-      >
-        <div
-          className="invisible size-full rounded-xl
-bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
-        >
-          <div className="size-full overflow-hidden rounded-xl bg-grey-800"></div>
-        </div>
-        <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
-          <div className="flex items-center gap-2">
-            <div className="text-gradient">Delegate your Stake</div>{' '}
-            <PinkArrowIcon className='size-3'/>
-          </div>
-
-          <div className="pt-2 text-sm text-low">
-            Quick Stake by entering a wallet address to delegate to.
-          </div>
-        </div>
-      </button>
       <ActiveStakes />
       <DelegateStake />
       {isStakingModalOpen && (

@@ -22,7 +22,7 @@ const columnHelper = createColumnHelper<TableData>();
 
 const ActiveStakes = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
-  const ticker = useGlobalState((state) => state.ticker); 
+  const ticker = useGlobalState((state) => state.ticker);
 
   const { isLoading, data: gateways } = useGateways();
   const [activeStakes, setActiveStakes] = useState<Array<TableData>>([]);
@@ -30,6 +30,7 @@ const ActiveStakes = () => {
   const [showUnstakeAllModal, setShowUnstakeAllModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
+  const [showQuickStake, setShowQuickStake] = useState(false);
 
   const navigate = useNavigate();
 
@@ -74,7 +75,7 @@ const ActiveStakes = () => {
             href={`https://${row.getValue('domain')}`}
             target="_blank"
             rel="noreferrer"
-            onClick={(e) => e.stopPropagation()} 
+            onClick={(e) => e.stopPropagation()}
           >
             {row.getValue('domain')}
           </a>{' '}
@@ -114,17 +115,19 @@ const ActiveStakes = () => {
       header: '',
       cell: ({ row }) => {
         return (
-          <Button
-            buttonType={ButtonType.SECONDARY}
-            active={true}
-            title="Manage Stake"
-            text=" "
-            rightIcon={<GearIcon className="size-4" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setStakingModalWalletAddress(row.original.owner);
-            }}
-          />
+          <div className="flex w-full justify-end pr-6">
+            <Button
+              buttonType={ButtonType.SECONDARY}
+              active={true}
+              title="Manage Stake"
+              text=" "
+              rightIcon={<GearIcon className="size-4" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setStakingModalWalletAddress(row.original.owner);
+              }}
+            />
+          </div>
         );
       },
     }),
@@ -135,18 +138,26 @@ const ActiveStakes = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
+      <div className="flex w-full items-center gap-4 rounded-t-xl border border-grey-600 px-6 py-[0.9375rem]">
         <div className="grow text-sm text-mid">Active Stakes</div>
         {hasDelegatedStake && (
           <Button
             buttonType={ButtonType.SECONDARY}
-            className="*:text-gradient h-[1.875rem]"
+            className="*:text-gradient-red h-[1.875rem]"
             active={true}
             title="Withdraw All"
             text="Withdraw All"
             onClick={() => setShowUnstakeAllModal(true)}
           />
         )}
+        <Button
+          buttonType={ButtonType.SECONDARY}
+          className="*:text-gradient h-[1.875rem]"
+          active={true}
+          title="QuickStake"
+          text="QuickStake"
+          onClick={() => setShowQuickStake(true)}
+        />
       </div>
       <TableView
         columns={columns}
@@ -167,10 +178,13 @@ const ActiveStakes = () => {
           onClose={() => setShowUnstakeAllModal(false)}
         />
       )}
-      {stakingModalWalletAddress && (
+      {(stakingModalWalletAddress || showQuickStake) && (
         <StakingModal
           open={!!stakingModalWalletAddress}
-          onClose={() => setStakingModalWalletAddress(undefined)}
+          onClose={() => {
+            setStakingModalWalletAddress(undefined);
+            setShowQuickStake(false);
+          }}
           ownerWallet={stakingModalWalletAddress}
         />
       )}

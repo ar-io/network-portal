@@ -107,7 +107,9 @@ const assessArNSName = async (
     expectedStatusCode: referenceRes.statusCode,
     pass:
       referenceRes.resolvedId === gatewayRes?.resolvedId &&
-      referenceRes.resolvedId !== null,
+      referenceRes.resolvedId !== null &&
+      referenceRes.dataHashDigest == gatewayRes?.dataHashDigest &&
+      referenceRes.statusCode == gatewayRes?.statusCode,
     resolvedDataHash: gatewayRes?.dataHashDigest ?? '',
     resolvedId: gatewayRes?.resolvedId ?? '',
     resolvedStatusCode: gatewayRes?.statusCode ?? 0,

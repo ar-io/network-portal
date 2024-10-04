@@ -12,4 +12,7 @@
   .text-gradient {
     @apply bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end bg-clip-text text-transparent;
   }
+  .text-gradient-red {
+    @apply bg-gradient-to-r from-gradient-red-start to-gradient-red-end bg-clip-text text-transparent;
+  }
 }

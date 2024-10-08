@@ -536,7 +536,7 @@ const Gateway = () => {
                     <></>
                   )}
                 </>
-              ) : (
+              ) : gateway?.status == 'joined' && (
                 <Button
                   className="h-[1.875rem]"
                   title="Edit"

@@ -45,10 +45,7 @@ const Profile = () => {
     <Popover className="relative">
       <Popover.Button as={CustomPopoverButton} />
 
-      <Popover.Panel
-        className="absolute right-0 z-50 mt-2.5 w-fit 
-      overflow-clip rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl"
-      >
+      <Popover.Panel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">
         <div className="flex gap-2 px-4 py-5 ">
           <WalletIcon className="size-4" />
 

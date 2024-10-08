@@ -78,7 +78,8 @@ const PropertyDisplayPanel = ({
     useState<string>();
 
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
-  const [isLeaveNetworkModalOpen, setLeaveNetworkModalOpen] = useState<boolean>(false);
+  const [isLeaveNetworkModalOpen, setLeaveNetworkModalOpen] =
+    useState<boolean>(false);
 
   const gatewayAddress = gateway
     ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`
@@ -164,22 +165,24 @@ const PropertyDisplayPanel = ({
     {
       label: 'Delegated Staking:',
       value: gatewayLeaving ? 'N/A' : gateway?.settings.allowDelegatedStaking,
-      rightComponent: gateway?.settings.allowDelegatedStaking ? (
-        <Button
-          className="mr-2"
-          buttonType={ButtonType.PRIMARY}
-          active={true}
-          title="Manage Stake"
-          text="Stake"
-          onClick={() => {
-            if (walletAddress) {
-              setStakingModalWalletAddress(ownerId);
-            } else {
-              setIsConnectModalOpen(true);
-            }
-          }}
-        />
-      ) : undefined,
+      rightComponent:
+        gateway?.settings.allowDelegatedStaking &&
+        gateway?.status == 'joined' ? (
+          <Button
+            className="mr-2"
+            buttonType={ButtonType.PRIMARY}
+            active={true}
+            title="Manage Stake"
+            text="Stake"
+            onClick={() => {
+              if (walletAddress) {
+                setStakingModalWalletAddress(ownerId);
+              } else {
+                setIsConnectModalOpen(true);
+              }
+            }}
+          />
+        ) : undefined,
     },
     ...conditionalRows,
   ];

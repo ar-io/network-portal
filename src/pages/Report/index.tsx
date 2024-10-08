@@ -1,6 +1,5 @@
 import useGateway from '@src/hooks/useGateway';
 import useReport from '@src/hooks/useReport';
-import { ReportData } from '@src/types';
 import { useParams } from 'react-router-dom';
 import GatewayAssessmentsTable from './GatewayAssessmentsTable';
 import ReportHeader from './ReportHeader';
@@ -14,9 +13,7 @@ const Report = () => {
     ownerWalletAddress: ownerId,
   });
 
-  const { isLoading, data } = useReport(reportId);
-
-  const reportData = data as ReportData;
+  const { isLoading, data:reportData } = useReport(reportId);
 
   return (
     <div className="flex h-screen max-w-full flex-col gap-6 overflow-auto pr-6 scrollbar">

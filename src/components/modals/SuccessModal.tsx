@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import Button, { ButtonType } from '../Button';
 import { SuccessCheck } from '../icons';
 import BaseModal from './BaseModal';
@@ -9,7 +10,7 @@ const SuccessModal = ({
 }: {
   onClose: () => void;
   title: string;
-  bodyText: string;
+  bodyText: ReactNode;
 }) => {
   return (
     <BaseModal onClose={onClose}>
@@ -18,7 +19,7 @@ const SuccessModal = ({
           <SuccessCheck className="size-8" />
         </div>
         <div className="pb-3 text-2xl text-high">{title}</div>
-        <div className="pb-8 text-center  text-low">{bodyText}</div>
+        { typeof bodyText === 'string' ? <div className="pb-8 text-center  text-low">{bodyText}</div> : bodyText }
         <div className="flex grow justify-center">
           <Button
             onClick={onClose}

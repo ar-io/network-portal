@@ -32,6 +32,12 @@ const ReportsTable = ({
       header: 'Transaction ID',
       sortDescFirst: false,
     }),
+    columnHelper.accessor('epochNumber', {
+      id: 'epochNumber',
+      header: 'AR.IO Epoch #',
+      sortDescFirst: false,
+      cell: ({ row }) => row.original.epochNumber,
+    }),
     columnHelper.accessor('timestamp', {
       id: 'generatedAt',
       header: 'Generated At',

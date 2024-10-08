@@ -43,6 +43,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
+import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
 
 const StatsBox = ({
   title,
@@ -98,6 +99,10 @@ const Gateway = () => {
     : undefined;
 
   const healthCheckRes = useHealthcheck({
+    url: gatewayAddress,
+  });
+
+  const arioInfoRes = useGatewayArioInfo({
     url: gatewayAddress,
   });
 
@@ -473,6 +478,7 @@ const Gateway = () => {
                 }
               />
             )}
+            <StatsBox title="Release Version" value={arioInfoRes.data?.release} />
             {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
           </div>
 
@@ -530,7 +536,7 @@ const Gateway = () => {
                     <></>
                   )}
                 </>
-              ) : (
+              ) : gateway?.status == 'joined' && (
                 <Button
                   className="h-[1.875rem]"
                   title="Edit"

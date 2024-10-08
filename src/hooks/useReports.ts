@@ -7,6 +7,7 @@ import arweaveGraphql from 'arweave-graphql';
 export interface ReportTransactionData {
   txid: string;
   failedGateways: number;
+  epochNumber: number;
   timestamp: number;
   size: number;
   version: string;
@@ -107,6 +108,10 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
                 timestamp: parseInt(
                   tags.find((tag) => tag.name === 'AR-IO-Epoch-Start-Timestamp')
                     ?.value || '0',
+                ),
+                epochNumber: parseInt(
+                  tags.find((tag) => tag.name === 'AR-IO-Epoch-Index')?.value ||
+                    '0',
                 ),
                 size: parseInt(transaction.node.data.size),
                 version:

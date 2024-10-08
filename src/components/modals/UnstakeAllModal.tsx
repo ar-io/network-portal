@@ -67,7 +67,6 @@ const UnstakeAllModal = ({
         });
 
         setShowSuccessModal(true);
-        onClose();
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {
@@ -149,6 +148,7 @@ const UnstakeAllModal = ({
         <SuccessModal
           onClose={() => {
             setShowSuccessModal(false);
+            onClose();
           }}
           title="Congratulations"
           bodyText="You have successfully withdrawn all stakes."

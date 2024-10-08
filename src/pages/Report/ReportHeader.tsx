@@ -58,9 +58,9 @@ const ReportHeader = ({
         {reportData ? <div>Arweave Tx</div> : <Placeholder />}
         <div>Observer Address:</div>
         {reportData ? <div>{reportData.observerAddress}</div> : <Placeholder />}
-        <div>Epoch Start Height:</div>
+        <div>Epoch Number:</div>
         {reportData ? (
-          <div>{reportData.epochStartHeight}</div>
+          <div>{reportData.epochIndex}</div>
         ) : (
           <Placeholder />
         )}

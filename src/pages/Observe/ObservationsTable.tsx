@@ -1,6 +1,6 @@
 import Bubble from '@src/components/Bubble';
 import TableView from '@src/components/TableView';
-import { observationsDB } from '@src/store/observationsDB';
+import { db } from '@src/store/db';
 import { Assessment } from '@src/types';
 import { formatDateTime } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
@@ -28,7 +28,7 @@ const ObservationsTable = ({
   >;
 }) => {
   const observations = useLiveQuery(async () => {
-    return observationsDB.observations
+    return db.observations
       .where('gatewayAddress')
       .equals(gatewayAddress)
       .toArray();

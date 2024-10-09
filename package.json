@@ -20,7 +20,7 @@
     "deploy": "yarn build && permaweb-deploy --ant-process ${DEPLOY_ANT_PROCESS_ID}"
   },
   "dependencies": {
-    "@ar.io/sdk": "2.1.0-alpha.10",
+    "@ar.io/sdk": "2.3.1",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^1.7.19",
     "@radix-ui/react-tooltip": "^1.0.7",
@@ -30,7 +30,7 @@
     "@tanstack/react-table": "^8.17.3",
     "arweave": "^1.15.0",
     "arweave-graphql": "^0.0.5",
-    "axios": "^1.6.7",
+    "axios": "^1.7.7",
     "axios-retry": "^4.0.0",
     "base64-arraybuffer": "^1.0.2",
     "better-react-mathjax": "^2.0.3",

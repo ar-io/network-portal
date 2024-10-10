@@ -11,3 +11,15 @@ global.React = React;
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 global.fetch = require('node-fetch');
+// forcefully mock crypto
+Object.defineProperty(global, 'crypto', {
+    value: {
+      subtle: {
+        digest: jest.fn(),
+        generateKey: jest.fn(),
+        importKey: jest.fn(),
+        exportKey: jest.fn(),
+        sign: jest.fn(),
+      },
+    },
+  });

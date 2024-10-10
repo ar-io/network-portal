@@ -35,19 +35,20 @@
     plimit-lit "^3.0.1"
     warp-contracts "1.4.45"
 
-"@ar.io/sdk@2.1.0-alpha.10":
-  version "2.1.0-alpha.10"
-  resolved "https://registry.npmjs.org/@ar.io/sdk/-/sdk-2.1.0-alpha.10.tgz"
-  integrity sha512-Z8sKTOoYgp0nAgLH46gwsz3RvtaG0vG1kZNVRMgyyfA7rPX78C/3P72IiSbkrTy9cnAq29QYvZbgFSeeZdqjVQ==
+"@ar.io/sdk@2.3.1":
+  version "2.3.1"
+  resolved "https://registry.npmjs.org/@ar.io/sdk/-/sdk-2.3.1.tgz"
+  integrity sha512-QC6dmY7UD8O1z1OeYgWbdxl8CuC3XRYdBiroRANKwCilAZIGb9yxFcNIynam9awL/9pG6sDMt9gd83GSGgOfDA==
   dependencies:
+    "@dha-team/arbundles" "^1.0.1"
     "@permaweb/aoconnect" "^0.0.57"
-    arbundles "0.11.0"
     arweave "1.14.4"
-    axios "1.7.2"
+    axios "1.7.7"
     axios-retry "^4.3.0"
     eventemitter3 "^5.0.1"
     plimit-lit "^3.0.1"
     winston "^3.13.0"
+    zod "^3.23.8"
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.10.4", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.23.5", "@babel/code-frame@^7.24.2":
   version "7.24.2"
@@ -1285,6 +1286,30 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
+"@dha-team/arbundles@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/@dha-team/arbundles/-/arbundles-1.0.1.tgz"
+  integrity sha512-cgVxhZJLK1HG2+vcRBZ0CYGpxz7mA2QvLaspcw2gOzb2V/ZUxlifUu1aufBK3iz63Ww2OhgO0j9DstRJqrG1uA==
+  dependencies:
+    "@ethersproject/bytes" "^5.7.0"
+    "@ethersproject/hash" "^5.7.0"
+    "@ethersproject/providers" "^5.7.2"
+    "@ethersproject/signing-key" "^5.7.0"
+    "@ethersproject/transactions" "^5.7.0"
+    "@ethersproject/wallet" "^5.7.0"
+    "@noble/ed25519" "^1.6.1"
+    arweave "^1.15.1"
+    base64url "^3.0.1"
+    bs58 "^4.0.1"
+    keccak "^3.0.2"
+    secp256k1 "^5.0.0"
+  optionalDependencies:
+    "@randlabs/myalgo-connect" "^1.1.2"
+    algosdk "^1.13.1"
+    arweave-stream-tx "^1.1.0"
+    multistream "^4.1.0"
+    tmp-promise "^3.0.2"
+
 "@esbuild/aix-ppc64@0.20.2":
   version "0.20.2"
   resolved "https://registry.yarnpkg.com/@esbuild/aix-ppc64/-/aix-ppc64-0.20.2.tgz#a70f4ac11c6a1dfc18b8bbb13284155d933b9537"
@@ -2316,16 +2341,7 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@permaweb/ao-scheduler-utils@~0.0.16":
-  version "0.0.19"
-  resolved "https://registry.npmjs.org/@permaweb/ao-scheduler-utils/-/ao-scheduler-utils-0.0.19.tgz"
-  integrity sha512-xwIe9FqQ1UZxEYWvSGJDONz0xr4vDq2Ny1NeRUiO0dKYoonShN+oI1ULgrHocKOjOPNEgRX70vMCKGLe+3x70A==
-  dependencies:
-    lru-cache "^10.2.2"
-    ramda "^0.30.0"
-    zod "^3.23.5"
-
-"@permaweb/ao-scheduler-utils@~0.0.20":
+"@permaweb/ao-scheduler-utils@~0.0.16", "@permaweb/ao-scheduler-utils@~0.0.20":
   version "0.0.20"
   resolved "https://registry.npmjs.org/@permaweb/ao-scheduler-utils/-/ao-scheduler-utils-0.0.20.tgz"
   integrity sha512-bJkcmnQm/rCGqklJt46q5TnHfWkFzSBcSf9Z3uy8ylHRAheS9NyR1BJMAj3EXDjHCpg7JfnLRo6Uc3Xdw1lmOA==
@@ -4044,7 +4060,7 @@ arweave@1.14.4:
     base64-js "^1.5.1"
     bignumber.js "^9.0.2"
 
-arweave@^1.10.13, arweave@^1.13.7, arweave@^1.15.0:
+arweave@^1.10.13, arweave@^1.13.7, arweave@^1.15.0, arweave@^1.15.1:
   version "1.15.5"
   resolved "https://registry.npmjs.org/arweave/-/arweave-1.15.5.tgz"
   integrity sha512-Zj3b8juz1ZtDaQDPQlzWyk2I4wZPx3RmcGq8pVJeZXl2Tjw0WRy5ueHPelxZtBLqCirGoZxZEAFRs6SZUSCBjg==
@@ -4152,10 +4168,19 @@ axios@0.27.2:
     follow-redirects "^1.14.9"
     form-data "^4.0.0"
 
-axios@1.7.2, axios@^1.4.0, axios@^1.6.7:
+axios@1.7.2:
   version "1.7.2"
   resolved "https://registry.npmjs.org/axios/-/axios-1.7.2.tgz"
   integrity sha512-2A8QhOMrbomlDuiLeK9XibIBzuHeRcqqNOHp0Cyp5EoJ1IFDh+XZH3A6BkXtv0K4gFGCI0Y4BM7B1wOEi0Rmgw==
+  dependencies:
+    follow-redirects "^1.15.6"
+    form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
+
+axios@1.7.7, axios@^1.4.0, axios@^1.7.7:
+  version "1.7.7"
+  resolved "https://registry.npmjs.org/axios/-/axios-1.7.7.tgz"
+  integrity sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==
   dependencies:
     follow-redirects "^1.15.6"
     form-data "^4.0.0"

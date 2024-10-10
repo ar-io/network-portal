@@ -5,12 +5,12 @@ import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
 import { StreakDownArrowIcon, StreakUpArrowIcon } from '@src/components/icons';
 import useGateways from '@src/hooks/useGateways';
+import { useGlobalState } from '@src/store';
 import { formatDate, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Banner from './Banner';
-import { useGlobalState } from '@src/store';
 
 interface TableData {
   label: string;
@@ -21,6 +21,7 @@ interface TableData {
   operatorStake: number; // IO
   totalStake: number; // IO
   status: string;
+  endTimeStamp: number;
   performance: number;
   passedEpochCount: number;
   totalEpochCount: number;
@@ -30,7 +31,6 @@ interface TableData {
 const columnHelper = createColumnHelper<TableData>();
 
 const Gateways = () => {
-
   const ticker = useGlobalState((state) => state.ticker);
 
   const { isLoading, data: gateways } = useGateways();
@@ -41,7 +41,6 @@ const Gateways = () => {
   useEffect(() => {
     const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
       (acc: Array<TableData>, [owner, gateway]) => {
-
         const passedEpochCount = gateway.stats.passedEpochCount;
         const totalEpochCount = (gateway.stats as any).totalEpochCount;
 
@@ -62,18 +61,17 @@ const Gateways = () => {
               .toIO()
               .valueOf(),
             status: gateway.status,
+            endTimeStamp: gateway.endTimestamp,
             performance:
-              totalEpochCount > 0
-                ? passedEpochCount / totalEpochCount
-                : -1,
+              totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
             passedEpochCount,
             totalEpochCount,
             streak:
-            gateway.status == "leaving" ? 
-            Number.NEGATIVE_INFINITY :
-              gateway.stats.failedConsecutiveEpochs > 0
-                ? -gateway.stats.failedConsecutiveEpochs
-                : gateway.stats.passedConsecutiveEpochs,
+              gateway.status == 'leaving'
+                ? Number.NEGATIVE_INFINITY
+                : gateway.stats.failedConsecutiveEpochs > 0
+                  ? -gateway.stats.failedConsecutiveEpochs
+                  : gateway.stats.passedConsecutiveEpochs,
           },
         ];
       },
@@ -147,6 +145,18 @@ const Gateways = () => {
       id: 'status',
       header: 'Status',
       sortDescFirst: false,
+      cell: ({ row }) =>
+        row.original.status == 'leaving' ? (
+          <Tooltip message={
+            <div>
+              <div>Final Withdrawal: {formatDate(new Date(row.original.endTimeStamp))}</div>
+            </div>
+          }>
+            <div className="text-red-500">leaving</div>
+          </Tooltip>
+        ) : (
+          row.original.status
+        ),
     }),
     columnHelper.accessor('performance', {
       id: 'performance',
@@ -159,11 +169,10 @@ const Gateways = () => {
           <Tooltip
             message={
               <div>
-                <div>
-                  Passed Epoch Count: {row.original.passedEpochCount}
-                </div>
+                <div>Passed Epoch Count: {row.original.passedEpochCount}</div>
                 <div className="mt-1">
-                  Total Epoch Participation Count: {row.original.totalEpochCount}
+                  Total Epoch Participation Count:{' '}
+                  {row.original.totalEpochCount}
                 </div>
               </div>
             }
@@ -191,7 +200,11 @@ const Gateways = () => {
             ? 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up'
             : 'border-text-red/[.56] bg-text-red/[.1] text-text-red';
         const icon =
-          streak > 0 ? <StreakUpArrowIcon className='size-3'/> : <StreakDownArrowIcon className='size-3'/>;
+          streak > 0 ? (
+            <StreakUpArrowIcon className="size-3" />
+          ) : (
+            <StreakDownArrowIcon className="size-3" />
+          );
 
         return (
           <div

@@ -30,6 +30,7 @@ import {
   log,
 } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
+import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
 import useGateways from '@src/hooks/useGateways';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
@@ -43,7 +44,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
-import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
+import SnitchRow from './SnitchRow';
 
 const StatsBox = ({
   title,
@@ -417,8 +418,10 @@ const Gateway = () => {
   };
 
   return (
-    <div className="flex h-screen max-w-full flex-col overflow-y-auto pr-6 scrollbar">
-      <GatewayHeader gateway={gateway} />
+    <div className="flex h-screen flex-col overflow-y-auto pr-6 scrollbar">
+      <div className="min-w-[68rem]">
+        <GatewayHeader gateway={gateway} />
+      </div>
       <div className="my-6 flex gap-6">
         <div className="flex flex-col gap-6">
           <div className="size-fit w-full rounded-xl border border-transparent-100-16 text-sm">
@@ -478,7 +481,10 @@ const Gateway = () => {
                 }
               />
             )}
-            <StatsBox title="Release Version" value={arioInfoRes.data?.release} />
+            <StatsBox
+              title="Release Version"
+              value={arioInfoRes.data?.release}
+            />
             {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
           </div>
 
@@ -504,68 +510,74 @@ const Gateway = () => {
             </div>
           )}
         </div>
-        <div className="h-fit w-full grow overflow-hidden rounded-xl border border-transparent-100-16">
-          <div className="flex items-center py-4 pl-6 pr-3">
-            <div className="text-sm text-high">General Information</div>
-            <div className="flex grow gap-6" />
-            {ownerId === walletAddress?.toString() &&
-              (editing ? (
-                <>
-                  <div className="flex">
+        <div className="flex w-full grow flex-col gap-6">
+          <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">
+            <div className="flex items-center py-4 pl-6 pr-3">
+              <div className="text-sm text-high">General Information</div>
+              <div className="flex grow gap-6" />
+              {ownerId === walletAddress?.toString() &&
+                (editing ? (
+                  <>
+                    <div className="flex">
+                      <Button
+                        className="h-[1.875rem]"
+                        title="Cancel"
+                        text="Cancel"
+                        buttonType={ButtonType.SECONDARY}
+                        onClick={() => setEditing(false)}
+                      />
+                    </div>
+                    {!isFormValid({ formRowDefs, formValues: formState }) ? (
+                      <div className="pl-6 text-sm text-red-600">
+                        Invalid Entry
+                      </div>
+                    ) : numFormChanges > 0 ? (
+                      <Button
+                        className="last:text-gradient h-[1.875rem]"
+                        title={`Save ${numFormChanges} changes`}
+                        text={`Save ${numFormChanges} changes`}
+                        buttonType={ButtonType.SECONDARY}
+                        onClick={submitForm}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </>
+                ) : (
+                  gateway?.status == 'joined' && (
                     <Button
                       className="h-[1.875rem]"
-                      title="Cancel"
-                      text="Cancel"
-                      buttonType={ButtonType.SECONDARY}
-                      onClick={() => setEditing(false)}
+                      title="Edit"
+                      text="Edit"
+                      icon={<EditIcon className="size-3" />}
+                      active={true}
+                      onClick={startEditing}
                     />
-                  </div>
-                  {!isFormValid({ formRowDefs, formValues: formState }) ? (
-                    <div className="pl-6 text-sm text-red-600">
-                      Invalid Entry
-                    </div>
-                  ) : numFormChanges > 0 ? (
-                    <Button
-                      className="last:text-gradient h-[1.875rem]"
-                      title={`Save ${numFormChanges} changes`}
-                      text={`Save ${numFormChanges} changes`}
-                      buttonType={ButtonType.SECONDARY}
-                      onClick={submitForm}
-                    />
-                  ) : (
-                    <></>
-                  )}
-                </>
-              ) : gateway?.status == 'joined' && (
-                <Button
-                  className="h-[1.875rem]"
-                  title="Edit"
-                  text="Edit"
-                  icon={<EditIcon className="size-3" />}
-                  active={true}
-                  onClick={startEditing}
-                />
-              ))}
-          </div>
-          {editing ? (
-            <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
-              {formRowDefs.map((rowDef, index) => {
-                return (
-                  <FormRow
-                    key={index}
-                    initialState={initialState}
-                    formState={formState}
-                    setFormState={setFormState}
-                    errorMessages={formErrors}
-                    setErrorMessages={setFormErrors}
-                    {...rowDef}
-                  />
-                );
-              })}
+                  )
+                ))}
             </div>
-          ) : (
-            <PropertyDisplayPanel ownerId={ownerId} gateway={gateway} />
-          )}
+            {editing ? (
+              <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
+                {formRowDefs.map((rowDef, index) => {
+                  return (
+                    <FormRow
+                      key={index}
+                      initialState={initialState}
+                      formState={formState}
+                      setFormState={setFormState}
+                      errorMessages={formErrors}
+                      setErrorMessages={setFormErrors}
+                      {...rowDef}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <PropertyDisplayPanel ownerId={ownerId} gateway={gateway} />
+            )}
+          </div>
+
+          <SnitchRow gateway={gateway} />
         </div>
       </div>
       {showBlockingMessageModal && (

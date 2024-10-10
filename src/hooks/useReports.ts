@@ -42,8 +42,8 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
       const reportTransactionData = await Promise.all(
         epochs.map((epoch) =>
         {
-          const observations = epoch.observations;
-            const txid = observations.reports[observerAddress];
+          const observations = epoch?.observations;
+          const txid = observations?.reports[observerAddress];
 
             return txid
               ? {

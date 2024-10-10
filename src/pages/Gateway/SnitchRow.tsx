@@ -16,7 +16,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
 
       if (gateway) {
         const observers =
-          selectedEpoch.observations.failureSummaries[gateway.gatewayAddress] ||
+          selectedEpoch?.observations.failureSummaries[gateway.gatewayAddress] ||
           [];
         setFailureObservers(observers);
       }
@@ -45,7 +45,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
               options={
                 epochs?.map((epoch, index) => ({
                   label:
-                    index == 0 ? 'Current Epoch' : `Epoch ${epoch.epochIndex}`,
+                    index == 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
                   value: index.toString(),
                 })) || []
               }
@@ -85,7 +85,7 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
     if (epochs) {
       const selectedEpoch = epochs[selectedEpochIndex];
 
-      if (gateway) {
+      if (gateway && selectedEpoch) {
         const address = gateway.observerAddress;
 
         setSelectedForObservation(
@@ -130,7 +130,7 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
               options={
                 epochs?.map((epoch, index) => ({
                   label:
-                    index == 0 ? 'Current Epoch' : `Epoch ${epoch.epochIndex}`,
+                    index == 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
                   value: index.toString(),
                 })) || []
               }

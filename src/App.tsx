@@ -16,6 +16,7 @@ import WalletProvider from './components/WalletProvider';
 import AppRouterLayout from './layout/AppRouterLayout';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
+import Dashboard from './pages/Dashboard';
 
 // Main Pages
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));
@@ -37,8 +38,8 @@ function App() {
   const router = sentryCreateBrowserRouter(
     createRoutesFromElements(
       <Route element={<AppRouterLayout />} errorElement={<NotFound />}>
-        <Route index path="/" element={<Navigate to="/gateways" />} />
-        {/* <Route
+        <Route index path="/" element={<Navigate to="/dashboard" />} />
+        <Route
           path="dashboard"
           element={
             <Suspense fallback={<Loading />}>
@@ -46,7 +47,7 @@ function App() {
             </Suspense>
           }
         />
-        , */}
+        ,
         <Route
           path="gateways/:ownerId/reports/:reportId"
           element={

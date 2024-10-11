@@ -22,7 +22,6 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
 
   const { data: epochs } = useEpochs();
 
-
   const queryResults = useQuery({
     queryKey: ['reports', ownerId],
     queryFn: async () => {
@@ -39,33 +38,26 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
 
       let data: ReportTransactionData[] = [];
 
-      const reportTransactionData = await Promise.all(
-        epochs.map((epoch) =>
-        {
-          const observations = epoch?.observations;
-          const txid = observations?.reports[observerAddress];
+      const reportTransactionData = epochs.reduce((acc, epoch) => {
+        if (epoch) {
+          const observations = epoch.observations;
+          const txid = observations.reports[observerAddress];
 
-            return txid
-              ? {
-                  txid,
-                  failedGateways: Object.values(
-                    observations.failureSummaries,
-                  ).reduce((acc, summary) => {
-                    return summary.includes(observerAddress) ? acc + 1 : acc;
-                  }, 0),
-                }
-              : undefined;
+          const failedGateways = Object.values(
+            observations.failureSummaries,
+          ).reduce((acc, summary) => {
+            return summary.includes(observerAddress) ? acc + 1 : acc;
+          }, 0);
 
-        })
-      );
+          const record = { txid, failedGateways };
 
-      const filteredTransactionData = reportTransactionData.reduce(
-        (acc, txData) =>
-          txData !== undefined ? { ...acc, [txData.txid]: txData } : acc,
-        {} as Record<string, { txid: string; failedGateways: number }>,
-      );
+          return {...acc, [txid]: record};
+        } else {
+          return acc;
+        }
+      }, {} as Record<string, {txid:string, failedGateways: number}>);
 
-      const keys = Object.keys(filteredTransactionData);
+      const keys = Object.keys(reportTransactionData);
 
       if (keys.length > 0) {
         const transactions = await arweaveGraphql(
@@ -76,7 +68,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
 
         const recordData = transactions.transactions.edges.map(
           (transaction) => {
-            const txData = filteredTransactionData[transaction.node.id];
+            const txData = reportTransactionData[transaction.node.id];
 
             const tags = transaction.node.tags;
 

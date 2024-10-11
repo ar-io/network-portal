@@ -60,6 +60,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
       const keys = Object.keys(reportTransactionData);
 
       if (keys.length > 0) {
+        // Epoch pruning on contract means we have at most 14 reports. Retrieve as a batch here.
         const transactions = await arweaveGraphql(
           `https://${DEFAULT_ARWEAVE_HOST}/graphql`,
         ).getTransactions({

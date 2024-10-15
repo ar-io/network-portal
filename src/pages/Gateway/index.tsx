@@ -20,7 +20,7 @@ import {
   validateTransactionId,
   validateWalletAddress,
 } from '@src/components/forms/validation';
-import { EditIcon, InfoIcon, StatsArrowIcon } from '@src/components/icons';
+import { EditIcon, InfoIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
 import {
@@ -30,7 +30,6 @@ import {
   log,
 } from '@src/constants';
 import useGateway from '@src/hooks/useGateway';
-import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
 import useGateways from '@src/hooks/useGateways';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
@@ -40,33 +39,13 @@ import { calculateOperatorRewards } from '@src/utils/rewards';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { MathJax } from 'better-react-mathjax';
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
 import SnitchRow from './SnitchRow';
-
-const StatsBox = ({
-  title,
-  value,
-}: {
-  title: string | ReactNode;
-  value: string | number | undefined;
-}) => {
-  return (
-    <div className="flex flex-col gap-1 border-t border-transparent-100-16 px-6 py-4">
-      <div className="text-xs text-low">{title}</div>
-      <div className="flex gap-1">
-        <StatsArrowIcon className="size-4" />
-        {value !== undefined ? (
-          <div className="text-nowrap text-sm text-mid">{value}</div>
-        ) : (
-          <Placeholder />
-        )}
-      </div>
-    </div>
-  );
-};
+import SoftwareDetails from './SoftwareDetails';
+import StatsBox from './StatsBox';
 
 const formatUptime = (uptime: number) => {
   const days = Math.floor(uptime / 86400);
@@ -100,10 +79,6 @@ const Gateway = () => {
     : undefined;
 
   const healthCheckRes = useHealthcheck({
-    url: gatewayAddress,
-  });
-
-  const arioInfoRes = useGatewayArioInfo({
     url: gatewayAddress,
   });
 
@@ -481,10 +456,6 @@ const Gateway = () => {
                 }
               />
             )}
-            <StatsBox
-              title="Release Version"
-              value={arioInfoRes.data?.release}
-            />
             {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
           </div>
 
@@ -509,6 +480,7 @@ const Gateway = () => {
               ))}
             </div>
           )}
+          <SoftwareDetails gateway={gateway} />
         </div>
         <div className="flex w-full grow flex-col gap-6">
           <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">

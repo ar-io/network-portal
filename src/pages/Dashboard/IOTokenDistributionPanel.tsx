@@ -2,6 +2,7 @@ import { AoGateway, mIOToken } from '@ar.io/sdk';
 import Placeholder from '@src/components/Placeholder';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
+// import useTokenSupply from '@src/hooks/useTokenSupply';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
@@ -70,10 +71,6 @@ const calculateIODistribution = (
 };
 
 const IOTokenDistributionPanel = () => {
-  const currentEpoch = useGlobalState((state) => state.currentEpoch);
-
-  console.log(currentEpoch)
-
   const [data, setData] = useState<IODistribution>();
 
   const { data: gateways } = useGateways();
@@ -82,6 +79,10 @@ const IOTokenDistributionPanel = () => {
   const ticker = useGlobalState((state) => state.ticker);
 
   const [activeIndex, setActiveIndex] = useState<number>();
+
+  // const {data: tokenSupply} = useTokenSupply();
+
+
 
   useEffect(() => {
     setData(

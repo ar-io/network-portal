@@ -1,5 +1,7 @@
 import Header from '@src/components/Header';
+import ArNSStatsPanel from './ArNSStatsPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
+import ObserverPerformancePanel from './ObserverPerformancePanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
@@ -11,7 +13,11 @@ const Dashboard = () => {
           <IOTokenDistributionPanel />
         </div>
 
-        <div className="flex grow flex-col gap-6">
+        <div className="flex min-w-[50rem] grow flex-col gap-6">
+          <div className="grid h-fit grid-cols-2 gap-6">
+            <ObserverPerformancePanel />
+            <ArNSStatsPanel />
+          </div>
           <RewardsDistributionPanel />
         </div>
       </div>

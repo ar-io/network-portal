@@ -1,8 +1,6 @@
-import { AoGateway, mIOToken } from '@ar.io/sdk';
+import { AoTokenSupplyData, mIOToken } from '@ar.io/sdk';
 import Placeholder from '@src/components/Placeholder';
-import useGateways from '@src/hooks/useGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
-// import useTokenSupply from '@src/hooks/useTokenSupply';
+import useTokenSupply from '@src/hooks/useTokenSupply';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
@@ -21,76 +19,48 @@ type IOCategory =
 type IODistribution = { name: IOCategory; value: number }[];
 
 const calculateIODistribution = (
-  protocolBalance: number,
-  gateways: AoGateway[],
+  tokenSupply: AoTokenSupplyData,
 ): IODistribution => {
-  const gatewayValues = gateways.reduce(
-    (acc, gateway) => {
-      const pendingWithdrawals = Object.values(gateway.vaults).reduce(
-        (acc, vaultRecord) => acc + vaultRecord.balance,
-        0,
-      );
-
-      return {
-        operatorStake: acc.operatorStake + gateway.operatorStake,
-        delegatedStake: acc.delegatedStake + gateway.totalDelegatedStake,
-        pendingWithdrawals: acc.pendingWithdrawals + pendingWithdrawals,
-      };
-    },
-    { operatorStake: 0, delegatedStake: 0, pendingWithdrawals: 0 },
-  );
-
-  const data: IODistribution = [
+  return [
     {
       name: 'Protocol Balance',
-      value: new mIOToken(protocolBalance).toIO().valueOf(),
+      value: new mIOToken(tokenSupply.protocolBalance).toIO().valueOf(),
     },
     {
       name: 'Operator Stake',
-      value: new mIOToken(gatewayValues.operatorStake).toIO().valueOf(),
+      value: new mIOToken(tokenSupply.staked).toIO().valueOf(),
     },
     {
       name: 'Delegated Stake',
-      value: new mIOToken(gatewayValues.delegatedStake).toIO().valueOf(),
+      value: new mIOToken(tokenSupply.delegated).toIO().valueOf(),
     },
     {
       name: 'Pending Withdrawal',
-      value: new mIOToken(gatewayValues.pendingWithdrawals).toIO().valueOf(),
+      value: new mIOToken(tokenSupply.withdrawn).toIO().valueOf(),
     },
-    // {
-    //   name: 'In Circulation',
-    //   value: 3908,
-    // },
-    // {
-    //   name: 'Locked Supply',
-    //   value: 4800,
-    // },
+    {
+      name: 'In Circulation',
+      value: new mIOToken(tokenSupply.circulating).toIO().valueOf(),
+    },
+    {
+      name: 'Locked Supply',
+      value: new mIOToken(tokenSupply.locked).toIO().valueOf(),
+    },
   ];
-
-  return data;
 };
 
 const IOTokenDistributionPanel = () => {
   const [data, setData] = useState<IODistribution>();
 
-  const { data: gateways } = useGateways();
-  const { data: protocolBalance } = useProtocolBalance();
+  const { data: tokenSupply } = useTokenSupply();
 
   const ticker = useGlobalState((state) => state.ticker);
 
   const [activeIndex, setActiveIndex] = useState<number>();
 
-  // const {data: tokenSupply} = useTokenSupply();
-
-
-
   useEffect(() => {
-    setData(
-      gateways && protocolBalance
-        ? calculateIODistribution(protocolBalance, Object.values(gateways))
-        : undefined,
-    );
-  }, [gateways, protocolBalance]);
+    setData(tokenSupply ? calculateIODistribution(tokenSupply) : undefined);
+  }, [tokenSupply]);
 
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
@@ -100,9 +70,11 @@ const IOTokenDistributionPanel = () => {
     setActiveIndex(undefined);
   };
 
-  const ioDisplayValue =
-    formatWithCommas(Math.floor(
-    data && activeIndex !== undefined ? data[activeIndex].value : TOTAL_IO));
+  const ioDisplayValue = formatWithCommas(
+    Math.floor(
+      data && activeIndex !== undefined ? data[activeIndex].value : TOTAL_IO,
+    ),
+  );
 
   return (
     <div className="w-[22rem] rounded-xl border border-grey-500">
@@ -144,9 +116,7 @@ const IOTokenDistributionPanel = () => {
             </PieChart>
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div className="text-gradient flex text-center ">
-                <div className="text-3xl font-semibold">
-                  {ioDisplayValue}
-                </div>
+                <div className="text-3xl font-semibold">{ioDisplayValue}</div>
                 <div className="text-xs">{ticker}</div>
               </div>
             </div>

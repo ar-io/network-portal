@@ -6,9 +6,14 @@ import {
   Label,
   ResponsiveContainer,
   Tooltip,
+  TooltipProps,
   XAxis,
   YAxis,
 } from 'recharts';
+import {
+  NameType,
+  ValueType,
+} from 'recharts/types/component/DefaultTooltipContent';
 
 const CustomTooltip = ({
   active,
@@ -29,8 +34,6 @@ const CustomTooltip = ({
 
 const GatewaysInNetworkPanel = () => {
   const { data: gatewaysPerEpoch } = useGatewaysPerEpoch();
-
-  console.log(gatewaysPerEpoch);
 
   return (
     <div className="flex h-[15.675rem] min-w-[22rem] flex-col rounded-xl border border-grey-500 px-6 py-5  text-sm text-mid">

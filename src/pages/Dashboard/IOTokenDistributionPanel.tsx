@@ -122,7 +122,9 @@ const IOTokenDistributionPanel = () => {
             </div>
           </>
         ) : (
-          <Placeholder className="m-4 h-4" />
+          <div className="flex size-full">
+            <Placeholder className="m-auto h-4" />
+          </div>
         )}
       </div>
       <div className="mt-6 grid w-full grid-cols-6 gap-2 rounded-b-xl bg-containerL3 p-2 py-4">

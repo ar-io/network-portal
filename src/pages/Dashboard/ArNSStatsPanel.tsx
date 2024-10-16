@@ -8,7 +8,7 @@ const ArNSStatsPanel = () => {
   return (
     <div className="flex min-w-[22rem] flex-col rounded-xl border border-grey-500 px-6 py-5">
       <div className=" text-sm text-mid">ArNS Names Purchased</div>
-      <div className="self-center px-24 py-12 text-center text-[2.625rem]">
+      <div className="self-center px-24 py-6 text-center text-[2.625rem]">
         {arnsStats ? (
           formatWithCommas(arnsStats.namesPurchased)
         ) : (

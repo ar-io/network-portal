@@ -121,7 +121,7 @@ const RewardsDistributionPanel = () => {
             </ResponsiveContainer>
           </div>
         ) : (
-          <Placeholder className="m-4 h-4" />
+          <Placeholder className="m-auto h-4" />
         )}
       </div>
     </div>

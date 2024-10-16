@@ -20,7 +20,7 @@
     "deploy": "yarn build && permaweb-deploy --ant-process ${DEPLOY_ANT_PROCESS_ID}"
   },
   "dependencies": {
-    "@ar.io/sdk": "2.3.2-alpha.2",
+    "@ar.io/sdk": "2.3.2-alpha.3",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^1.7.19",
     "@radix-ui/react-tooltip": "^1.0.7",
@@ -43,7 +43,7 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.22.1",
-    "recharts": "^2.12.7",
+    "recharts": "^2.13.0",
     "zustand": "^4.5.1"
   },
   "devDependencies": {

@@ -16,7 +16,7 @@ const ObserverPerformancePanel = () => {
         <div className="flex flex-col place-items-end">
           <div className="grow" />
           <div className="flex items-center leading-none">
-            {reportsCount ? (
+            {reportsCount !== undefined ? (
               ((100 * reportsCount) / 50).toFixed(2) + '%'
             ) : (
               <Placeholder />
@@ -25,7 +25,7 @@ const ObserverPerformancePanel = () => {
         </div>
         <div className="flex flex-col place-items-end text-right text-xs">
           <div className="grow" />
-          {reportsCount ? (
+          {reportsCount !== undefined? (
             <>
               <div>{reportsCount}/50</div>
               <div>observations submitted</div>

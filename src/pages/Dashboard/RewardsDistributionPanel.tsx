@@ -54,20 +54,21 @@ const RewardsDistributionPanel = () => {
     if (epochs) {
       setRewardsData(
         epochs
-          .sort((a, b) => a.epochIndex - b.epochIndex)
+          .filter((epoch) => epoch !== undefined)
+          .sort((a, b) => a!.epochIndex - b!.epochIndex)
           .map((epoch) => {
             const eligible = new mIOToken(
-              epoch.distributions.totalEligibleRewards,
+              epoch!.distributions.totalEligibleRewards,
             )
               .toIO()
               .valueOf();
             const claimed = new mIOToken(
-              epoch.distributions.totalDistributedRewards ?? 0,
+              epoch!.distributions.totalDistributedRewards ?? 0,
             )
               .toIO()
               .valueOf();
             return {
-              epoch: epoch.epochIndex,
+              epoch: epoch!.epochIndex,
               eligible,
               claimed,
               unclaimed: eligible - claimed,

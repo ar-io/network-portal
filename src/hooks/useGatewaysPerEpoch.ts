@@ -19,6 +19,7 @@ const useGatewaysPerEpoch = () => {
       }
 
       return epochs.map((epoch) => {
+        if (!epoch) throw new Error('Epoch not available');
         return {
           epochIndex: epoch.epochIndex,
           totalEligibleGateways:

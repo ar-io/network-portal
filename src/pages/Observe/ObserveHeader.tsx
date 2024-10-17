@@ -8,7 +8,7 @@ import {
   HeaderSeparatorIcon,
 } from '@src/components/icons';
 import { log } from '@src/constants';
-import observationDB from '@src/store/observationsDB';
+import db from '@src/store/db';
 import { Assessment } from '@src/types';
 import { performAssessment } from '@src/utils/observations';
 import { useState } from 'react';
@@ -53,7 +53,7 @@ const ObserveHeader = ({
 
     setSelectedAssessment(assessment);
 
-    await observationDB.observations.add({
+    await db.observations.add({
       gatewayAddress: ownerId!,
       timestamp: Date.now(),
       assessment,

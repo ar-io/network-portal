@@ -1,5 +1,6 @@
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { useGlobalState } from '@src/store';
+import { cleanupDbCache } from '@src/store/db';
 import { ReactElement, useEffect } from 'react';
 
 const GlobalDataProvider = ({
@@ -23,6 +24,10 @@ const GlobalDataProvider = ({
 
       const currentEpoch = await arioReadSDK.getCurrentEpoch();
       setCurrentEpoch(currentEpoch);
+
+      if(currentEpoch?.epochIndex) {
+        cleanupDbCache(currentEpoch.epochIndex);
+      }
     };
 
     update();

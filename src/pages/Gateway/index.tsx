@@ -20,7 +20,7 @@ import {
   validateTransactionId,
   validateWalletAddress,
 } from '@src/components/forms/validation';
-import { EditIcon, InfoIcon, StatsArrowIcon } from '@src/components/icons';
+import { EditIcon, InfoIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
 import {
@@ -39,33 +39,13 @@ import { calculateOperatorRewards } from '@src/utils/rewards';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { MathJax } from 'better-react-mathjax';
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
-import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
-
-const StatsBox = ({
-  title,
-  value,
-}: {
-  title: string | ReactNode;
-  value: string | number | undefined;
-}) => {
-  return (
-    <div className="flex flex-col gap-1 border-t border-transparent-100-16 px-6 py-4">
-      <div className="text-xs text-low">{title}</div>
-      <div className="flex gap-1">
-        <StatsArrowIcon className="size-4" />
-        {value !== undefined ? (
-          <div className="text-nowrap text-sm text-mid">{value}</div>
-        ) : (
-          <Placeholder />
-        )}
-      </div>
-    </div>
-  );
-};
+import SnitchRow from './SnitchRow';
+import SoftwareDetails from './SoftwareDetails';
+import StatsBox from './StatsBox';
 
 const formatUptime = (uptime: number) => {
   const days = Math.floor(uptime / 86400);
@@ -99,10 +79,6 @@ const Gateway = () => {
     : undefined;
 
   const healthCheckRes = useHealthcheck({
-    url: gatewayAddress,
-  });
-
-  const arioInfoRes = useGatewayArioInfo({
     url: gatewayAddress,
   });
 
@@ -417,10 +393,12 @@ const Gateway = () => {
   };
 
   return (
-    <div className="flex h-screen max-w-full flex-col overflow-y-auto pr-6 scrollbar">
-      <GatewayHeader gateway={gateway} />
+    <div className="flex h-screen flex-col overflow-y-auto pr-6 scrollbar">
+      <div className="min-w-[68rem]">
+        <GatewayHeader gateway={gateway} />
+      </div>
       <div className="my-6 flex gap-6">
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-72 flex-col gap-6">
           <div className="size-fit w-full rounded-xl border border-transparent-100-16 text-sm">
             <div className="px-6 py-4">
               <div className="text-high">Stats</div>
@@ -433,52 +411,63 @@ const Gateway = () => {
                   : undefined
               }
             />
-            <StatsBox
-              title="Uptime"
-              value={
-                healthCheckRes.isError
-                  ? 'N/A'
-                  : healthCheckRes.isLoading
-                    ? undefined
-                    : formatUptime(healthCheckRes.data?.uptime)
-              }
-            />
-            <StatsBox
-              title="Delegates"
-              value={
-                gateway?.delegates
-                  ? Object.keys(gateway.delegates).length
-                  : undefined
-              }
-            />
 
-            {gateway?.status === 'joined' && (
+            {gateway?.status === 'joined' ? (
+              <>
+                <StatsBox
+                  title="Uptime"
+                  value={
+                    healthCheckRes.isError
+                      ? 'N/A'
+                      : healthCheckRes.isLoading
+                        ? undefined
+                        : formatUptime(healthCheckRes.data?.uptime)
+                  }
+                />
+                <StatsBox
+                  title="Delegates"
+                  value={
+                    gateway?.delegates
+                      ? Object.keys(gateway.delegates).length
+                      : undefined
+                  }
+                />
+
+                <StatsBox
+                  title={
+                    <div className="flex gap-2">
+                      Operator EAY{' '}
+                      <Tooltip
+                        message={
+                          <div>
+                            <p>{EAY_TOOLTIP_TEXT}</p>
+                            <MathJax className="mt-4">
+                              {OPERATOR_EAY_TOOLTIP_FORMULA}
+                            </MathJax>
+                          </div>
+                        }
+                      >
+                        <InfoIcon className="size-4" />
+                      </Tooltip>
+                    </div>
+                  }
+                  value={
+                    operatorRewards != undefined
+                      ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
+                      : undefined
+                  }
+                />
+              </>
+            ) : gateway && (
               <StatsBox
-                title={
-                  <div className="flex gap-2">
-                    Operator EAY{' '}
-                    <Tooltip
-                      message={
-                        <div>
-                          <p>{EAY_TOOLTIP_TEXT}</p>
-                          <MathJax className="mt-4">
-                            {OPERATOR_EAY_TOOLTIP_FORMULA}
-                          </MathJax>
-                        </div>
-                      }
-                    >
-                      <InfoIcon className="size-4" />
-                    </Tooltip>
-                  </div>
-                }
+                title="Leave Date"
                 value={
-                  operatorRewards != undefined
-                    ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
+                  gateway?.endTimestamp
+                    ? formatDateTime(new Date(gateway?.endTimestamp))
                     : undefined
                 }
               />
             )}
-            <StatsBox title="Release Version" value={arioInfoRes.data?.release} />
             {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
           </div>
 
@@ -503,69 +492,78 @@ const Gateway = () => {
               ))}
             </div>
           )}
+          {gateway?.status === 'joined' && (
+            <SoftwareDetails gateway={gateway} />
+          )}
         </div>
-        <div className="h-fit w-full grow overflow-hidden rounded-xl border border-transparent-100-16">
-          <div className="flex items-center py-4 pl-6 pr-3">
-            <div className="text-sm text-high">General Information</div>
-            <div className="flex grow gap-6" />
-            {ownerId === walletAddress?.toString() &&
-              (editing ? (
-                <>
-                  <div className="flex">
+        <div className="flex w-full grow flex-col gap-6">
+          <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">
+            <div className="flex items-center py-4 pl-6 pr-3">
+              <div className="text-sm text-high">General Information</div>
+              <div className="flex grow gap-6" />
+              {ownerId === walletAddress?.toString() &&
+                (editing ? (
+                  <>
+                    <div className="flex">
+                      <Button
+                        className="h-[1.875rem]"
+                        title="Cancel"
+                        text="Cancel"
+                        buttonType={ButtonType.SECONDARY}
+                        onClick={() => setEditing(false)}
+                      />
+                    </div>
+                    {!isFormValid({ formRowDefs, formValues: formState }) ? (
+                      <div className="pl-6 text-sm text-red-600">
+                        Invalid Entry
+                      </div>
+                    ) : numFormChanges > 0 ? (
+                      <Button
+                        className="last:text-gradient h-[1.875rem]"
+                        title={`Save ${numFormChanges} changes`}
+                        text={`Save ${numFormChanges} changes`}
+                        buttonType={ButtonType.SECONDARY}
+                        onClick={submitForm}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </>
+                ) : (
+                  gateway?.status == 'joined' && (
                     <Button
                       className="h-[1.875rem]"
-                      title="Cancel"
-                      text="Cancel"
-                      buttonType={ButtonType.SECONDARY}
-                      onClick={() => setEditing(false)}
+                      title="Edit"
+                      text="Edit"
+                      icon={<EditIcon className="size-3" />}
+                      active={true}
+                      onClick={startEditing}
                     />
-                  </div>
-                  {!isFormValid({ formRowDefs, formValues: formState }) ? (
-                    <div className="pl-6 text-sm text-red-600">
-                      Invalid Entry
-                    </div>
-                  ) : numFormChanges > 0 ? (
-                    <Button
-                      className="last:text-gradient h-[1.875rem]"
-                      title={`Save ${numFormChanges} changes`}
-                      text={`Save ${numFormChanges} changes`}
-                      buttonType={ButtonType.SECONDARY}
-                      onClick={submitForm}
-                    />
-                  ) : (
-                    <></>
-                  )}
-                </>
-              ) : gateway?.status == 'joined' && (
-                <Button
-                  className="h-[1.875rem]"
-                  title="Edit"
-                  text="Edit"
-                  icon={<EditIcon className="size-3" />}
-                  active={true}
-                  onClick={startEditing}
-                />
-              ))}
-          </div>
-          {editing ? (
-            <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
-              {formRowDefs.map((rowDef, index) => {
-                return (
-                  <FormRow
-                    key={index}
-                    initialState={initialState}
-                    formState={formState}
-                    setFormState={setFormState}
-                    errorMessages={formErrors}
-                    setErrorMessages={setFormErrors}
-                    {...rowDef}
-                  />
-                );
-              })}
+                  )
+                ))}
             </div>
-          ) : (
-            <PropertyDisplayPanel ownerId={ownerId} gateway={gateway} />
-          )}
+            {editing ? (
+              <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
+                {formRowDefs.map((rowDef, index) => {
+                  return (
+                    <FormRow
+                      key={index}
+                      initialState={initialState}
+                      formState={formState}
+                      setFormState={setFormState}
+                      errorMessages={formErrors}
+                      setErrorMessages={setFormErrors}
+                      {...rowDef}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <PropertyDisplayPanel ownerId={ownerId} gateway={gateway} />
+            )}
+          </div>
+
+          <SnitchRow gateway={gateway} />
         </div>
       </div>
       {showBlockingMessageModal && (

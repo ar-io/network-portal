@@ -8,3 +8,4 @@ cache
 dist-id.txt
 dist-manifest.csv
 dist-manifest.json
+package-lock.json

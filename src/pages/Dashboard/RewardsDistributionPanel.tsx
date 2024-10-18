@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import {
   Bar,
   BarChart,
-  Label,
   ResponsiveContainer,
   Tooltip,
   TooltipProps,
@@ -81,7 +80,7 @@ const RewardsDistributionPanel = () => {
   return (
     <div className="min-w-[22rem] rounded-xl border border-grey-500">
       <div className="px-5 pt-5 text-sm">
-        Eligible Rewards by Epoch vs. Rewards Claimed
+        Eligible Rewards in {ticker} by Epoch vs. Rewards Claimed
       </div>
       <div className="relative h-80">
         {rewardsData ? (
@@ -89,23 +88,23 @@ const RewardsDistributionPanel = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={rewardsData}
-                margin={{ top: 20, right: 16, left: 16, bottom: 20 }}
+                margin={{ top: 20, right: 16, left: 8, bottom: 10 }}
               >
                 <defs>
                   <linearGradient id="colorUv" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#F7C3A1" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#DF9BE8" stopOpacity={1} />
+                    <stop offset="0%" stopColor="#F7C3A1" stopOpacity={0.25} />
+                    <stop
+                      offset="100%"
+                      stopColor="#DF9BE8"
+                      stopOpacity={0.125}
+                    />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="epoch">
-                  <Label value="Epoch" position="insideBottom" offset={-5} />
-                </XAxis>
-                <YAxis>
-                  <Label value={ticker} position="insideLeft" offset={-5} />
-                </YAxis>
+
+                <XAxis dataKey="epoch" />
+                <YAxis />
                 <Tooltip content={<CustomTooltip />} cursor={false} />
 
-                {/* <Legend /> */}
                 <Bar
                   dataKey="claimed"
                   stackId="a"

@@ -3,7 +3,7 @@ import useGatewaysPerEpoch from '@src/hooks/useGatewaysPerEpoch';
 import {
   Area,
   AreaChart,
-  Label,
+  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   TooltipProps,
@@ -36,17 +36,19 @@ const GatewaysInNetworkPanel = () => {
   const { data: gatewaysPerEpoch } = useGatewaysPerEpoch();
 
   return (
-    <div className="flex h-[15.675rem] min-w-[22rem] flex-col rounded-xl border border-grey-500 px-6 py-5  text-sm text-mid">
-      <div className=" text-mid">Gateways in the Network</div>
+    <div className="flex h-[15.675rem] min-w-[22rem] flex-col rounded-xl border border-grey-500 text-sm text-mid">
+      <div className=" px-6 pt-5 text-mid">
+        Gateways in the Network by Epoch
+      </div>
       {gatewaysPerEpoch ? (
         <ResponsiveContainer
           width="100%"
           height="100%"
-          className="mt-2 text-xs"
+          className="mb-5 mt-2 pr-6 text-xs"
         >
           <AreaChart
             data={gatewaysPerEpoch}
-            margin={{ top: 5, right: 0, left: 0, bottom: 10 }}
+            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient
@@ -56,15 +58,17 @@ const GatewaysInNetworkPanel = () => {
                 x2="1"
                 y2="1"
               >
-                <stop offset="0%" stopColor="#F7C3A1" stopOpacity={1} />
-                <stop offset="100%" stopColor="#DF9BE8" stopOpacity={1} />
+                <stop offset="0%" stopColor="#F7C3A1" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#DF9BE8" stopOpacity={0.125} />
               </linearGradient>
             </defs>
-
-            <XAxis dataKey="epochIndex">
-              <Label value="Epoch" position="insideBottom" offset={-5} />
-            </XAxis>
-            <YAxis />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#ffffff33"
+              vertical={false}
+            />
+            <XAxis dataKey="epochIndex" tickLine={false} />
+            <YAxis axisLine={false} tickLine={false} />
 
             <Tooltip content={<CustomTooltip />} cursor={false} />
             <Area

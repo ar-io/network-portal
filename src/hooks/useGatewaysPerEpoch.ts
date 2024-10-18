@@ -18,15 +18,18 @@ const useGatewaysPerEpoch = () => {
         throw new Error('arIOReadSDK not initialized or epochs not available');
       }
 
-      return epochs.map((epoch) => {
-        if (!epoch) throw new Error('Epoch not available');
-        return {
-          epochIndex: epoch.epochIndex,
-          totalEligibleGateways:
-            epoch.distributions.totalEligibleGateways ||
-            Object.keys(epoch.distributions.rewards.eligible).length,
-        };
-      });
+      return epochs
+        .filter((epoch) => epoch !== undefined)
+        .sort((a, b) => a!.epochIndex - b!.epochIndex)
+        .map((epoch) => {
+          if (!epoch) throw new Error('Epoch not available');
+          return {
+            epochIndex: epoch.epochIndex,
+            totalEligibleGateways:
+              epoch.distributions.totalEligibleGateways ||
+              Object.keys(epoch.distributions.rewards.eligible).length,
+          };
+        });
     },
   });
   return res;

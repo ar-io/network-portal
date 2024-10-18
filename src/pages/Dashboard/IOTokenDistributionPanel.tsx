@@ -10,8 +10,7 @@ const TOTAL_IO = 1_000_000_000;
 
 type IOCategory =
   | 'Protocol Balance'
-  | 'Operator Stake'
-  | 'Delegated Stake'
+  | 'Staked'
   | 'Pending Withdrawal'
   | 'In Circulation'
   | 'Locked Supply';
@@ -27,12 +26,10 @@ const calculateIODistribution = (
       value: new mIOToken(tokenSupply.protocolBalance).toIO().valueOf(),
     },
     {
-      name: 'Operator Stake',
-      value: new mIOToken(tokenSupply.staked).toIO().valueOf(),
-    },
-    {
-      name: 'Delegated Stake',
-      value: new mIOToken(tokenSupply.delegated).toIO().valueOf(),
+      name: 'Staked',
+      value: new mIOToken(tokenSupply.staked + tokenSupply.delegated)
+        .toIO()
+        .valueOf(),
     },
     {
       name: 'Pending Withdrawal',
@@ -78,7 +75,11 @@ const IOTokenDistributionPanel = () => {
 
   return (
     <div className="w-[22rem] rounded-xl border border-grey-500">
-      <div className="text-gradient px-5 pt-5 text-lg">IO Token</div>
+      <div className="text-gradient px-5 pt-5 text-lg">
+        {data && activeIndex !== undefined
+          ? data[activeIndex].name
+          : 'IO Token'}
+      </div>
       <div className="relative h-[120px] w-[352px]">
         {data ? (
           <>
@@ -127,7 +128,7 @@ const IOTokenDistributionPanel = () => {
           </div>
         )}
       </div>
-      <div className="mt-6 grid w-full grid-cols-6 gap-2 rounded-b-xl bg-containerL3 p-2 py-4">
+      <div className="mt-6 grid w-full grid-cols-5 gap-2 rounded-b-xl bg-containerL3 p-2 py-4">
         {data?.map((entry, index) => {
           return (
             <div
@@ -137,9 +138,9 @@ const IOTokenDistributionPanel = () => {
               onMouseLeave={() => setActiveIndex(undefined)}
             >
               <div
-                className={`size-2 rounded-sm ${index == activeIndex ? 'bg-[#E19EE5f0]' : 'bg-[#E19EE520]'}`}
+                className={`mt-1 size-2 min-w-2 rounded-full ${index == activeIndex ? 'bg-[#E19EE5f0]' : 'bg-[#E19EE520]'}`}
               />
-              <div className="grow text-[.5rem] text-low">{entry.name}</div>
+              <div className="grow text-[.675rem] text-low">{entry.name}</div>
             </div>
           );
         })}

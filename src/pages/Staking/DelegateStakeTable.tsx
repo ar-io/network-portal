@@ -1,13 +1,10 @@
 import { mIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
+import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import {
-  InfoIcon,
-  StreakDownArrowIcon,
-  StreakUpArrowIcon,
-} from '@src/components/icons';
+import { InfoIcon } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
@@ -103,7 +100,9 @@ const DelegateStake = () => {
 
                     eay: calculateGatewayRewards(
                       new mIOToken(protocolBalance).toIO(),
-                      Object.values(gateways).filter(g => g.status == "joined").length,
+                      Object.values(gateways).filter(
+                        (g) => g.status == 'joined',
+                      ).length,
                       gateway,
                     ).EAY,
                   },
@@ -231,31 +230,7 @@ const DelegateStake = () => {
       id: 'streak',
       header: 'Streak',
       sortDescFirst: true,
-      cell: ({ row }) => {
-        const streak = row.original.streak;
-        if (streak === 0) {
-          return '';
-        }
-
-        const colorClasses =
-          streak > 0
-            ? 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up'
-            : 'border-text-red/[.56] bg-text-red/[.1] text-text-red';
-        const icon =
-          streak > 0 ? (
-            <StreakUpArrowIcon className="size-3" />
-          ) : (
-            <StreakDownArrowIcon className="size-3" />
-          );
-
-        return (
-          <div
-            className={`flex w-fit items-center gap-1 rounded-xl border py-0.5 pl-[.4375rem] pr-[.5625rem] ${colorClasses}`}
-          >
-            {icon} {Math.abs(streak)}
-          </div>
-        );
-      },
+      cell: ({ row }) => <Streak streak={row.original.streak} />,
     }),
 
     columnHelper.display({

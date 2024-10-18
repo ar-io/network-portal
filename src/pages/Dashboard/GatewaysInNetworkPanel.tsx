@@ -1,5 +1,7 @@
 import Placeholder from '@src/components/Placeholder';
+import Streak from '@src/components/Streak';
 import useGatewaysPerEpoch from '@src/hooks/useGatewaysPerEpoch';
+import { useEffect, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -35,10 +37,47 @@ const CustomTooltip = ({
 const GatewaysInNetworkPanel = () => {
   const { data: gatewaysPerEpoch } = useGatewaysPerEpoch();
 
+  const [activeIndex, setActiveIndex] = useState<number>();
+
+  const [percentageChange, setPercentageChange] = useState<number>();
+
+  useEffect(() => {
+    if (gatewaysPerEpoch) {
+      setActiveIndex(gatewaysPerEpoch.length - 1);
+    }
+  }, [gatewaysPerEpoch]);
+
+  useEffect(() => {
+    if (!activeIndex || !gatewaysPerEpoch) {
+      setPercentageChange(undefined);
+    } else {
+      const currentGateways =
+        gatewaysPerEpoch[activeIndex].totalEligibleGateways;
+      const previousGateways =
+        gatewaysPerEpoch[activeIndex - 1].totalEligibleGateways;
+
+      const percentageChange =
+        ((currentGateways - previousGateways) / previousGateways) * 100;
+      setPercentageChange(percentageChange || undefined);
+    }
+  }, [activeIndex, gatewaysPerEpoch]);
+
   return (
-    <div className="flex h-[15.675rem] min-w-[22rem] flex-col rounded-xl border border-grey-500 text-sm text-mid">
+    <div className="flex h-72 min-w-[22rem] flex-col rounded-xl border border-grey-500 text-sm text-mid">
       <div className=" px-6 pt-5 text-mid">
         Gateways in the Network by Epoch
+      </div>
+      <div className="flex gap-2">
+        <div className="py-6 pl-6 text-[2.625rem] text-high">
+          {gatewaysPerEpoch &&
+            activeIndex !== undefined &&
+            gatewaysPerEpoch[activeIndex].totalEligibleGateways}
+        </div>
+        {percentageChange && (
+          <div className="flex h-full flex-col justify-end pb-4">
+            <Streak streak={percentageChange} fixedDigits={2} rightLabel="%"/>
+          </div>
+        )}
       </div>
       {gatewaysPerEpoch ? (
         <ResponsiveContainer
@@ -49,6 +88,14 @@ const GatewaysInNetworkPanel = () => {
           <AreaChart
             data={gatewaysPerEpoch}
             margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+            onMouseMove={(state) => {
+              if (state.isTooltipActive) {
+                setActiveIndex(state.activeTooltipIndex);
+              } else {
+                setActiveIndex(gatewaysPerEpoch.length - 1);
+              }
+            }}
+            onMouseLeave={() => setActiveIndex(gatewaysPerEpoch.length - 1)}
           >
             <defs>
               <linearGradient
@@ -77,6 +124,24 @@ const GatewaysInNetworkPanel = () => {
               stroke="white"
               fillOpacity={1}
               fill="url(#gatewaysColorGradient)"
+              activeDot={{ r: 3 }} // This will always show the dot at the activeIndex
+              dot={(props) => {
+                // eslint-disable-next-line react/prop-types
+                const { cx, cy, index } = props;
+                if (index === activeIndex) {
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={3}
+                      stroke="white"
+                      strokeWidth={0}
+                      fill="white"
+                    />
+                  );
+                }
+                return <></>;
+              }}
             />
           </AreaChart>
         </ResponsiveContainer>

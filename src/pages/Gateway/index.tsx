@@ -398,7 +398,7 @@ const Gateway = () => {
         <GatewayHeader gateway={gateway} />
       </div>
       <div className="my-6 flex gap-6">
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-72 flex-col gap-6">
           <div className="size-fit w-full rounded-xl border border-transparent-100-16 text-sm">
             <div className="px-6 py-4">
               <div className="text-high">Stats</div>
@@ -411,47 +411,59 @@ const Gateway = () => {
                   : undefined
               }
             />
-            <StatsBox
-              title="Uptime"
-              value={
-                healthCheckRes.isError
-                  ? 'N/A'
-                  : healthCheckRes.isLoading
-                    ? undefined
-                    : formatUptime(healthCheckRes.data?.uptime)
-              }
-            />
-            <StatsBox
-              title="Delegates"
-              value={
-                gateway?.delegates
-                  ? Object.keys(gateway.delegates).length
-                  : undefined
-              }
-            />
 
-            {gateway?.status === 'joined' && (
+            {gateway?.status === 'joined' ? (
+              <>
+                <StatsBox
+                  title="Uptime"
+                  value={
+                    healthCheckRes.isError
+                      ? 'N/A'
+                      : healthCheckRes.isLoading
+                        ? undefined
+                        : formatUptime(healthCheckRes.data?.uptime)
+                  }
+                />
+                <StatsBox
+                  title="Delegates"
+                  value={
+                    gateway?.delegates
+                      ? Object.keys(gateway.delegates).length
+                      : undefined
+                  }
+                />
+
+                <StatsBox
+                  title={
+                    <div className="flex gap-2">
+                      Operator EAY{' '}
+                      <Tooltip
+                        message={
+                          <div>
+                            <p>{EAY_TOOLTIP_TEXT}</p>
+                            <MathJax className="mt-4">
+                              {OPERATOR_EAY_TOOLTIP_FORMULA}
+                            </MathJax>
+                          </div>
+                        }
+                      >
+                        <InfoIcon className="size-4" />
+                      </Tooltip>
+                    </div>
+                  }
+                  value={
+                    operatorRewards != undefined
+                      ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
+                      : undefined
+                  }
+                />
+              </>
+            ) : gateway && (
               <StatsBox
-                title={
-                  <div className="flex gap-2">
-                    Operator EAY{' '}
-                    <Tooltip
-                      message={
-                        <div>
-                          <p>{EAY_TOOLTIP_TEXT}</p>
-                          <MathJax className="mt-4">
-                            {OPERATOR_EAY_TOOLTIP_FORMULA}
-                          </MathJax>
-                        </div>
-                      }
-                    >
-                      <InfoIcon className="size-4" />
-                    </Tooltip>
-                  </div>
-                }
+                title="Leave Date"
                 value={
-                  operatorRewards != undefined
-                    ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
+                  gateway?.endTimestamp
+                    ? formatDateTime(new Date(gateway?.endTimestamp))
                     : undefined
                 }
               />
@@ -480,7 +492,9 @@ const Gateway = () => {
               ))}
             </div>
           )}
-          <SoftwareDetails gateway={gateway} />
+          {gateway?.status === 'joined' && (
+            <SoftwareDetails gateway={gateway} />
+          )}
         </div>
         <div className="flex w-full grow flex-col gap-6">
           <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">

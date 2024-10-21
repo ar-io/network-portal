@@ -69,7 +69,11 @@ const IOTokenDistributionPanel = () => {
 
   const ioDisplayValue = formatWithCommas(
     Math.floor(
-      data && activeIndex !== undefined ? data[activeIndex].value : TOTAL_IO,
+      data && activeIndex !== undefined
+        ? data[activeIndex].value
+        : tokenSupply?.total
+          ? new mIOToken(tokenSupply.total).toIO().valueOf()
+          : TOTAL_IO,
     ),
   );
 

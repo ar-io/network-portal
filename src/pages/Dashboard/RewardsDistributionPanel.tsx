@@ -83,6 +83,65 @@ const CustomBar = (borderHeight: number, borderColor: string) => {
   return renderFunc;
 };
 
+const CustomUnclaimedBar = ({
+  fill,
+  x,
+  y,
+  width,
+  height,
+  strokeDasharray: strokeDashArray,
+  stroke,
+}: Props) => {
+  return strokeDashArray ? (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height ? height - 1 : 0}
+        fill={fill}
+      />
+      <line
+        x1={x}
+        y1={y}
+        x2={x}
+        y2={Number(y) + Number(height)}
+        stroke={stroke}
+        strokeDasharray={strokeDashArray}
+      />
+      <line
+        x1={x}
+        y1={y}
+        x2={Number(x) + Number(width)}
+        y2={y}
+        stroke={stroke}
+        strokeDasharray={strokeDashArray}
+      />
+
+      <line
+        x1={Number(x) + Number(width)}
+        y1={y}
+        x2={Number(x) + Number(width)}
+        y2={Number(y) + Number(height)}
+        stroke={stroke}
+        strokeDasharray={strokeDashArray}
+      />
+
+    </g>
+  ) : (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        stroke={stroke}
+        fill={fill}
+      />
+    </g>
+  );
+};
+
 const RewardsDistributionPanel = () => {
   const ticker = useGlobalState((state) => state.ticker);
 
@@ -187,7 +246,17 @@ const RewardsDistributionPanel = () => {
                   stackId="a"
                   fill="black"
                   stroke="rgba(202, 202, 214, 0.32)"
-                />
+                  shape={CustomUnclaimedBar}
+                >
+                  {rewardsData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      strokeDasharray={
+                        index === rewardsData.length - 1 ? '3 3' : undefined
+                      }
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>

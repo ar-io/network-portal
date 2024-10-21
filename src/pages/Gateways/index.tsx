@@ -1,9 +1,9 @@
 import { mIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Header from '@src/components/Header';
+import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import { StreakDownArrowIcon, StreakUpArrowIcon } from '@src/components/icons';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { formatDate, formatWithCommas } from '@src/utils';
@@ -147,11 +147,16 @@ const Gateways = () => {
       sortDescFirst: false,
       cell: ({ row }) =>
         row.original.status == 'leaving' ? (
-          <Tooltip message={
-            <div>
-              <div>Final Withdrawal: {formatDate(new Date(row.original.endTimeStamp))}</div>
-            </div>
-          }>
+          <Tooltip
+            message={
+              <div>
+                <div>
+                  Final Withdrawal:{' '}
+                  {formatDate(new Date(row.original.endTimeStamp))}
+                </div>
+              </div>
+            }
+          >
             <div className="text-red-500">leaving</div>
           </Tooltip>
         ) : (
@@ -185,35 +190,7 @@ const Gateways = () => {
       id: 'streak',
       header: 'Streak',
       sortDescFirst: true,
-      cell: ({ row }) => {
-        const streak = row.original.streak;
-        if (streak === 0) {
-          return '';
-        }
-
-        if (streak === Number.NEGATIVE_INFINITY) {
-          return 'N/A';
-        }
-
-        const colorClasses =
-          streak > 0
-            ? 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up'
-            : 'border-text-red/[.56] bg-text-red/[.1] text-text-red';
-        const icon =
-          streak > 0 ? (
-            <StreakUpArrowIcon className="size-3" />
-          ) : (
-            <StreakDownArrowIcon className="size-3" />
-          );
-
-        return (
-          <div
-            className={`flex w-fit items-center gap-1 rounded-xl border py-0.5 pl-[.4375rem] pr-[.5625rem] ${colorClasses}`}
-          >
-            {icon} {Math.abs(streak)}
-          </div>
-        );
-      },
+      cell: ({ row }) => <Streak streak={row.original.streak} />,
     }),
   ];
 

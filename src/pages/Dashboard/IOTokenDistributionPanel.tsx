@@ -4,13 +4,13 @@ import useTokenSupply from '@src/hooks/useTokenSupply';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
-import { Cell, Pie, PieChart, Text } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer, Text } from 'recharts';
 
 const TOTAL_IO = 1_000_000_000;
 
 type IOCategory =
   | 'Protocol Balance'
-  | 'Staked'
+  | 'Actively Staked'
   | 'Pending Withdrawal'
   | 'In Circulation'
   | 'Locked Supply';
@@ -26,7 +26,7 @@ const calculateIODistribution = (
       value: new mIOToken(tokenSupply.protocolBalance).toIO().valueOf(),
     },
     {
-      name: 'Staked',
+      name: 'Actively Staked',
       value: new mIOToken(tokenSupply.staked + tokenSupply.delegated)
         .toIO()
         .valueOf(),
@@ -74,47 +74,49 @@ const IOTokenDistributionPanel = () => {
   );
 
   return (
-    <div className="w-[22rem] rounded-xl border border-grey-500">
-      <div className="text-gradient px-5 pt-5 text-lg">
+    <div className="flex h-72 w-[22rem] flex-col rounded-xl border border-grey-500">
+      <div className="text-gradient px-5 pt-5 text-sm">
         {data && activeIndex !== undefined
           ? data[activeIndex].name
           : 'IO Token'}
       </div>
-      <div className="relative h-[120px] w-[352px]">
+      <div className="relative w-[352px] grow">
         {data ? (
           <>
-            <PieChart width={352} height={120}>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={60}
-                stroke="none"
-                paddingAngle={2}
-                onMouseEnter={onPieEnter}
-                onMouseLeave={onPieLeave}
-              >
-                {data.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={index === activeIndex ? '#E19EE580' : '#E19EE520'}
-                  />
-                ))}
-              </Pie>
-              <Text
-                x={176}
-                y={60}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fill="#E19EE5"
-                fontSize={20}
-              >
-                Test
-              </Text>
-            </PieChart>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart width={352} height={120}>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={70}
+                  stroke="none"
+                  paddingAngle={2}
+                  onMouseEnter={onPieEnter}
+                  onMouseLeave={onPieLeave}
+                >
+                  {data.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={index === activeIndex ? '#E19EE580' : '#E19EE520'}
+                    />
+                  ))}
+                </Pie>
+                <Text
+                  x={176}
+                  y={60}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="#E19EE5"
+                  fontSize={20}
+                >
+                  Test
+                </Text>
+              </PieChart>
+            </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div className="text-gradient flex text-center ">
                 <div className="text-3xl font-semibold">{ioDisplayValue}</div>
@@ -128,7 +130,7 @@ const IOTokenDistributionPanel = () => {
           </div>
         )}
       </div>
-      <div className="mt-6 grid w-full grid-cols-5 gap-2 rounded-b-xl bg-containerL3 p-2 py-4">
+      <div className="grid w-full grid-cols-5 gap-2 rounded-b-xl bg-containerL3 p-2 py-4">
         {data?.map((entry, index) => {
           return (
             <div

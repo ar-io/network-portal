@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2024-10-21
+
+### Added
+
+* New Dashboard home page that visualizes data for the state of the gateway network 
+
 ## [1.2.0] - 2024-10-17
 
 ### Added

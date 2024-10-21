@@ -65,7 +65,7 @@ const Sidebar = () => {
 
   return (
     <aside className={sideBarClasses}>
-      <div className="flex h-9 pb-16">
+      <div className="flex h-9 pb-24">
         <ArioLogoIcon className="h-[1.6875rem] w-[2.125rem]" />
         {sidebarOpen && (
           <div className="pl-3">

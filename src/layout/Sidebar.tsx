@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Button from '@src/components/Button';
+import MarkdownModal from '@src/components/modals/MarkdownModal';
+import changeLog from '../../CHANGELOG.md?raw';
+
 import {
   ArioLogoIcon,
   BinocularsIcon,
@@ -48,6 +51,14 @@ const ROUTES_SECONDARY = [
   },
 ];
 
+const FORMATTED_CHANGELOG = changeLog
+  .substring(changeLog.indexOf('## [Unreleased]') + 16)
+  .trim()
+  .replace(/\[([\w.]+)\]/g, (match, text) => {
+    console.log(match, text);
+    return `v${text}`;
+  });
+
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,6 +66,8 @@ const Sidebar = () => {
     const storedValue = localStorage.getItem('sidebarOpen');
     return storedValue == null ? true : JSON.parse(storedValue);
   });
+
+  const [showChangLogModal, setShowChangeLogModal] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
@@ -118,10 +131,13 @@ const Sidebar = () => {
           }
         >
           {sidebarOpen && (
-            <div className="grow pl-3 text-xs text-low/50">
+            <button
+              className="grow pl-3 text-xs text-low/50 text-left"
+              onClick={() => setShowChangeLogModal(true)}
+            >
               v{process.env.npm_package_version}-
               {process.env.VITE_GITHUB_HASH?.slice(0, 6)}
-            </div>
+            </button>
           )}
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? (
@@ -132,6 +148,13 @@ const Sidebar = () => {
           </button>
         </div>
       </div>
+      {showChangLogModal && (
+        <MarkdownModal
+          onClose={() => setShowChangeLogModal(false)}
+          title="Changelog"
+          markdownText={FORMATTED_CHANGELOG}
+        />
+      )}
     </aside>
   );
 };

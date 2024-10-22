@@ -400,7 +400,7 @@ const Gateway = () => {
       <div className="my-6 flex gap-6">
         <div className="flex min-w-72 flex-col gap-6">
           <div className="size-fit w-full rounded-xl border border-transparent-100-16 text-sm">
-            <div className="px-6 py-4">
+            <div className="bg-containerL3 px-6 py-4">
               <div className="text-high">Stats</div>
             </div>
             <StatsBox
@@ -458,22 +458,24 @@ const Gateway = () => {
                   }
                 />
               </>
-            ) : gateway && (
-              <StatsBox
-                title="Leave Date"
-                value={
-                  gateway?.endTimestamp
-                    ? formatDateTime(new Date(gateway?.endTimestamp))
-                    : undefined
-                }
-              />
+            ) : (
+              gateway && (
+                <StatsBox
+                  title="Leave Date"
+                  value={
+                    gateway?.endTimestamp
+                      ? formatDateTime(new Date(gateway?.endTimestamp))
+                      : undefined
+                  }
+                />
+              )
             )}
             {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
           </div>
 
           {gateway?.weights && gateway?.status === 'joined' && (
             <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-              <div className="px-6 py-4">
+              <div className="bg-containerL3 px-6 py-4">
                 <div className="text-high">Weights</div>
               </div>
 
@@ -498,7 +500,7 @@ const Gateway = () => {
         </div>
         <div className="flex w-full grow flex-col gap-6">
           <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">
-            <div className="flex items-center py-4 pl-6 pr-3">
+            <div className="flex items-center bg-containerL3 py-4 pl-6 pr-3">
               <div className="text-sm text-high">General Information</div>
               <div className="flex grow gap-6" />
               {ownerId === walletAddress?.toString() &&

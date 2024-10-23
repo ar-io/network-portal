@@ -36,6 +36,7 @@ export type GlobalState = {
   };
   walletStateInitialized: boolean;
   ticker: string;
+  aoCongested: boolean;
 };
 
 export type GlobalStateActions = {
@@ -50,6 +51,7 @@ export type GlobalStateActions = {
   setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
+  setAoCongested: (congested: boolean) => void;
 };
 
 export const initialGlobalState: GlobalState = {
@@ -73,6 +75,7 @@ export const initialGlobalState: GlobalState = {
   },
   walletStateInitialized: false,
   ticker: 'tIO',
+  aoCongested: false,
 };
 export class GlobalStateActionBase implements GlobalStateActions {
   constructor(
@@ -115,10 +118,14 @@ export class GlobalStateActionBase implements GlobalStateActions {
   setTicker = (ticker: string) => {
     this.set({ ticker });
   };
+
+  setAoCongested = (congested: boolean) => {
+    this.set({ aoCongested: congested });
+  };
 }
 
 export interface GlobalStateInterface extends GlobalState, GlobalStateActions {}
-export const useGlobalState = create<GlobalStateInterface>()((set) => ({
+export const useGlobalState = create<GlobalStateInterface>()((set, get) => ({
   ...initialGlobalState,
   ...new GlobalStateActionBase(set, initialGlobalState),
 }));

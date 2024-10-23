@@ -125,7 +125,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
 }
 
 export interface GlobalStateInterface extends GlobalState, GlobalStateActions {}
-export const useGlobalState = create<GlobalStateInterface>()((set, get) => ({
+export const useGlobalState = create<GlobalStateInterface>()((set) => ({
   ...initialGlobalState,
   ...new GlobalStateActionBase(set, initialGlobalState),
 }));

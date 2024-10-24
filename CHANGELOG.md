@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* View Changelog in app by clicking version number in sidebar
+
+### Changed
+
+* Updated header style of cards
+
 ## [1.3.0] - 2024-10-21
 
 ### Added

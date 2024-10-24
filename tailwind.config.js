@@ -43,5 +43,9 @@ export default {
       'text-red': '#DB4354',
     },
   },
-  plugins: [require('tailwind-scrollbar'), require('tailwindcss-animate')],
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('tailwind-scrollbar'),
+    require('tailwindcss-animate'),
+  ],
 };

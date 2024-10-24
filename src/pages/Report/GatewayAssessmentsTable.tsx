@@ -30,7 +30,7 @@ const GatewayAssessmentsTable = ({
 }) => {
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
-  const [observedHost, setObservedHost] = useState<string>(); 
+  const [observedHost, setObservedHost] = useState<string>();
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
   useEffect(() => {
@@ -96,8 +96,8 @@ const GatewayAssessmentsTable = ({
   ];
 
   return (
-    <div className='mb-6'>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
+    <div className="mb-6">
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
         <div className="grow text-sm text-mid">Reports</div>
       </div>
       <TableView
@@ -108,7 +108,7 @@ const GatewayAssessmentsTable = ({
         defaultSortingState={{ id: 'timestamp', desc: true }}
         onRowClick={(row) => {
           setObservedHost(row.observedHost);
-          setSelectedAssessment(row.assessment)
+          setSelectedAssessment(row.assessment);
         }}
       />
       {selectedAssessment && gateway && (

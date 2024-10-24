@@ -16,8 +16,9 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
 
       if (gateway) {
         const observers =
-          selectedEpoch?.observations.failureSummaries[gateway.gatewayAddress] ||
-          [];
+          selectedEpoch?.observations.failureSummaries[
+            gateway.gatewayAddress
+          ] || [];
         setFailureObservers(observers);
       }
     }
@@ -25,7 +26,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="flex border-b border-grey-500">
+      <div className="flex border-b border-grey-500 bg-containerL3">
         {epochs ? (
           <>
             <div className="grow whitespace-nowrap px-6 py-4">
@@ -112,7 +113,7 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="flex border-b border-grey-500">
+      <div className="flex border-b border-grey-500 bg-containerL3 ">
         {epochs ? (
           <>
             <div className="grow whitespace-nowrap px-6 py-4">

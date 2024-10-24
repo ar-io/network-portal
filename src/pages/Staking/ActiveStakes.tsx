@@ -138,7 +138,7 @@ const ActiveStakes = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center gap-4 rounded-t-xl border border-grey-600 px-6 py-[0.9375rem]">
+      <div className="flex w-full items-center gap-4 rounded-t-xl border border-grey-600 bg-containerL3 px-6 py-2">
         <div className="grow text-sm text-mid">Active Stakes</div>
         {hasDelegatedStake && (
           <Button

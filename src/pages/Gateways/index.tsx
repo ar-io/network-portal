@@ -199,7 +199,7 @@ const Gateways = () => {
       <Header />
       <Banner />
       <div className="mb-8">
-        <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem] bg-containerL3">
+        <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
           <div className="grow text-sm text-mid">Gateways</div>
         </div>
         <TableView

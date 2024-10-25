@@ -2,7 +2,7 @@ import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
 import { ReactNode } from 'react';
 
-const ValueRow = ({ value }: { value: string | number | undefined }) => {
+const ValueRow = ({ value }: { value?: ReactNode }) => {
   return (
     <div className="flex gap-1">
       <StatsArrowIcon className="size-4" />
@@ -20,7 +20,7 @@ const StatsBox = ({
   value,
 }: {
   title: string | ReactNode;
-  value: Array<string> | string | number | undefined;
+  value: Array<ReactNode> | string | number | undefined;
 }) => {
   return (
     <div className="flex flex-col gap-1 border-t border-transparent-100-16 px-6 py-4">

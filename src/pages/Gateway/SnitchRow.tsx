@@ -4,6 +4,7 @@ import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
   const { data: epochs } = useEpochs();
@@ -20,7 +21,11 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
             gateway.gatewayAddress
           ] || [];
         setFailureObservers(observers);
+      } else {
+        setFailureObservers([]);
       }
+    } else {
+      setFailureObservers([]);
     }
   }, [epochs, gateway, selectedEpochIndex]);
 
@@ -67,7 +72,9 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
             className="flex gap-1 border-t border-grey-500 px-6 py-4 text-xs text-low"
           >
             <StatsArrowIcon className="size-4" />
-            <div>{observer}</div>
+            <div>
+              <Link to={`/gateways/${observer}`}>{observer}</Link>{' '}
+            </div>
           </div>
         ))}
       </div>
@@ -104,6 +111,9 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
           return acc;
         }, [] as string[]);
         setSnitchedOn(snitchedOn);
+      } else {
+        setSelectedForObservation(undefined);
+        setSnitchedOn([]);
       }
     } else {
       setSelectedForObservation(undefined);
@@ -151,7 +161,9 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
             className="flex gap-1 border-t border-grey-500 px-6 py-4 text-xs text-low"
           >
             <StatsArrowIcon className="size-4" />
-            <div>{observer}</div>
+            <div>
+              <Link to={`/gateways/${observer}`}>{observer}</Link>{' '}
+            </div>
           </div>
         ))}
       </div>

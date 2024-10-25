@@ -6,7 +6,7 @@ import useRewardsEarned from '@src/hooks/useRewardsEarned';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
-import ActiveStakes from './ActiveStakes';
+import MyStakesTable from './MyStakesTable';
 import DelegateStake from './DelegateStakeTable';
 
 const TopPanel = ({
@@ -99,17 +99,17 @@ const ConnectedLandingPage = () => {
       balance: formatWithCommas(balances.io),
     },
     {
-      title: 'Rewards Earned',
-      balance: `${formatWithCommas(rewardsEarned?.totalForPastAvailableEpochs || 0)} ${ticker}`,
-      leftTitle: 'LAST EPOCH',
-      leftValue: `${formatWithCommas(rewardsEarned?.previousEpoch || 0)} ${ticker}`,
-    },
-    {
       title: 'Amount Staking + Pending Withdrawals',
       balance:
         amountStaking !== undefined
           ? formatWithCommas(amountStaking)
           : undefined,
+    },
+    {
+      title: 'Rewards Earned',
+      balance: `${formatWithCommas(rewardsEarned?.totalForPastAvailableEpochs || 0)} ${ticker}`,
+      leftTitle: 'LAST EPOCH',
+      leftValue: `${formatWithCommas(rewardsEarned?.previousEpoch || 0)} ${ticker}`,
     },
   ];
 
@@ -127,7 +127,7 @@ const ConnectedLandingPage = () => {
           />
         ))}
       </div>
-      <ActiveStakes />
+      <MyStakesTable />
       <DelegateStake />
       {isStakingModalOpen && (
         <StakingModal

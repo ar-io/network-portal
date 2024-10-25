@@ -54,10 +54,7 @@ const ROUTES_SECONDARY = [
 const FORMATTED_CHANGELOG = changeLog
   .substring(changeLog.indexOf('## [Unreleased]') + 16)
   .trim()
-  .replace(/\[([\w.]+)\]/g, (match, text) => {
-    console.log(match, text);
-    return `v${text}`;
-  });
+  .replace(/\[([\w.]+)\]/g, (match, text) => `v${text}`);
 
 const Sidebar = () => {
   const location = useLocation();
@@ -132,7 +129,7 @@ const Sidebar = () => {
         >
           {sidebarOpen && (
             <button
-              className="grow pl-3 text-xs text-low/50 text-left"
+              className="grow pl-3 text-left text-xs text-low/50"
               onClick={() => setShowChangeLogModal(true)}
             >
               v{process.env.npm_package_version}-

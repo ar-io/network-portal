@@ -6,8 +6,8 @@ import useRewardsEarned from '@src/hooks/useRewardsEarned';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
-import MyStakesTable from './MyStakesTable';
 import DelegateStake from './DelegateStakeTable';
+import MyStakesTable from './MyStakesTable';
 
 const TopPanel = ({
   title,
@@ -107,9 +107,15 @@ const ConnectedLandingPage = () => {
     },
     {
       title: 'Rewards Earned',
-      balance: `${formatWithCommas(rewardsEarned?.totalForPastAvailableEpochs || 0)} ${ticker}`,
+      balance:
+        rewardsEarned?.totalForPastAvailableEpochs !== undefined
+          ? `${formatWithCommas(rewardsEarned.totalForPastAvailableEpochs)} ${ticker}`
+          : undefined,
       leftTitle: 'LAST EPOCH',
-      leftValue: `${formatWithCommas(rewardsEarned?.previousEpoch || 0)} ${ticker}`,
+      leftValue:
+        rewardsEarned?.previousEpoch !== undefined
+          ? `${formatWithCommas(rewardsEarned.previousEpoch)} ${ticker}`
+          : undefined,
     },
   ];
 

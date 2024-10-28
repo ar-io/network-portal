@@ -47,10 +47,10 @@ const MyStakesTable = () => {
   const { isFetching, data: gateways } = useGateways();
   const [activeStakes, setActiveStakes] = useState<
     Array<ActiveStakesTableData>
-  >([]);
+  >();
   const [pendingWithdrawals, setPendingWithdrawals] = useState<
     Array<PendingWithdrawalsTableData>
-  >([]);
+  >();
 
   const [tableMode, setTableMode] = useState<TableMode>('activeStakes');
 
@@ -122,8 +122,8 @@ const MyStakesTable = () => {
 
   useEffect(() => {
     if (isFetching) {
-      setActiveStakes([]);
-      setPendingWithdrawals([]);
+      setActiveStakes(undefined);
+      setPendingWithdrawals(undefined);
     }
   }, [isFetching]);
 
@@ -338,8 +338,8 @@ const MyStakesTable = () => {
       {tableMode === 'activeStakes' ? (
         <TableView
           columns={activeStakesColumns}
-          data={activeStakes}
-          isLoading={isFetching}
+          data={activeStakes || []}
+          isLoading={isFetching || activeStakes === undefined}
           noDataFoundText="No active stakes found."
           defaultSortingState={{
             id: 'delegatedStake',
@@ -352,8 +352,8 @@ const MyStakesTable = () => {
       ) : (
         <TableView
           columns={pendingWithdrawalsColumns}
-          data={pendingWithdrawals}
-          isLoading={isFetching}
+          data={pendingWithdrawals || []}
+          isLoading={isFetching || pendingWithdrawals === undefined}
           noDataFoundText="No pending withdrawals found."
           defaultSortingState={{
             id: 'label',
@@ -364,7 +364,7 @@ const MyStakesTable = () => {
           }}
         />
       )}
-      {showUnstakeAllModal && (
+      {showUnstakeAllModal && activeStakes !== undefined && (
         <UnstakeAllModal
           activeStakes={activeStakes}
           onClose={() => setShowUnstakeAllModal(false)}

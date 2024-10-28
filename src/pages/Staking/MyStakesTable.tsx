@@ -45,12 +45,10 @@ const MyStakesTable = () => {
   const ticker = useGlobalState((state) => state.ticker);
 
   const { isFetching, data: gateways } = useGateways();
-  const [activeStakes, setActiveStakes] = useState<
-    Array<ActiveStakesTableData>
-  >();
-  const [pendingWithdrawals, setPendingWithdrawals] = useState<
-    Array<PendingWithdrawalsTableData>
-  >();
+  const [activeStakes, setActiveStakes] =
+    useState<Array<ActiveStakesTableData>>();
+  const [pendingWithdrawals, setPendingWithdrawals] =
+    useState<Array<PendingWithdrawalsTableData>>();
 
   const [tableMode, setTableMode] = useState<TableMode>('activeStakes');
 
@@ -337,6 +335,7 @@ const MyStakesTable = () => {
       </div>
       {tableMode === 'activeStakes' ? (
         <TableView
+          key="activeStakesTable"
           columns={activeStakesColumns}
           data={activeStakes || []}
           isLoading={isFetching || activeStakes === undefined}
@@ -351,6 +350,7 @@ const MyStakesTable = () => {
         />
       ) : (
         <TableView
+          key="pendingWithdrawalsTable"
           columns={pendingWithdrawalsColumns}
           data={pendingWithdrawals || []}
           isLoading={isFetching || pendingWithdrawals === undefined}

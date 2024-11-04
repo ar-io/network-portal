@@ -6,7 +6,7 @@ import { ArNSAssessment, Assessment, OwnershipAssessment } from '@src/types';
 import { arrayBufferToBase64Url, fetchWithTimeout } from '.';
 
 const NAME_PASS_THRESHOLD = 0.8;
-const REFERENCE_GATEWAY_FQDN = 'ar-io.dev';
+const REFERENCE_GATEWAY_FQDN = 'arweave.net'; 
 
 export const assessOwnership = async (
   gateway: AoGatewayWithAddress,

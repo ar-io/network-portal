@@ -104,6 +104,10 @@ export const fetchWithTimeout = async (resource:string, options?:RequestInit, ti
 
   const response = await fetch(resource, {
     ...options,
+    headers: {
+      ...options?.headers,
+      'Accept-Encoding': 'identity'
+    },
     signal: controller.signal  
   });
   clearTimeout(id);

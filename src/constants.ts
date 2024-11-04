@@ -54,3 +54,8 @@ export const EAY_TOOLTIP_FORMULA =
 
 export const OPERATOR_EAY_TOOLTIP_FORMULA =
   '\\(EAY = \\frac{OperatorRewardsPerEpoch}{OperatorStake} * EpochsPerYear\\)';
+
+// OBSERVATION ASSESSMENT CONSTANTS
+export const NAME_PASS_THRESHOLD = 0.8;
+export const REFERENCE_GATEWAY_FQDN =
+  process.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'arweave.net';

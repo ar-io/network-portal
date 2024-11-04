@@ -1,12 +1,9 @@
 /* Based on code by elliotsayes from https://github.com/elliotsayes/gateway-explorer */
 
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
-import { log } from '@src/constants';
+import { log, NAME_PASS_THRESHOLD, REFERENCE_GATEWAY_FQDN } from '@src/constants';
 import { ArNSAssessment, Assessment, OwnershipAssessment } from '@src/types';
 import { arrayBufferToBase64Url, fetchWithTimeout } from '.';
-
-const NAME_PASS_THRESHOLD = 0.8;
-const REFERENCE_GATEWAY_FQDN = 'arweave.net'; 
 
 export const assessOwnership = async (
   gateway: AoGatewayWithAddress,

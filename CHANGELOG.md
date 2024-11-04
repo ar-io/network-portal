@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Updated header style of cards
+* Observations: Updated to use arweave.net for reference domain when generating observation report
 
 ## [1.3.0] - 2024-10-21
 

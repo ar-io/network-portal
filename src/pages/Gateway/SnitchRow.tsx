@@ -3,6 +3,7 @@ import Dropdown from '@src/components/Dropdown';
 import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
+import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -10,6 +11,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
   const [failureObservers, setFailureObservers] = useState<string[]>([]);
+  const observerToGatewayMap = useObserverToGatewayMap();
 
   useEffect(() => {
     if (epochs) {
@@ -73,7 +75,13 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
           >
             <StatsArrowIcon className="size-4" />
             <div>
-              <Link to={`/gateways/${observer}`}>{observer}</Link>{' '}
+              {observerToGatewayMap ? (
+                <Link to={`/gateways/${observerToGatewayMap[observer]}`}>
+                  {observer}
+                </Link>
+              ) : (
+                observer
+              )}
             </div>
           </div>
         ))}

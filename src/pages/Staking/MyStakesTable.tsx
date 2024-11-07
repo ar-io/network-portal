@@ -64,8 +64,9 @@ const MyStakesTable = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const activeStakes: Array<ActiveStakesTableData> =
-      !walletAddress || !gateways
+    const activeStakes: Array<ActiveStakesTableData> | undefined = isFetching
+      ? undefined
+      : !walletAddress || !gateways
         ? []
         : Object.keys(gateways).reduce((acc, key) => {
             const gateway = gateways[key];
@@ -91,39 +92,34 @@ const MyStakesTable = () => {
             return acc;
           }, [] as Array<ActiveStakesTableData>);
 
-    const pendingWithdrawals: Array<PendingWithdrawalsTableData> =
-      !walletAddress || !gateways
-        ? []
-        : Object.keys(gateways).reduce((acc, key) => {
-            const gateway = gateways[key];
-            const delegate = gateway.delegates[walletAddress?.toString()];
+    const pendingWithdrawals: Array<PendingWithdrawalsTableData> | undefined =
+      isFetching
+        ? undefined
+        : !walletAddress || !gateways
+          ? []
+          : Object.keys(gateways).reduce((acc, key) => {
+              const gateway = gateways[key];
+              const delegate = gateway.delegates[walletAddress?.toString()];
 
-            if (delegate?.vaults) {
-              const withdrawals = Object.entries(delegate.vaults).map(
-                ([withdrawalId, withdrawal]) => {
-                  return {
-                    owner: key,
-                    gateway,
-                    withdrawal,
-                    withdrawalId,
-                  };
-                },
-              );
+              if (delegate?.vaults) {
+                const withdrawals = Object.entries(delegate.vaults).map(
+                  ([withdrawalId, withdrawal]) => {
+                    return {
+                      owner: key,
+                      gateway,
+                      withdrawal,
+                      withdrawalId,
+                    };
+                  },
+                );
 
-              return [...acc, ...withdrawals];
-            }
-            return acc;
-          }, [] as Array<PendingWithdrawalsTableData>);
+                return [...acc, ...withdrawals];
+              }
+              return acc;
+            }, [] as Array<PendingWithdrawalsTableData>);
     setActiveStakes(activeStakes);
     setPendingWithdrawals(pendingWithdrawals);
-  }, [gateways, walletAddress]);
-
-  useEffect(() => {
-    if (isFetching) {
-      setActiveStakes(undefined);
-      setPendingWithdrawals(undefined);
-    }
-  }, [isFetching]);
+  }, [gateways, walletAddress, isFetching]);
 
   // Define columns for the active stakes table
   const activeStakesColumns: ColumnDef<ActiveStakesTableData, any>[] = [

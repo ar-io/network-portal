@@ -106,10 +106,10 @@ const ConnectedLandingPage = () => {
           : undefined,
     },
     {
-      title: 'Rewards Earned',
+      title: 'Total Rewards Earned (Last 14 Epochs)',
       balance:
         rewardsEarned?.totalForPastAvailableEpochs !== undefined
-          ? `${formatWithCommas(rewardsEarned.totalForPastAvailableEpochs)} ${ticker}`
+          ? formatWithCommas(rewardsEarned.totalForPastAvailableEpochs)
           : undefined,
       leftTitle: 'LAST EPOCH',
       leftValue:

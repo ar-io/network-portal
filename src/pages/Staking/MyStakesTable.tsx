@@ -1,4 +1,4 @@
-import { AoGateway, AoVaultData, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, AoGatewayDelegate, AoVaultData, mIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
@@ -10,6 +10,7 @@ import {
   InstantWithdrawalIcon,
 } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
+import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import UnstakeAllModal from '@src/components/modals/UnstakeAllModal';
 import useGateways from '@src/hooks/useGateways';
@@ -61,6 +62,13 @@ const MyStakesTable = () => {
     vaultId: string;
   }>();
 
+  const [confirmInstantWithdrawal, setConfirmInstantWithdrawal] = useState<{
+    gatewayAddress: string;
+    gateway: AoGateway;
+    vault: AoVaultData;
+    vaultId: string;
+  }>();
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,7 +78,9 @@ const MyStakesTable = () => {
         ? []
         : Object.keys(gateways).reduce((acc, key) => {
             const gateway = gateways[key];
-            const delegate = gateway.delegates[walletAddress?.toString()];
+           
+            // @ts-expect-error - delegates is currently available on the gateway object
+            const delegate:AoGatewayDelegate = gateway.delegates[walletAddress?.toString()];
 
             if (delegate) {
               return [
@@ -99,7 +109,9 @@ const MyStakesTable = () => {
           ? []
           : Object.keys(gateways).reduce((acc, key) => {
               const gateway = gateways[key];
-              const delegate = gateway.delegates[walletAddress?.toString()];
+
+              // @ts-expect-error - delegates is currently available on the gateway object
+              const delegate:AoGatewayDelegate = gateway.delegates[walletAddress?.toString()];
 
               if (delegate?.vaults) {
                 const withdrawals = Object.entries(delegate.vaults).map(
@@ -262,10 +274,16 @@ const MyStakesTable = () => {
             <Button
               buttonType={ButtonType.SECONDARY}
               active={true}
-              title="Instant Withdrawal"
+              title="Expedited Withdrawal"
               text={<InstantWithdrawalIcon className="size-4" />}
               onClick={(e) => {
                 e.stopPropagation();
+                setConfirmInstantWithdrawal({
+                  gateway: row.original.gateway,
+                  gatewayAddress: row.original.owner,
+                  vault: row.original.withdrawal,
+                  vaultId: row.original.withdrawalId,
+                });
               }}
             />
             <Button
@@ -381,6 +399,15 @@ const MyStakesTable = () => {
           gatewayAddress={confirmCancelWithdrawal.gatewayAddress}
           vaultId={confirmCancelWithdrawal.vaultId}
           onClose={() => setConfirmCancelWithdrawal(undefined)}
+        />
+      )}
+      {confirmInstantWithdrawal && (
+        <InstantWithdrawalModal
+          gateway={confirmInstantWithdrawal.gateway}
+          gatewayAddress={confirmInstantWithdrawal.gatewayAddress}
+          vaultId={confirmInstantWithdrawal.vaultId}
+          vault={confirmInstantWithdrawal.vault}
+          onClose={() => setConfirmInstantWithdrawal(undefined)}
         />
       )}
     </div>

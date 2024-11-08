@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { AoGatewayDelegate, mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import StakingModal from '@src/components/modals/StakingModal';
 import useGateways from '@src/hooks/useGateways';
@@ -79,7 +79,8 @@ const ConnectedLandingPage = () => {
   useEffect(() => {
     if (gateways && walletAddress) {
       const amountStaking = Object.values(gateways).reduce((acc, gateway) => {
-        const userDelegate = gateway.delegates[walletAddress.toString()];
+        // @ts-expect-error - delegates is currently available on the gateway
+        const userDelegate:AoGatewayDelegate = gateway.delegates[walletAddress.toString()];
         const delegatedStake = userDelegate?.delegatedStake ?? 0;
         const withdrawn = userDelegate?.vaults
           ? Object.values(userDelegate.vaults).reduce((acc, withdrawal) => {

@@ -1,4 +1,4 @@
-import { IOToken, mIOToken } from '@ar.io/sdk/web';
+import { AoGatewayDelegate, IOToken, mIOToken } from '@ar.io/sdk/web';
 import {
   EAY_TOOLTIP_FORMULA,
   EAY_TOOLTIP_TEXT,
@@ -14,6 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { MathJax } from 'better-react-mathjax';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import {
@@ -26,42 +27,6 @@ import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
 import UnstakeWarning from './UnstakeWarning';
-
-const DisplayRow = ({
-  label,
-  value,
-  className,
-  isLink = false,
-  rightIcon,
-}: {
-  label: string;
-  value: string;
-  isLink?: boolean;
-  className?: string;
-  rightIcon?: React.ReactNode;
-}) => {
-  return (
-    <div className={`flex items-center text-[0.8125rem] ${className}`}>
-      <div className="text-left text-low">{label}</div>
-      <div className="grow"></div>
-      {isLink && value !== '-' ? (
-        <a
-          className="text-gradient"
-          href={`https://${value}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {value}
-        </a>
-      ) : (
-        <div className="flex items-center gap-1 text-left text-low">
-          {value}
-          {rightIcon}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const StakingModal = ({
   onClose,
@@ -99,8 +64,9 @@ const StakingModal = ({
   const allowDelegatedStaking =
     gateway?.settings.allowDelegatedStaking ?? false;
 
-  const delegateData = walletAddress
-    ? gateway?.delegates[walletAddress?.toString()]
+  const delegateData: AoGatewayDelegate | undefined = walletAddress
+    ? // @ts-expect-error - delegates is currently available on the gateway
+      gateway?.delegates[walletAddress?.toString()]
     : undefined;
   const currentStake = new mIOToken(delegateData?.delegatedStake ?? 0)
     .toIO()
@@ -110,7 +76,8 @@ const StakingModal = ({
     tab == 0
       ? currentStake + parseFloat(amountToStake)
       : currentStake - parseFloat(amountToUnstake);
-  const newStake = tab == 0 ? parseFloat(amountToStake) : -parseFloat(amountToUnstake);
+  const newStake =
+    tab == 0 ? parseFloat(amountToStake) : -parseFloat(amountToUnstake);
   const rewardsInfo = useRewardsInfo(gateway, newStake);
   const EAY =
     rewardsInfo && newTotalStake > 0
@@ -253,9 +220,7 @@ const StakingModal = ({
         <div className="flex flex-col p-8 pb-2">
           <div className="text-left text-sm text-mid">Gateway Owner:</div>
           {ownerWallet ? (
-            <div className="py-3 text-left text-sm text-mid">
-              {ownerWallet}
-            </div>
+            <div className="py-3 text-left text-sm text-mid">{ownerWallet}</div>
           ) : (
             <input
               className={
@@ -314,7 +279,7 @@ const StakingModal = ({
                   errorMessage={
                     errorMessages.cannotStake ?? errorMessages.stakeAmount!
                   }
-                  tooltipPadding={"3"}
+                  tooltipPadding={'3'}
                 />
               )}
             {tab == 1 &&
@@ -322,7 +287,7 @@ const StakingModal = ({
               errorMessages.unstakeAmount && (
                 <ErrorMessageIcon
                   errorMessage={errorMessages.unstakeAmount}
-                  tooltipPadding={"3"}
+                  tooltipPadding={'3'}
                 />
               )}
             <Button
@@ -336,26 +301,26 @@ const StakingModal = ({
           </div>
           <div className="mt-8">
             {tab == 0 && (
-              <DisplayRow
+              <LabelValueRow
                 className="border-b border-divider pb-4"
                 label="Existing Stake:"
                 value={`${existingStake} ${ticker}`}
               />
             )}
-            <DisplayRow
+            <LabelValueRow
               className="pb-1 pt-4"
               label="Label:"
               value={gateway ? gateway.settings.label : '-'}
             />
 
-            <DisplayRow
+            <LabelValueRow
               className="py-1"
               label="Domain:"
               isLink={true}
               value={gateway ? gateway.settings.fqdn : '-'}
             />
 
-            <DisplayRow
+            <LabelValueRow
               className="py-1"
               label="Delegate EAY:"
               value={EAY}
@@ -379,20 +344,20 @@ const StakingModal = ({
           </div>
         </div>
         <div className="flex size-full flex-col p-8">
-          <DisplayRow
+          <LabelValueRow
             className="py-1 first:text-mid last:text-mid"
             label="Fee:"
             value="- AR"
           />
 
           {tab == 0 && (
-            <DisplayRow
+            <LabelValueRow
               className="py-1"
               label="Remaining Balance:"
               value={`${remainingBalance !== '-' ? formatWithCommas(+remainingBalance) : remainingBalance} ${ticker}`}
             />
           )}
-          <DisplayRow
+          <LabelValueRow
             className="py-1"
             label="New Total Stake:"
             value={`${

@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk';
+import { mIOToken } from '@ar.io/sdk/web';
 import { useEffect, useState } from 'react';
 import useEpochs from './useEpochs';
 

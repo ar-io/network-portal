@@ -1,4 +1,4 @@
-import { AoGateway, AoIORead } from '@ar.io/sdk';
+import { AoGateway, AoIORead } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 

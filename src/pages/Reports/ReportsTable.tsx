@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk';
+import { AoGateway } from '@ar.io/sdk/web';
 import TableView from '@src/components/TableView';
 import useReports, { ReportTransactionData } from '@src/hooks/useReports';
 import { formatDateTime } from '@src/utils';

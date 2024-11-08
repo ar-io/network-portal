@@ -80,7 +80,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
                 to={`/gateways/${
                   prescribedObservers?.find(
                     (o: AoWeightedObserver) => o.observerAddress == observer,
-                  )?.observerAddress
+                  )?.gatewayAddress
                 }`}
               >
                 {observer}

@@ -8,6 +8,7 @@ import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import DelegateStake from './DelegateStakeTable';
 import MyStakesTable from './MyStakesTable';
+import useBalances from '@src/hooks/useBalances';
 
 const TopPanel = ({
   title,
@@ -73,7 +74,7 @@ const ConnectedLandingPage = () => {
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
 
   const { data: gateways } = useGateways();
-  const balances = useGlobalState((state) => state.balances);
+  const { data: balances }  = useBalances(walletAddress);
   const rewardsEarned = useRewardsEarned(walletAddress?.toString());
 
   useEffect(() => {
@@ -97,7 +98,7 @@ const ConnectedLandingPage = () => {
   const topPanels = [
     {
       title: 'Your Balance',
-      balance: formatWithCommas(balances.io),
+      balance: balances ? formatWithCommas(balances.io) : undefined,
     },
     {
       title: 'Amount Staking + Pending Withdrawals',

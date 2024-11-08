@@ -29,6 +29,7 @@ import {
   WRITE_OPTIONS,
   log,
 } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
 import useGateway from '@src/hooks/useGateway';
 import useGateways from '@src/hooks/useGateways';
 import useHealthcheck from '@src/hooks/useHealthCheck';
@@ -61,10 +62,10 @@ const Gateway = () => {
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
-  const balances = useGlobalState((state) => state.balances);
   const ticker = useGlobalState((state) => state.ticker);
   const { data: protocolBalance } = useProtocolBalance();
   const { data: gateways } = useGateways();
+  const { data: balances } = useBalances(walletAddress);
 
   const params = useParams();
 
@@ -427,8 +428,10 @@ const Gateway = () => {
                 <StatsBox
                   title="Delegates"
                   value={
+                    // @ts-expect-error - delegates is currently available on the gateway
                     gateway?.delegates
-                      ? Object.keys(gateway.delegates).length
+                      ? // @ts-expect-error - delegates is currently available on the gateway
+                        Object.keys(gateway.delegates).length
                       : undefined
                   }
                 />

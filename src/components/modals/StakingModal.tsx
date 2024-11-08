@@ -5,6 +5,7 @@ import {
   WRITE_OPTIONS,
   log,
 } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
@@ -38,8 +39,8 @@ const StakingModal = ({
 }) => {
   const queryClient = useQueryClient();
 
-  const balances = useGlobalState((state) => state.balances);
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const { data: balances } = useBalances(walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
@@ -100,7 +101,7 @@ const StakingModal = ({
       'Stake Amount',
       ticker,
       minRequiredStakeToAdd,
-      balances.io,
+      balances?.io,
     ),
     unstakeAmount: validateUnstakeAmount(
       'Unstake Amount',
@@ -121,9 +122,8 @@ const StakingModal = ({
     }
   };
 
-  const remainingBalance = isFormValid()
-    ? balances.io - parseFloat(amountToStake)
-    : '-';
+  const remainingBalance =
+    isFormValid() && balances ? balances.io - parseFloat(amountToStake) : '-';
 
   const baseTabClassName = 'text-center py-3';
   const selectedTabClassNames = `${baseTabClassName} bg-grey-700 border-b border-red-400`;
@@ -131,7 +131,7 @@ const StakingModal = ({
 
   const setMaxAmount = () => {
     if (tab == 0) {
-      setAmountToStake(balances.io + '');
+      setAmountToStake((balances?.io || 0) + '');
     } else {
       setAmountToUnstake(currentStake + '');
     }
@@ -140,7 +140,8 @@ const StakingModal = ({
   const disableInput =
     !gateway ||
     (tab == 0 &&
-      (balances.io < minRequiredStakeToAdd || !allowDelegatedStaking)) ||
+      ((balances?.io || 0) < minRequiredStakeToAdd ||
+        !allowDelegatedStaking)) ||
     (tab == 1 && currentStake <= 0);
 
   const submitForm = async () => {
@@ -178,6 +179,10 @@ const StakingModal = ({
           queryKey: ['gateways'],
           refetchType: 'all',
         });
+        queryClient.invalidateQueries({
+          queryKey: ['balances'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {
@@ -193,7 +198,7 @@ const StakingModal = ({
     stakeAmount: validators.stakeAmount(amountToStake),
     unstakeAmount: validators.unstakeAmount(amountToUnstake),
     cannotStake:
-      balances.io < minRequiredStakeToAdd
+      (balances?.io || 0) < minRequiredStakeToAdd
         ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
         : !allowDelegatedStaking
           ? 'Gateway does not allow delegated staking.'
@@ -272,7 +277,7 @@ const StakingModal = ({
             {tab == 0 &&
               gateway &&
               (amountToStake?.length > 0 ||
-                balances.io < minRequiredStakeToAdd ||
+                (balances?.io || 0) < minRequiredStakeToAdd ||
                 !allowDelegatedStaking) &&
               (errorMessages.cannotStake || errorMessages.stakeAmount) && (
                 <ErrorMessageIcon

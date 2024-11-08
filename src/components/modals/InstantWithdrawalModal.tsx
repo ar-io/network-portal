@@ -76,6 +76,10 @@ const InstantWithdrawalModal = ({
           queryKey: ['gateways'],
           refetchType: 'all',
         });
+        queryClient.invalidateQueries({
+          queryKey: ['balances'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
         // onClose();

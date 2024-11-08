@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* View Pending Withdrawals on Staking page and support cancelling pending withdrawals as well as performing expedited withdrawals.
 * View Changelog in app by clicking version number in sidebar
 
 ### Changed
 
 * Updated header style of cards
 * Observations: Updated to use arweave.net for reference domain when generating observation report
+* Observe: Default to using prescribed names 
 
 ## [1.3.0] - 2024-10-21
 

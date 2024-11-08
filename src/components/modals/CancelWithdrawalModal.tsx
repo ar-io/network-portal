@@ -37,8 +37,8 @@ const CancelWithdrawalModal = ({
       setShowBlockingMessageModal(true);
 
       try {
-        const { id: txID } = await arIOWriteableSDK.cancelDelegateWithdrawal(
-          { address: gatewayAddress, vaultId: vaultId },
+        const { id: txID } = await arIOWriteableSDK.cancelWithdrawal(
+          { gatewayAddress: gatewayAddress, vaultId: vaultId },
           WRITE_OPTIONS,
         );
         setTxid(txID);

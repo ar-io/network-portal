@@ -1,6 +1,7 @@
 import { ioDevnetProcessId } from '@ar.io/sdk/web';
 import * as loglevel from 'loglevel';
 
+import Ar from 'arweave/web/ar';
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
@@ -36,6 +37,8 @@ export const THEME_TYPES = {
   LIGHT: 'light',
   DARK: 'dark',
 };
+
+export const AR = new Ar();
 
 // Unicode non-breaking space that renders where &nbsp; does not in React code
 export const NBSP = '\u00A0';

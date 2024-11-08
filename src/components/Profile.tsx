@@ -14,6 +14,8 @@ import {
   WalletIcon,
 } from './icons';
 import ConnectModal from './modals/ConnectModal';
+import useBalances from '@src/hooks/useBalances';
+import Placeholder from './Placeholder';
 
 // eslint-disable-next-line react/display-name
 const CustomPopoverButton = forwardRef<HTMLButtonElement>((props, ref) => {
@@ -36,9 +38,9 @@ const Profile = () => {
   );
 
   const wallet = useGlobalState((state) => state.wallet);
-  const balances = useGlobalState((state) => state.balances);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const { data:balances } = useBalances(walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
 
   return walletAddress ? (
@@ -73,11 +75,11 @@ const Profile = () => {
         <div className="mx-4  rounded-md border border-grey-800 py-3">
           <div className="px-4 text-xs text-low">{ticker} Balance</div>
           <div className="border-b border-grey-800 px-4 pb-3 pt-1 text-high">
-            {formatBalance(balances.io)}
+            {balances ? formatBalance(balances.io) : <Placeholder />}
           </div>
           <div className="px-4 pt-3 text-xs text-low">AR Balance</div>
           <div className="px-4 pt-1 text-high">
-            {formatBalance(balances.ar)}
+            {balances ? formatBalance(balances.ar) : <Placeholder />}
           </div>
         </div>
         <div className="flex flex-col gap-3 text-nowrap px-6 py-3 text-mid">

@@ -23,7 +23,7 @@ const useGateways = () => {
   };
 
   const queryResults = useQuery({
-    queryKey: ['gateways'],
+    queryKey: ['gateways', arIOReadSDK],
     queryFn: () => {
       if (arIOReadSDK) {
         return fetchAllGateways(arIOReadSDK);

@@ -30,10 +30,6 @@ export type GlobalState = {
   currentEpoch?: AoEpochData;
   walletAddress?: ArweaveTransactionID;
   wallet?: ArweaveWalletConnector;
-  balances: {
-    ar: number;
-    io: number;
-  };
   walletStateInitialized: boolean;
   ticker: string;
   aoCongested: boolean;
@@ -48,7 +44,6 @@ export type GlobalStateActions = {
     wallet?: ArweaveWalletConnector,
   ) => void;
   setArIOWriteableSDK: (arIOWriteableSDK?: AoIOWrite) => void;
-  setBalances(ar: number, io: number): void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
   setAoCongested: (congested: boolean) => void;
@@ -69,10 +64,6 @@ export const initialGlobalState: GlobalState = {
       }),
     }),
   }),
-  balances: {
-    ar: 0,
-    io: 0,
-  },
   walletStateInitialized: false,
   ticker: 'tIO',
   aoCongested: false,
@@ -105,10 +96,6 @@ export class GlobalStateActionBase implements GlobalStateActions {
 
   setArIOWriteableSDK = (arIOWriteableSDK?: AoIOWrite) => {
     this.set({ arIOWriteableSDK });
-  };
-
-  setBalances = (ar: number, io: number) => {
-    this.set({ balances: { ar, io } });
   };
 
   setWalletStateInitialized = (initialized: boolean) => {

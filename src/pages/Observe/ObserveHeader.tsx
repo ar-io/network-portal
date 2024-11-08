@@ -8,10 +8,11 @@ import {
   HeaderSeparatorIcon,
 } from '@src/components/icons';
 import { log } from '@src/constants';
+import usePrescribedNames from '@src/hooks/usePrescribedNames';
 import db from '@src/store/db';
 import { Assessment } from '@src/types';
 import { performAssessment } from '@src/utils/observations';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 const isSearchStringValid = (searchString: string) => {
@@ -32,10 +33,16 @@ const ObserveHeader = ({
 }) => {
   const params = useParams();
   const ownerId = params?.ownerId;
-
-  const [arnsNamesToSearch, setArnsNamesToSearch] =
-    useState('dapp_ardrive, arns');
+  
   const [runningObservation, setRunningObservation] = useState(false);
+
+  // fetch current prescribed names, fallback to defaults
+  const { data: prescribedNames = [], isLoading: loadingPrescribedNames } =
+    usePrescribedNames();
+
+  const [arnsNamesToSearch, setArnsNamesToSearch] = useState(
+    prescribedNames.join(', '),
+  );
 
   const runObservation = async () => {
     setRunningObservation(true);
@@ -60,6 +67,11 @@ const ObserveHeader = ({
     });
     setRunningObservation(false);
   };
+
+  // update prescribed names after loading
+  useEffect(() => {
+    setArnsNamesToSearch(prescribedNames.join(','));
+  }, [prescribedNames]);
 
   return (
     <header className="mt-6 flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
@@ -94,8 +106,8 @@ const ObserveHeader = ({
             'h-7 w-[12.5rem] rounded-md border border-grey-700 bg-grey-1000 p-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
           }
           type="text"
-          disabled={!gateway}
-          readOnly={!gateway}
+          disabled={!gateway || loadingPrescribedNames}
+          readOnly={!gateway || loadingPrescribedNames}
           value={arnsNamesToSearch}
           onChange={(e) => {
             setArnsNamesToSearch(e.target.value);

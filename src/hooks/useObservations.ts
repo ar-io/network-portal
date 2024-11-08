@@ -2,7 +2,7 @@
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
-const useObservers = () => {
+const useObservations = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
@@ -20,4 +20,4 @@ const useObservers = () => {
   return queryResults;
 };
 
-export default useObservers;
+export default useObservations;

@@ -1,13 +1,16 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, AoWeightedObserver } from '@ar.io/sdk/web';
 import Dropdown from '@src/components/Dropdown';
 import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
+import useObservers from '@src/hooks/useObservers';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
   const { data: epochs } = useEpochs();
+  const { data: prescribedObservers } =
+    useObservers();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
   const [failureObservers, setFailureObservers] = useState<string[]>([]);
 
@@ -27,7 +30,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
     } else {
       setFailureObservers([]);
     }
-  }, [epochs, gateway, selectedEpochIndex]);
+  }, [epochs, gateway, selectedEpochIndex, prescribedObservers]);
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
@@ -73,7 +76,15 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
           >
             <StatsArrowIcon className="size-4" />
             <div>
-              <Link to={`/gateways/${observer}`}>{observer}</Link>{' '}
+              <Link
+                to={`/gateways/${
+                  prescribedObservers?.find(
+                    (o: AoWeightedObserver) => o.observerAddress == observer,
+                  )?.observerAddress
+                }`}
+              >
+                {observer}
+              </Link>{' '}
             </div>
           </div>
         ))}

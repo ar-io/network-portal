@@ -75,12 +75,14 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
           >
             <StatsArrowIcon className="size-4" />
             <div>
-              {observerToGatewayMap ? (
-                <Link to={`/gateways/${observerToGatewayMap[observer]}`}>
+              {observerToGatewayMap && epochs ? (
+                <Link
+                  to={`/gateways/${observerToGatewayMap[observer]}/reports/${epochs?.[selectedEpochIndex]?.observations.reports[observer]}`}
+                >
                   {observer}
                 </Link>
               ) : (
-                observer
+                <Placeholder className="h-4" />
               )}
             </div>
           </div>

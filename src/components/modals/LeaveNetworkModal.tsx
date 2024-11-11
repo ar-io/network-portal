@@ -47,7 +47,6 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
         });
 
         setShowSuccessModal(true);
-        // onClose();
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {

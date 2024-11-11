@@ -49,7 +49,6 @@ const CancelWithdrawalModal = ({
         });
 
         setShowSuccessModal(true);
-        // onClose();
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {

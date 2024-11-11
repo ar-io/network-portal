@@ -116,10 +116,6 @@ const InstantWithdrawalModal = ({
           </div>
 
           <div className="mx-8 mt-4 flex flex-col gap-3 rounded bg-containerL3 p-4  text-[0.8125rem]">
-            {/* <div className="flex">
-              <WarningTriangleIcon width={40} height={20} />
-              <div>Warning: Expedited Withdrawal Fee</div>
-            </div> */}
             <div className="grow text-high">
               You are about to expedite your withdrawal, subject to a dynamic
               fee. Please note:

@@ -18,13 +18,14 @@ const useRewardsEarned = (walletAddress?: string) => {
       const previousEpochDistributed =
         previousEpoch.distributions.rewards.distributed;
       const previousEpochRewards = previousEpochDistributed
-        ? previousEpochDistributed[walletAddress]
+        ? previousEpochDistributed[walletAddress] || 0
         : 0;
 
       const totalForPastAvailableEpochs = epochs.reduce((acc, epoch) => {
         const distributed = epoch.distributions.rewards.distributed;
-        return acc + (distributed ? distributed[walletAddress] : 0);
+        return acc + (distributed ? distributed[walletAddress] || 0 : 0);
       }, 0);
+
       setRewardsEarned({
         previousEpoch: new mIOToken(previousEpochRewards).toIO().valueOf(),
         totalForPastAvailableEpochs: new mIOToken(totalForPastAvailableEpochs)

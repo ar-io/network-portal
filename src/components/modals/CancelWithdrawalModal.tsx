@@ -1,3 +1,4 @@
+import { WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -7,14 +8,13 @@ import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import { WRITE_OPTIONS } from '@src/constants';
 
 const CancelWithdrawalModal = ({
   gatewayAddress,
   vaultId,
   onClose,
 }: {
-  gatewayAddress:string;
+  gatewayAddress: string;
   vaultId: string;
   onClose: () => void;
 }) => {
@@ -112,6 +112,7 @@ const CancelWithdrawalModal = ({
             onClose();
           }}
           title="Confirmed"
+          // FIXME: This uses a button as using a standard <a> tag does not work. Needs further investigation.
           bodyText={
             <div className="mb-8 text-sm text-mid">
               <div>You have successfully canceled the withdrawal.</div>

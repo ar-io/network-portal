@@ -66,8 +66,7 @@ const StakingModal = ({
     gateway?.settings.allowDelegatedStaking ?? false;
 
   const delegateData: AoGatewayDelegate | undefined = walletAddress
-    ? // @ts-expect-error - delegates is currently available on the gateway
-      gateway?.delegates[walletAddress?.toString()]
+    ? gateway?.delegates[walletAddress?.toString()]
     : undefined;
   const currentStake = new mIOToken(delegateData?.delegatedStake ?? 0)
     .toIO()

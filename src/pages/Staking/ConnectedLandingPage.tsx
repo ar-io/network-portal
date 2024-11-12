@@ -80,7 +80,6 @@ const ConnectedLandingPage = () => {
   useEffect(() => {
     if (gateways && walletAddress) {
       const amountStaking = Object.values(gateways).reduce((acc, gateway) => {
-        // @ts-expect-error - delegates is currently available on the gateway
         const userDelegate:AoGatewayDelegate = gateway.delegates[walletAddress.toString()];
         const delegatedStake = userDelegate?.delegatedStake ?? 0;
         const withdrawn = userDelegate?.vaults

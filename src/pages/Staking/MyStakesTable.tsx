@@ -1,4 +1,9 @@
-import { AoGateway, AoGatewayDelegate, AoVaultData, mIOToken } from '@ar.io/sdk/web';
+import {
+  AoGateway,
+  AoGatewayDelegate,
+  AoVaultData,
+  mIOToken,
+} from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
@@ -78,9 +83,9 @@ const MyStakesTable = () => {
         ? []
         : Object.keys(gateways).reduce((acc, key) => {
             const gateway = gateways[key];
-           
-            // @ts-expect-error - delegates is currently available on the gateway object
-            const delegate:AoGatewayDelegate = gateway.delegates[walletAddress?.toString()];
+
+            const delegate: AoGatewayDelegate =
+              gateway.delegates[walletAddress?.toString()];
 
             if (delegate) {
               return [
@@ -110,8 +115,8 @@ const MyStakesTable = () => {
           : Object.keys(gateways).reduce((acc, key) => {
               const gateway = gateways[key];
 
-              // @ts-expect-error - delegates is currently available on the gateway object
-              const delegate:AoGatewayDelegate = gateway.delegates[walletAddress?.toString()];
+              const delegate: AoGatewayDelegate =
+                gateway.delegates[walletAddress?.toString()];
 
               if (delegate?.vaults) {
                 const withdrawals = Object.entries(delegate.vaults).map(

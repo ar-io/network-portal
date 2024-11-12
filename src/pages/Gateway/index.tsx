@@ -428,10 +428,8 @@ const Gateway = () => {
                 <StatsBox
                   title="Delegates"
                   value={
-                    // @ts-expect-error - delegates is currently available on the gateway
                     gateway?.delegates
-                      ? // @ts-expect-error - delegates is currently available on the gateway
-                        Object.keys(gateway.delegates).length
+                      ? Object.keys(gateway.delegates).length
                       : undefined
                   }
                 />

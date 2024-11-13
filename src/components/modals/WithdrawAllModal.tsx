@@ -5,12 +5,12 @@ import { showErrorToast } from '@src/utils/toast';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import BaseModal from './BaseModal';
-import UnstakeWarning from './UnstakeWarning';
+import WithdrawWarning from './WithdrawWarning';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
 import { useQueryClient } from '@tanstack/react-query';
 
-const UnstakeAllModal = ({
+const WithdrawAllModal = ({
   onClose,
   activeStakes,
 }: {
@@ -80,7 +80,7 @@ const UnstakeAllModal = ({
       <BaseModal onClose={onClose} useDefaultPadding={false}>
         <div className="w-[28.4375rem] text-left">
           <div className="px-8  pb-4 pt-6">
-            <div className="text-lg text-high">Unstake All</div>
+            <div className="text-lg text-high">Withdraw All</div>
             <div className="flex pt-2 text-xs text-low">
               Withdraw all delegated stakes.
             </div>
@@ -111,7 +111,7 @@ const UnstakeAllModal = ({
               ))}
             </table>
 
-            <UnstakeWarning />
+            <WithdrawWarning />
           </div>
 
           <div className="px-8 pb-8 pt-6">
@@ -130,8 +130,8 @@ const UnstakeAllModal = ({
               <Button
                 onClick={processWithdrawAll}
                 buttonType={ButtonType.PRIMARY}
-                title="Unstake"
-                text={<div className="py-2">Unstake</div>}
+                title="Withdraw"
+                text={<div className="py-2">Withdraw</div>}
                 className="w-full"
               />
             </div>
@@ -158,4 +158,4 @@ const UnstakeAllModal = ({
   );
 };
 
-export default UnstakeAllModal;
+export default WithdrawAllModal;

@@ -20,14 +20,14 @@ import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import {
   validateIOAmount,
-  validateUnstakeAmount,
   validateWalletAddress,
+  validateWithdrawAmount,
 } from '../forms/validation';
 import { InfoIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import UnstakeWarning from './UnstakeWarning';
+import WithdrawWarning from './WithdrawWarning';
 
 const StakingModal = ({
   onClose,
@@ -49,7 +49,7 @@ const StakingModal = ({
     useState<string>('');
 
   const [amountToStake, setAmountToStake] = useState<string>('');
-  const [amountToUnstake, setAmountToUnstake] = useState<string>('');
+  const [amountToWithdraw, setAmountToWithdraw] = useState<string>('');
 
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
@@ -75,9 +75,9 @@ const StakingModal = ({
   const newTotalStake =
     tab == 0
       ? currentStake + parseFloat(amountToStake)
-      : currentStake - parseFloat(amountToUnstake);
+      : currentStake - parseFloat(amountToWithdraw);
   const newStake =
-    tab == 0 ? parseFloat(amountToStake) : -parseFloat(amountToUnstake);
+    tab == 0 ? parseFloat(amountToStake) : -parseFloat(amountToWithdraw);
   const rewardsInfo = useRewardsInfo(gateway, newStake);
   const EAY =
     rewardsInfo && newTotalStake > 0
@@ -102,8 +102,8 @@ const StakingModal = ({
       minRequiredStakeToAdd,
       balances?.io,
     ),
-    unstakeAmount: validateUnstakeAmount(
-      'Unstake Amount',
+    withdrawAmount: validateWithdrawAmount(
+      'Withdraw Amount',
       ticker,
       existingStake,
       minDelegatedStake,
@@ -117,7 +117,7 @@ const StakingModal = ({
     if (tab == 0) {
       return validators.stakeAmount(amountToStake) == undefined;
     } else {
-      return validators.unstakeAmount(amountToUnstake) == undefined;
+      return validators.withdrawAmount(amountToWithdraw) == undefined;
     }
   };
 
@@ -132,7 +132,7 @@ const StakingModal = ({
     if (tab == 0) {
       setAmountToStake((balances?.io || 0) + '');
     } else {
-      setAmountToUnstake(currentStake + '');
+      setAmountToWithdraw(currentStake + '');
     }
   };
 
@@ -162,7 +162,7 @@ const StakingModal = ({
           const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
             {
               target: gatewayOwnerWallet,
-              decreaseQty: new IOToken(parseFloat(amountToUnstake)).toMIO(),
+              decreaseQty: new IOToken(parseFloat(amountToWithdraw)).toMIO(),
             },
             WRITE_OPTIONS,
           );
@@ -195,7 +195,7 @@ const StakingModal = ({
   const errorMessages = {
     gatewayOwner: validators.address(gatewayOwnerWallet),
     stakeAmount: validators.stakeAmount(amountToStake),
-    unstakeAmount: validators.unstakeAmount(amountToUnstake),
+    withdrawAmount: validators.withdrawAmount(amountToWithdraw),
     cannotStake:
       (balances?.io || 0) < minRequiredStakeToAdd
         ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
@@ -212,13 +212,13 @@ const StakingModal = ({
             className={`${tab == 0 ? selectedTabClassNames : nonSelectedTabClassNames} rounded-tl-lg`}
             onClick={() => setTab(0)}
           >
-            <span className={tab == 0 ? 'text-gradient' : ''}>Staking</span>
+            <span className={tab == 0 ? 'text-gradient' : ''}>Stake</span>
           </button>
           <button
             className={`${tab == 1 ? selectedTabClassNames : nonSelectedTabClassNames} rounded-tr-lg`}
             onClick={() => setTab(1)}
           >
-            <span className={tab == 1 ? 'text-gradient' : ''}>Unstaking</span>
+            <span className={tab == 1 ? 'text-gradient' : ''}>Withdraw</span>
           </button>
         </div>
         <div className="flex flex-col p-8 pb-2">
@@ -246,7 +246,7 @@ const StakingModal = ({
               {tab == 0
                 ? balances &&
                   `Available: ${formatWithCommas(balances.io)} ${ticker}`
-                : `Available to Unstake: ${formatWithCommas(currentStake)} ${ticker}`}
+                : `Available to Withdraw: ${formatWithCommas(currentStake)} ${ticker}`}
             </div>
           </div>
           <div className="mt-3 flex h-[3.25rem] items-center overflow-hidden rounded-md border border-grey-800">
@@ -257,8 +257,8 @@ const StakingModal = ({
               disabled={disableInput}
               readOnly={disableInput}
               type="text"
-              placeholder={`Enter amount of ${ticker} to ${tab == 0 ? 'stake' : 'unstake'}`}
-              value={tab == 0 ? amountToStake : amountToUnstake}
+              placeholder={`Enter amount of ${ticker} to ${tab == 0 ? 'stake' : 'withdraw'}`}
+              value={tab == 0 ? amountToStake : amountToWithdraw}
               onChange={(e) => {
                 const textValue = e.target.value;
 
@@ -269,7 +269,7 @@ const StakingModal = ({
                 if (tab == 0) {
                   setAmountToStake(textValue);
                 } else {
-                  setAmountToUnstake(textValue);
+                  setAmountToWithdraw(textValue);
                 }
               }}
             ></input>
@@ -287,10 +287,10 @@ const StakingModal = ({
                 />
               )}
             {tab == 1 &&
-              amountToUnstake?.length > 0 &&
-              errorMessages.unstakeAmount && (
+              amountToWithdraw?.length > 0 &&
+              errorMessages.withdrawAmount && (
                 <ErrorMessageIcon
-                  errorMessage={errorMessages.unstakeAmount}
+                  errorMessage={errorMessages.withdrawAmount}
                   tooltipPadding={'3'}
                 />
               )}
@@ -324,26 +324,29 @@ const StakingModal = ({
               value={gateway ? gateway.settings.fqdn : '-'}
             />
 
-            <LabelValueRow
-              className="py-1"
-              label="Delegate EAY:"
-              value={EAY}
-              rightIcon={
-                <Tooltip
-                  message={
-                    <div>
-                      <p>{EAY_TOOLTIP_TEXT}</p>
-                      <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
-                    </div>
-                  }
-                >
-                  <InfoIcon className="size-[1.125rem]" />
-                </Tooltip>
-              }
-            />
-
+            {tab == 0 && (
+              <LabelValueRow
+                className="py-1"
+                label="Delegate EAY:"
+                value={EAY}
+                rightIcon={
+                  <Tooltip
+                    message={
+                      <div>
+                        <p>{EAY_TOOLTIP_TEXT}</p>
+                        <MathJax className="mt-4">
+                          {EAY_TOOLTIP_FORMULA}
+                        </MathJax>
+                      </div>
+                    }
+                  >
+                    <InfoIcon className="size-[1.125rem]" />
+                  </Tooltip>
+                }
+              />
+            )}
             <div className="pt-4 text-left">
-              <UnstakeWarning />
+              <WithdrawWarning />
             </div>
           </div>
         </div>
@@ -368,7 +371,9 @@ const StakingModal = ({
               isFormValid()
                 ? tab == 0
                   ? formatWithCommas(currentStake + parseFloat(amountToStake))
-                  : formatWithCommas(currentStake - parseFloat(amountToUnstake))
+                  : formatWithCommas(
+                      currentStake - parseFloat(amountToWithdraw),
+                    )
                 : '-'
             } ${ticker}`}
           />
@@ -381,8 +386,8 @@ const StakingModal = ({
               className="mt-8 h-[3.25rem] w-full"
               onClick={submitForm}
               buttonType={ButtonType.PRIMARY}
-              title={tab == 0 ? `Stake ${ticker}` : `Unstake ${ticker}`}
-              text={tab == 0 ? `Stake ${ticker}` : `Unstake ${ticker}`}
+              title={tab == 0 ? `Stake ${ticker}` : `Withdraw ${ticker}`}
+              text={tab == 0 ? `Stake ${ticker}` : `Withdraw ${ticker}`}
             />
           </div>
         </div>

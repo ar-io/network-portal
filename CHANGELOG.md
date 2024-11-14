@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2024-11-14
+
 ### Added
 
-* View Pending Withdrawals on Staking page and support cancelling pending withdrawals as well as performing expedited withdrawals.
+* View Pending Withdrawals on Staking page and support cancelling pending withdrawals as well as performing expedited withdrawals
 * View Changelog in app by clicking version number in sidebar
+
+### Updated
+
+* Staking page top cards now show balance, amount staking + pending withdrawals, and rewards earned last 14 epochs and last epoch
 
 ### Changed
 

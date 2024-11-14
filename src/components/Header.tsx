@@ -76,8 +76,9 @@ const Header = () => {
         value={
           gateways
             ? Object.entries(gateways).filter(
-                (entry) => entry[1].status === 'joined',
-              ).length
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              ([_address, gateway]) => gateway.status === 'joined',  
+            ).length
             : undefined
         }
         label="GATEWAYS"

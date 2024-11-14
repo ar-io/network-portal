@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk';
+import { AoGateway } from '@ar.io/sdk/web';
 import TableView from '@src/components/TableView';
 import useReports, { ReportTransactionData } from '@src/hooks/useReports';
 import { formatDateTime } from '@src/utils';
@@ -16,10 +16,7 @@ const ReportsTable = ({
 }) => {
   const navigate = useNavigate();
 
-  const {
-    isLoading,
-    data: reports,
-  } = useReports(ownerId, gateway);
+  const { isLoading, data: reports } = useReports(ownerId, gateway);
 
   // Define columns for the table
   const columns: ColumnDef<ReportTransactionData, any>[] = [
@@ -59,7 +56,7 @@ const ReportsTable = ({
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 py-[0.9375rem] pl-6 pr-[0.8125rem]">
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
         <div className="grow text-sm text-mid">Reports</div>
       </div>
       <TableView

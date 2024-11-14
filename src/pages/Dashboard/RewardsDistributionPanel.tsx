@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk';
+import { mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
 import { useGlobalState } from '@src/store';

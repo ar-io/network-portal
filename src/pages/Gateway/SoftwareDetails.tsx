@@ -27,11 +27,20 @@ const SoftwareDetails = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="px-6 py-4">
+      <div className="bg-containerL3 px-6 py-4">
         <div className="text-high">Software</div>
       </div>
       <StatsBox title="Release Version" value={arioInfoRes.data?.release} />
-      {bundlers && <StatsBox title="Bundlers" value={bundlers} />}
+      {bundlers && (
+        <StatsBox
+          title="Bundlers"
+          value={bundlers.map((b) => (
+            <a key={b} href={b} target="_blank" rel="noreferrer">
+              {b}
+            </a>
+          ))}
+        />
+      )}
     </div>
   );
 };

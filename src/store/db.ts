@@ -1,4 +1,4 @@
-import { AoEpochData, AoIORead } from '@ar.io/sdk';
+import { AoEpochData, AoIORead } from '@ar.io/sdk/web';
 import { IO_PROCESS_ID } from '@src/constants';
 import { Assessment } from '@src/types';
 import Dexie, { type EntityTable } from 'dexie';

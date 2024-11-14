@@ -41,7 +41,12 @@ export default {
       containerL3: '#1E1E24',
       'streak-up': '#3DB7C2',
       'text-red': '#DB4354',
+      warning: '#ffb938',
     },
   },
-  plugins: [require('tailwind-scrollbar'), require('tailwindcss-animate')],
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('tailwind-scrollbar'),
+    require('tailwindcss-animate'),
+  ],
 };

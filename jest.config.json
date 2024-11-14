@@ -10,7 +10,7 @@
     "^@src/(.*)$": "<rootDir>/src/$1"
   },
   "transform": {
-    "^.+\\.(ts|tsx|js|jsx|mjs)$": ["ts-jest", { "useESM": true }]
+    "^.+\\.(ts|tsx|js|jsx|mjs)$": ["babel-jest"]
   },
   "transformIgnorePatterns": [
     "/node_modules/(?!arbundles|arweave-wallet-connector|@permaweb|@dha-team|@ar.io).+\\.js$"

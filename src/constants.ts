@@ -1,6 +1,7 @@
 import { ioDevnetProcessId } from '@ar.io/sdk/web';
 import * as loglevel from 'loglevel';
 
+import Ar from 'arweave/web/ar';
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
@@ -37,6 +38,8 @@ export const THEME_TYPES = {
   DARK: 'dark',
 };
 
+export const AR = new Ar();
+
 // Unicode non-breaking space that renders where &nbsp; does not in React code
 export const NBSP = '\u00A0';
 
@@ -54,3 +57,8 @@ export const EAY_TOOLTIP_FORMULA =
 
 export const OPERATOR_EAY_TOOLTIP_FORMULA =
   '\\(EAY = \\frac{OperatorRewardsPerEpoch}{OperatorStake} * EpochsPerYear\\)';
+
+// OBSERVATION ASSESSMENT CONSTANTS
+export const NAME_PASS_THRESHOLD = 0.8;
+export const REFERENCE_GATEWAY_FQDN =
+  process.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'arweave.net';

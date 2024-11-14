@@ -3,12 +3,15 @@ import Dropdown from '@src/components/Dropdown';
 import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
+import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
   const [failureObservers, setFailureObservers] = useState<string[]>([]);
+  const observerToGatewayMap = useObserverToGatewayMap();
 
   useEffect(() => {
     if (epochs) {
@@ -16,16 +19,21 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
 
       if (gateway) {
         const observers =
-          selectedEpoch?.observations.failureSummaries[gateway.gatewayAddress] ||
-          [];
+          selectedEpoch?.observations.failureSummaries[
+            gateway.gatewayAddress
+          ] || [];
         setFailureObservers(observers);
+      } else {
+        setFailureObservers([]);
       }
+    } else {
+      setFailureObservers([]);
     }
   }, [epochs, gateway, selectedEpochIndex]);
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="flex border-b border-grey-500">
+      <div className="flex border-b border-grey-500 bg-containerL3">
         {epochs ? (
           <>
             <div className="grow whitespace-nowrap px-6 py-4">
@@ -66,7 +74,17 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
             className="flex gap-1 border-t border-grey-500 px-6 py-4 text-xs text-low"
           >
             <StatsArrowIcon className="size-4" />
-            <div>{observer}</div>
+            <div>
+              {observerToGatewayMap && epochs ? (
+                <Link
+                  to={`/gateways/${observerToGatewayMap[observer]}/reports/${epochs?.[selectedEpochIndex]?.observations.reports[observer]}`}
+                >
+                  {observer}
+                </Link>
+              ) : (
+                <Placeholder className="h-4" />
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -103,6 +121,9 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
           return acc;
         }, [] as string[]);
         setSnitchedOn(snitchedOn);
+      } else {
+        setSelectedForObservation(undefined);
+        setSnitchedOn([]);
       }
     } else {
       setSelectedForObservation(undefined);
@@ -112,7 +133,7 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="flex border-b border-grey-500">
+      <div className="flex border-b border-grey-500 bg-containerL3 ">
         {epochs ? (
           <>
             <div className="grow whitespace-nowrap px-6 py-4">
@@ -150,7 +171,9 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
             className="flex gap-1 border-t border-grey-500 px-6 py-4 text-xs text-low"
           >
             <StatsArrowIcon className="size-4" />
-            <div>{observer}</div>
+            <div>
+              <Link to={`/gateways/${observer}`}>{observer}</Link>{' '}
+            </div>
           </div>
         ))}
       </div>

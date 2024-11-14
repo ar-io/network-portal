@@ -1,4 +1,4 @@
-import { AoTokenSupplyData, mIOToken } from '@ar.io/sdk';
+import { AoTokenSupplyData, mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useTokenSupply from '@src/hooks/useTokenSupply';
 import { useGlobalState } from '@src/store';

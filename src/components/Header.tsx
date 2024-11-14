@@ -73,7 +73,13 @@ const Header = () => {
         loading={!blockHeight}
       />
       <HeaderItem
-        value={gateways ? Object.keys(gateways).length : undefined}
+        value={
+          gateways
+            ? Object.entries(gateways).filter(
+                (entry) => entry[1].status === 'joined',
+              ).length
+            : undefined
+        }
         label="GATEWAYS"
         loading={gatewaysLoading}
       />

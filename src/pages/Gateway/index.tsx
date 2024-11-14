@@ -61,6 +61,7 @@ const Gateway = () => {
   const queryClient = useQueryClient();
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
   const { data: protocolBalance } = useProtocolBalance();
@@ -83,6 +84,7 @@ const Gateway = () => {
     url: gatewayAddress,
   });
 
+  const [numDelegates, setNumDelegates] = useState<number>();
   const [editing, setEditing] = useState(false);
 
   const [initialState, setInitialState] = useState<
@@ -134,6 +136,18 @@ const Gateway = () => {
       };
     });
   }, [walletAddress]);
+
+  useEffect(() => {
+    if (!arIOReadSDK || !gateway) return;
+    const update = async () => {
+      const res = await arIOReadSDK.getGatewayDelegates({
+        address: gateway.gatewayAddress,
+        limit: 1,
+      });
+      setNumDelegates(res.totalItems);
+    };
+    update();
+  }, [gateway, arIOReadSDK]);
 
   // This updates the form when the user toggles the delegated staking switch to false to reset the
   // form values and error messages back to the initial state.
@@ -425,14 +439,7 @@ const Gateway = () => {
                         : formatUptime(healthCheckRes.data?.uptime)
                   }
                 />
-                <StatsBox
-                  title="Delegates"
-                  value={
-                    gateway?.delegates
-                      ? Object.keys(gateway.delegates).length
-                      : undefined
-                  }
-                />
+                <StatsBox title="Delegates" value={numDelegates} />
 
                 <StatsBox
                   title={

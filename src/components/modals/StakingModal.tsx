@@ -1,10 +1,11 @@
-import { IOToken, mIOToken } from '@ar.io/sdk/web';
+import { AoGatewayDelegate, IOToken, mIOToken } from '@ar.io/sdk/web';
 import {
   EAY_TOOLTIP_FORMULA,
   EAY_TOOLTIP_TEXT,
   WRITE_OPTIONS,
   log,
 } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
@@ -14,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { MathJax } from 'better-react-mathjax';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import {
@@ -27,42 +29,6 @@ import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
 import UnstakeWarning from './UnstakeWarning';
 
-const DisplayRow = ({
-  label,
-  value,
-  className,
-  isLink = false,
-  rightIcon,
-}: {
-  label: string;
-  value: string;
-  isLink?: boolean;
-  className?: string;
-  rightIcon?: React.ReactNode;
-}) => {
-  return (
-    <div className={`flex items-center text-[0.8125rem] ${className}`}>
-      <div className="text-left text-low">{label}</div>
-      <div className="grow"></div>
-      {isLink && value !== '-' ? (
-        <a
-          className="text-gradient"
-          href={`https://${value}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {value}
-        </a>
-      ) : (
-        <div className="flex items-center gap-1 text-left text-low">
-          {value}
-          {rightIcon}
-        </div>
-      )}
-    </div>
-  );
-};
-
 const StakingModal = ({
   onClose,
   ownerWallet,
@@ -73,8 +39,8 @@ const StakingModal = ({
 }) => {
   const queryClient = useQueryClient();
 
-  const balances = useGlobalState((state) => state.balances);
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const { data: balances } = useBalances(walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
@@ -99,7 +65,7 @@ const StakingModal = ({
   const allowDelegatedStaking =
     gateway?.settings.allowDelegatedStaking ?? false;
 
-  const delegateData = walletAddress
+  const delegateData: AoGatewayDelegate | undefined = walletAddress
     ? gateway?.delegates[walletAddress?.toString()]
     : undefined;
   const currentStake = new mIOToken(delegateData?.delegatedStake ?? 0)
@@ -110,7 +76,8 @@ const StakingModal = ({
     tab == 0
       ? currentStake + parseFloat(amountToStake)
       : currentStake - parseFloat(amountToUnstake);
-  const newStake = tab == 0 ? parseFloat(amountToStake) : -parseFloat(amountToUnstake);
+  const newStake =
+    tab == 0 ? parseFloat(amountToStake) : -parseFloat(amountToUnstake);
   const rewardsInfo = useRewardsInfo(gateway, newStake);
   const EAY =
     rewardsInfo && newTotalStake > 0
@@ -133,7 +100,7 @@ const StakingModal = ({
       'Stake Amount',
       ticker,
       minRequiredStakeToAdd,
-      balances.io,
+      balances?.io,
     ),
     unstakeAmount: validateUnstakeAmount(
       'Unstake Amount',
@@ -154,9 +121,8 @@ const StakingModal = ({
     }
   };
 
-  const remainingBalance = isFormValid()
-    ? balances.io - parseFloat(amountToStake)
-    : '-';
+  const remainingBalance =
+    isFormValid() && balances ? balances.io - parseFloat(amountToStake) : '-';
 
   const baseTabClassName = 'text-center py-3';
   const selectedTabClassNames = `${baseTabClassName} bg-grey-700 border-b border-red-400`;
@@ -164,7 +130,7 @@ const StakingModal = ({
 
   const setMaxAmount = () => {
     if (tab == 0) {
-      setAmountToStake(balances.io + '');
+      setAmountToStake((balances?.io || 0) + '');
     } else {
       setAmountToUnstake(currentStake + '');
     }
@@ -173,7 +139,8 @@ const StakingModal = ({
   const disableInput =
     !gateway ||
     (tab == 0 &&
-      (balances.io < minRequiredStakeToAdd || !allowDelegatedStaking)) ||
+      ((balances?.io || 0) < minRequiredStakeToAdd ||
+        !allowDelegatedStaking)) ||
     (tab == 1 && currentStake <= 0);
 
   const submitForm = async () => {
@@ -211,6 +178,10 @@ const StakingModal = ({
           queryKey: ['gateways'],
           refetchType: 'all',
         });
+        queryClient.invalidateQueries({
+          queryKey: ['balances'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {
@@ -226,7 +197,7 @@ const StakingModal = ({
     stakeAmount: validators.stakeAmount(amountToStake),
     unstakeAmount: validators.unstakeAmount(amountToUnstake),
     cannotStake:
-      balances.io < minRequiredStakeToAdd
+      (balances?.io || 0) < minRequiredStakeToAdd
         ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
         : !allowDelegatedStaking
           ? 'Gateway does not allow delegated staking.'
@@ -253,9 +224,7 @@ const StakingModal = ({
         <div className="flex flex-col p-8 pb-2">
           <div className="text-left text-sm text-mid">Gateway Owner:</div>
           {ownerWallet ? (
-            <div className="py-3 text-left text-sm text-mid">
-              {ownerWallet}
-            </div>
+            <div className="py-3 text-left text-sm text-mid">{ownerWallet}</div>
           ) : (
             <input
               className={
@@ -307,14 +276,14 @@ const StakingModal = ({
             {tab == 0 &&
               gateway &&
               (amountToStake?.length > 0 ||
-                balances.io < minRequiredStakeToAdd ||
+                (balances?.io || 0) < minRequiredStakeToAdd ||
                 !allowDelegatedStaking) &&
               (errorMessages.cannotStake || errorMessages.stakeAmount) && (
                 <ErrorMessageIcon
                   errorMessage={
                     errorMessages.cannotStake ?? errorMessages.stakeAmount!
                   }
-                  tooltipPadding={"3"}
+                  tooltipPadding={'3'}
                 />
               )}
             {tab == 1 &&
@@ -322,7 +291,7 @@ const StakingModal = ({
               errorMessages.unstakeAmount && (
                 <ErrorMessageIcon
                   errorMessage={errorMessages.unstakeAmount}
-                  tooltipPadding={"3"}
+                  tooltipPadding={'3'}
                 />
               )}
             <Button
@@ -336,26 +305,26 @@ const StakingModal = ({
           </div>
           <div className="mt-8">
             {tab == 0 && (
-              <DisplayRow
+              <LabelValueRow
                 className="border-b border-divider pb-4"
                 label="Existing Stake:"
                 value={`${existingStake} ${ticker}`}
               />
             )}
-            <DisplayRow
+            <LabelValueRow
               className="pb-1 pt-4"
               label="Label:"
               value={gateway ? gateway.settings.label : '-'}
             />
 
-            <DisplayRow
+            <LabelValueRow
               className="py-1"
               label="Domain:"
               isLink={true}
               value={gateway ? gateway.settings.fqdn : '-'}
             />
 
-            <DisplayRow
+            <LabelValueRow
               className="py-1"
               label="Delegate EAY:"
               value={EAY}
@@ -379,20 +348,20 @@ const StakingModal = ({
           </div>
         </div>
         <div className="flex size-full flex-col p-8">
-          <DisplayRow
+          <LabelValueRow
             className="py-1 first:text-mid last:text-mid"
             label="Fee:"
             value="- AR"
           />
 
           {tab == 0 && (
-            <DisplayRow
+            <LabelValueRow
               className="py-1"
               label="Remaining Balance:"
               value={`${remainingBalance !== '-' ? formatWithCommas(+remainingBalance) : remainingBalance} ${ticker}`}
             />
           )}
-          <DisplayRow
+          <LabelValueRow
             className="py-1"
             label="New Total Stake:"
             value={`${

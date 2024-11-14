@@ -5,7 +5,7 @@ import App from './App.tsx';
 import './index.css';
 // setup sentry
 import './services/sentry.ts';
-import { Logger } from '@ar.io/sdk';
+import { Logger } from '@ar.io/sdk/web';
 
 Logger.default.setLogLevel('none');
 

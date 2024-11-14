@@ -1,18 +1,22 @@
 import { ChevronDownIcon } from './icons';
 
+type DropdownProps = {
+  options: { label: string; value: string }[];
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  value: string;
+  tightPadding?: boolean;
+};
+
 const Dropdown = ({
   options,
   onChange,
   value,
-}: {
-  options: { label: string; value: string }[];
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  value: string;
-}) => {
+  tightPadding = false,
+}: DropdownProps) => {
   return (
     <div className="relative w-fit min-w-fit">
       <select
-        className="cursor-pointer appearance-none rounded-xl bg-transparent py-4 pl-4 pr-10 text-mid outline-none"
+        className={`cursor-pointer appearance-none rounded-xl bg-transparent ${!tightPadding && 'py-4 pl-4'} pr-10 text-mid outline-none`}
         onChange={onChange}
         value={value}
       >

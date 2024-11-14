@@ -83,28 +83,30 @@ const TableView = <T, S>({
               </tr>
             ))}
           </thead>
-          <tbody className="text-sm">
-            {table.getRowModel().rows.map((row) => {
-              return (
-                <tr
-                  key={row.id}
-                  className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
-                  onClick={
-                    onRowClick ? () => onRowClick(row.original) : undefined
-                  }
-                >
-                  {row.getAllCells().map((cell) => (
-                    <td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
+          {!isLoading && (
+            <tbody className="text-sm">
+              {table.getRowModel().rows.map((row) => {
+                return (
+                  <tr
+                    key={row.id}
+                    className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
+                    onClick={
+                      onRowClick ? () => onRowClick(row.original) : undefined
+                    }
+                  >
+                    {row.getAllCells().map((cell) => (
+                      <td key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          )}
         </table>
       </div>
       {isLoading && (

@@ -8,7 +8,7 @@ const useEpochs = () => {
   const startEpoch = useGlobalState((state) => state.currentEpoch);
 
   const queryResults = useQuery({
-    queryKey: ['epochs'],
+    queryKey: ['epochs', arIOReadSDK, startEpoch],
     queryFn: async () => {
       if (!arIOReadSDK || startEpoch === undefined) {
         throw new Error('arIOReadSDK or startEpoch not available');

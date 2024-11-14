@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk';
+import { AoGateway } from '@ar.io/sdk/web';
 import { DEFAULT_ARWEAVE_HOST } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';

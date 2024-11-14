@@ -1,4 +1,4 @@
-import { AoGateway, AoIORead } from '@ar.io/sdk';
+import { AoGateway, AoIORead } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -23,12 +23,14 @@ const useGateways = () => {
   };
 
   const queryResults = useQuery({
-    queryKey: ['gateways'],
+    queryKey: ['gateways', arIOReadSDK],
     queryFn: () => {
       if (arIOReadSDK) {
         return fetchAllGateways(arIOReadSDK);
       }
     },
+
+    staleTime: 5 * 60 * 1000,
   });
 
   return queryResults;

@@ -1,14 +1,14 @@
-import { AoGatewayDelegate, mIOToken } from '@ar.io/sdk/web';
+import { mIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import StakingModal from '@src/components/modals/StakingModal';
-import useGateways from '@src/hooks/useGateways';
+import useBalances from '@src/hooks/useBalances';
+import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useRewardsEarned from '@src/hooks/useRewardsEarned';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import DelegateStake from './DelegateStakeTable';
 import MyStakesTable from './MyStakesTable';
-import useBalances from '@src/hooks/useBalances';
 
 const TopPanel = ({
   title,
@@ -73,26 +73,28 @@ const ConnectedLandingPage = () => {
 
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
 
-  const { data: gateways } = useGateways();
-  const { data: balances }  = useBalances(walletAddress);
+  const { data: balances } = useBalances(walletAddress);
   const rewardsEarned = useRewardsEarned(walletAddress?.toString());
 
-  useEffect(() => {
-    if (gateways && walletAddress) {
-      const amountStaking = Object.values(gateways).reduce((acc, gateway) => {
-        const userDelegate:AoGatewayDelegate = gateway.delegates[walletAddress.toString()];
-        const delegatedStake = userDelegate?.delegatedStake ?? 0;
-        const withdrawn = userDelegate?.vaults
-          ? Object.values(userDelegate.vaults).reduce((acc, withdrawal) => {
-              return acc + withdrawal.balance;
-            }, 0)
-          : 0;
+  const { data: delegatedStakes } = useDelegateStakes(
+    walletAddress?.toString(),
+  );
 
-        return acc + delegatedStake + withdrawn;
+  useEffect(() => {
+    if (delegatedStakes) {
+      const staked = delegatedStakes.stakes.reduce((acc, stake) => {
+        return acc + stake.balance;
       }, 0);
-      setAmountStaking(new mIOToken(amountStaking).toIO().valueOf());
+
+      const withdrawing = delegatedStakes.withdrawals.reduce(
+        (acc, withdrawal) => {
+          return acc + withdrawal.balance;
+        },
+        0,
+      );
+      setAmountStaking(new mIOToken(staked + withdrawing).toIO().valueOf());
     }
-  }, [gateways, walletAddress]);
+  }, [delegatedStakes]);
 
   const topPanels = [
     {

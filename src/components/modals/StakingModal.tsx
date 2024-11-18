@@ -1,4 +1,4 @@
-import { AoGatewayDelegate, IOToken, mIOToken } from '@ar.io/sdk/web';
+import { IOToken, mIOToken } from '@ar.io/sdk/web';
 import {
   EAY_TOOLTIP_FORMULA,
   EAY_TOOLTIP_TEXT,
@@ -6,6 +6,7 @@ import {
   log,
 } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
+import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateway from '@src/hooks/useGateway';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
@@ -13,7 +14,7 @@ import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { MathJax } from 'better-react-mathjax';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
@@ -48,6 +49,7 @@ const StakingModal = ({
   const [userEnteredWalletAddress, setUserEnteredWalletAddress] =
     useState<string>('');
 
+  const [currentStake, setCurrentStake] = useState<number>(0);
   const [amountToStake, setAmountToStake] = useState<string>('');
   const [amountToWithdraw, setAmountToWithdraw] = useState<string>('');
 
@@ -62,15 +64,20 @@ const StakingModal = ({
     ownerWalletAddress: gatewayOwnerWallet,
   });
 
+  const { data: delegateStakes } = useDelegateStakes(walletAddress?.toString());
+
+  useEffect(() => {
+    if (!gateway || !delegateStakes) {
+      return;
+    }
+    const stake = delegateStakes.stakes.find(
+      (stake) => stake.gatewayAddress === gateway.gatewayAddress,
+    )?.balance;
+    setCurrentStake(new mIOToken(stake ?? 0).toIO().valueOf());
+  }, [delegateStakes, gateway]);
+
   const allowDelegatedStaking =
     gateway?.settings.allowDelegatedStaking ?? false;
-
-  const delegateData: AoGatewayDelegate | undefined = walletAddress
-    ? gateway?.delegates[walletAddress?.toString()]
-    : undefined;
-  const currentStake = new mIOToken(delegateData?.delegatedStake ?? 0)
-    .toIO()
-    .valueOf();
 
   const newTotalStake =
     tab == 0
@@ -86,13 +93,10 @@ const StakingModal = ({
         }) + '%'
       : '-';
 
-  const existingStake = new mIOToken(delegateData?.delegatedStake ?? 0)
-    .toIO()
-    .valueOf();
   const minDelegatedStake = gateway
     ? new mIOToken(gateway?.settings.minDelegatedStake).toIO().valueOf()
     : 500;
-  const minRequiredStakeToAdd = existingStake > 0 ? 1 : minDelegatedStake;
+  const minRequiredStakeToAdd = currentStake > 0 ? 1 : minDelegatedStake;
 
   const validators = {
     address: validateWalletAddress('Gateway Owner'),
@@ -105,7 +109,7 @@ const StakingModal = ({
     withdrawAmount: validateWithdrawAmount(
       'Withdraw Amount',
       ticker,
-      existingStake,
+      currentStake,
       minDelegatedStake,
     ),
   };
@@ -180,6 +184,10 @@ const StakingModal = ({
         });
         queryClient.invalidateQueries({
           queryKey: ['balances'],
+          refetchType: 'all',
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['delegateStakes'],
           refetchType: 'all',
         });
 
@@ -308,7 +316,7 @@ const StakingModal = ({
               <LabelValueRow
                 className="border-b border-divider pb-4"
                 label="Existing Stake:"
-                value={`${existingStake} ${ticker}`}
+                value={`${currentStake} ${ticker}`}
               />
             )}
             <LabelValueRow

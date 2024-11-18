@@ -65,6 +65,10 @@ const WithdrawAllModal = ({
           queryKey: ['gateways'],
           refetchType: 'all',
         });
+        queryClient.invalidateQueries({
+          queryKey: ['delegateStakes'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {

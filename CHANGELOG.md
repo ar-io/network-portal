@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Updated
+
+* Optimized loading of user stakes and pending withdrawals. 
+
+### Fixed
+
+* Gateways count in site header should only count active gateways.
+
 ## [1.4.0] - 2024-11-14
 
 ### Added

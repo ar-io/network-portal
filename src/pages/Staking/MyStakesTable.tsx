@@ -1,9 +1,4 @@
-import {
-  AoGateway,
-  AoGatewayDelegate,
-  AoVaultData,
-  mIOToken,
-} from '@ar.io/sdk/web';
+import { AoGateway, AoVaultData, mIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
@@ -18,6 +13,7 @@ import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal'
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import WithdrawAllModal from '@src/components/modals/WithdrawAllModal';
+import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
@@ -76,67 +72,50 @@ const MyStakesTable = () => {
 
   const navigate = useNavigate();
 
+  const { data: delegateStakes } = useDelegateStakes(walletAddress?.toString());
+
   useEffect(() => {
     const activeStakes: Array<ActiveStakesTableData> | undefined = isFetching
       ? undefined
-      : !walletAddress || !gateways
+      : !delegateStakes || !gateways
         ? []
-        : Object.keys(gateways).reduce((acc, key) => {
-            const gateway = gateways[key];
-
-            const delegate: AoGatewayDelegate =
-              gateway.delegates[walletAddress?.toString()];
-
-            if (delegate) {
-              return [
-                ...acc,
-                {
-                  owner: key,
-                  delegatedStake: delegate.delegatedStake,
-                  gateway,
-                  pendingWithdrawals: Object.keys(delegate.vaults).length,
-                  streak:
-                    gateway.status == 'leaving'
-                      ? Number.NEGATIVE_INFINITY
-                      : gateway.stats.failedConsecutiveEpochs > 0
-                        ? -gateway.stats.failedConsecutiveEpochs
-                        : gateway.stats.passedConsecutiveEpochs,
-                },
-              ];
-            }
-            return acc;
-          }, [] as Array<ActiveStakesTableData>);
+        : delegateStakes.stakes.map((stake) => {
+            const gateway = gateways[stake.gatewayAddress];
+            return {
+              owner: stake.gatewayAddress,
+              delegatedStake: stake.balance,
+              gateway,
+              pendingWithdrawals: delegateStakes.withdrawals.filter(
+                (w) => w.gatewayAddress == stake.gatewayAddress,
+              ).length,
+              streak:
+                gateway.status == 'leaving'
+                  ? Number.NEGATIVE_INFINITY
+                  : gateway.stats.failedConsecutiveEpochs > 0
+                    ? -gateway.stats.failedConsecutiveEpochs
+                    : gateway.stats.passedConsecutiveEpochs,
+            };
+          });
 
     const pendingWithdrawals: Array<PendingWithdrawalsTableData> | undefined =
       isFetching
         ? undefined
-        : !walletAddress || !gateways
+        : !delegateStakes || !gateways
           ? []
-          : Object.keys(gateways).reduce((acc, key) => {
-              const gateway = gateways[key];
+          : delegateStakes.withdrawals.map((withdrawal) => {
+              const gateway = gateways[withdrawal.gatewayAddress];
 
-              const delegate: AoGatewayDelegate =
-                gateway.delegates[walletAddress?.toString()];
+              return {
+                owner: withdrawal.gatewayAddress,
+                gateway,
+                withdrawal,
+                withdrawalId: withdrawal.vaultId,
+              };
+            });
 
-              if (delegate?.vaults) {
-                const withdrawals = Object.entries(delegate.vaults).map(
-                  ([withdrawalId, withdrawal]) => {
-                    return {
-                      owner: key,
-                      gateway,
-                      withdrawal,
-                      withdrawalId,
-                    };
-                  },
-                );
-
-                return [...acc, ...withdrawals];
-              }
-              return acc;
-            }, [] as Array<PendingWithdrawalsTableData>);
     setActiveStakes(activeStakes);
     setPendingWithdrawals(pendingWithdrawals);
-  }, [gateways, walletAddress, isFetching]);
+  }, [delegateStakes, gateways, isFetching]);
 
   // Define columns for the active stakes table
   const activeStakesColumns: ColumnDef<ActiveStakesTableData, any>[] = [

@@ -42,6 +42,7 @@ export default {
       'streak-up': '#3DB7C2',
       'text-red': '#DB4354',
       warning: '#ffb938',
+      'stroke-low': 'rgba(202, 202, 214, 0.08)'
     },
   },
   plugins: [

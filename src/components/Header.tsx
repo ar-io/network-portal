@@ -73,7 +73,14 @@ const Header = () => {
         loading={!blockHeight}
       />
       <HeaderItem
-        value={gateways ? Object.keys(gateways).length : undefined}
+        value={
+          gateways
+            ? Object.entries(gateways).filter(
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              ([_address, gateway]) => gateway.status === 'joined',  
+            ).length
+            : undefined
+        }
         label="GATEWAYS"
         loading={gatewaysLoading}
       />

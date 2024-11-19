@@ -79,7 +79,7 @@ const PropertyDisplayPanel = ({
 
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
   const [isLeaveNetworkModalOpen, setLeaveNetworkModalOpen] =
-    useState<boolean>(true);
+    useState<boolean>(false);
 
   const gatewayAddress = gateway
     ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`

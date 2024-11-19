@@ -8,7 +8,6 @@ import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
 import { WithdrawalType } from '@src/types';
 import { formatAddress, formatWithCommas } from '@src/utils';
-import { useQueryClient } from '@tanstack/react-query';
 import { MathJax } from 'better-react-mathjax';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
@@ -33,11 +32,8 @@ const StakingModal = ({
   onClose: () => void;
   ownerWallet?: string;
 }) => {
-  const queryClient = useQueryClient();
-
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
-  const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
   const [tab, setTab] = useState<number>(0);
@@ -172,7 +168,7 @@ const StakingModal = ({
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
       <div className="w-[28.5rem]">
-        <div className="border-b-stroke-low grid grid-cols-2 border-b">
+        <div className="grid grid-cols-2 border-b border-b-stroke-low">
           <button
             className={`${tab == 0 ? selectedTabClassNames : nonSelectedTabClassNames} rounded-tl-xl`}
             onClick={() => setTab(0)}
@@ -397,7 +393,9 @@ const StakingModal = ({
             <Button
               className="mt-8 h-[3.25rem] w-full"
               onClick={() => {
-                tab == 0 ? setShowReviewStakeModal(true) : setShowReviewWithdrawalModal(true);
+                tab == 0
+                  ? setShowReviewStakeModal(true)
+                  : setShowReviewWithdrawalModal(true);
               }}
               buttonType={ButtonType.PRIMARY}
               title="Review"

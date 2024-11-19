@@ -112,7 +112,7 @@ const ReviewWithdrawalModal = ({
         showCloseButton={false}
       >
         <div className="w-[28.5rem]">
-          <div className="text-gradient border-b-stroke-low rounded-t-xl border-b bg-containerL3 p-4">
+          <div className="text-gradient rounded-t-xl border-b border-b-stroke-low bg-containerL3 p-4">
             Review
           </div>
           <div className="flex flex-col gap-2 p-8">

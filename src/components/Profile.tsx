@@ -1,10 +1,12 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
+import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
 import { formatBalance, formatWalletAddress } from '@src/utils';
-import { forwardRef, useState } from 'react';
+import { forwardRef, ReactElement, useState } from 'react';
 import Button, { ButtonType } from './Button';
 import CopyButton from './CopyButton';
+import Placeholder from './Placeholder';
 import Tooltip from './Tooltip';
 import {
   ClockRewindIcon,
@@ -14,17 +16,19 @@ import {
   WalletIcon,
 } from './icons';
 import ConnectModal from './modals/ConnectModal';
-import useBalances from '@src/hooks/useBalances';
-import Placeholder from './Placeholder';
 
 // eslint-disable-next-line react/display-name
-const CustomPopoverButton = forwardRef<HTMLButtonElement>((props, ref) => {
+const CustomPopoverButton = forwardRef<
+  HTMLButtonElement,
+  { children?: ReactElement }
+>((props, ref) => {
   return (
     <Button
       forwardRef={ref}
       buttonType={ButtonType.PRIMARY}
       icon={<ConnectIcon className="size-4" />}
       title="Profile"
+      text={props.children}
       {...props}
     />
   );
@@ -40,12 +44,14 @@ const Profile = () => {
   const wallet = useGlobalState((state) => state.wallet);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
-  const { data:balances } = useBalances(walletAddress);
+  const { data: balances } = useBalances(walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
 
   return walletAddress ? (
     <Popover className="relative">
-      <PopoverButton as={CustomPopoverButton} />
+      <PopoverButton as={CustomPopoverButton}>
+        {formatWalletAddress(walletAddress.toString())}
+      </PopoverButton>
 
       <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">
         <div className="flex gap-2 px-4 py-5 ">

@@ -119,10 +119,6 @@ const WithdrawAllModal = ({
           </div>
 
           <div className="bg-containerL0 px-8 pb-8 pt-6">
-            <div className="flex gap-2 text-sm text-mid">
-              <div className="grow">Fee:</div>
-              <div>- AR</div>
-            </div>
             <div className="mt-1 flex text-sm text-mid">
               <div className="grow">Total Withdrawal:</div>
               <div>

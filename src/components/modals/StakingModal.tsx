@@ -134,6 +134,9 @@ const StakingModal = ({
   const remainingBalance =
     balances && parsedStake <= balances.io ? balances.io - parsedStake : -1;
 
+  const parsedWithdrawing = parseFloat(amountToWithdraw.length === 0 ? '0' : amountToWithdraw);
+  const remainingWithdrawalBalance = currentStake - parsedWithdrawing;
+
   const baseTabClassName = 'text-center py-3';
   const selectedTabClassNames = `${baseTabClassName} bg-grey-700 border-b border-red-400`;
   const nonSelectedTabClassNames = `${baseTabClassName} bg-grey-1000 text-low`;
@@ -226,7 +229,7 @@ const StakingModal = ({
               {tab == 0
                 ? balances &&
                   `Available: ${remainingBalance >= 0 ? formatWithCommas(+remainingBalance) : '-'} ${ticker}`
-                : `Available to Withdraw: ${formatWithCommas(currentStake)} ${ticker}`}
+                : `Available to Withdraw: ${remainingWithdrawalBalance >= 0 ? formatWithCommas(remainingWithdrawalBalance) : '-'} ${ticker}`}
             </div>
           </div>
           <div className="mt-3 flex h-[3.25rem] items-center overflow-hidden rounded-md border border-grey-800">

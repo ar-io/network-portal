@@ -76,7 +76,7 @@ const CancelWithdrawalModal = ({
             </div>
           </div>
 
-          <div className="px-8 pb-8 pt-6">
+          <div className="px-8 pb-8 pt-6 bg-containerL0">
             <div className="mb-6 flex flex-col items-center gap-2 text-sm text-mid">
               <div>
                 Please type &quot;CONFIRM&quot; in the text box to proceed.
@@ -85,7 +85,7 @@ const CancelWithdrawalModal = ({
                 type="text"
                 onChange={(e) => setConfirmText(e.target.value)}
                 className={
-                  'h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+                  'h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
                 }
                 value={confirmText}
               />

@@ -118,7 +118,7 @@ const ReviewStakeModal = ({
             <WithdrawWarning />
           </div>
 
-          <div className="flex size-full flex-col bg-containerL0 px-8 py-6">
+          <div className="flex size-full flex-col bg-containerL0 px-8 pb-2 pt-6">
             <Button
               className="h-[3.25rem] w-full"
               onClick={submitForm}

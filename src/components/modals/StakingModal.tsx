@@ -330,7 +330,7 @@ const StakingModal = ({
             )}
           </div>
         </div>
-        <div className="flex size-full flex-col gap-2 bg-containerL0 px-8 py-4">
+        <div className="flex size-full flex-col gap-2 bg-containerL0 px-8 pt-4 pb-8">
           {tab == 1 && withdrawalType == 'expedited' && (
             <>
               <LabelValueRow
@@ -394,7 +394,7 @@ const StakingModal = ({
             }
           >
             <Button
-              className="mt-8 h-[3.25rem] w-full"
+              className="mt-4 h-[3.25rem] w-full"
               onClick={() => {
                 tab == 0
                   ? setShowReviewStakeModal(true)

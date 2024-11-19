@@ -118,7 +118,7 @@ const WithdrawAllModal = ({
             <WithdrawWarning />
           </div>
 
-          <div className="px-8 pb-8 pt-6">
+          <div className="bg-containerL0 px-8 pb-8 pt-6">
             <div className="flex gap-2 text-sm text-mid">
               <div className="grow">Fee:</div>
               <div>- AR</div>

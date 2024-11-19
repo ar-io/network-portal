@@ -142,7 +142,7 @@ const InstantWithdrawalModal = ({
             </ul>
           </div>
 
-          <div className="mt-4 flex flex-col gap-1 px-8">
+          <div className="mt-4 flex flex-col gap-1 px-8 pb-4">
             <LabelValueRow
               label="Stake Withdrawing:"
               value={`${formatWithCommas(new mIOToken(vault.balance).toIO().valueOf())} ${ticker}`}
@@ -180,7 +180,7 @@ const InstantWithdrawalModal = ({
             />
           </div>
 
-          <div className="px-8 pb-8 pt-6">
+          <div className="px-8 pb-8 pt-4 bg-containerL0">
             <div className="mb-6 flex flex-col items-center gap-2 text-sm text-mid">
               <div>
                 Please type &quot;WITHDRAW&quot; in the text box to proceed.
@@ -189,7 +189,7 @@ const InstantWithdrawalModal = ({
                 type="text"
                 onChange={(e) => setConfirmText(e.target.value)}
                 className={
-                  'h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+                  'h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
                 }
                 value={confirmText}
               />

@@ -330,7 +330,7 @@ const StakingModal = ({
             )}
           </div>
         </div>
-        <div className="flex size-full flex-col gap-2 bg-containerL0 px-8 pt-4 pb-8">
+        <div className="flex size-full flex-col gap-2 bg-containerL0 px-8 pb-8 pt-4">
           {tab == 1 && withdrawalType == 'expedited' && (
             <>
               <LabelValueRow

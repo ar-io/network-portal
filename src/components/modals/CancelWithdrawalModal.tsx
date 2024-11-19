@@ -76,7 +76,7 @@ const CancelWithdrawalModal = ({
             </div>
           </div>
 
-          <div className="px-8 pb-8 pt-6 bg-containerL0">
+          <div className="bg-containerL0 px-8 pb-8 pt-6">
             <div className="mb-6 flex flex-col items-center gap-2 text-sm text-mid">
               <div>
                 Please type &quot;CONFIRM&quot; in the text box to proceed.

@@ -1,4 +1,4 @@
-import { Dialog } from '@headlessui/react';
+import { Dialog, DialogPanel } from '@headlessui/react';
 import {
   CaretDoubleRightIcon,
   CheckSquareIcon,
@@ -177,7 +177,7 @@ const AssessmentDetailsPanel = ({
       />
 
       <div className="fixed right-0 top-0 h-screen w-[36rem]">
-        <Dialog.Panel
+        <DialogPanel
           className={
             'relative flex h-full flex-col bg-grey-800 text-sm text-mid'
           }
@@ -270,7 +270,7 @@ const AssessmentDetailsPanel = ({
               </div>
             )}
           </div>
-        </Dialog.Panel>
+        </DialogPanel>
       </div>
     </Dialog>
   );

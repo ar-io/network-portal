@@ -1,7 +1,7 @@
 {
   "name": "@ar-io/network-portal",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.4.2",
   "type": "module",
   "scripts": {
     "build": "yarn clean && tsc --build tsconfig.build.json && NODE_OPTIONS=--max-old-space-size=32768 vite build",
@@ -20,7 +20,7 @@
     "deploy": "yarn build && permaweb-deploy --ant-process ${DEPLOY_ANT_PROCESS_ID}"
   },
   "dependencies": {
-    "@ar.io/sdk": "2.5.0-alpha.3",
+    "@ar.io/sdk": "2.5.0-alpha.8",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^1.7.19",
     "@radix-ui/react-tooltip": "^1.0.7",

@@ -2,6 +2,7 @@ import { AO_CU_URL, log } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { useGlobalState } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
+import { showErrorToast } from '@src/utils/toast';
 import { ReactElement, useEffect } from 'react';
 
 // Time to wait in ms to check if the AO CU URL is congested
@@ -9,7 +10,6 @@ const CONGESTION_WINDOW = 5000;
 const TWO_MINUTES = 120000;
 
 const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
-
   const setBlockHeight = useGlobalState((state) => state.setBlockHeight);
   const setCurrentEpoch = useGlobalState((state) => state.setCurrentEpoch);
   const setTicker = useGlobalState((state) => state.setTicker);
@@ -23,11 +23,29 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       const { Ticker } = await arioReadSDK.getInfo();
       setTicker(Ticker);
 
-      const currentEpoch = await arioReadSDK.getCurrentEpoch();
-      setCurrentEpoch(currentEpoch);
+      try {
+        const currentEpoch = await arioReadSDK.getCurrentEpoch();
 
-      if (currentEpoch?.epochIndex) {
-        cleanupDbCache(currentEpoch.epochIndex);
+        // FIXME: This is here to prevent the app from crashing when the current epoch comes back as an empty array.
+        // This is due to how contract and SDK are currently handling the epoch data situation when it can't be fetched.
+        // This should be removed when the above situation is changed to throw an exception.
+        if (Array.isArray(currentEpoch)) {
+          log.error('Error fetching current epoch');
+          showErrorToast(
+            'Error fetching current epoch. Application may not function as expected.',
+          );
+          return;
+        }
+        setCurrentEpoch(currentEpoch);
+
+        if (currentEpoch?.epochIndex) {
+          cleanupDbCache(currentEpoch.epochIndex);
+        }
+      } catch (error) {
+        log.error('Error fetching current epoch');
+          showErrorToast(
+            'Error fetching current epoch. Application may not function as expected.',
+          );
       }
     };
 

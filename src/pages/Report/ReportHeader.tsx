@@ -1,9 +1,16 @@
 import { AoGateway } from '@ar.io/sdk/web';
+import Button from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
-import { HeaderSeparatorIcon, ReportsIcon } from '@src/components/icons';
+import {
+  DownloadIcon,
+  HeaderSeparatorIcon,
+  ReportsIcon,
+} from '@src/components/icons';
+import { downloadReport } from '@src/hooks/useReport';
 import { ReportData } from '@src/types';
 import { formatDateTime } from '@src/utils';
+import { saveAs } from 'file-saver';
 import { Link, useParams } from 'react-router-dom';
 
 const ReportHeader = ({
@@ -24,7 +31,7 @@ const ReportHeader = ({
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <HeaderSeparatorIcon className="size-4"/>
+        <HeaderSeparatorIcon className="size-4" />
         {gateway ? (
           <Link className="text-mid" to={`/gateways/${ownerId}`}>
             {gateway.settings.label}
@@ -32,23 +39,41 @@ const ReportHeader = ({
         ) : (
           <Placeholder />
         )}
-        <HeaderSeparatorIcon className="size-4"/>
+        <HeaderSeparatorIcon className="size-4" />
         <Link className="text-mid" to={`/gateways/${ownerId}/reports`}>
           Reports
         </Link>
-        <HeaderSeparatorIcon className="size-4"/>
+        <HeaderSeparatorIcon className="size-4" />
         {reportId ? <div>{reportId}</div> : <Placeholder />}
         <div className="grow" />
         <div className="items-center">
           <Profile />
         </div>
       </div>
-      <div className="flex items-center gap-3 border border-grey-500 bg-grey-900 py-5 pl-6">
+      <div className="relative flex items-center gap-3 border border-grey-500 bg-grey-900 px-6 py-5">
         <ReportsIcon className="size-4" />
         {reportId ? (
           <div className="text-high">{reportId}</div>
         ) : (
           <Placeholder />
+        )}
+        <div className="grow" />
+        {reportData && reportId && (
+          <Button
+            className="absolute right-6"
+            title={'Download Report'}
+            icon={<DownloadIcon className="size-4" />}
+            active={true}
+            onClick={async () => {
+              if (reportId && reportData) {
+                const reportData = await downloadReport(reportId);
+                const blob = new Blob([reportData], {
+                  type: 'application/json',
+                });
+                saveAs(blob, `report-${reportId}.json`);
+              }
+            }}
+          />
         )}
       </div>
       <div className="grid grid-cols-[180px_auto] items-center gap-3 rounded-b-xl border border-grey-500 bg-grey-900 py-5 pl-6 text-sm">
@@ -59,11 +84,7 @@ const ReportHeader = ({
         <div>Observer Address:</div>
         {reportData ? <div>{reportData.observerAddress}</div> : <Placeholder />}
         <div>Epoch Number:</div>
-        {reportData ? (
-          <div>{reportData.epochIndex}</div>
-        ) : (
-          <Placeholder />
-        )}
+        {reportData ? <div>{reportData.epochIndex}</div> : <Placeholder />}
         <div>Generated At:</div>
         {reportData ? (
           <div>{formatDateTime(new Date(reportData.epochStartTimestamp))}</div>

@@ -35,10 +35,10 @@
     plimit-lit "^3.0.1"
     warp-contracts "1.4.45"
 
-"@ar.io/sdk@2.5.0-alpha.8":
-  version "2.5.0-alpha.8"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-2.5.0-alpha.8.tgz#7057896b7858122237c69f11a2bbaeb59ce811af"
-  integrity sha512-+cE/jsfgQEwHb7rUNLvU77Tmhien+y3O9xOR+sE5Agj+RBwJthrl3JxZjAyd3nMaJ6OweLtZWhmHqCI+RQRAAg==
+"@ar.io/sdk@2.5.0-alpha.10":
+  version "2.5.0-alpha.10"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-2.5.0-alpha.10.tgz#feea7fa7ce2eba73bb24274132fcbf40eedac0cb"
+  integrity sha512-p4+018TEXHmByQW7QoAVNIkSie0h202plmaMoPFzTTbFQ7eygpNFhisrEQVNRaOpcR6xbkg070azjkBcr3DGzA==
   dependencies:
     "@dha-team/arbundles" "^1.0.1"
     "@permaweb/aoconnect" "^0.0.57"
@@ -3431,6 +3431,11 @@
   resolved "https://registry.npmjs.org/@types/estree/-/estree-1.0.5.tgz"
   integrity sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==
 
+"@types/file-saver@^2.0.7":
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/@types/file-saver/-/file-saver-2.0.7.tgz#8dbb2f24bdc7486c54aa854eb414940bbd056f7d"
+  integrity sha512-dNKVfHd/jk0SkR/exKGj2ggkB45MAkzvWCaqLUUgkyjITkGNzH8H+yUwr+BLJUBjZOe9w8X3wgmXhZDRg1ED6A==
+
 "@types/glob@*":
   version "8.1.0"
   resolved "https://registry.npmjs.org/@types/glob/-/glob-8.1.0.tgz"
@@ -6412,6 +6417,11 @@ file-entry-cache@^6.0.1:
   integrity sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==
   dependencies:
     flat-cache "^3.0.4"
+
+file-saver@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/file-saver/-/file-saver-2.0.5.tgz#d61cfe2ce059f414d899e9dd6d4107ee25670c38"
+  integrity sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==
 
 file-uri-to-path@1.0.0:
   version "1.0.0"

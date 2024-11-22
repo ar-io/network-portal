@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added 
+
+* Download buttons added to Reports page and individual Report page 
+
+### Updated
+
+* Staking and Withdrawal modals updated to show Review page for user to confirm operation before processing
+* Withdrawal Modal: Added option for Standard and Expedited Withdrawal
+* Modal dialog styles refreshed
+
+
 ## [1.4.2] - 2024-11-20
 
 ### Updated

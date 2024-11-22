@@ -19,6 +19,7 @@ import CopyIcon from './copy.svg?react';
 import CopyCheckedIcon from './copy_checked.svg?react';
 import DashboardIcon from './dashboard.svg?react';
 import DocsIcon from './docs.svg?react';
+import DownloadIcon from './download.svg?react';
 import EditIcon from './edit_icon.svg?react';
 import FailSquareIcon from './fail_square.svg?react';
 import FormErrorIcon from './form_error.svg?react';
@@ -73,6 +74,7 @@ export {
   CopyIcon,
   DashboardIcon,
   DocsIcon,
+  DownloadIcon,
   EditIcon,
   FailSquareIcon,
   FormErrorIcon,

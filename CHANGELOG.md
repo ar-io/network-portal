@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2] - 2024-11-20
+
+### Updated
+
+* Show error message toast if the application is unable to retrieve the current epoch
+
 ## [1.4.1] - 2024-11-18
 
 ### Updated

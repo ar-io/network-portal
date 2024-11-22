@@ -22,7 +22,7 @@
   "dependencies": {
     "@ar.io/sdk": "2.5.0-alpha.8",
     "@fontsource/rubik": "^5.0.19",
-    "@headlessui/react": "^1.7.19",
+    "@headlessui/react": "^2.2.0",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@sentry/browser": "^7.101.1",
     "@sentry/react": "^7.101.1",

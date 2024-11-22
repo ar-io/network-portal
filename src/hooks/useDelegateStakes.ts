@@ -11,7 +11,7 @@ const useDelegateStakes = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const res = useQuery<DelegateStakes>({
-    queryKey: ['delegateStakes', address],
+    queryKey: ['delegateStakes', arIOReadSDK, address],
     queryFn: async () => {
       if (!address) {
         throw new Error('Address is not set');
@@ -30,6 +30,7 @@ const useDelegateStakes = (address?: string) => {
           cursor,
           limit: 10,
         });
+
         pageResult.items.forEach((d) => {
           if (d.type === 'stake') {
             retVal.stakes.push(d);

@@ -1,5 +1,5 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
-import { Popover } from '@headlessui/react';
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import { useGlobalState } from '@src/store';
 import { formatBalance, formatWalletAddress } from '@src/utils';
 import { forwardRef, useState } from 'react';
@@ -45,9 +45,9 @@ const Profile = () => {
 
   return walletAddress ? (
     <Popover className="relative">
-      <Popover.Button as={CustomPopoverButton} />
+      <PopoverButton as={CustomPopoverButton} />
 
-      <Popover.Panel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">
+      <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">
         <div className="flex gap-2 px-4 py-5 ">
           <WalletIcon className="size-4" />
 
@@ -110,7 +110,7 @@ const Profile = () => {
             <LogoutIcon className="size-4" /> Logout
           </button>
         </div>
-      </Popover.Panel>
+      </PopoverPanel>
     </Popover>
   ) : walletStateInitialized ? (
     <div>

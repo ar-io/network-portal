@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added 
 
 * Download buttons added to Reports page and individual Report page 
+* Observers: Added epoch selector to view prescribed observers for previous epochs
 
 ### Updated
 

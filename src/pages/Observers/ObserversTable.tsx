@@ -84,7 +84,7 @@ const ObserversTable = () => {
       [] as Array<TableData>,
     );
     setObserversTableData(observersTableData);
-  }, [observers, gateways, observations]);
+  }, [observers, gateways, observations, selectedEpochIndex]);
 
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = [

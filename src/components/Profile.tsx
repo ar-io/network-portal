@@ -1,9 +1,14 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
+import { AoPrimaryName } from '@ar.io/sdk/web';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
-import { formatBalance, formatWalletAddress } from '@src/utils';
-import { forwardRef, ReactElement, useState } from 'react';
+import {
+  formatBalance,
+  formatPrimaryName,
+  formatWalletAddress,
+} from '@src/utils';
+import { forwardRef, ReactElement, useEffect, useState } from 'react';
 import Button, { ButtonType } from './Button';
 import CopyButton from './CopyButton';
 import Placeholder from './Placeholder';
@@ -35,22 +40,43 @@ const CustomPopoverButton = forwardRef<
 });
 
 const Profile = () => {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
   const walletStateInitialized = useGlobalState(
     (state) => state.walletStateInitialized,
   );
-
   const wallet = useGlobalState((state) => state.wallet);
+  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
 
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [primaryName, setPrimaryName] = useState<AoPrimaryName>();
+
+  useEffect(() => {
+    const update = async () => {
+      if (walletAddress && arIOReadSDK) {
+        try {
+          const primaryName = await arIOReadSDK.getPrimaryName({
+            address: walletAddress.toString(),
+          });
+          setPrimaryName(primaryName);
+          console.log('Primary name found:', primaryName);
+        } catch (e) {
+          console.log('name not found');
+          setPrimaryName(undefined);
+        }
+      }
+    };
+    update();
+  }, [walletAddress, arIOReadSDK]);
+
   return walletAddress ? (
     <Popover className="relative">
       <PopoverButton as={CustomPopoverButton}>
-        {formatWalletAddress(walletAddress.toString())}
+        {primaryName
+          ? formatPrimaryName(primaryName.name)
+          : formatWalletAddress(walletAddress.toString())}
       </PopoverButton>
 
       <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">

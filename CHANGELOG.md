@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Download buttons added to Reports page and individual Report page 
 * Observers: Added epoch selector to view prescribed observers for previous epochs
+* Gateway Details Page
+  * Reported On By card: text links to gateway for observer, report button links to report 
+  * Reported On card: Report button shows in header that links to that report's page 
 
 ### Updated
 

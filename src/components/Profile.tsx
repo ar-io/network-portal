@@ -61,9 +61,7 @@ const Profile = () => {
             address: walletAddress.toString(),
           });
           setPrimaryName(primaryName);
-          console.log('Primary name found:', primaryName);
         } catch (e) {
-          console.log('name not found');
           setPrimaryName(undefined);
         }
       }

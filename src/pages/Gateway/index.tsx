@@ -5,7 +5,6 @@ import {
 } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
-import Tooltip from '@src/components/Tooltip';
 import FormRow, { RowType } from '@src/components/forms/FormRow';
 import {
   FormRowDef,
@@ -20,52 +19,29 @@ import {
   validateTransactionId,
   validateWalletAddress,
 } from '@src/components/forms/validation';
-import { EditIcon, InfoIcon } from '@src/components/icons';
+import { EditIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
-import {
-  EAY_TOOLTIP_TEXT,
-  OPERATOR_EAY_TOOLTIP_FORMULA,
-  WRITE_OPTIONS,
-  log,
-} from '@src/constants';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import useGateway from '@src/hooks/useGateway';
-import useGateways from '@src/hooks/useGateways';
-import useHealthcheck from '@src/hooks/useHealthCheck';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
-import { formatDateTime } from '@src/utils';
-import { calculateOperatorRewards } from '@src/utils/rewards';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { MathJax } from 'better-react-mathjax';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import GatewayHeader from './GatewayHeader';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
 import SnitchRow from './SnitchRow';
 import SoftwareDetails from './SoftwareDetails';
-import StatsBox from './StatsBox';
-
-const formatUptime = (uptime: number) => {
-  const days = Math.floor(uptime / 86400);
-  const hours = Math.floor((uptime % 86400) / 3600);
-  const minutes = Math.floor((uptime % 3600) / 60);
-  const seconds = Math.floor(uptime % 60);
-
-  return `${days}d, ${hours}h, ${minutes}m, ${seconds}s`;
-};
+import StatsPanel from './StatsPanel';
 
 const Gateway = () => {
   const queryClient = useQueryClient();
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
-  const { data: protocolBalance } = useProtocolBalance();
-  const { data: gateways } = useGateways();
   const { data: balances } = useBalances(walletAddress);
 
   const params = useParams();
@@ -76,15 +52,6 @@ const Gateway = () => {
     ownerWalletAddress: ownerId || undefined,
   });
 
-  const gatewayAddress = gateway
-    ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`
-    : undefined;
-
-  const healthCheckRes = useHealthcheck({
-    url: gatewayAddress,
-  });
-
-  const [numDelegates, setNumDelegates] = useState<number>();
   const [editing, setEditing] = useState(false);
 
   const [initialState, setInitialState] = useState<
@@ -103,15 +70,6 @@ const Gateway = () => {
   const maxStake = gateway?.operatorStake
     ? new mIOToken(gateway.operatorStake).toIO().valueOf() + (balances?.io || 0)
     : undefined;
-
-  const operatorRewards =
-    gateway?.operatorStake != undefined && protocolBalance && gateways
-      ? calculateOperatorRewards(
-          new mIOToken(protocolBalance).toIO(),
-          Object.values(gateways).filter((g) => g.status == 'joined').length,
-          gateway,
-        )
-      : undefined;
 
   const weightFields: Array<[string, number | undefined]> = [
     ['Stake', gateway?.weights?.stakeWeight],
@@ -136,18 +94,6 @@ const Gateway = () => {
       };
     });
   }, [walletAddress]);
-
-  useEffect(() => {
-    if (!arIOReadSDK || !gateway) return;
-    const update = async () => {
-      const res = await arIOReadSDK.getGatewayDelegates({
-        address: gateway.gatewayAddress,
-        limit: 1,
-      });
-      setNumDelegates(res.totalItems);
-    };
-    update();
-  }, [gateway, arIOReadSDK]);
 
   // This updates the form when the user toggles the delegated staking switch to false to reset the
   // form values and error messages back to the initial state.
@@ -414,73 +360,7 @@ const Gateway = () => {
       </div>
       <div className="my-6 flex gap-6">
         <div className="flex min-w-72 flex-col gap-6">
-          <div className="size-fit w-full rounded-xl border border-transparent-100-16 text-sm">
-            <div className="bg-containerL3 px-6 py-4">
-              <div className="text-high">Stats</div>
-            </div>
-            <StatsBox
-              title="Join Date"
-              value={
-                gateway?.startTimestamp
-                  ? formatDateTime(new Date(gateway?.startTimestamp))
-                  : undefined
-              }
-            />
-
-            {gateway?.status === 'joined' ? (
-              <>
-                <StatsBox
-                  title="Uptime"
-                  value={
-                    healthCheckRes.isError
-                      ? 'N/A'
-                      : healthCheckRes.isLoading
-                        ? undefined
-                        : formatUptime(healthCheckRes.data?.uptime)
-                  }
-                />
-                <StatsBox title="Delegates" value={numDelegates} />
-
-                <StatsBox
-                  title={
-                    <div className="flex gap-2">
-                      Operator EAY{' '}
-                      <Tooltip
-                        message={
-                          <div>
-                            <p>{EAY_TOOLTIP_TEXT}</p>
-                            <MathJax className="mt-4">
-                              {OPERATOR_EAY_TOOLTIP_FORMULA}
-                            </MathJax>
-                          </div>
-                        }
-                      >
-                        <InfoIcon className="size-4" />
-                      </Tooltip>
-                    </div>
-                  }
-                  value={
-                    operatorRewards != undefined
-                      ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
-                      : undefined
-                  }
-                />
-              </>
-            ) : (
-              gateway && (
-                <StatsBox
-                  title="Leave Date"
-                  value={
-                    gateway?.endTimestamp
-                      ? formatDateTime(new Date(gateway?.endTimestamp))
-                      : undefined
-                  }
-                />
-              )
-            )}
-            {/* <StatsBox title="Rewards Distributed" value={gateway?} /> */}
-          </div>
-
+          <StatsPanel gateway={gateway} />
           {gateway?.weights && gateway?.status === 'joined' && (
             <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
               <div className="bg-containerL3 px-6 py-4">

@@ -1,14 +1,14 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
-import { AoPrimaryName } from '@ar.io/sdk/web';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import useBalances from '@src/hooks/useBalances';
+import usePrimaryName from '@src/hooks/usePrimaryName';
 import { useGlobalState } from '@src/store';
 import {
   formatBalance,
   formatPrimaryName,
   formatWalletAddress,
 } from '@src/utils';
-import { forwardRef, ReactElement, useEffect, useState } from 'react';
+import { forwardRef, ReactElement, useState } from 'react';
 import Button, { ButtonType } from './Button';
 import CopyButton from './CopyButton';
 import Placeholder from './Placeholder';
@@ -44,30 +44,13 @@ const Profile = () => {
     (state) => state.walletStateInitialized,
   );
   const wallet = useGlobalState((state) => state.wallet);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [primaryName, setPrimaryName] = useState<AoPrimaryName>();
-
-  useEffect(() => {
-    const update = async () => {
-      if (walletAddress && arIOReadSDK) {
-        try {
-          const primaryName = await arIOReadSDK.getPrimaryName({
-            address: walletAddress.toString(),
-          });
-          setPrimaryName(primaryName);
-        } catch (e) {
-          setPrimaryName(undefined);
-        }
-      }
-    };
-    update();
-  }, [walletAddress, arIOReadSDK]);
+  const { data: primaryName } = usePrimaryName(walletAddress?.toString());
 
   return walletAddress ? (
     <Popover className="relative">

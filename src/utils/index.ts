@@ -56,6 +56,14 @@ export const formatAddress = (address: string) => {
   )}`;
 };
 
+/** Format primary names to truncate at end if length > than maxChars */
+export const formatPrimaryName = (name: string, maxChars = 20) => {
+  if (name.length < maxChars) {
+    return name;
+  }
+  return name.slice(0, maxChars) + '...';
+};
+
 /** Convert Date object to format of YYYY-MM-DD */
 export function formatDate(date: Date): string {
   const year = date.getFullYear();
@@ -97,8 +105,11 @@ export const arrayBufferToBase64Url = (arrayBuffer: ArrayBuffer) => {
   return base64ToBase64url(base64);
 };
 
-export const fetchWithTimeout = async (resource:string, options?:RequestInit, timeout?:number) => {
-  
+export const fetchWithTimeout = async (
+  resource: string,
+  options?: RequestInit,
+  timeout?: number,
+) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout ?? 10_000);
 
@@ -106,11 +117,11 @@ export const fetchWithTimeout = async (resource:string, options?:RequestInit, ti
     ...options,
     headers: {
       ...options?.headers,
-      'Accept-Encoding': 'identity'
+      'Accept-Encoding': 'identity',
     },
-    signal: controller.signal  
+    signal: controller.signal,
   });
   clearTimeout(id);
 
   return response;
-}
+};

@@ -26,12 +26,13 @@ const InfoSection = ({ label, value }: { label: string; value: string }) => {
 
 const Banner = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
+  const currentEpoch = useGlobalState((state) => state.currentEpoch);
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
-  const { data: observers } = useObservers();
-  const { data: observations } = useObservations();
+  const { data: observers } = useObservers(currentEpoch);
+  const { data: observations } = useObservations(currentEpoch);
 
   const { gateway, gatewayStatus } = useGatewayInfo();
 

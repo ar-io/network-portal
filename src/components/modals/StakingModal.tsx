@@ -95,7 +95,7 @@ const StakingModal = ({
 
   const minDelegatedStake = gateway
     ? new mIOToken(gateway?.settings.minDelegatedStake).toIO().valueOf()
-    : 500;
+    : 10;
   const minRequiredStakeToAdd = currentStake > 0 ? 1 : minDelegatedStake;
 
   const validators = {

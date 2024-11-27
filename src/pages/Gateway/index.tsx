@@ -220,8 +220,8 @@ const Gateway = () => {
       formPropertyName: 'stake',
       label: `Gateway Stake (${ticker}):`,
       rowType: RowType.BOTTOM,
-      placeholder: `Minimum 50000 ${ticker}`,
-      validateProperty: validateIOAmount('Stake', ticker, 50000, maxStake),
+      placeholder: `Minimum 10000 ${ticker}`,
+      validateProperty: validateIOAmount('Stake', ticker, 10000, maxStake),
     },
     {
       formPropertyName: 'status',
@@ -267,12 +267,12 @@ const Gateway = () => {
       rowType: RowType.LAST,
       enabled: delegatedStakingEnabled,
       placeholder: delegatedStakingEnabled
-        ? `Minimum 500 ${ticker}`
+        ? `Minimum 10 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
       validateProperty: validateIOAmount(
         'Minumum Delegated Stake',
         ticker,
-        500,
+        10,
       ),
     },
   ];

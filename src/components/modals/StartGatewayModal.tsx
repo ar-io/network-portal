@@ -91,8 +91,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     {
       formPropertyName: 'stake',
       label: `*Stake (${ticker}):`,
-      placeholder: `Minimum 50000 ${ticker}`,
-      validateProperty: validateIOAmount('Stake', ticker, 50000),
+      placeholder: `Minimum 10000 ${ticker}`,
+      validateProperty: validateIOAmount('Stake', ticker, 10000),
     },
     {
       formPropertyName: 'allowDelegatedStaking',
@@ -103,9 +103,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       label: `Minimum Delegated Stake (${ticker}):`,
       enabled: allowDelegatedStaking,
       placeholder: allowDelegatedStaking
-        ? `Minimum 500 ${ticker}`
+        ? `Minimum 10 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount('Minimum Delegated Stake', ticker, 500),
+      validateProperty: validateIOAmount('Minimum Delegated Stake', ticker, 10),
     },
     {
       formPropertyName: 'delegatedStakingShareRatio',

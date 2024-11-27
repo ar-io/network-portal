@@ -18,7 +18,6 @@ const useGateways = () => {
       });
       cursor = pageResult.nextCursor;
     } while (cursor !== undefined);
-
     return gateways;
   };
 

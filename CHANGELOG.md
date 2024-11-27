@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.3] - 2024-11-27
+
+### Updated
+
+* Settings updated for staking:
+  * Staking withdrawals are now 90 days
+  * Gateway Operator Stake minimum is now 10,000 IO
+  * Minimum Delegated Staking amount for gateway configuration is now 10 IO
+
 ## [1.4.2] - 2024-11-20
 
 ### Updated

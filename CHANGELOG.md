@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added 
 
+* Profile button shows user's ArNS Primary Name (if available) or wallet address when logged in
 * Download buttons added to Reports page and individual Report page 
 * Observers: Added epoch selector to view prescribed observers for previous epochs
 * Gateway Details Page

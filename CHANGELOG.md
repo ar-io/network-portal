@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2024-12-04
+
 ### Added 
 
+* Profile button shows user's ArNS Primary Name (if available) or wallet address when logged in
 * Download buttons added to Reports page and individual Report page 
 * Observers: Added epoch selector to view prescribed observers for previous epochs
 * Gateway Details Page
@@ -20,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Staking and Withdrawal modals updated to show Review page for user to confirm operation before processing
 * Withdrawal Modal: Added option for Standard and Expedited Withdrawal
 * Modal dialog styles refreshed
+* Reward Share Ratio capped to 95% when joining network and updating gateway settings 
 
 ## [1.4.3] - 2024-11-27
 

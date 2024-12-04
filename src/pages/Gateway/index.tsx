@@ -257,9 +257,9 @@ const Gateway = () => {
       rowType: RowType.TOP,
       enabled: delegatedStakingEnabled,
       placeholder: delegatedStakingEnabled
-        ? 'Enter value 0-100'
+        ? 'Enter value 0-95'
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateNumberRange('Reward Share Ratio', 0, 100),
+      validateProperty: validateNumberRange('Reward Share Ratio', 0, 95),
     },
     {
       formPropertyName: 'minDelegatedStake',

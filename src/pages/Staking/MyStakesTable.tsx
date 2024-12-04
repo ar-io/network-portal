@@ -12,7 +12,7 @@ import {
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
 import StakingModal from '@src/components/modals/StakingModal';
-import UnstakeAllModal from '@src/components/modals/UnstakeAllModal';
+import WithdrawAllModal from '@src/components/modals/WithdrawAllModal';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
@@ -54,7 +54,7 @@ const MyStakesTable = () => {
 
   const [tableMode, setTableMode] = useState<TableMode>('activeStakes');
 
-  const [showUnstakeAllModal, setShowUnstakeAllModal] = useState(false);
+  const [showWithdrawAllModal, setShowWithdrawAllModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
   const [showQuickStake, setShowQuickStake] = useState(false);
@@ -317,7 +317,7 @@ const MyStakesTable = () => {
                 active={true}
                 title="Withdraw All"
                 text="Withdraw All"
-                onClick={() => setShowUnstakeAllModal(true)}
+                onClick={() => setShowWithdrawAllModal(true)}
               />
             )}
             <Button
@@ -362,10 +362,10 @@ const MyStakesTable = () => {
           }}
         />
       )}
-      {showUnstakeAllModal && activeStakes !== undefined && (
-        <UnstakeAllModal
+      {showWithdrawAllModal && activeStakes !== undefined && (
+        <WithdrawAllModal
           activeStakes={activeStakes}
-          onClose={() => setShowUnstakeAllModal(false)}
+          onClose={() => setShowWithdrawAllModal(false)}
         />
       )}
       {(stakingModalWalletAddress || showQuickStake) && (

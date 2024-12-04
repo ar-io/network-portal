@@ -68,3 +68,5 @@ export interface ArNSAssessment {
   resolvedStatusCode: number;
   timings?: ArNSAssessmentTimings;
 }
+
+export type WithdrawalType = 'standard' | 'expedited';

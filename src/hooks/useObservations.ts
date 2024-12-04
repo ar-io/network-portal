@@ -1,17 +1,15 @@
-
+import { AoEpochData } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
-const useObservers = () => {
+const useObservations = (epoch?: AoEpochData) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
-  const currentEpoch = useGlobalState((state) => state.currentEpoch);
-
   const queryResults = useQuery({
-    queryKey: ['observations', currentEpoch?.epochIndex || -1],
+    queryKey: ['observations', arIOReadSDK, epoch?.epochIndex || -1],
     queryFn: () => {
-      if (arIOReadSDK && currentEpoch) {
-        return arIOReadSDK.getObservations(currentEpoch);
+      if (arIOReadSDK && epoch) {
+        return arIOReadSDK.getObservations(epoch);
       }
       throw new Error('arIOReadSDK or currentEpoch not available');
     },
@@ -20,4 +18,4 @@ const useObservers = () => {
   return queryResults;
 };
 
-export default useObservers;
+export default useObservations;

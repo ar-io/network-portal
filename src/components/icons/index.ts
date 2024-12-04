@@ -8,6 +8,8 @@ import CancelButtonXIcon from './cancel_button_x.svg?react';
 import CaretDoubleRightIcon from './caret_double_right.svg?react';
 import CheckSquareIcon from './check_square.svg?react';
 import ChevronDownIcon from './chevron_down.svg?react';
+import CircleCheckIcon from './circle_check.svg?react';
+import CircleIcon from './circle.svg?react';
 import ClockRewindIcon from './clock_rewind.svg?react';
 import CloseIcon from './close.svg?react';
 import CloseDrawerIcon from './close_drawer.svg?react';
@@ -17,6 +19,7 @@ import CopyIcon from './copy.svg?react';
 import CopyCheckedIcon from './copy_checked.svg?react';
 import DashboardIcon from './dashboard.svg?react';
 import DocsIcon from './docs.svg?react';
+import DownloadIcon from './download.svg?react';
 import EditIcon from './edit_icon.svg?react';
 import FailSquareIcon from './fail_square.svg?react';
 import FormErrorIcon from './form_error.svg?react';
@@ -60,6 +63,8 @@ export {
   CancelButtonXIcon,
   CheckSquareIcon,
   ChevronDownIcon,
+  CircleCheckIcon,
+  CircleIcon,
   ClockRewindIcon,
   CloseDrawerIcon,
   CloseIcon,
@@ -69,6 +74,7 @@ export {
   CopyIcon,
   DashboardIcon,
   DocsIcon,
+  DownloadIcon,
   EditIcon,
   FailSquareIcon,
   FormErrorIcon,

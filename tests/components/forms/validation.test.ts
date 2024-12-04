@@ -4,7 +4,7 @@ import {
   validateNumberRange,
   validateString,
   validateTransactionId,
-  validateUnstakeAmount,
+  validateWithdrawAmount,
   validateWalletAddress,
 } from '@src/components/forms/validation';
 
@@ -141,7 +141,7 @@ describe('Form Validation Functions', () => {
   });
 
   describe('validateUnstakeAmount', () => {
-    const validator = validateUnstakeAmount('Unstake Amount', "tIO", 100, 10);
+    const validator = validateWithdrawAmount('Unstake Amount', "tIO", 100, 10);
 
     it('should fail for empty string', () => {
       expect(validator('')).toEqual('Unstake Amount must be a number.');

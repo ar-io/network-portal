@@ -1,6 +1,6 @@
 import { WarningTriangleIcon } from '../icons';
 
-const UnstakeWarning = () => {
+const WithdrawWarning = () => {
   return (
     <div>
       <div className="flex gap-3 rounded bg-containerL3 p-4">
@@ -14,4 +14,4 @@ const UnstakeWarning = () => {
   );
 };
 
-export default UnstakeWarning;
+export default WithdrawWarning;

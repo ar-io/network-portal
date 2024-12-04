@@ -1,5 +1,7 @@
 import AddressCell from '@src/components/AddressCell';
+import Dropdown from '@src/components/Dropdown';
 import TableView from '@src/components/TableView';
+import useEpochs from '@src/hooks/useEpochs';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
 import useObservers from '@src/hooks/useObservers';
@@ -24,10 +26,16 @@ const columnHelper = createColumnHelper<TableData>();
 const ObserversTable = () => {
   const navigate = useNavigate();
 
-  const { isLoading, data: observers } = useObservers();
-  const { isLoading: gatewaysLoading, data: gateways } = useGateways();
+  const { data: epochs } = useEpochs();
+  const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
+
+  const selectedEpoch = epochs?.[selectedEpochIndex];
+
+  const { isLoading, data: observers } = useObservers(selectedEpoch);
   const { isLoading: observationsLoading, data: observations } =
-    useObservations();
+    useObservations(selectedEpoch);
+  const { isLoading: gatewaysLoading, data: gateways } = useGateways();
+
   const [observersTableData, setObserversTableData] = useState<
     Array<TableData>
   >([]);
@@ -42,7 +50,11 @@ const ObserversTable = () => {
         const gateway = gateways[observer.gatewayAddress];
 
         const submitted = observations.reports[observer.observerAddress];
-        const status = submitted ? 'Submitted' : 'Pending';
+        const status = submitted
+          ? 'Submitted'
+          : selectedEpochIndex == 0
+            ? 'Pending'
+            : 'Did not report';
         const numFailedGatewaysFound = submitted
           ? Object.values(observations.failureSummaries).reduce(
               (acc, summary) => {
@@ -72,7 +84,7 @@ const ObserversTable = () => {
       [] as Array<TableData>,
     );
     setObserversTableData(observersTableData);
-  }, [observers, gateways, observations]);
+  }, [observers, gateways, observations, selectedEpochIndex]);
 
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = [
@@ -129,7 +141,8 @@ const ObserversTable = () => {
     }),
     columnHelper.accessor('reportStatus', {
       id: 'reportStatus',
-      header: 'Current Report Status',
+      header:
+        selectedEpochIndex == 0 ? 'Current Report Status' : 'Report Status',
       sortDescFirst: true,
     }),
 
@@ -137,14 +150,29 @@ const ObserversTable = () => {
       id: 'failedGateways',
       header: 'Failed Gateways',
       sortDescFirst: true,
-      cell: ({ row }) => row.original.failedGateways || 'Pending',
+      cell: ({ row }) =>
+        row.original.failedGateways ||
+        (selectedEpochIndex == 0 ? 'Pending' : 'N/A'),
     }),
   ];
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
-        <div className="grow text-sm text-mid">Observers</div>
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-[0.8125rem] text-sm ">
+        <div className="grow text-mid">Observers</div>
+        <Dropdown
+          options={
+            epochs?.map((epoch, index) => ({
+              label:
+                index == 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
+              value: index.toString(),
+            })) || []
+          }
+          onChange={(e) => {
+            setSelectedEpochIndex(Number(e.target.value));
+          }}
+          value={selectedEpochIndex.toString()}
+        />
       </div>
       <TableView
         columns={columns}

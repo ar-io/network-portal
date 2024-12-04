@@ -112,9 +112,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       label: 'Reward Share Ratio:',
       enabled: allowDelegatedStaking,
       placeholder: allowDelegatedStaking
-        ? 'Enter value 0-100'
+        ? 'Enter value 0-95'
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateNumberRange('Reward Share Ratio', 0, 100),
+      validateProperty: validateNumberRange('Reward Share Ratio', 0, 95),
     },
     {
       formPropertyName: 'note',

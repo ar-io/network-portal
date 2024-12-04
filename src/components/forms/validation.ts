@@ -86,7 +86,7 @@ export const validateNumberRange = (
   };
 };
 
-export const validateUnstakeAmount = (
+export const validateWithdrawAmount = (
   propertyName: string,
   ticker: string,
   currentStake: number,

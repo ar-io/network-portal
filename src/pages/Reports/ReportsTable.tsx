@@ -1,8 +1,13 @@
 import { AoGateway } from '@ar.io/sdk/web';
+import Button, { ButtonType } from '@src/components/Button';
+import { DownloadIcon } from '@src/components/icons';
 import TableView from '@src/components/TableView';
+import { downloadReport } from '@src/hooks/useReport';
 import useReports, { ReportTransactionData } from '@src/hooks/useReports';
 import { formatDateTime } from '@src/utils';
+import { showErrorToast } from '@src/utils/toast';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { saveAs } from 'file-saver';
 import { useNavigate } from 'react-router-dom';
 
 const columnHelper = createColumnHelper<ReportTransactionData>();
@@ -51,6 +56,35 @@ const ReportsTable = ({
       id: 'failedGateways',
       header: 'Failed Gateways',
       sortDescFirst: false,
+    }),
+
+    columnHelper.display({
+      id: 'actions',
+      cell: ({ row }) => {
+        return (
+          <div className="flex w-full justify-end gap-2 pr-6">
+            <Button
+              buttonType={ButtonType.SECONDARY}
+              active={true}
+              title="Download Report"
+              text={<DownloadIcon className="size-4" />}
+              onClick={async (e) => {
+                e.stopPropagation();
+                const txid = row.original.txid;
+                try {
+                  const reportData = await downloadReport(txid);
+                  const blob = new Blob([reportData], {
+                    type: 'application/json',
+                  });
+                  saveAs(blob, `report-${txid}.json`);
+                } catch (e) {
+                  showErrorToast(`Error: Unable to download report ${txid}`);
+                }
+              }}
+            />
+          </div>
+        );
+      },
     }),
   ];
 

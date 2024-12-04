@@ -1,4 +1,4 @@
-import { Dialog } from '@headlessui/react';
+import { Dialog, DialogPanel } from '@headlessui/react';
 import { ReactElement } from 'react';
 import { CloseIcon } from '../icons';
 
@@ -21,18 +21,18 @@ const BaseModal = ({
       />
 
       <div className="fixed inset-0 flex  w-screen items-center justify-center p-4">
-        <Dialog.Panel
-          className={`relative flex max-h-full flex-col items-stretch rounded-xl bg-[#111112] ${useDefaultPadding ? 'p-8' : ''} text-center text-grey-100`}
+        <DialogPanel
+          className={`relative flex max-h-full flex-col items-stretch rounded-xl bg-[#111112] ${useDefaultPadding ? 'p-8' : ''} border border-stroke-low text-center text-grey-100`}
         >
           {showCloseButton && (
             <button className="absolute -right-7 top-0" onClick={onClose}>
               <CloseIcon className="size-5" />
             </button>
           )}
-          <div className="flex grow flex-col overflow-y-auto scrollbar">
+          <div className="flex grow flex-col overflow-hidden overflow-y-auto rounded-xl scrollbar">
             {children}
           </div>
-        </Dialog.Panel>
+        </DialogPanel>
       </div>
     </Dialog>
   );

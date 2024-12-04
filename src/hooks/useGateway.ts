@@ -10,7 +10,7 @@ const useGateway = ({
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const queryResults = useQuery({
-    queryKey: ['gateway', arIOReadSDK, ownerWalletAddress || ''],
+    queryKey: ['gateway', ownerWalletAddress || '', arIOReadSDK],
     queryFn: () => {
       if (ownerWalletAddress === undefined) {
         return Promise.reject(

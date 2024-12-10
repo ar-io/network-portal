@@ -66,22 +66,25 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
               {ticker}{' '}
               {gateway?.status === 'leaving' && '(Gateway Leaving Network)'}
             </div>
-            <div className="flex items-center gap-1 text-sm text-mid">
-              {eay !== undefined ? formatPercentage(eay) : <Placeholder />} EAY
-              {''}
-              <Tooltip
-                message={
-                  <div>
-                    <p>{EAY_TOOLTIP_TEXT}</p>
-                    <MathJax className="mt-4">
-                      {OPERATOR_EAY_TOOLTIP_FORMULA}
-                    </MathJax>
-                  </div>
-                }
-              >
-                <InfoIcon className="size-4" />
-              </Tooltip>
-            </div>
+            {gateway.status === 'joined' && (
+              <div className="flex items-center gap-1 text-sm text-mid">
+                {eay !== undefined ? formatPercentage(eay) : <Placeholder />}{' '}
+                EAY
+                {''}
+                <Tooltip
+                  message={
+                    <div>
+                      <p>{EAY_TOOLTIP_TEXT}</p>
+                      <MathJax className="mt-4">
+                        {OPERATOR_EAY_TOOLTIP_FORMULA}
+                      </MathJax>
+                    </div>
+                  }
+                >
+                  <InfoIcon className="size-4" />
+                </Tooltip>
+              </div>
+            )}
           </>
         ) : (
           <Placeholder />

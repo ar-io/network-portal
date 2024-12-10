@@ -35,18 +35,20 @@
     plimit-lit "^3.0.1"
     warp-contracts "1.4.45"
 
-"@ar.io/sdk@2.5.0":
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-2.5.0.tgz#3ea47d02ccb901d50443c040aaf0a82d344f82f5"
-  integrity sha512-YAsUvr4bQ5TE1labgfx8UYFvdAnwoXOcDcHnGLOxmpKBagkH0VDdewgD1J4lNvV1gZL9qvMF9eYqEJ5x8r43BA==
+"@ar.io/sdk@2.7.0-alpha.5":
+  version "2.7.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-2.7.0-alpha.5.tgz#d95719058d63b703fd8e551830c28399722acf18"
+  integrity sha512-rJczCspZIJDKLO6sZDELQohMJlKFx6kAxThSZczh38+U2K4uFzt3zB7KukLCq0hC4gQBW3ZEXitlvikSkLNqtw==
   dependencies:
     "@dha-team/arbundles" "^1.0.1"
     "@permaweb/aoconnect" "^0.0.57"
     arweave "1.14.4"
-    axios "1.7.7"
+    axios "1.7.8"
     axios-retry "^4.3.0"
+    commander "^12.1.0"
     eventemitter3 "^5.0.1"
     plimit-lit "^3.0.1"
+    prompts "^2.4.2"
     winston "^3.13.0"
     zod "^3.23.8"
 
@@ -4324,7 +4326,16 @@ axios@1.7.2:
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
-axios@1.7.7, axios@^1.4.0, axios@^1.7.7:
+axios@1.7.8:
+  version "1.7.8"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.8.tgz#1997b1496b394c21953e68c14aaa51b7b5de3d6e"
+  integrity sha512-Uu0wb7KNqK2t5K+YQyVCLM76prD5sRFjKHbJYCP1J7JFGEQ6nN7HWn9+04LAeiJ3ji54lgS/gZCH1oxyrf1SPw==
+  dependencies:
+    follow-redirects "^1.15.6"
+    form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
+
+axios@^1.4.0, axios@^1.7.7:
   version "1.7.7"
   resolved "https://registry.npmjs.org/axios/-/axios-1.7.7.tgz"
   integrity sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==
@@ -5038,9 +5049,9 @@ combined-stream@^1.0.8:
   dependencies:
     delayed-stream "~1.0.0"
 
-commander@12.1.0:
+commander@12.1.0, commander@^12.1.0:
   version "12.1.0"
-  resolved "https://registry.npmjs.org/commander/-/commander-12.1.0.tgz"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-12.1.0.tgz#01423b36f501259fdaac4d0e4d60c96c991585d3"
   integrity sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==
 
 commander@9.2.0:
@@ -9468,9 +9479,9 @@ progress@^2.0.3:
   resolved "https://registry.npmjs.org/progress/-/progress-2.0.3.tgz"
   integrity sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
 
-prompts@^2.0.1:
+prompts@^2.0.1, prompts@^2.4.2:
   version "2.4.2"
-  resolved "https://registry.npmjs.org/prompts/-/prompts-2.4.2.tgz"
+  resolved "https://registry.yarnpkg.com/prompts/-/prompts-2.4.2.tgz#7b57e73b3a48029ad10ebd44f74b01722a4cb069"
   integrity sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==
   dependencies:
     kleur "^3.0.3"

@@ -34,19 +34,10 @@ const StatsPanel = ({ gateway }: StatsPanelProps) => {
     url: gatewayAddress,
   });
 
-  const { data: protocolBalance } = useProtocolBalance();
-  const { data: gateways } = useGateways();
-
   const [numDelegates, setNumDelegates] = useState<number>();
 
-  const operatorRewards =
-    gateway?.operatorStake != undefined && protocolBalance && gateways
-      ? calculateOperatorRewards(
-          new mIOToken(protocolBalance).toIO(),
-          Object.values(gateways).filter((g) => g.status == 'joined').length,
-          gateway,
-        )
-      : undefined;
+  console.log(gateway)
+
 
   useEffect(() => {
     if (!arIOReadSDK || !gateway) return;
@@ -87,31 +78,6 @@ const StatsPanel = ({ gateway }: StatsPanelProps) => {
             }
           />
           <StatsBox title="Delegates" value={numDelegates} />
-
-          <StatsBox
-            title={
-              <div className="flex gap-2">
-                Operator EAY{' '}
-                <Tooltip
-                  message={
-                    <div>
-                      <p>{EAY_TOOLTIP_TEXT}</p>
-                      <MathJax className="mt-4">
-                        {OPERATOR_EAY_TOOLTIP_FORMULA}
-                      </MathJax>
-                    </div>
-                  }
-                >
-                  <InfoIcon className="size-4" />
-                </Tooltip>
-              </div>
-            }
-            value={
-              operatorRewards != undefined
-                ? `${(operatorRewards.EAY * 100).toFixed(2)}%`
-                : undefined
-            }
-          />
         </>
       ) : (
         gateway && (

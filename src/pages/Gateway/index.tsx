@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/classnames-order */
 import {
   AoUpdateGatewaySettingsParams,
   IOToken,
@@ -23,7 +24,6 @@ import { EditIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
 import { WRITE_OPTIONS, log } from '@src/constants';
-import useBalances from '@src/hooks/useBalances';
 import useGateway from '@src/hooks/useGateway';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -35,6 +35,9 @@ import PropertyDisplayPanel from './PropertyDisplayPanel';
 import SnitchRow from './SnitchRow';
 import SoftwareDetails from './SoftwareDetails';
 import StatsPanel from './StatsPanel';
+import OperatorStake from './OperatorStake';
+import PendingWithdrawals from './PendingWIthdrawals';
+import ActiveDelegates from './ActiveDelegates';
 
 const Gateway = () => {
   const queryClient = useQueryClient();
@@ -42,7 +45,6 @@ const Gateway = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
-  const { data: balances } = useBalances(walletAddress);
 
   const params = useParams();
 
@@ -67,9 +69,6 @@ const Gateway = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
-  const maxStake = gateway?.operatorStake
-    ? new mIOToken(gateway.operatorStake).toIO().valueOf() + (balances?.io || 0)
-    : undefined;
 
   const weightFields: Array<[string, number | undefined]> = [
     ['Stake', gateway?.weights?.stakeWeight],
@@ -163,13 +162,6 @@ const Gateway = () => {
       validateProperty: validateTransactionId('Properties ID'),
     },
     {
-      formPropertyName: 'stake',
-      label: `Gateway Stake (${ticker}):`,
-      rowType: RowType.BOTTOM,
-      placeholder: `Minimum 10000 ${ticker}`,
-      validateProperty: validateIOAmount('Stake', ticker, 10000, maxStake),
-    },
-    {
       formPropertyName: 'status',
       label: 'Status:',
       rowType: RowType.SINGLE,
@@ -180,12 +172,6 @@ const Gateway = () => {
       label: 'Note:',
       rowType: RowType.SINGLE,
       validateProperty: validateString('Note', 1, 256),
-    },
-    {
-      formPropertyName: 'delegatedStake',
-      label: `Total Delegated Stake (${ticker}):`,
-      rowType: RowType.SINGLE,
-      readOnly: true,
     },
     {
       formPropertyName: 'autoStake',
@@ -232,11 +218,8 @@ const Gateway = () => {
       ownerId: ownerId || '',
       observerAddress: gateway.observerAddress || '',
       properties: gateway.settings.properties || '',
-      stake: new mIOToken(gateway.operatorStake || 0).toIO().valueOf() + '',
       status: gateway.status || '',
       note: gateway.settings.note || '',
-      delegatedStake:
-        new mIOToken(gateway.totalDelegatedStake || 0).toIO().valueOf() + '',
       autoStake: gateway.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
       delegateRewardShareRatio:
@@ -268,11 +251,6 @@ const Gateway = () => {
         },
         {} as Record<string, string | number | boolean>,
       );
-
-      // split possible args for transactions
-      const operatorStake = changed.stake
-        ? parseFloat(changed.stake as string)
-        : undefined;
 
       const updateGatewaySettingsParams: AoUpdateGatewaySettingsParams = {
         allowDelegatedStaking: changed.allowDelegatedStaking as boolean,
@@ -309,32 +287,6 @@ const Gateway = () => {
           log.info(`Update Gateway Settings txID: ${txID}`);
         }
 
-        if (operatorStake !== undefined && gateway) {
-          const stakeDiff =
-            operatorStake -
-            new mIOToken(gateway.operatorStake || 0).toIO().valueOf();
-
-          if (stakeDiff > 0) {
-            const { id: txID } = await arIOWriteableSDK.increaseOperatorStake(
-              {
-                increaseQty: new IOToken(stakeDiff).toMIO(),
-              },
-              WRITE_OPTIONS,
-            );
-
-            log.info(`Increase Operator Stake txID: ${txID}`);
-          } else if (stakeDiff < 0) {
-            const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake(
-              {
-                decreaseQty: new IOToken(Math.abs(stakeDiff)).toMIO(),
-              },
-              WRITE_OPTIONS,
-            );
-
-            log.info(`Decrease Operator Stake txID: ${txID}`);
-          }
-        }
-
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',
@@ -354,11 +306,15 @@ const Gateway = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-y-auto pr-6 scrollbar">
+    <div className="flex h-screen flex-col overflow-y-auto pr-6 scrollbar gap-6">
       <div className="min-w-[68rem]">
         <GatewayHeader gateway={gateway} />
       </div>
-      <div className="my-6 flex gap-6">
+      <OperatorStake gateway={gateway} walletAddress={walletAddress?.toString()} />
+      <PendingWithdrawals gateway={gateway} walletAddress={walletAddress?.toString()} />
+      <ActiveDelegates gateway={gateway}/>
+
+      <div className="flex gap-6">
         <div className="flex min-w-72 flex-col gap-6">
           <StatsPanel gateway={gateway} />
           {gateway?.weights && gateway?.status === 'joined' && (

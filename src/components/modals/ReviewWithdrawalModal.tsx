@@ -66,17 +66,30 @@ const ReviewWithdrawalModal = ({
       try {
         const instant = withdrawalType === 'expedited';
 
-        const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
-          {
-            target: gateway.gatewayAddress,
-            decreaseQty: new IOToken(amountToWithdraw).toMIO(),
-            instant,
-          },
-          WRITE_OPTIONS,
-        );
-        setTxid(txID);
+        if (gateway.gatewayAddress === walletAddress.toString()) {
+          const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake(
+            {
+              decreaseQty: new IOToken(amountToWithdraw).toMIO(),
+              instant,
+            },
+            WRITE_OPTIONS,
+          );
+          setTxid(txID);
 
-        log.info(`Decrease Delegate Stake txID: ${txID}`);
+          log.info(`Decrease Operator Stake txID: ${txID}`);
+        } else {
+          const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
+            {
+              target: gateway.gatewayAddress,
+              decreaseQty: new IOToken(amountToWithdraw).toMIO(),
+              instant,
+            },
+            WRITE_OPTIONS,
+          );
+          setTxid(txID);
+
+          log.info(`Decrease Delegate Stake txID: ${txID}`);
+        }
 
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],

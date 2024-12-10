@@ -9,7 +9,7 @@ import { WithdrawalType } from '@src/types';
 import { formatAddress, formatPercentage, formatWithCommas } from '@src/utils';
 import { calculateOperatorRewards } from '@src/utils/rewards';
 import { MathJax } from 'better-react-mathjax';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
@@ -78,14 +78,14 @@ const OperatorStakingModal = ({
           : parseFloat(amountToWithdraw) - withdrawalFee
       ).toFixed(4);
 
-  const validators = {
+  const validators = useMemo(() => ({
     stakeAmount: validateIOAmount('Stake Amount', ticker, 1, balances?.io),
     withdrawAmount: validateOperatorWithdrawAmount(
       'Withdraw Amount',
       ticker,
       currentStake,
     ),
-  };
+  }), [ticker, balances?.io, currentStake]);
 
   const isFormValid = useCallback(() => {
     if (tab == 0) {

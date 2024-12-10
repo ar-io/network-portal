@@ -20,7 +20,7 @@
     "deploy": "yarn build && permaweb-deploy --ant-process ${DEPLOY_ANT_PROCESS_ID}"
   },
   "dependencies": {
-    "@ar.io/sdk": "2.5.0",
+    "@ar.io/sdk": "2.7.0-alpha.5",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^2.2.0",
     "@radix-ui/react-tooltip": "^1.0.7",
@@ -41,6 +41,7 @@
     "file-saver": "^2.0.5",
     "loglevel": "^1.9.1",
     "lottie-react": "^2.4.0",
+    "lucide-react": "^0.461.0",
     "markdown-to-jsx": "^7.5.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

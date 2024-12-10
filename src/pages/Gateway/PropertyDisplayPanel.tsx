@@ -121,13 +121,6 @@ const PropertyDisplayPanel = ({
       type: 'tx',
     },
     {
-      label: `Gateway Stake (${ticker}):`,
-      value:
-        gateway?.operatorStake != undefined
-          ? new mIOToken(gateway?.operatorStake).toIO().valueOf()
-          : undefined,
-    },
-    {
       label: 'Status:',
       value:
         gateway?.status == 'leaving' ? (
@@ -150,14 +143,6 @@ const PropertyDisplayPanel = ({
         ) : undefined,
     },
     { label: 'Note:', value: gateway?.settings.note },
-    {
-      label: `Total Delegated Stake (${ticker}):`,
-      value: gatewayLeaving
-        ? 'N/A'
-        : gateway?.totalDelegatedStake == undefined
-          ? undefined
-          : new mIOToken(gateway.totalDelegatedStake).toIO().valueOf(),
-    },
     {
       label: 'Reward Auto Stake:',
       value: gatewayLeaving ? 'N/A' : gateway?.settings.autoStake,
@@ -189,13 +174,11 @@ const PropertyDisplayPanel = ({
 
   return (
     <div className="grid grid-cols-[14.375rem_auto]">
-      {gatewayRows.map(({ label, value, type, rightComponent }, index) => (
+      {gatewayRows.map(({ label, value  }, index) => (
         <DisplayRow
           key={index}
           label={label}
           value={value}
-          type={type}
-          rightComponent={rightComponent}
         />
       ))}
 

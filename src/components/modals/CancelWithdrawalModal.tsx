@@ -51,6 +51,10 @@ const CancelWithdrawalModal = ({
           queryKey: ['delegateStakes'],
           refetchType: 'all',
         });
+        queryClient.invalidateQueries({
+          queryKey: ['gatewayVaults'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {
@@ -71,8 +75,11 @@ const CancelWithdrawalModal = ({
 
           <div className="border-y border-grey-800 p-8 text-sm text-mid">
             <div>
-              This action will cancel your withdrawal and return its stake to
-              the original gateway. This action cannot be undone.
+              This action will cancel your withdrawal and return its stake to{' '}
+              {gatewayAddress.toString() == walletAddress?.toString()
+                ? 'your'
+                : 'the original'}{' '}
+              gateway. This action cannot be undone.
             </div>
           </div>
 

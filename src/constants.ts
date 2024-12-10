@@ -5,7 +5,7 @@ import Ar from 'arweave/web/ar';
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = process.env.npm_package_version || '1.0.0';
 export const WRITE_OPTIONS = {
   tags: [
     {

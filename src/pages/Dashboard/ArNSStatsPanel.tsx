@@ -27,17 +27,6 @@ const ArNSStatsPanel = () => {
             <Placeholder />
           )}
         </div>
-        <div className="flex flex-col place-items-end text-right text-xs">
-          <div className="grow" />
-          {arnsStats ? (
-            <>
-              <div>0</div>
-              <div>Active Auctions</div>
-            </>
-          ) : (
-            <Placeholder />
-          )}
-        </div>
       </div>
     </div>
   );

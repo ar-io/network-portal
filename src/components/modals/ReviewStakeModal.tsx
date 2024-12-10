@@ -43,6 +43,18 @@ const ReviewStakeModal = ({
       setShowBlockingMessageModal(true);
 
       try {
+        if(gateway.gatewayAddress === walletAddress.toString()) {
+        const { id: txID } = await arIOWriteableSDK.increaseOperatorStake(
+          {
+            increaseQty: new IOToken(amountToStake).toMIO(),
+          },
+          WRITE_OPTIONS,
+        );
+        setTxid(txID);
+
+        log.info(`Increase Operator Stake txID: ${txID}`);
+
+        } else {
         const { id: txID } = await arIOWriteableSDK.delegateStake(
           {
             target: gateway.gatewayAddress,
@@ -53,6 +65,8 @@ const ReviewStakeModal = ({
         setTxid(txID);
 
         log.info(`Increase Delegate Stake txID: ${txID}`);
+
+        }
 
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],

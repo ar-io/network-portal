@@ -86,6 +86,31 @@ export const validateNumberRange = (
   };
 };
 
+export const validateOperatorWithdrawAmount = (
+  propertyName: string,
+  ticker: string,
+  currentStake: number,
+): FormValidationFunction => {
+  return (v: string) => {
+    const value = +v;
+
+    if (isNaN(value) || v.length === 0) {
+      return `${propertyName} must be a number.`;
+    }
+
+    if (value < 1) {
+      return `${propertyName} must be at least 1 ${ticker}.`;
+    }
+
+    if (value > currentStake - 10000) {
+      return `${propertyName} cannot be greater than your current stake of ${currentStake} ${ticker} minus the base stake (10000 ${ticker}) required for gateways.`;
+    }
+
+    return undefined;
+  };
+};
+
+
 export const validateWithdrawAmount = (
   propertyName: string,
   ticker: string,

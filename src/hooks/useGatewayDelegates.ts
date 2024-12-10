@@ -28,7 +28,7 @@ const useGatewayDelegateStakes = (address?: string) => {
         cursor = pageResult.nextCursor;
       } while (cursor !== undefined);
 
-      return results;
+      return results.filter(delegate => delegate.delegatedStake > 0);
     },
     staleTime: Infinity,
   });

@@ -79,23 +79,25 @@ const MyStakesTable = () => {
       ? undefined
       : !delegateStakes || !gateways
         ? []
-        : delegateStakes.stakes.map((stake) => {
-            const gateway = gateways[stake.gatewayAddress];
-            return {
-              owner: stake.gatewayAddress,
-              delegatedStake: stake.balance,
-              gateway,
-              pendingWithdrawals: delegateStakes.withdrawals.filter(
-                (w) => w.gatewayAddress == stake.gatewayAddress,
-              ).length,
-              streak:
-                gateway.status == 'leaving'
-                  ? Number.NEGATIVE_INFINITY
-                  : gateway.stats.failedConsecutiveEpochs > 0
-                    ? -gateway.stats.failedConsecutiveEpochs
-                    : gateway.stats.passedConsecutiveEpochs,
-            };
-          });
+        : delegateStakes.stakes
+            .filter((stake) => stake.balance > 0)
+            .map((stake) => {
+              const gateway = gateways[stake.gatewayAddress];
+              return {
+                owner: stake.gatewayAddress,
+                delegatedStake: stake.balance,
+                gateway,
+                pendingWithdrawals: delegateStakes.withdrawals.filter(
+                  (w) => w.gatewayAddress == stake.gatewayAddress,
+                ).length,
+                streak:
+                  gateway.status == 'leaving'
+                    ? Number.NEGATIVE_INFINITY
+                    : gateway.stats.failedConsecutiveEpochs > 0
+                      ? -gateway.stats.failedConsecutiveEpochs
+                      : gateway.stats.passedConsecutiveEpochs,
+              };
+            });
 
     const pendingWithdrawals: Array<PendingWithdrawalsTableData> | undefined =
       isFetching

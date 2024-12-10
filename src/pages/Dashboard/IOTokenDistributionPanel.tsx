@@ -82,7 +82,9 @@ const IOTokenDistributionPanel = () => {
       <div className="text-gradient px-5 pt-5 text-sm">
         {data && activeIndex !== undefined
           ? data[activeIndex].name
-          : 'IO Token'}
+          : ticker
+            ? `${ticker} Token`
+            : ''}
       </div>
       <div className="relative w-[352px] grow">
         {data ? (

@@ -1,8 +1,6 @@
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import useHealthcheck from '@src/hooks/useHealthCheck';
-import { useGlobalState } from '@src/store';
 import { formatDateTime } from '@src/utils';
-import { useEffect, useState } from 'react';
 import StatsBox from './StatsBox';
 
 const formatUptime = (uptime: number) => {
@@ -19,27 +17,12 @@ type StatsPanelProps = {
 };
 
 const StatsPanel = ({ gateway }: StatsPanelProps) => {
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const gatewayAddress = gateway
     ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`
     : undefined;
   const healthCheckRes = useHealthcheck({
     url: gatewayAddress,
   });
-
-  const [numDelegates, setNumDelegates] = useState<number>();
-
-  useEffect(() => {
-    if (!arIOReadSDK || !gateway) return;
-    const update = async () => {
-      const res = await arIOReadSDK.getGatewayDelegates({
-        address: gateway.gatewayAddress,
-        limit: 1,
-      });
-      setNumDelegates(res.totalItems);
-    };
-    update();
-  }, [gateway, arIOReadSDK]);
 
   return (
     <div className="size-fit w-full rounded-xl border border-transparent-100-16 text-sm">
@@ -56,19 +39,16 @@ const StatsPanel = ({ gateway }: StatsPanelProps) => {
       />
 
       {gateway?.status === 'joined' ? (
-        <>
-          <StatsBox
-            title="Uptime"
-            value={
-              healthCheckRes.isError
-                ? 'N/A'
-                : healthCheckRes.isLoading
-                  ? undefined
-                  : formatUptime(healthCheckRes.data?.uptime)
-            }
-          />
-          <StatsBox title="Delegates" value={numDelegates} />
-        </>
+        <StatsBox
+          title="Uptime"
+          value={
+            healthCheckRes.isError
+              ? 'N/A'
+              : healthCheckRes.isLoading
+                ? undefined
+                : formatUptime(healthCheckRes.data?.uptime)
+          }
+        />
       ) : (
         gateway && (
           <StatsBox

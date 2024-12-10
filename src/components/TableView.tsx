@@ -43,8 +43,6 @@ const TableView = <T, S>({
     ? `max-h-[16rem]`
     : undefined;
 
-  console.log(maxHeightRemClass);
-
   return (
     <>
       <div className={`overflow-x-auto scrollbar ${maxHeightRemClass}`}>

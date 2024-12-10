@@ -84,6 +84,10 @@ const ReviewStakeModal = ({
           queryKey: ['delegateStakes'],
           refetchType: 'all',
         });
+        queryClient.invalidateQueries({
+          queryKey: ['gatewayVaults'],
+          refetchType: 'all',
+        });
 
         setShowSuccessModal(true);
       } catch (e: any) {

@@ -32,7 +32,9 @@ const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
       const data = gatewayDelegateStakes.map((stake) => {
         const totalStake = new mIOToken(stake.delegatedStake).toIO().valueOf();
         const percentageOfTotalStake =
-          stake.delegatedStake / totalDelegatedStake;
+          totalDelegatedStake > 0
+            ? stake.delegatedStake / totalDelegatedStake
+            : 0;
         return {
           walletAddress: stake.address,
           totalStake,
@@ -100,6 +102,7 @@ const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
           defaultSortingState={{ id: 'totalStake', desc: true }}
           isLoading={isLoading}
           noDataFoundText="Unable to fetch gateways."
+          shortTable={true}
         />
       )}
     </CollapsiblePanel>

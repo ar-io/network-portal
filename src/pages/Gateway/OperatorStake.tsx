@@ -35,7 +35,7 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
       );
       setEAY(rewards.EAY);
     }
-  }, [gateway]);
+  }, [gateway, gateways, protocolBalance]);
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
@@ -67,7 +67,7 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
               {gateway?.status === 'leaving' && '(Gateway Leaving Network)'}
             </div>
             <div className="flex items-center gap-1 text-sm text-mid">
-              {eay ? formatPercentage(eay) : <Placeholder />} EAY
+              {eay !== undefined ? formatPercentage(eay) : <Placeholder />} EAY
               {''}
               <Tooltip
                 message={

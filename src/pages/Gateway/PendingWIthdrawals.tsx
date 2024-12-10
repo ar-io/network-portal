@@ -134,6 +134,7 @@ const PendingWithdrawals = ({
           defaultSortingState={{ id: 'endTimestamp', desc: false }}
           isLoading={isLoading}
           noDataFoundText="Unable to fetch gateways."
+          shortTable={true}
         />
       )}
 

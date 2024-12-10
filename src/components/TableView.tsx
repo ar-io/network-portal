@@ -18,6 +18,7 @@ const TableView = <T, S>({
   isLoading,
   noDataFoundText = 'No data found.',
   onRowClick,
+  shortTable = false,
 }: {
   columns: ColumnDef<T, S>[];
   data: T[];
@@ -25,6 +26,7 @@ const TableView = <T, S>({
   isLoading: boolean;
   noDataFoundText?: string;
   onRowClick?: (row: T) => void;
+  shortTable?: boolean;
 }) => {
   const [sorting, setSorting] = useState<SortingState>([defaultSortingState]);
 
@@ -37,11 +39,17 @@ const TableView = <T, S>({
     onSortingChange: setSorting,
   });
 
+  const maxHeightRemClass = shortTable 
+    ? `max-h-[16rem]`
+    : undefined;
+
+  console.log(maxHeightRemClass);
+
   return (
     <>
-      <div className="overflow-x-auto scrollbar">
+      <div className={`overflow-x-auto scrollbar ${maxHeightRemClass}`}>
         <table className="w-full table-auto border-x border-b border-grey-500">
-          <thead className="text-xs text-low">
+          <thead className="sticky top-0 z-10 bg-containerL0 text-xs text-low">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -84,7 +92,7 @@ const TableView = <T, S>({
             ))}
           </thead>
           {!isLoading && (
-            <tbody className="text-sm">
+            <tbody className="overflow-y-auto text-sm">
               {table.getRowModel().rows.map((row) => {
                 return (
                   <tr

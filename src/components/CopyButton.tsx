@@ -20,7 +20,7 @@ const CopyButton = ({ textToCopy }: { textToCopy: string }) => {
   return (
     <div className="relative">
       <div
-        className={`${copiedVisible ? 'visible' : 'invisible'} absolute -left-7 -top-12 rounded-lg border border-grey-500 bg-containerL0 p-2`}
+        className={`${copiedVisible ? 'visible' : 'invisible'} absolute -left-7 -top-12 z-50 rounded-lg border border-grey-500 bg-containerL0 p-2`}
       >
         Copied!
         <div

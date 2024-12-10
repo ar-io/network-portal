@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2024-12-10
+
+### Added 
+
+* Gateway Details
+  * Added Operator Stake card showing operator stake and EAY, as well as manage stake button for updating operator stake.
+  * Added collapsible Pending Withdrawals card for viewing current withdrawals as well as managing 
+  them (canceling a withdrawal or initiating an expedited withdrawal). Visible only to the gateway operator.
+  * Added collapsible Active Delegates card showing the list of active delegates for the gateway.
+
 ## [1.5.0] - 2024-12-04
 
 ### Added 

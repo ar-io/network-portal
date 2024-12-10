@@ -65,7 +65,7 @@ export const initialGlobalState: GlobalState = {
     }),
   }),
   walletStateInitialized: false,
-  ticker: 'tIO',
+  ticker: '',
   aoCongested: false,
 };
 export class GlobalStateActionBase implements GlobalStateActions {

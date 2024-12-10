@@ -101,7 +101,7 @@ const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
           data={tableData}
           defaultSortingState={{ id: 'totalStake', desc: true }}
           isLoading={isLoading}
-          noDataFoundText="Unable to fetch gateways."
+          noDataFoundText="Unable to fetch delegates."
           shortTable={true}
         />
       )}

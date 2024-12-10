@@ -133,7 +133,7 @@ const PendingWithdrawals = ({
           data={gatewayVaults || []}
           defaultSortingState={{ id: 'endTimestamp', desc: false }}
           isLoading={isLoading}
-          noDataFoundText="Unable to fetch gateways."
+          noDataFoundText="Unable to fetch pending withdrawals."
           shortTable={true}
         />
       )}

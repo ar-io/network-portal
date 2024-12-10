@@ -1,16 +1,9 @@
-import { AoGatewayWithAddress, mIOToken } from '@ar.io/sdk/web';
-import Tooltip from '@src/components/Tooltip';
-import { EAY_TOOLTIP_TEXT, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
+import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { useGlobalState } from '@src/store';
 import { formatDateTime } from '@src/utils';
-import { MathJax } from 'better-react-mathjax';
-import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import StatsBox from './StatsBox';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
-import useGateways from '@src/hooks/useGateways';
-import { calculateOperatorRewards } from '@src/utils/rewards';
 
 const formatUptime = (uptime: number) => {
   const days = Math.floor(uptime / 86400);
@@ -35,9 +28,6 @@ const StatsPanel = ({ gateway }: StatsPanelProps) => {
   });
 
   const [numDelegates, setNumDelegates] = useState<number>();
-
-  console.log(gateway)
-
 
   useEffect(() => {
     if (!arIOReadSDK || !gateway) return;

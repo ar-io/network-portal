@@ -1,4 +1,4 @@
-import { AoGateway, IOToken, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
 
 const EPOCHS_PER_YEAR = 365;
 const EPOCH_DISTRIBUTION_RATIO = 0.0005; // 0.05%
@@ -6,15 +6,15 @@ const GATEWAY_REWARDS_RATIO = 0.9; // 90%
 // const OBSERVER_REWARDS_RATIO = .05; // 5%
 
 export interface GatewayRewards {
-  totalDelegatedStake: IOToken;
-  rewardsSharedPerEpoch: IOToken;
+  totalDelegatedStake: ARIOToken;
+  rewardsSharedPerEpoch: ARIOToken;
   EEY: number;
   EAY: number;
 }
 
 export interface OperatorRewards {
-  operatorStake: IOToken;
-  rewardsSharedPerEpoch: IOToken;
+  operatorStake: ARIOToken;
+  rewardsSharedPerEpoch: ARIOToken;
   EEY: number;
   EAY: number;
 }
@@ -34,10 +34,10 @@ export interface UserRewards {
  * user what the EAY will be.)
  */
 export const calculateOperatorRewards = (
-  protocolBalance: IOToken,
+  protocolBalance: ARIOToken,
   totalGateways: number,
   gateway: AoGateway,
-  operatorStake: IOToken,
+  operatorStake: ARIOToken,
 ): OperatorRewards => {
   const epochRewards = protocolBalance.valueOf() * EPOCH_DISTRIBUTION_RATIO;
   const baseGatewayReward =
@@ -46,7 +46,7 @@ export const calculateOperatorRewards = (
   const gatewayRewardShareRatio =
     gateway.settings.delegateRewardShareRatio / 100;
 
-  const rewardsSharedPerEpoch = new IOToken(
+  const rewardsSharedPerEpoch = new ARIOToken(
     baseGatewayReward * (1 - gatewayRewardShareRatio),
   );
 
@@ -67,7 +67,7 @@ export const calculateOperatorRewards = (
 };
 
 export const calculateGatewayRewards = (
-  protocolBalance: IOToken,
+  protocolBalance: ARIOToken,
   totalGateways: number,
   gateway: AoGateway,
 ): GatewayRewards => {
@@ -77,9 +77,9 @@ export const calculateGatewayRewards = (
 
   const gatewayRewardShareRatio =
     gateway.settings.delegateRewardShareRatio / 100;
-  const totalDelegatedStake = new mIOToken(gateway.totalDelegatedStake).toIO();
+  const totalDelegatedStake = new mARIOToken(gateway.totalDelegatedStake).toARIO();
 
-  const rewardsSharedPerEpoch = new IOToken(
+  const rewardsSharedPerEpoch = new ARIOToken(
     baseGatewayReward * gatewayRewardShareRatio,
   );
 
@@ -101,7 +101,7 @@ export const calculateGatewayRewards = (
 
 export const calculateUserRewards = (
   gatewayRewards: GatewayRewards,
-  userDelegatedStake: IOToken,
+  userDelegatedStake: ARIOToken,
   removingStake = false,
 ): UserRewards => {
   const multiplier = removingStake ? -1 : 1;

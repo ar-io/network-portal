@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import { AR } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
@@ -26,7 +26,7 @@ const useBalances = (walletAddress?: ArweaveTransactionID) => {
       ]);
 
       const arBalance = +AR.winstonToAr(winstonBalance);
-      const ioBalance = new mIOToken(mioBalance).toIO().valueOf();
+      const ioBalance = new mARIOToken(mioBalance).toARIO().valueOf();
 
       return { ar: arBalance, io: ioBalance };
     },

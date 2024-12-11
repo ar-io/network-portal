@@ -1,6 +1,6 @@
-import { AOProcess, IO } from '@ar.io/sdk/web';
+import { AOProcess, ARIO } from '@ar.io/sdk/web';
 import { connect } from '@permaweb/aoconnect';
-import { AO_CU_URL, IO_PROCESS_ID } from '@src/constants';
+import { AO_CU_URL, ARIO_PROCESS_ID } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
@@ -39,10 +39,10 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
       const signer = wallet.signer;
 
       if (signer) {
-        const writeable = IO.init({
+        const writeable = ARIO.init({
           signer,
           process: new AOProcess({
-            processId: IO_PROCESS_ID.toString(),
+            processId: ARIO_PROCESS_ID.toString(),
             ao: connect({
               CU_URL: AO_CU_URL,
             }),

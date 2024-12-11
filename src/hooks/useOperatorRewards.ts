@@ -1,4 +1,4 @@
-import { AoGateway, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, mARIOToken } from '@ar.io/sdk/web';
 import { OperatorRewards, calculateOperatorRewards } from '@src/utils/rewards';
 import { useEffect, useState } from 'react';
 import useGateways from './useGateways';
@@ -16,10 +16,10 @@ const useOperatorRewards = (gateway: AoGateway | undefined) => {
         (g) => g.status == 'joined',
       ).length;
       const operatorRewards = calculateOperatorRewards(
-        new mIOToken(protocolBalance).toIO(),
+        new mARIOToken(protocolBalance).toARIO(),
         numGateways,
         gateway,
-        new mIOToken(gateway.operatorStake).toIO(),
+        new mARIOToken(gateway.operatorStake).toARIO(),
       );
       setOperatorRewards(operatorRewards);
     }

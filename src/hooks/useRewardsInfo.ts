@@ -1,4 +1,4 @@
-import { AoGateway, IOToken, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
 import {
   UserRewards,
   calculateGatewayRewards,
@@ -24,14 +24,14 @@ const useRewardsInfo = (gateway: AoGateway | undefined, userStake: number) => {
       ? Object.values(gateways).filter((g) => g.status == 'joined').length
       : 0;
     const gatewayRewards = calculateGatewayRewards(
-      new mIOToken(protocolBalance).toIO(),
+      new mARIOToken(protocolBalance).toARIO(),
       numGateways,
       gateway,
     );
 
     const userRewards = calculateUserRewards(
       gatewayRewards,
-      new IOToken(Math.abs(userStake)),
+      new ARIOToken(Math.abs(userStake)),
       userStake < 0,
     );
     res = userRewards;

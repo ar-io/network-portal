@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, IOToken } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, ARIOToken } from '@ar.io/sdk/web';
 import { log, WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatWithCommas } from '@src/utils';
@@ -46,7 +46,7 @@ const ReviewStakeModal = ({
         if(gateway.gatewayAddress === walletAddress.toString()) {
         const { id: txID } = await arIOWriteableSDK.increaseOperatorStake(
           {
-            increaseQty: new IOToken(amountToStake).toMIO(),
+            increaseQty: new ARIOToken(amountToStake).toMARIO(),
           },
           WRITE_OPTIONS,
         );
@@ -58,7 +58,7 @@ const ReviewStakeModal = ({
         const { id: txID } = await arIOWriteableSDK.delegateStake(
           {
             target: gateway.gatewayAddress,
-            stakeQty: new IOToken(amountToStake).toMIO(),
+            stakeQty: new ARIOToken(amountToStake).toMARIO(),
           },
           WRITE_OPTIONS,
         );

@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
 import { useGlobalState } from '@src/store';
@@ -157,15 +157,15 @@ const RewardsDistributionPanel = () => {
           .filter((epoch) => epoch !== undefined)
           .sort((a, b) => a!.epochIndex - b!.epochIndex)
           .map((epoch) => {
-            const eligible = new mIOToken(
+            const eligible = new mARIOToken(
               epoch!.distributions.totalEligibleRewards,
             )
-              .toIO()
+              .toARIO()
               .valueOf();
-            const claimed = new mIOToken(
+            const claimed = new mARIOToken(
               epoch!.distributions.totalDistributedRewards ?? 0,
             )
-              .toIO()
+              .toARIO()
               .valueOf();
             return {
               epoch: epoch!.epochIndex,

@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import Streak from '@src/components/Streak';
@@ -84,22 +84,22 @@ const DelegateStake = () => {
                         : -1,
                     passedEpochCount,
                     totalEpochCount,
-                    totalDelegatedStake: new mIOToken(
+                    totalDelegatedStake: new mARIOToken(
                       gateway.totalDelegatedStake,
                     )
-                      .toIO()
+                      .toARIO()
                       .valueOf(),
-                    operatorStake: new mIOToken(gateway.operatorStake)
-                      .toIO()
+                    operatorStake: new mARIOToken(gateway.operatorStake)
+                      .toARIO()
                       .valueOf(),
-                    totalStake: new mIOToken(
+                    totalStake: new mARIOToken(
                       gateway.totalDelegatedStake + gateway.operatorStake,
                     )
-                      .toIO()
+                      .toARIO()
                       .valueOf(),
 
                     eay: calculateGatewayRewards(
-                      new mIOToken(protocolBalance).toIO(),
+                      new mARIOToken(protocolBalance).toARIO(),
                       Object.values(gateways).filter(
                         (g) => g.status == 'joined',
                       ).length,

@@ -1,4 +1,4 @@
-import { AoGateway, IOToken } from '@ar.io/sdk/web';
+import { AoGateway, ARIOToken } from '@ar.io/sdk/web';
 import {
   GatewayRewards,
   calculateGatewayRewards,
@@ -8,10 +8,10 @@ import {
 describe('rewards.ts', () => {
   describe('calculateGatewayRewards', () => {
     it('should calculate gateway rewards correctly', () => {
-      const protocolBalance = new IOToken(50_000_000);
+      const protocolBalance = new ARIOToken(50_000_000);
       const totalGateways = 300;
       const gateway = {
-        totalDelegatedStake: new IOToken(50000).toMIO().valueOf(),
+        totalDelegatedStake: new ARIOToken(50000).toMARIO().valueOf(),
         settings: {
           delegateRewardShareRatio: 50,
         },
@@ -24,7 +24,7 @@ describe('rewards.ts', () => {
       );
 
       expect(result.totalDelegatedStake.valueOf()).toEqual(
-        new IOToken(50000).valueOf(),
+        new ARIOToken(50000).valueOf(),
       );
       expect(result.rewardsSharedPerEpoch.valueOf()).toBeCloseTo(37.5, 1);
       expect(result.EEY).toBeCloseTo(0.004);
@@ -35,12 +35,12 @@ describe('rewards.ts', () => {
   describe('calculateUserRewards', () => {
     it('should calculate user rewards correctly', () => {
       const gatewayRewards: GatewayRewards = {
-        totalDelegatedStake: new IOToken(50000),
-        rewardsSharedPerEpoch: new IOToken(197.91),
+        totalDelegatedStake: new ARIOToken(50000),
+        rewardsSharedPerEpoch: new ARIOToken(197.91),
         EEY: 0.0038,
         EAY: 0.2058,
       };
-      const userDelegatedStake = new IOToken(5000);
+      const userDelegatedStake = new ARIOToken(5000);
 
       const result = calculateUserRewards(gatewayRewards, userDelegatedStake);
 

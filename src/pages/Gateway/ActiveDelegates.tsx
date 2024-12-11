@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, mIOToken } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Placeholder from '@src/components/Placeholder';
 import TableView from '@src/components/TableView';
@@ -30,7 +30,7 @@ const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
     if (gateway && gatewayDelegateStakes) {
       const totalDelegatedStake = gateway.totalDelegatedStake;
       const data = gatewayDelegateStakes.map((stake) => {
-        const totalStake = new mIOToken(stake.delegatedStake).toIO().valueOf();
+        const totalStake = new mARIOToken(stake.delegatedStake).toARIO().valueOf();
         const percentageOfTotalStake =
           totalDelegatedStake > 0
             ? stake.delegatedStake / totalDelegatedStake
@@ -84,7 +84,7 @@ const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
             {gateway ? (
               <div>
                 {formatWithCommas(
-                  new mIOToken(gateway.totalDelegatedStake).toIO().valueOf(),
+                  new mARIOToken(gateway.totalDelegatedStake).toARIO().valueOf(),
                 )}{' '}
                 {ticker}
               </div>

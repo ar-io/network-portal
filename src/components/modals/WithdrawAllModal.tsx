@@ -1,4 +1,4 @@
-import { AoGateway, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -108,7 +108,7 @@ const WithdrawAllModal = ({
                     </a>
                   </td>
                   <td className="py-2 text-right text-mid ">
-                    {new mIOToken(stake.delegatedStake).toIO().valueOf()}{' '}
+                    {new mARIOToken(stake.delegatedStake).toARIO().valueOf()}{' '}
                     {ticker}
                   </td>
                 </tr>
@@ -122,7 +122,7 @@ const WithdrawAllModal = ({
             <div className="mt-1 flex text-sm text-mid">
               <div className="grow">Total Withdrawal:</div>
               <div>
-                {new mIOToken(totalWithdrawalMIO).toIO().valueOf()} {ticker}
+                {new mARIOToken(totalWithdrawalMIO).toARIO().valueOf()} {ticker}
               </div>
             </div>
 

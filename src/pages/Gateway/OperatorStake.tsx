@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, mIOToken } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import OperatorStakingModal from '@src/components/modals/OperatorStakingModal';
 import Placeholder from '@src/components/Placeholder';
@@ -28,10 +28,10 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
   useEffect(() => {
     if (gateways && gateway && protocolBalance) {
       const rewards = calculateOperatorRewards(
-        new mIOToken(protocolBalance).toIO(),
+        new mARIOToken(protocolBalance).toARIO(),
         Object.values(gateways).filter((g) => g.status == 'joined').length,
         gateway,
-        new mIOToken(gateway.operatorStake).toIO(),
+        new mARIOToken(gateway.operatorStake).toARIO(),
       );
       setEAY(rewards.EAY);
     }
@@ -61,7 +61,7 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
           <>
             <div className="grow whitespace-nowrap text-mid">
               {formatWithCommas(
-                new mIOToken(gateway?.operatorStake).toIO().valueOf(),
+                new mARIOToken(gateway?.operatorStake).toARIO().valueOf(),
               )}{' '}
               {ticker}{' '}
               {gateway?.status === 'leaving' && '(Gateway Leaving Network)'}

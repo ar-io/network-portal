@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import { NBSP } from '@src/constants';
 import useEpochCountdown from '@src/hooks/useEpochCountdown';
 import useGateways from '@src/hooks/useGateways';
@@ -88,7 +88,7 @@ const Header = () => {
         value={
           protocolBalance ? (
             <div>
-              {formatWithCommas(new mIOToken(protocolBalance).toIO().valueOf())}{' '}
+              {formatWithCommas(new mARIOToken(protocolBalance).toARIO().valueOf())}{' '}
               {ticker}
             </div>
           ) : undefined

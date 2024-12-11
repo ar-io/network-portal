@@ -3,7 +3,7 @@ import {
   AoGatewayVault,
   AoGatewayWithAddress,
   AoVaultData,
-  mIOToken,
+  mARIOToken,
 } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import {
@@ -56,7 +56,7 @@ const PendingWithdrawals = ({
       sortDescFirst: true,
       cell: ({ row }) =>
         `${formatWithCommas(
-          new mIOToken(row.original.balance).toIO().valueOf(),
+          new mARIOToken(row.original.balance).toARIO().valueOf(),
         )} ${ticker}`,
     }),
     columnHelper.accessor('endTimestamp', {
@@ -117,8 +117,8 @@ const PendingWithdrawals = ({
           <div className="text-gradient-red">
             <div>
               {formatWithCommas(
-                new mIOToken(gatewayVaults.reduce((a, b) => a + b.balance, 0))
-                  .toIO()
+                new mARIOToken(gatewayVaults.reduce((a, b) => a + b.balance, 0))
+                  .toARIO()
                   .valueOf(),
               )}{' '}
               {ticker}

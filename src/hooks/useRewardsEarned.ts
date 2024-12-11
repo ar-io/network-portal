@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import { useEffect, useState } from 'react';
 import useEpochs from './useEpochs';
 
@@ -27,9 +27,9 @@ const useRewardsEarned = (walletAddress?: string) => {
       }, 0);
 
       setRewardsEarned({
-        previousEpoch: new mIOToken(previousEpochRewards).toIO().valueOf(),
-        totalForPastAvailableEpochs: new mIOToken(totalForPastAvailableEpochs)
-          .toIO()
+        previousEpoch: new mARIOToken(previousEpochRewards).toARIO().valueOf(),
+        totalForPastAvailableEpochs: new mARIOToken(totalForPastAvailableEpochs)
+          .toARIO()
           .valueOf(),
       });
     }

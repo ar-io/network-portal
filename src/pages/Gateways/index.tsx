@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Header from '@src/components/Header';
 import Streak from '@src/components/Streak';
@@ -51,14 +51,14 @@ const Gateways = () => {
             domain: gateway.settings.fqdn,
             owner: owner,
             start: new Date(gateway.startTimestamp),
-            totalDelegatedStake: new mIOToken(gateway.totalDelegatedStake)
-              .toIO()
+            totalDelegatedStake: new mARIOToken(gateway.totalDelegatedStake)
+              .toARIO()
               .valueOf(),
-            operatorStake: new mIOToken(gateway.operatorStake).toIO().valueOf(),
-            totalStake: new mIOToken(
+            operatorStake: new mARIOToken(gateway.operatorStake).toARIO().valueOf(),
+            totalStake: new mARIOToken(
               gateway.totalDelegatedStake + gateway.operatorStake,
             )
-              .toIO()
+              .toARIO()
               .valueOf(),
             status: gateway.status,
             endTimeStamp: gateway.endTimestamp,

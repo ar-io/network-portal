@@ -46,7 +46,7 @@ jobs:
           VITE_SENTRY_DSN_PROJECT_URI: ${{ secrets.SENTRY_DSN_PROJECT_URI }}
           VITE_SENTRY_DSN_PROJECT_ID: ${{ secrets.SENTRY_DSN_PROJECT_ID }}
           VITE_GITHUB_HASH: ${{ github.sha }}
-          VITE_IO_PROCESS_ID: ${{ secrets.IO_PROCESS_ID }}
+          VITE_ARIO_PROCESS_ID: ${{ secrets.ARIO_PROCESS_ID }}
           VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}
 
       # Disribute to Firebase
@@ -84,7 +84,7 @@ jobs:
           VITE_SENTRY_DSN_PROJECT_URI: ${{ secrets.SENTRY_DSN_PROJECT_URI }}
           VITE_SENTRY_DSN_PROJECT_ID: ${{ secrets.SENTRY_DSN_PROJECT_ID }}
           VITE_GITHUB_HASH: ${{ github.sha }}
-          VITE_IO_PROCESS_ID: ${{ secrets.IO_PROCESS_ID }}
+          VITE_ARIO_PROCESS_ID: ${{ vars.ARIO_PROCESS_ID }}
           DEPLOY_ANT_PROCESS_ID: ${{ secrets.DEPLOY_ANT_PROCESS_ID }}
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
           VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}

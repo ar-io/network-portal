@@ -1,4 +1,4 @@
-import { AoGateway, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, mARIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import ConnectModal from '@src/components/modals/ConnectModal';
@@ -99,8 +99,8 @@ const PropertyDisplayPanel = ({
           label: `Minimum Delegated Stake (${ticker}):`,
           value: gatewayLeaving
             ? 'N/A'
-            : new mIOToken(gateway?.settings.minDelegatedStake || 0)
-                .toIO()
+            : new mARIOToken(gateway?.settings.minDelegatedStake || 0)
+                .toARIO()
                 .valueOf(),
         },
       ]

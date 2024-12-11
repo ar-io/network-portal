@@ -1,4 +1,4 @@
-import { IO_PROCESS_ID } from '@src/constants';
+import { ARIO_PROCESS_ID } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -10,7 +10,7 @@ const useProtocolBalance = () => {
     queryFn: () => {
       if (arIOReadSDK) {
         return arIOReadSDK.getBalance({
-          address: IO_PROCESS_ID.toString(),
+          address: ARIO_PROCESS_ID.toString(),
         });
       }
       throw new Error('Error: ArIO Read SDK is not initialized');

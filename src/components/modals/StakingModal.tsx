@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import { Label, Radio, RadioGroup } from '@headlessui/react';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
@@ -66,7 +66,7 @@ const StakingModal = ({
     const stake = delegateStakes.stakes.find(
       (stake) => stake.gatewayAddress === gateway.gatewayAddress,
     )?.balance;
-    setCurrentStake(new mIOToken(stake ?? 0).toIO().valueOf());
+    setCurrentStake(new mARIOToken(stake ?? 0).toARIO().valueOf());
   }, [delegateStakes, gateway]);
 
   const allowDelegatedStaking =
@@ -87,7 +87,7 @@ const StakingModal = ({
       : '-';
 
   const minDelegatedStake = gateway
-    ? new mIOToken(gateway?.settings.minDelegatedStake).toIO().valueOf()
+    ? new mARIOToken(gateway?.settings.minDelegatedStake).toARIO().valueOf()
     : 10;
   const minRequiredStakeToAdd = currentStake > 0 ? 1 : minDelegatedStake;
 

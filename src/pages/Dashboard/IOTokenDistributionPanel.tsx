@@ -1,4 +1,4 @@
-import { AoTokenSupplyData, mIOToken } from '@ar.io/sdk/web';
+import { AoTokenSupplyData, mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useTokenSupply from '@src/hooks/useTokenSupply';
 import { useGlobalState } from '@src/store';
@@ -23,25 +23,25 @@ const calculateIODistribution = (
   return [
     {
       name: 'Protocol Balance',
-      value: new mIOToken(tokenSupply.protocolBalance).toIO().valueOf(),
+      value: new mARIOToken(tokenSupply.protocolBalance).toARIO().valueOf(),
     },
     {
       name: 'Actively Staked',
-      value: new mIOToken(tokenSupply.staked + tokenSupply.delegated)
-        .toIO()
+      value: new mARIOToken(tokenSupply.staked + tokenSupply.delegated)
+        .toARIO()
         .valueOf(),
     },
     {
       name: 'Pending Withdrawal',
-      value: new mIOToken(tokenSupply.withdrawn).toIO().valueOf(),
+      value: new mARIOToken(tokenSupply.withdrawn).toARIO().valueOf(),
     },
     {
       name: 'In Circulation',
-      value: new mIOToken(tokenSupply.circulating).toIO().valueOf(),
+      value: new mARIOToken(tokenSupply.circulating).toARIO().valueOf(),
     },
     {
       name: 'Locked Supply',
-      value: new mIOToken(tokenSupply.locked).toIO().valueOf(),
+      value: new mARIOToken(tokenSupply.locked).toARIO().valueOf(),
     },
   ];
 };
@@ -72,7 +72,7 @@ const IOTokenDistributionPanel = () => {
       data && activeIndex !== undefined
         ? data[activeIndex].value
         : tokenSupply?.total
-          ? new mIOToken(tokenSupply.total).toIO().valueOf()
+          ? new mARIOToken(tokenSupply.total).toARIO().valueOf()
           : TOTAL_IO,
     ),
   );

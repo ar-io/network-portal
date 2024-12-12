@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import StakingModal from '@src/components/modals/StakingModal';
 import useBalances from '@src/hooks/useBalances';
@@ -92,7 +92,7 @@ const ConnectedLandingPage = () => {
         },
         0,
       );
-      setAmountStaking(new mIOToken(staked + withdrawing).toIO().valueOf());
+      setAmountStaking(new mARIOToken(staked + withdrawing).toARIO().valueOf());
     }
   }, [delegatedStakes]);
 

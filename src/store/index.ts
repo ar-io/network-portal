@@ -1,9 +1,9 @@
 import {
   AOProcess,
   AoEpochData,
-  AoIORead,
-  AoIOWrite,
-  IO,
+  AoARIORead,
+  AoARIOWrite,
+  ARIO,
 } from '@ar.io/sdk/web';
 import { connect } from '@permaweb/aoconnect';
 import {
@@ -11,7 +11,7 @@ import {
   DEFAULT_ARWEAVE_HOST,
   DEFAULT_ARWEAVE_PORT,
   DEFAULT_ARWEAVE_PROTOCOL,
-  IO_PROCESS_ID,
+  ARIO_PROCESS_ID as ARIO_PROCESS_ID,
   THEME_TYPES,
 } from '@src/constants';
 import { ArweaveWalletConnector } from '@src/types';
@@ -24,8 +24,8 @@ export type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];
 export type GlobalState = {
   theme: ThemeType;
   arweave: Arweave;
-  arIOReadSDK: AoIORead;
-  arIOWriteableSDK?: AoIOWrite;
+  arIOReadSDK: AoARIORead;
+  arIOWriteableSDK?: AoARIOWrite;
   blockHeight?: number;
   currentEpoch?: AoEpochData;
   walletAddress?: ArweaveTransactionID;
@@ -43,7 +43,7 @@ export type GlobalStateActions = {
     walletAddress?: ArweaveTransactionID,
     wallet?: ArweaveWalletConnector,
   ) => void;
-  setArIOWriteableSDK: (arIOWriteableSDK?: AoIOWrite) => void;
+  setArIOWriteableSDK: (arIOWriteableSDK?: AoARIOWrite) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
   setAoCongested: (congested: boolean) => void;
@@ -56,9 +56,9 @@ export const initialGlobalState: GlobalState = {
     protocol: DEFAULT_ARWEAVE_PROTOCOL,
     port: DEFAULT_ARWEAVE_PORT,
   }),
-  arIOReadSDK: IO.init({
+  arIOReadSDK: ARIO.init({
     process: new AOProcess({
-      processId: IO_PROCESS_ID.toString(),
+      processId: ARIO_PROCESS_ID.toString(),
       ao: connect({
         CU_URL: AO_CU_URL,
       }),
@@ -94,7 +94,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
     this.set({ walletAddress, wallet });
   };
 
-  setArIOWriteableSDK = (arIOWriteableSDK?: AoIOWrite) => {
+  setArIOWriteableSDK = (arIOWriteableSDK?: AoARIOWrite) => {
     this.set({ arIOWriteableSDK });
   };
 

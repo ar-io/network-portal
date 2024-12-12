@@ -1,4 +1,4 @@
-import { IOToken } from '@ar.io/sdk/web';
+import { ARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -149,15 +149,15 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
           delegateRewardShareRatio: allowDelegatedStaking
             ? parseFloat(String(formState.delegatedStakingShareRatio))
             : DEFAULT_DELEGATED_STAKING_REWARD_SHARE_RATIO,
-          minDelegatedStake: new IOToken(
+          minDelegatedStake: new ARIOToken(
             allowDelegatedStaking
               ? parseFloat(String(formState.minDelegatedStake))
               : DEFAULT_DELEGATED_STAKING,
-          ).toMIO().valueOf(),
+          ).toMARIO().valueOf(),
           autoStake: true,
-          operatorStake: new IOToken(
+          operatorStake: new ARIOToken(
             parseFloat(String(formState.stake)),
-          ).toMIO().valueOf(),
+          ).toMARIO().valueOf(),
         };
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK

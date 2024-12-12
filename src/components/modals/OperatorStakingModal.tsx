@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, IOToken, mIOToken } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
 import { Label, Radio, RadioGroup } from '@headlessui/react';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
@@ -15,7 +15,7 @@ import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import {
-  validateIOAmount,
+  validateIOAmount as validateARIOAmount,
   validateOperatorWithdrawAmount,
 } from '../forms/validation';
 import { CircleCheckIcon, CircleIcon, InfoIcon } from '../icons';
@@ -55,7 +55,7 @@ const OperatorStakingModal = ({
     if (!gateway) {
       return;
     }
-    setCurrentStake(new mIOToken(gateway.operatorStake).toIO().valueOf());
+    setCurrentStake(new mARIOToken(gateway.operatorStake).toARIO().valueOf());
   }, [gateway]);
 
   const newTotalStake =
@@ -64,7 +64,7 @@ const OperatorStakingModal = ({
       : currentStake - parseFloat(amountToWithdraw);
 
   const minDelegatedStake = gateway
-    ? new mIOToken(gateway?.settings.minDelegatedStake).toIO().valueOf()
+    ? new mARIOToken(gateway?.settings.minDelegatedStake).toARIO().valueOf()
     : 10;
   const minRequiredStakeToAdd = currentStake > 0 ? 1 : minDelegatedStake;
 
@@ -79,7 +79,7 @@ const OperatorStakingModal = ({
       ).toFixed(4);
 
   const validators = useMemo(() => ({
-    stakeAmount: validateIOAmount('Stake Amount', ticker, 1, balances?.io),
+    stakeAmount: validateARIOAmount('Stake Amount', ticker, 1, balances?.io),
     withdrawAmount: validateOperatorWithdrawAmount(
       'Withdraw Amount',
       ticker,
@@ -99,10 +99,10 @@ const OperatorStakingModal = ({
     if (tab == 0 && protocolBalance && gateways && gateway && isFormValid()) {
       const newTotalStake = currentStake + parseFloat(amountToStake)
       const { EAY } = calculateOperatorRewards(
-        new mIOToken(protocolBalance).toIO(),
+        new mARIOToken(protocolBalance).toARIO(),
         Object.values(gateways).filter((g) => g.status == 'joined').length,
         gateway,
-        new IOToken(newTotalStake),
+        new ARIOToken(newTotalStake),
       );
       setEAY(formatPercentage(EAY));
     } else {

@@ -1,4 +1,4 @@
-import { mIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { formatDateTime, formatWalletAddress, formatWithCommas } from '@src/utils';
 import useGateway from './useGateway';
@@ -29,7 +29,7 @@ export const useGatewayInfo = () => {
       ['Joined at', formatDateTime(new Date(gateway.startTimestamp))],
       [
         `Stake (${ticker})`,
-        formatWithCommas(new mIOToken(gateway.operatorStake).toIO().valueOf()),
+        formatWithCommas(new mARIOToken(gateway.operatorStake).toARIO().valueOf()),
       ],
       ['Status', gateway.status],
       ['Reward Ratio', gateway.settings.delegateRewardShareRatio],

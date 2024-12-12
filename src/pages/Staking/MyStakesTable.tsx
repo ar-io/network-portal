@@ -1,4 +1,4 @@
-import { AoGateway, AoVaultData, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, AoVaultData, mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
@@ -154,7 +154,7 @@ const MyStakesTable = () => {
       header: `Current Stake (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => {
-        return `${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`;
+        return `${new mARIOToken(row.original.delegatedStake).toARIO().valueOf()}`;
       },
     }),
     columnHelper.accessor('streak', {
@@ -241,7 +241,7 @@ const MyStakesTable = () => {
       header: `Stake Withdrawing (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => {
-        return `${new mIOToken(row.original.withdrawal.balance).toIO().valueOf()}`;
+        return `${new mARIOToken(row.original.withdrawal.balance).toARIO().valueOf()}`;
       },
     }),
     columnHelperWithdrawals.accessor((row) => row.withdrawal.endTimestamp, {

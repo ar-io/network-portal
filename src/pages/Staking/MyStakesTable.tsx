@@ -57,7 +57,6 @@ const MyStakesTable = () => {
   const [showWithdrawAllModal, setShowWithdrawAllModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
-  const [showQuickStake, setShowQuickStake] = useState(false);
   const [confirmCancelWithdrawal, setConfirmCancelWithdrawal] = useState<{
     gatewayAddress: string;
     vaultId: string;
@@ -310,27 +309,15 @@ const MyStakesTable = () => {
           />
         </div>
 
-        {tableMode == 'activeStakes' && (
-          <>
-            {hasDelegatedStake && (
-              <Button
-                buttonType={ButtonType.SECONDARY}
-                className="*:text-gradient-red h-[1.875rem]"
-                active={true}
-                title="Withdraw All"
-                text="Withdraw All"
-                onClick={() => setShowWithdrawAllModal(true)}
-              />
-            )}
-            <Button
-              buttonType={ButtonType.SECONDARY}
-              className="*:text-gradient h-[1.875rem]"
-              active={true}
-              title="QuickStake"
-              text="QuickStake"
-              onClick={() => setShowQuickStake(true)}
-            />
-          </>
+        {tableMode == 'activeStakes' && hasDelegatedStake && (
+          <Button
+            buttonType={ButtonType.SECONDARY}
+            className="*:text-gradient-red h-[1.875rem]"
+            active={true}
+            title="Withdraw All"
+            text="Withdraw All"
+            onClick={() => setShowWithdrawAllModal(true)}
+          />
         )}
       </div>
       {tableMode === 'activeStakes' ? (
@@ -370,12 +357,11 @@ const MyStakesTable = () => {
           onClose={() => setShowWithdrawAllModal(false)}
         />
       )}
-      {(stakingModalWalletAddress || showQuickStake) && (
+      {stakingModalWalletAddress && (
         <StakingModal
           open={!!stakingModalWalletAddress}
           onClose={() => {
             setStakingModalWalletAddress(undefined);
-            setShowQuickStake(false);
           }}
           ownerWallet={stakingModalWalletAddress}
         />

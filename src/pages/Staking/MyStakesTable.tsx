@@ -1,4 +1,5 @@
 import { AoGateway, AoVaultData, mARIOToken } from '@ar.io/sdk/web';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
@@ -6,11 +7,12 @@ import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import {
   CancelButtonXIcon,
-  GearIcon,
   InstantWithdrawalIcon,
+  ThreeDotsIcon,
 } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
+import StakeWithdrawalModal from '@src/components/modals/StakeWithdrawalModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import WithdrawAllModal from '@src/components/modals/WithdrawAllModal';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
@@ -56,6 +58,8 @@ const MyStakesTable = () => {
 
   const [showWithdrawAllModal, setShowWithdrawAllModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
+    useState<string>();
+  const [withdrawalModalWalletAddress, setWithdrawalModalWalletAddress] =
     useState<string>();
   const [confirmCancelWithdrawal, setConfirmCancelWithdrawal] = useState<{
     gatewayAddress: string;
@@ -182,17 +186,43 @@ const MyStakesTable = () => {
       cell: ({ row }) => {
         return (
           <div className="flex w-full justify-end pr-6">
-            <Button
-              buttonType={ButtonType.SECONDARY}
-              active={true}
-              title="Manage Stake"
-              text=" "
-              rightIcon={<GearIcon className="size-4" />}
-              onClick={(e) => {
-                e.stopPropagation();
-                setStakingModalWalletAddress(row.original.owner);
-              }}
-            />
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger
+                asChild
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end  p-px">
+                  <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
+                    <ThreeDotsIcon className="size-4" />
+                  </div>
+                </div>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStakingModalWalletAddress(row.original.owner);
+                  }}
+                >
+                  Add Stake
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWithdrawalModalWalletAddress(row.original.owner);
+                  }}
+                >
+                  Withdraw Stake
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3">
+                  Redelegate
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
           </div>
         );
       },
@@ -364,6 +394,15 @@ const MyStakesTable = () => {
             setStakingModalWalletAddress(undefined);
           }}
           ownerWallet={stakingModalWalletAddress}
+        />
+      )}
+      {withdrawalModalWalletAddress && (
+        <StakeWithdrawalModal
+          open={!!withdrawalModalWalletAddress}
+          onClose={() => {
+            setWithdrawalModalWalletAddress(undefined);
+          }}
+          ownerWallet={withdrawalModalWalletAddress}
         />
       )}
       {confirmCancelWithdrawal && (

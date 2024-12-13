@@ -95,7 +95,6 @@ const StakingModal = ({
     setAmountToStake((balances?.io || 0) + '');
   };
 
-  console.log(gateway);
   const disableInput =
     !gateway ||
     (balances?.io || 0) < minRequiredStakeToAdd ||
@@ -160,7 +159,6 @@ const StakingModal = ({
               value={amountToStake}
               onChange={(e) => {
                 const textValue = e.target.value;
-                console.log(textValue);
 
                 if (textValue && isNaN(+e.target.value)) {
                   return;

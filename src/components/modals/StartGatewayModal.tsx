@@ -1,5 +1,5 @@
 import { ARIOToken } from '@ar.io/sdk/web';
-import { WRITE_OPTIONS, log } from '@src/constants';
+import { GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO, WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -91,8 +91,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
     {
       formPropertyName: 'stake',
       label: `*Stake (${ticker}):`,
-      placeholder: `Minimum 10000 ${ticker}`,
-      validateProperty: validateIOAmount('Stake', ticker, 10000),
+      placeholder: `Minimum ${GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO} ${ticker}`,
+      validateProperty: validateIOAmount('Stake', ticker, GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO),
     },
     {
       formPropertyName: 'allowDelegatedStaking',

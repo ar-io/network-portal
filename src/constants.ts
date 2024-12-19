@@ -62,3 +62,6 @@ export const OPERATOR_EAY_TOOLTIP_FORMULA =
 export const NAME_PASS_THRESHOLD = 0.8;
 export const REFERENCE_GATEWAY_FQDN =
   process.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'arweave.net';
+
+
+export const GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO = 10000;

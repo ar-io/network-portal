@@ -46,7 +46,7 @@ export const validateTransactionId = (
   };
 };
 
-export const validateIOAmount = (
+export const validateARIOAmount = (
   propertyName: string,
   ticker: string,
   min: number,

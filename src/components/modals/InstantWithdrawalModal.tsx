@@ -203,7 +203,7 @@ const InstantWithdrawalModal = ({
               <Button
                 onClick={processInstantWithdrawal}
                 buttonType={ButtonType.PRIMARY}
-                title="Leave Network"
+                title="Withdraw"
                 text={<div className="py-2">Withdraw</div>}
                 className={`w-full ${!termsAccepted && 'pointer-events-none opacity-30'}`}
               />

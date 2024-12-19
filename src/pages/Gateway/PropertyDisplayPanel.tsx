@@ -7,17 +7,19 @@ import StakingModal from '@src/components/modals/StakingModal';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
 
+type DisplayRowProps = {
+  label: string;
+  value?: string | number | boolean | React.ReactNode;
+  type?: string;
+  rightComponent?: React.ReactNode;
+};
+
 const DisplayRow = ({
   label,
   value,
   type,
   rightComponent,
-}: {
-  label: string;
-  value: React.ReactNode | string | number | boolean | undefined;
-  type?: string;
-  rightComponent?: React.ReactNode;
-}) => {
+}: DisplayRowProps) => {
   return (
     <>
       <div className="border-t border-grey-900">
@@ -106,7 +108,7 @@ const PropertyDisplayPanel = ({
       ]
     : [];
 
-  const gatewayRows = [
+  const gatewayRows: DisplayRowProps[] = [
     { label: 'Label:', value: gateway?.settings.label },
     { label: 'Address:', value: gatewayAddress, type: 'link' },
     { label: 'Owner Wallet:', value: ownerId, type: 'address' },
@@ -151,6 +153,7 @@ const PropertyDisplayPanel = ({
       label: 'Delegated Staking:',
       value: gatewayLeaving ? 'N/A' : gateway?.settings.allowDelegatedStaking,
       rightComponent:
+        !isOwnGateway &&
         gateway?.settings.allowDelegatedStaking &&
         gateway?.status == 'joined' ? (
           <Button
@@ -174,11 +177,12 @@ const PropertyDisplayPanel = ({
 
   return (
     <div className="grid grid-cols-[14.375rem_auto]">
-      {gatewayRows.map(({ label, value  }, index) => (
+      {gatewayRows.map(({ label, value, rightComponent  }, index) => (
         <DisplayRow
           key={index}
           label={label}
           value={value}
+          rightComponent={rightComponent}
         />
       ))}
 

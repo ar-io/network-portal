@@ -1,6 +1,5 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
-import StakingModal from '@src/components/modals/StakingModal';
 import useBalances from '@src/hooks/useBalances';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useRewardsEarned from '@src/hooks/useRewardsEarned';

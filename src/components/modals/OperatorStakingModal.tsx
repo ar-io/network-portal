@@ -12,7 +12,7 @@ import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
-import { validateIOAmount as validateARIOAmount } from '../forms/validation';
+import { validateARIOAmount as validateARIOAmount } from '../forms/validation';
 import { InfoIcon } from '../icons';
 import BaseModal from './BaseModal';
 import ReviewStakeModal from './ReviewStakeModal';

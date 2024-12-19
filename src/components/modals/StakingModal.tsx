@@ -12,7 +12,7 @@ import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
-import { validateIOAmount, validateWalletAddress } from '../forms/validation';
+import { validateARIOAmount, validateWalletAddress } from '../forms/validation';
 import { InfoIcon } from '../icons';
 import BaseModal from './BaseModal';
 import ReviewStakeModal from './ReviewStakeModal';
@@ -70,7 +70,7 @@ const StakingModal = ({
 
   const validators = {
     address: validateWalletAddress('Gateway Owner'),
-    stakeAmount: validateIOAmount(
+    stakeAmount: validateARIOAmount(
       'Stake Amount',
       ticker,
       minRequiredStakeToAdd,

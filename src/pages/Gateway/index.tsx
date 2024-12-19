@@ -14,7 +14,7 @@ import {
 } from '@src/components/forms/formData';
 import {
   validateDomainName,
-  validateIOAmount,
+  validateARIOAmount,
   validateNumberRange,
   validateString,
   validateTransactionId,
@@ -201,7 +201,7 @@ const Gateway = () => {
       placeholder: delegatedStakingEnabled
         ? `Minimum 10 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount(
+      validateProperty: validateARIOAmount(
         'Minumum Delegated Stake',
         ticker,
         10,

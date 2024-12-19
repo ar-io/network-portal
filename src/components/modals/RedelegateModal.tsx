@@ -11,7 +11,7 @@ import GatewaySelector from '../GatewaySelector';
 import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
-import { validateIOAmount } from '../forms/validation';
+import { validateARIOAmount } from '../forms/validation';
 import BaseModal from './BaseModal';
 import ReviewRedelegateModal from './ReviewRedelegateModal';
 import { REDELEGATION_FEE_TOOLTIP_TEXT } from '@src/constants';
@@ -96,7 +96,7 @@ const RedelegateModal = ({
 
   const validators = useMemo(
     () => ({
-      redelegationAmount: validateIOAmount(
+      redelegationAmount: validateARIOAmount(
         'Redelegation Amount',
         ticker,
         minRequiredStakeToAdd,

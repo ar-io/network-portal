@@ -9,7 +9,7 @@ import FormRow, { RowType } from '../forms/FormRow';
 import { FormRowDef, isFormValid } from '../forms/formData';
 import {
   validateDomainName,
-  validateIOAmount,
+  validateARIOAmount,
   validateNumberRange,
   validateString,
   validateTransactionId,
@@ -92,7 +92,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       formPropertyName: 'stake',
       label: `*Stake (${ticker}):`,
       placeholder: `Minimum ${GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO} ${ticker}`,
-      validateProperty: validateIOAmount('Stake', ticker, GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO),
+      validateProperty: validateARIOAmount('Stake', ticker, GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO),
     },
     {
       formPropertyName: 'allowDelegatedStaking',
@@ -105,7 +105,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
       placeholder: allowDelegatedStaking
         ? `Minimum 10 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount('Minimum Delegated Stake', ticker, 10),
+      validateProperty: validateARIOAmount('Minimum Delegated Stake', ticker, 10),
     },
     {
       formPropertyName: 'delegatedStakingShareRatio',

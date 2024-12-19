@@ -4,16 +4,17 @@ import useGateways from '@src/hooks/useGateways';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
+import { InfoIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import GatewaySelector from '../GatewaySelector';
 import LabelValueRow from '../LabelValueRow';
+import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import { validateIOAmount } from '../forms/validation';
 import BaseModal from './BaseModal';
 import ReviewRedelegateModal from './ReviewRedelegateModal';
-import Tooltip from '../Tooltip';
-import { InfoIcon } from 'lucide-react';
+import { REDELEGATION_FEE_TOOLTIP_TEXT } from '@src/constants';
 
 export type RedelegateModalProps = {
   onClose: () => void;
@@ -71,7 +72,9 @@ const RedelegateModal = ({
   useEffect(() => {
     if (targetGateway && walletAddress) {
       if (targetGateway.gatewayAddress === walletAddress.toString()) {
-        setTargetGatewayCurrentStake(new mARIOToken(targetGateway.operatorStake).toARIO().valueOf());
+        setTargetGatewayCurrentStake(
+          new mARIOToken(targetGateway.operatorStake).toARIO().valueOf(),
+        );
       } else if (delegateStakes) {
         const stake = delegateStakes.stakes.find(
           (stake) => stake.gatewayAddress === targetGateway.gatewayAddress,
@@ -286,7 +289,7 @@ const RedelegateModal = ({
                     message={
                       <div>
                         <p>
-                          Redelegation fees are assessed at 10% per redelegation performed in the last 7 days, up to 60%. 
+                          {REDELEGATION_FEE_TOOLTIP_TEXT} 
                         </p>
                       </div>
                     }

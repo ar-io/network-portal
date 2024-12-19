@@ -1,21 +1,25 @@
 import { AoGatewayWithAddress, ARIOToken } from '@ar.io/sdk/web';
-import { log, WRITE_OPTIONS } from '@src/constants';
+import {
+  log,
+  REDELEGATION_FEE_TOOLTIP_TEXT,
+  WRITE_OPTIONS,
+} from '@src/constants';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatWithCommas } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { InfoIcon } from 'lucide-react';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import { LinkArrowIcon } from '../icons';
 import LabelValueRow from '../LabelValueRow';
+import Tooltip from '../Tooltip';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
 import WithdrawWarning from './WithdrawWarning';
-import Tooltip from '../Tooltip';
-import { InfoIcon } from 'lucide-react';
 
 type ReviewRedelegateModalProps = {
   sourceGateway: AoGatewayWithAddress;
@@ -165,9 +169,7 @@ const ReviewRedelegateModal = ({
                   <Tooltip
                     message={
                       <div>
-                        <p>
-                          Redelegation fees are assessed at 10% per redelegation performed in the last 7 days, up to 60%. 
-                        </p>
+                        <p>{REDELEGATION_FEE_TOOLTIP_TEXT}</p>
                       </div>
                     }
                   >

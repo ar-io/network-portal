@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Redelegate Stake: Users can now redelegate stake and pending withdrawals between gateways. Includes moving to/from operator stake and delegated stake.
-  Fee is applied if the user has redelegated within the last 7 days, at a rate of 10% per redelegation. If no redelegations have occurred in the last 7 days, the fee is 0%.
+  Redelegation fees are assessed at 10% per redelegation performed since the last fee reset, up to 60%. Fees are reset when no redelegations are performed in the last 7 days.
 
 ### Changed
 

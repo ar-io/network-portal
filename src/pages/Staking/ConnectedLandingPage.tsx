@@ -71,8 +71,6 @@ const ConnectedLandingPage = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const [amountStaking, setAmountStaking] = useState<number>();
 
-  const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
-
   const { data: balances } = useBalances(walletAddress);
   const rewardsEarned = useRewardsEarned(walletAddress?.toString());
 
@@ -138,12 +136,6 @@ const ConnectedLandingPage = () => {
       </div>
       <MyStakesTable />
       <DelegateStake />
-      {isStakingModalOpen && (
-        <StakingModal
-          open={isStakingModalOpen}
-          onClose={() => setIsStakingModalOpen(false)}
-        />
-      )}
     </div>
   );
 };

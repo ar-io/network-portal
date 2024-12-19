@@ -157,7 +157,7 @@ const StakeWithdrawalModal = ({
 
                 setAmountToWithdraw(textValue);
               }}
-            ></input>
+            />
             {amountToWithdraw?.length > 0 && errorMessages.withdrawAmount && (
               <ErrorMessageIcon
                 errorMessage={errorMessages.withdrawAmount}

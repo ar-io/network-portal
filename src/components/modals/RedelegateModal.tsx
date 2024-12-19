@@ -258,7 +258,7 @@ const RedelegateModal = ({
 
                 setAmountToRedelegate(textValue);
               }}
-            ></input>
+            />
             {targetGateway &&
               (amountToRedelegate?.length > 0 ||
                 maxRedelegationStake.valueOf() < minRequiredStakeToAdd) &&

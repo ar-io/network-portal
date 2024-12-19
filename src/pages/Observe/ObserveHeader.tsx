@@ -33,7 +33,7 @@ const ObserveHeader = ({
 }) => {
   const params = useParams();
   const ownerId = params?.ownerId;
-  
+
   const [runningObservation, setRunningObservation] = useState(false);
 
   // fetch current prescribed names, fallback to defaults
@@ -79,7 +79,7 @@ const ObserveHeader = ({
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <HeaderSeparatorIcon className="size-4"/>
+        <HeaderSeparatorIcon className="size-4" />
         {gateway ? (
           <Link className="text-mid" to={`/gateways/${ownerId}`}>
             {gateway.settings.label}
@@ -87,7 +87,7 @@ const ObserveHeader = ({
         ) : (
           <Placeholder />
         )}
-        <HeaderSeparatorIcon className="size-4"/>
+        <HeaderSeparatorIcon className="size-4" />
         <Link className="text-mid" to={`/gateways/${ownerId}/reports`}>
           Observe
         </Link>
@@ -112,7 +112,7 @@ const ObserveHeader = ({
           onChange={(e) => {
             setArnsNamesToSearch(e.target.value);
           }}
-        ></input>
+        />
 
         <div
           className={

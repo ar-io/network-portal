@@ -159,7 +159,7 @@ const OperatorStakingModal = ({
 
                 setAmountToStake(textValue);
               }}
-            ></input>
+            />
             {gateway &&
               (amountToStake?.length > 0 ||
                 (balances?.io || 0) < minRequiredStakeToAdd) &&

@@ -1,11 +1,12 @@
-import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ThreeDotsIcon } from '@src/components/icons';
 import OperatorStakingModal from '@src/components/modals/OperatorStakingModal';
 import OperatorWithdrawalModal from '@src/components/modals/OperatorWithdrawalModal';
+import RedelegateModal, { RedelegateModalProps } from '@src/components/modals/RedelegateModal';
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
-import { EAY_TOOLTIP_TEXT, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
+import { EAY_TOOLTIP_TEXT, GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -29,6 +30,9 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
     useState<boolean>(false);
   const [eay, setEAY] = useState<number>();
 
+  const [showRedelegateModal, setShowRedelegateModal] =
+    useState<RedelegateModalProps>();
+
   useEffect(() => {
     if (gateways && gateway && protocolBalance) {
       const rewards = calculateOperatorRewards(
@@ -50,14 +54,6 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
 
         {gateway?.gatewayAddress === walletAddress &&
           gateway?.status != 'leaving' && (
-            // <Button
-            //   buttonType={ButtonType.SECONDARY}
-            //   className="*:text-gradient h-[1.875rem]"
-            //   active={true}
-            //   title="Manage Stake"
-            //   text="Manage Stake"
-            //   onClick={() => setIsStakingModalOpen(true)}
-            // />
             <DropdownMenu.Root>
               <DropdownMenu.Trigger
                 asChild
@@ -88,6 +84,26 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
                   }}
                 >
                   Withdraw Stake
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (gateway) {
+                      setShowRedelegateModal({
+                        sourceGateway: gateway,
+                        onClose: () => setShowRedelegateModal(undefined),
+                        maxRedelegationStake: new mARIOToken(
+                          gateway.operatorStake -
+                            new ARIOToken(GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO)
+                              .toMARIO()
+                              .valueOf(),
+                        ).toARIO(),
+                      });
+                    }
+                  }}
+                >
+                  Redelegate
                 </DropdownMenu.Item>
               </DropdownMenu.Content>
             </DropdownMenu.Root>
@@ -142,6 +158,7 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
           gateway={gateway}
         />
       )}
+      {showRedelegateModal && <RedelegateModal {...showRedelegateModal} />}
     </div>
   );
 };

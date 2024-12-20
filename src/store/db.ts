@@ -1,5 +1,5 @@
-import { AoEpochData, AoIORead } from '@ar.io/sdk/web';
-import { IO_PROCESS_ID } from '@src/constants';
+import { AoEpochData, AoARIORead } from '@ar.io/sdk/web';
+import { ARIO_PROCESS_ID } from '@src/constants';
 import { Assessment } from '@src/types';
 import Dexie, { type EntityTable } from 'dexie';
 
@@ -11,7 +11,7 @@ export interface Observation {
 }
 
 // Use process ID as the database name so that cached data is unique to each process
-const DB_NAME = IO_PROCESS_ID.toString();
+const DB_NAME = ARIO_PROCESS_ID.toString();
 
 export const db = new Dexie(DB_NAME) as Dexie & {
   observations: EntityTable<
@@ -37,7 +37,7 @@ db.version(2).stores({
 db.open().catch(function (err) {
   console.error('Failed to open db: ', err);
 });
-export const getEpoch = async (arIOReadSDK: AoIORead, epochIndex: number) => {
+export const getEpoch = async (arIOReadSDK: AoARIORead, epochIndex: number) => {
   const epoch = await db.epochs.where('epochIndex').equals(epochIndex).first();
   if (epoch) {
     return epoch;

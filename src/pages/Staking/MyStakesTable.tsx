@@ -1,16 +1,17 @@
-import { AoGateway, AoVaultData, mIOToken } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, AoVaultData, mARIOToken } from '@ar.io/sdk/web';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
-import {
-  CancelButtonXIcon,
-  GearIcon,
-  InstantWithdrawalIcon,
-} from '@src/components/icons';
+import { ThreeDotsIcon } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
+import RedelegateModal, {
+  RedelegateModalProps,
+} from '@src/components/modals/RedelegateModal';
+import StakeWithdrawalModal from '@src/components/modals/StakeWithdrawalModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import WithdrawAllModal from '@src/components/modals/WithdrawAllModal';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
@@ -24,14 +25,14 @@ import { useNavigate } from 'react-router-dom';
 interface ActiveStakesTableData {
   owner: string;
   delegatedStake: number;
-  gateway: AoGateway;
+  gateway: AoGatewayWithAddress;
   pendingWithdrawals: number;
   streak: number;
 }
 
 interface PendingWithdrawalsTableData {
   owner: string;
-  gateway: AoGateway;
+  gateway: AoGatewayWithAddress;
   withdrawal: AoVaultData;
   withdrawalId: string;
 }
@@ -57,7 +58,11 @@ const MyStakesTable = () => {
   const [showWithdrawAllModal, setShowWithdrawAllModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
-  const [showQuickStake, setShowQuickStake] = useState(false);
+  const [withdrawalModalWalletAddress, setWithdrawalModalWalletAddress] =
+    useState<string>();
+  const [showRedelegateModal, setShowRedelegateModal] =
+    useState<RedelegateModalProps>();
+
   const [confirmCancelWithdrawal, setConfirmCancelWithdrawal] = useState<{
     gatewayAddress: string;
     vaultId: string;
@@ -65,7 +70,7 @@ const MyStakesTable = () => {
 
   const [confirmInstantWithdrawal, setConfirmInstantWithdrawal] = useState<{
     gatewayAddress: string;
-    gateway: AoGateway;
+    gateway: AoGatewayWithAddress;
     vault: AoVaultData;
     vaultId: string;
   }>();
@@ -86,7 +91,7 @@ const MyStakesTable = () => {
               return {
                 owner: stake.gatewayAddress,
                 delegatedStake: stake.balance,
-                gateway,
+                gateway: { ...gateway, gatewayAddress: stake.gatewayAddress },
                 pendingWithdrawals: delegateStakes.withdrawals.filter(
                   (w) => w.gatewayAddress == stake.gatewayAddress,
                 ).length,
@@ -109,7 +114,10 @@ const MyStakesTable = () => {
 
               return {
                 owner: withdrawal.gatewayAddress,
-                gateway,
+                gateway: {
+                  ...gateway,
+                  gatewayAddress: withdrawal.gatewayAddress,
+                },
                 withdrawal,
                 withdrawalId: withdrawal.vaultId,
               };
@@ -154,7 +162,7 @@ const MyStakesTable = () => {
       header: `Current Stake (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => {
-        return `${new mIOToken(row.original.delegatedStake).toIO().valueOf()}`;
+        return `${new mARIOToken(row.original.delegatedStake).toARIO().valueOf()}`;
       },
     }),
     columnHelper.accessor('streak', {
@@ -183,17 +191,55 @@ const MyStakesTable = () => {
       cell: ({ row }) => {
         return (
           <div className="flex w-full justify-end pr-6">
-            <Button
-              buttonType={ButtonType.SECONDARY}
-              active={true}
-              title="Manage Stake"
-              text=" "
-              rightIcon={<GearIcon className="size-4" />}
-              onClick={(e) => {
-                e.stopPropagation();
-                setStakingModalWalletAddress(row.original.owner);
-              }}
-            />
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger
+                asChild
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end  p-px">
+                  <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
+                    <ThreeDotsIcon className="size-4" />
+                  </div>
+                </div>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStakingModalWalletAddress(row.original.owner);
+                  }}
+                >
+                  Add Stake
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWithdrawalModalWalletAddress(row.original.owner);
+                  }}
+                >
+                  Withdraw Stake
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowRedelegateModal({
+                      sourceGateway: row.original.gateway,
+                      onClose: () => setShowRedelegateModal(undefined),
+                      maxRedelegationStake: new mARIOToken(
+                        row.original.delegatedStake,
+                      ).toARIO(),
+                    });
+                  }}
+                >
+                  Redelegate
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
           </div>
         );
       },
@@ -241,7 +287,7 @@ const MyStakesTable = () => {
       header: `Stake Withdrawing (${ticker})`,
       sortDescFirst: true,
       cell: ({ row }) => {
-        return `${new mIOToken(row.original.withdrawal.balance).toIO().valueOf()}`;
+        return `${new mARIOToken(row.original.withdrawal.balance).toARIO().valueOf()}`;
       },
     }),
     columnHelperWithdrawals.accessor((row) => row.withdrawal.endTimestamp, {
@@ -256,35 +302,65 @@ const MyStakesTable = () => {
       id: 'actions',
       cell: ({ row }) => {
         return (
-          <div className="flex w-full justify-end gap-2 pr-6">
-            <Button
-              buttonType={ButtonType.SECONDARY}
-              active={true}
-              title="Expedited Withdrawal"
-              text={<InstantWithdrawalIcon className="size-4" />}
-              onClick={(e) => {
-                e.stopPropagation();
-                setConfirmInstantWithdrawal({
-                  gateway: row.original.gateway,
-                  gatewayAddress: row.original.owner,
-                  vault: row.original.withdrawal,
-                  vaultId: row.original.withdrawalId,
-                });
-              }}
-            />
-            <Button
-              buttonType={ButtonType.SECONDARY}
-              active={true}
-              title="Cancel Withdrawal"
-              text={<CancelButtonXIcon className="size-4" />}
-              onClick={(e) => {
-                e.stopPropagation();
-                setConfirmCancelWithdrawal({
-                  gatewayAddress: row.original.owner,
-                  vaultId: row.original.withdrawalId,
-                });
-              }}
-            />
+          <div className="flex w-full justify-end pr-6">
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger
+                asChild
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end  p-px">
+                  <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
+                    <ThreeDotsIcon className="size-4" />
+                  </div>
+                </div>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmInstantWithdrawal({
+                      gateway: row.original.gateway,
+                      gatewayAddress: row.original.owner,
+                      vault: row.original.withdrawal,
+                      vaultId: row.original.withdrawalId,
+                    });
+                  }}
+                >
+                  Expedite Withdrawal
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmCancelWithdrawal({
+                      gatewayAddress: row.original.owner,
+                      vaultId: row.original.withdrawalId,
+                    });
+                  }}
+                >
+                  Cancel Withdrawal
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowRedelegateModal({
+                      sourceGateway: row.original.gateway,
+                      onClose: () => setShowRedelegateModal(undefined),
+                      maxRedelegationStake: new mARIOToken(
+                        row.original.withdrawal.balance,
+                      ).toARIO(),
+                      vaultId: row.original.withdrawalId,
+                    });
+                  }}
+                >
+                  Redelegate
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
           </div>
         );
       },
@@ -310,27 +386,15 @@ const MyStakesTable = () => {
           />
         </div>
 
-        {tableMode == 'activeStakes' && (
-          <>
-            {hasDelegatedStake && (
-              <Button
-                buttonType={ButtonType.SECONDARY}
-                className="*:text-gradient-red h-[1.875rem]"
-                active={true}
-                title="Withdraw All"
-                text="Withdraw All"
-                onClick={() => setShowWithdrawAllModal(true)}
-              />
-            )}
-            <Button
-              buttonType={ButtonType.SECONDARY}
-              className="*:text-gradient h-[1.875rem]"
-              active={true}
-              title="QuickStake"
-              text="QuickStake"
-              onClick={() => setShowQuickStake(true)}
-            />
-          </>
+        {tableMode == 'activeStakes' && hasDelegatedStake && (
+          <Button
+            buttonType={ButtonType.SECONDARY}
+            className="*:text-gradient-red h-[1.875rem]"
+            active={true}
+            title="Withdraw All"
+            text="Withdraw All"
+            onClick={() => setShowWithdrawAllModal(true)}
+          />
         )}
       </div>
       {tableMode === 'activeStakes' ? (
@@ -370,14 +434,22 @@ const MyStakesTable = () => {
           onClose={() => setShowWithdrawAllModal(false)}
         />
       )}
-      {(stakingModalWalletAddress || showQuickStake) && (
+      {stakingModalWalletAddress && (
         <StakingModal
           open={!!stakingModalWalletAddress}
           onClose={() => {
             setStakingModalWalletAddress(undefined);
-            setShowQuickStake(false);
           }}
           ownerWallet={stakingModalWalletAddress}
+        />
+      )}
+      {withdrawalModalWalletAddress && (
+        <StakeWithdrawalModal
+          open={!!withdrawalModalWalletAddress}
+          onClose={() => {
+            setWithdrawalModalWalletAddress(undefined);
+          }}
+          ownerWallet={withdrawalModalWalletAddress}
         />
       )}
       {confirmCancelWithdrawal && (
@@ -396,6 +468,7 @@ const MyStakesTable = () => {
           onClose={() => setConfirmInstantWithdrawal(undefined)}
         />
       )}
+      {showRedelegateModal && <RedelegateModal {...showRedelegateModal} />}
     </div>
   );
 };

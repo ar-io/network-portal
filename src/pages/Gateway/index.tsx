@@ -1,8 +1,8 @@
 /* eslint-disable tailwindcss/classnames-order */
 import {
   AoUpdateGatewaySettingsParams,
-  IOToken,
-  mIOToken,
+  ARIOToken,
+  mARIOToken,
 } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
@@ -14,7 +14,7 @@ import {
 } from '@src/components/forms/formData';
 import {
   validateDomainName,
-  validateIOAmount,
+  validateARIOAmount,
   validateNumberRange,
   validateString,
   validateTransactionId,
@@ -201,7 +201,7 @@ const Gateway = () => {
       placeholder: delegatedStakingEnabled
         ? `Minimum 10 ${ticker}`
         : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateIOAmount(
+      validateProperty: validateARIOAmount(
         'Minumum Delegated Stake',
         ticker,
         10,
@@ -225,7 +225,7 @@ const Gateway = () => {
       delegateRewardShareRatio:
         (gateway.settings.delegateRewardShareRatio || 0) + '',
       minDelegatedStake:
-        new mIOToken(gateway.settings.minDelegatedStake || 0).toIO().valueOf() +
+        new mARIOToken(gateway.settings.minDelegatedStake || 0).toARIO().valueOf() +
         '',
     };
     setInitialState(initialState);
@@ -262,8 +262,8 @@ const Gateway = () => {
         label: changed.label as string,
         minDelegatedStake:
           formState.allowDelegatedStaking && changed.minDelegatedStake
-            ? new IOToken(parseFloat(changed.minDelegatedStake as string))
-                .toMIO()
+            ? new ARIOToken(parseFloat(changed.minDelegatedStake as string))
+                .toMARIO()
                 .valueOf()
             : undefined,
         note: changed.note as string,

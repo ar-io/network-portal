@@ -47,6 +47,7 @@ import StatsArrowIcon from './stats_arrow.svg?react';
 import StreakDownArrowIcon from './streak_down_arrow.svg?react';
 import StreakUpArrowIcon from './streak_up_arrow.svg?react';
 import SuccessCheck from './success_check.svg?react';
+import ThreeDotsIcon from './three_dots_icon.svg?react';
 import TimerIcon from './timer.svg?react';
 import ToastCloseIcon from './toast_close.svg?react';
 import WalletIcon from './wallet.svg?react';
@@ -102,6 +103,7 @@ export {
   StreakDownArrowIcon,
   StreakUpArrowIcon,
   SuccessCheck,
+  ThreeDotsIcon,
   TimerIcon,
   ToastCloseIcon,
   WalletIcon,

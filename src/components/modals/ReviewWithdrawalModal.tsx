@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, IOToken } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, ARIOToken } from '@ar.io/sdk/web';
 import { log, WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { WithdrawalType } from '@src/types';
@@ -69,7 +69,7 @@ const ReviewWithdrawalModal = ({
         if (gateway.gatewayAddress === walletAddress.toString()) {
           const { id: txID } = await arIOWriteableSDK.decreaseOperatorStake(
             {
-              decreaseQty: new IOToken(amountToWithdraw).toMIO(),
+              decreaseQty: new ARIOToken(amountToWithdraw).toMARIO(),
               instant,
             },
             WRITE_OPTIONS,
@@ -81,7 +81,7 @@ const ReviewWithdrawalModal = ({
           const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
             {
               target: gateway.gatewayAddress,
-              decreaseQty: new IOToken(amountToWithdraw).toMIO(),
+              decreaseQty: new ARIOToken(amountToWithdraw).toMARIO(),
               instant,
             },
             WRITE_OPTIONS,

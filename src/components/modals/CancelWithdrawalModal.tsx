@@ -102,7 +102,7 @@ const CancelWithdrawalModal = ({
               <Button
                 onClick={processCancelWithdrawal}
                 buttonType={ButtonType.PRIMARY}
-                title="Leave Network"
+                title="Cancel Withdrawal"
                 text={<div className="py-2">Cancel Withdrawal</div>}
                 className={`w-full ${!termsAccepted && 'pointer-events-none opacity-30'}`}
               />

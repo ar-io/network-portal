@@ -1,34 +1,51 @@
 import { AoGatewayWithAddress, ARIOToken } from '@ar.io/sdk/web';
-import { log, WRITE_OPTIONS } from '@src/constants';
+import {
+  log,
+  REDELEGATION_FEE_TOOLTIP_TEXT,
+  WRITE_OPTIONS,
+} from '@src/constants';
+import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatWithCommas } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { InfoIcon } from 'lucide-react';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import { LinkArrowIcon } from '../icons';
 import LabelValueRow from '../LabelValueRow';
+import Tooltip from '../Tooltip';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
 import WithdrawWarning from './WithdrawWarning';
 
-const ReviewStakeModal = ({
-  gateway,
-  amountToStake,
+type ReviewRedelegateModalProps = {
+  sourceGateway: AoGatewayWithAddress;
+  targetGateway: AoGatewayWithAddress;
+  amountToRedelegate: ARIOToken;
+  fee: number;
+  newTotalStake: number;
+  walletAddress: ArweaveTransactionID;
+  vaultId?: string;
+  onClose: () => void;
+  onSuccess: () => void;
+  ticker: string;
+};
+
+const ReviewRedelegateModal = ({
+  sourceGateway,
+  targetGateway,
+  amountToRedelegate,
+  vaultId,
+  fee,
+  newTotalStake,
   onSuccess,
   onClose,
   walletAddress,
   ticker,
-}: {
-  gateway: AoGatewayWithAddress;
-  amountToStake: number;
-  walletAddress: ArweaveTransactionID;
-  onClose: () => void;
-  onSuccess: () => void;
-  ticker: string;
-}) => {
+}: ReviewRedelegateModalProps) => {
   const queryClient = useQueryClient();
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
@@ -38,35 +55,28 @@ const ReviewStakeModal = ({
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const { data: redelegationFee } = useRedelegationFee();
+
+  const totalRedelegatedStake = amountToRedelegate.valueOf() - fee;
+
   const submitForm = async () => {
     if (arIOWriteableSDK) {
       setShowBlockingMessageModal(true);
 
       try {
-        if(gateway.gatewayAddress === walletAddress.toString()) {
-        const { id: txID } = await arIOWriteableSDK.increaseOperatorStake(
+        const { id: txID } = await arIOWriteableSDK.redelegateStake(
           {
-            increaseQty: new ARIOToken(amountToStake).toMARIO(),
+            source: sourceGateway.gatewayAddress,
+            target: targetGateway.gatewayAddress,
+            stakeQty: amountToRedelegate.toMARIO(),
+            vaultId,
           },
           WRITE_OPTIONS,
         );
+
         setTxid(txID);
 
-        log.info(`Increase Operator Stake txID: ${txID}`);
-
-        } else {
-        const { id: txID } = await arIOWriteableSDK.delegateStake(
-          {
-            target: gateway.gatewayAddress,
-            stakeQty: new ARIOToken(amountToStake).toMARIO(),
-          },
-          WRITE_OPTIONS,
-        );
-        setTxid(txID);
-
-        log.info(`Increase Delegate Stake txID: ${txID}`);
-
-        }
+        log.info(`Redelegate Stake txID: ${txID}`);
 
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
@@ -111,24 +121,72 @@ const ReviewStakeModal = ({
           </div>
           <div className="flex flex-col gap-2 p-8">
             <LabelValueRow
-              label="Gateway Owner:"
-              value={formatAddress(gateway.gatewayAddress)}
+              label="Source Gateway Owner:"
+              value={formatAddress(sourceGateway.gatewayAddress)}
             />
 
             <LabelValueRow
               label="Label:"
-              value={gateway ? gateway.settings.label : '-'}
+              value={sourceGateway.settings.label}
             />
 
             <LabelValueRow
               label="Domain:"
               isLink={true}
-              value={gateway ? gateway.settings.fqdn : '-'}
+              value={sourceGateway.settings.fqdn}
+            />
+
+            <div className="h-6"></div>
+
+            <LabelValueRow
+              label="Target Gateway Owner:"
+              value={formatAddress(targetGateway.gatewayAddress)}
             />
 
             <LabelValueRow
+              label="Label:"
+              value={targetGateway.settings.label}
+            />
+
+            <LabelValueRow
+              label="Domain:"
+              isLink={true}
+              value={targetGateway.settings.fqdn}
+            />
+
+            <div className="h-6"></div>
+
+            <LabelValueRow
               label="Amount:"
-              value={`${formatWithCommas(amountToStake)} ${ticker}`}
+              value={`${formatWithCommas(amountToRedelegate.valueOf())} ${ticker}`}
+            />
+
+            {fee > 0 && (
+              <LabelValueRow
+                label="Fee:"
+                value={`${fee > 0 && fee} ${redelegationFee ? `(-${redelegationFee.redelegationFeeRate}%)` : ''} ${ticker}`}
+                rightIcon={
+                  <Tooltip
+                    message={
+                      <div>
+                        <p>{REDELEGATION_FEE_TOOLTIP_TEXT}</p>
+                      </div>
+                    }
+                  >
+                    <InfoIcon className="size-[1.125rem]" />
+                  </Tooltip>
+                }
+              />
+            )}
+
+            <LabelValueRow
+              label="Total Redelegated Stake:"
+              value={`${formatWithCommas(totalRedelegatedStake)} ${ticker}`}
+            />
+
+            <LabelValueRow
+              label="New Total Stake:"
+              value={`${formatWithCommas(newTotalStake)} ${ticker}`}
             />
           </div>
 
@@ -141,8 +199,8 @@ const ReviewStakeModal = ({
               className="h-[3.25rem] w-full"
               onClick={submitForm}
               buttonType={ButtonType.PRIMARY}
-              title={`Stake ${ticker}`}
-              text={`Stake ${ticker}`}
+              title={`Redelegate ${ticker}`}
+              text={`Redelegate ${ticker}`}
             />
             <div>
               <button className="h-[3.25rem] p-4 text-sm" onClick={onClose}>
@@ -169,7 +227,7 @@ const ReviewStakeModal = ({
           title="Congratulations"
           bodyText={
             <div className="mb-8 text-sm text-mid">
-              <div>You have successfully updated your stake.</div>
+              <div>You have successfully redelegated your stake.</div>
               <div className="my-2 flex flex-col justify-center gap-2">
                 <div>Transaction ID:</div>
                 <button
@@ -191,4 +249,4 @@ const ReviewStakeModal = ({
   );
 };
 
-export default ReviewStakeModal;
+export default ReviewRedelegateModal;

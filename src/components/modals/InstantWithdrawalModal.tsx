@@ -1,4 +1,4 @@
-import { AoGateway, AoVaultData, mIOToken } from '@ar.io/sdk/web';
+import { AoGateway, AoVaultData, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatDateTime, formatWithCommas } from '@src/utils';
@@ -54,8 +54,8 @@ const InstantWithdrawalModal = ({
 
     setCalculatedFeeAndAmountReturning({
       penaltyRate,
-      fee: new mIOToken(fee).toIO().valueOf(),
-      amountReturning: new mIOToken(amountReturning).toIO().valueOf(),
+      fee: new mARIOToken(fee).toARIO().valueOf(),
+      amountReturning: new mARIOToken(amountReturning).toARIO().valueOf(),
     });
   }, [setCalculatedFeeAndAmountReturning, vault]);
 
@@ -149,7 +149,7 @@ const InstantWithdrawalModal = ({
           <div className="mt-4 flex flex-col gap-1 px-8 pb-4">
             <LabelValueRow
               label="Stake Withdrawing:"
-              value={`${formatWithCommas(new mIOToken(vault.balance).toIO().valueOf())} ${ticker}`}
+              value={`${formatWithCommas(new mARIOToken(vault.balance).toARIO().valueOf())} ${ticker}`}
             />
 
             <LabelValueRow
@@ -203,7 +203,7 @@ const InstantWithdrawalModal = ({
               <Button
                 onClick={processInstantWithdrawal}
                 buttonType={ButtonType.PRIMARY}
-                title="Leave Network"
+                title="Withdraw"
                 text={<div className="py-2">Withdraw</div>}
                 className={`w-full ${!termsAccepted && 'pointer-events-none opacity-30'}`}
               />

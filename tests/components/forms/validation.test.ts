@@ -1,6 +1,6 @@
 import {
   validateDomainName,
-  validateIOAmount,
+  validateARIOAmount,
   validateNumberRange,
   validateString,
   validateTransactionId,
@@ -97,7 +97,7 @@ describe('Form Validation Functions', () => {
   });
 
   describe('validateIOAmount', () => {
-    const validator = validateIOAmount('tIO Amount', 'tIO', 10, 100);
+    const validator = validateARIOAmount('tIO Amount', 'tIO', 10, 100);
 
     it('should fail for empty string', () => {
       expect(validator('')).toEqual(

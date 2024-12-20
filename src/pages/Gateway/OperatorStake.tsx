@@ -1,9 +1,12 @@
-import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
-import Button, { ButtonType } from '@src/components/Button';
+import { AoGatewayWithAddress, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { ThreeDotsIcon } from '@src/components/icons';
 import OperatorStakingModal from '@src/components/modals/OperatorStakingModal';
+import OperatorWithdrawalModal from '@src/components/modals/OperatorWithdrawalModal';
+import RedelegateModal, { RedelegateModalProps } from '@src/components/modals/RedelegateModal';
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
-import { EAY_TOOLTIP_TEXT, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
+import { EAY_TOOLTIP_TEXT, GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -23,7 +26,12 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
   const { data: protocolBalance } = useProtocolBalance();
   const { data: gateways } = useGateways();
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] =
+    useState<boolean>(false);
   const [eay, setEAY] = useState<number>();
+
+  const [showRedelegateModal, setShowRedelegateModal] =
+    useState<RedelegateModalProps>();
 
   useEffect(() => {
     if (gateways && gateway && protocolBalance) {
@@ -46,14 +54,59 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
 
         {gateway?.gatewayAddress === walletAddress &&
           gateway?.status != 'leaving' && (
-            <Button
-              buttonType={ButtonType.SECONDARY}
-              className="*:text-gradient h-[1.875rem]"
-              active={true}
-              title="Manage Stake"
-              text="Manage Stake"
-              onClick={() => setIsStakingModalOpen(true)}
-            />
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger
+                asChild
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end p-px">
+                  <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
+                    <ThreeDotsIcon className="size-4" />
+                  </div>
+                </div>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsStakingModalOpen(true);
+                  }}
+                >
+                  Add Stake
+                </DropdownMenu.Item>
+
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsWithdrawalModalOpen(true);
+                  }}
+                >
+                  Withdraw Stake
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (gateway) {
+                      setShowRedelegateModal({
+                        sourceGateway: gateway,
+                        onClose: () => setShowRedelegateModal(undefined),
+                        maxRedelegationStake: new mARIOToken(
+                          gateway.operatorStake -
+                            new ARIOToken(GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO)
+                              .toMARIO()
+                              .valueOf(),
+                        ).toARIO(),
+                      });
+                    }
+                  }}
+                >
+                  Redelegate
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Root>
           )}
       </div>
       <div className="flex items-center gap-2 p-6">
@@ -98,6 +151,14 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
           gateway={gateway}
         />
       )}
+      {isWithdrawalModalOpen && gateway && (
+        <OperatorWithdrawalModal
+          open={isWithdrawalModalOpen}
+          onClose={() => setIsWithdrawalModalOpen(false)}
+          gateway={gateway}
+        />
+      )}
+      {showRedelegateModal && <RedelegateModal {...showRedelegateModal} />}
     </div>
   );
 };

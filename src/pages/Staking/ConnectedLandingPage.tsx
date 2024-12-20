@@ -1,6 +1,5 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
-import StakingModal from '@src/components/modals/StakingModal';
 import useBalances from '@src/hooks/useBalances';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useRewardsEarned from '@src/hooks/useRewardsEarned';
@@ -71,8 +70,6 @@ const ConnectedLandingPage = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const [amountStaking, setAmountStaking] = useState<number>();
 
-  const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
-
   const { data: balances } = useBalances(walletAddress);
   const rewardsEarned = useRewardsEarned(walletAddress?.toString());
 
@@ -138,12 +135,6 @@ const ConnectedLandingPage = () => {
       </div>
       <MyStakesTable />
       <DelegateStake />
-      {isStakingModalOpen && (
-        <StakingModal
-          open={isStakingModalOpen}
-          onClose={() => setIsStakingModalOpen(false)}
-        />
-      )}
     </div>
   );
 };

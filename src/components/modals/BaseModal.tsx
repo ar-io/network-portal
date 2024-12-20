@@ -7,14 +7,20 @@ const BaseModal = ({
   children,
   showCloseButton = true,
   useDefaultPadding = true,
+  closeOnClickOutside = false,
 }: {
   onClose: () => void;
   children: ReactElement;
   showCloseButton?: boolean;
   useDefaultPadding?: boolean;
+  closeOnClickOutside?: boolean;
 }) => {
   return (
-    <Dialog open={true} onClose={() => {}} className="relative z-10">
+    <Dialog
+      open={true}
+      onClose={closeOnClickOutside ? onClose : () => {}}
+      className="relative z-10"
+    >
       <div
         className="fixed inset-0 w-screen bg-neutrals-1100/80"
         aria-hidden="true"

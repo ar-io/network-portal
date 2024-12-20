@@ -20,8 +20,7 @@ export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARIO_PROCESS_ID = new ArweaveTransactionID(
   process.env.VITE_ARIO_PROCESS_ID ?? arioDevnetProcessId,
 );
-export const AO_CU_URL =
-  process.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';
+export const AO_CU_URL = process.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';
 
 export const IO_PROCESS_INFO_URL = `https://www.ao.link/#/entity/${ARIO_PROCESS_ID.toString()}`;
 
@@ -62,3 +61,8 @@ export const OPERATOR_EAY_TOOLTIP_FORMULA =
 export const NAME_PASS_THRESHOLD = 0.8;
 export const REFERENCE_GATEWAY_FQDN =
   process.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'arweave.net';
+
+export const GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO = 10000;
+
+export const REDELEGATION_FEE_TOOLTIP_TEXT =
+  'Redelegation fees are assessed at 10% per redelegation performed since the last fee reset, up to 60%. Fees are reset when no redelegations are performed in the last 7 days.';

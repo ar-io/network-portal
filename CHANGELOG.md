@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* Signing with ArConnect now uses signDataItem API, providing a more informed signing experience.
+- Signing with ArConnect now uses signDataItem API, providing a more informed signing experience.
+
+### Fixed
+
+- Fixed height sizing issue of view port when network congestion banner is shown
 
 ## [1.7.0] - 2024-12-20
 

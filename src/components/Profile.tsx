@@ -21,17 +21,18 @@ import {
   WalletIcon,
 } from './icons';
 import ConnectModal from './modals/ConnectModal';
+import useLogo from '@src/hooks/useLogo';
 
 // eslint-disable-next-line react/display-name
 const CustomPopoverButton = forwardRef<
   HTMLButtonElement,
-  { children?: ReactElement }
+  { children?: ReactElement; logo?: string }
 >((props, ref) => {
   return (
     <Button
       forwardRef={ref}
       buttonType={ButtonType.PRIMARY}
-      icon={<ConnectIcon className="size-4" />}
+      icon={props.logo ? <img src={`https://arweave.net/${props.logo}`} alt="Logo" className="size-4" /> : <ConnectIcon className="size-4" />}
       title="Profile"
       text={props.children}
       {...props}
@@ -51,10 +52,11 @@ const Profile = () => {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { data: primaryName } = usePrimaryName(walletAddress?.toString());
+  const { data: logo } = useLogo({ primaryName: primaryName?.name });
 
   return walletAddress ? (
     <Popover className="relative">
-      <PopoverButton as={CustomPopoverButton}>
+      <PopoverButton as={CustomPopoverButton} logo={logo}>
         {primaryName
           ? formatPrimaryName(primaryName.name)
           : formatWalletAddress(walletAddress.toString())}

@@ -1,7 +1,7 @@
 import { AoGateway } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
-import { HeaderSeparatorIcon, ReportsIcon } from '@src/components/icons';
+import { ChevronRightIcon, NotebookText } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 const ReportsHeader = ({ gateway }: { gateway?: AoGateway }) => {
@@ -15,7 +15,7 @@ const ReportsHeader = ({ gateway }: { gateway?: AoGateway }) => {
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <HeaderSeparatorIcon className="size-4"/>
+        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
         {gateway ? (
           <Link className="text-mid" to={`/gateways/${ownerId}`}>
             {gateway.settings.label}
@@ -23,7 +23,7 @@ const ReportsHeader = ({ gateway }: { gateway?: AoGateway }) => {
         ) : (
           <Placeholder />
         )}
-        <HeaderSeparatorIcon className="size-4"/>
+        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
         <div>Reports</div>
         <div className="grow" />
         <div className="items-center">
@@ -31,7 +31,7 @@ const ReportsHeader = ({ gateway }: { gateway?: AoGateway }) => {
         </div>
       </div>
       <div className="flex items-center gap-3 rounded-b-xl bg-grey-900 py-5 pl-6">
-        <ReportsIcon className="size-4" />
+        <NotebookText className="size-4 text-mid" strokeWidth={1.5} />
         {gateway ? (
           <div className="text-high">{gateway.settings.label}</div>
         ) : (

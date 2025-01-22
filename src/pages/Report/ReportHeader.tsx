@@ -2,15 +2,11 @@ import { AoGateway } from '@ar.io/sdk/web';
 import Button from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
-import {
-  DownloadIcon,
-  HeaderSeparatorIcon,
-  ReportsIcon,
-} from '@src/components/icons';
 import { downloadReport } from '@src/hooks/useReport';
 import { ReportData } from '@src/types';
 import { formatDateTime } from '@src/utils';
 import { saveAs } from 'file-saver';
+import { ChevronRightIcon, Download, NotebookText } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 const ReportHeader = ({
@@ -31,7 +27,7 @@ const ReportHeader = ({
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <HeaderSeparatorIcon className="size-4" />
+        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
         {gateway ? (
           <Link className="text-mid" to={`/gateways/${ownerId}`}>
             {gateway.settings.label}
@@ -39,11 +35,11 @@ const ReportHeader = ({
         ) : (
           <Placeholder />
         )}
-        <HeaderSeparatorIcon className="size-4" />
+        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
         <Link className="text-mid" to={`/gateways/${ownerId}/reports`}>
           Reports
         </Link>
-        <HeaderSeparatorIcon className="size-4" />
+        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
         {reportId ? <div>{reportId}</div> : <Placeholder />}
         <div className="grow" />
         <div className="items-center">
@@ -51,7 +47,7 @@ const ReportHeader = ({
         </div>
       </div>
       <div className="relative flex items-center gap-3 border border-grey-500 bg-grey-900 px-6 py-5">
-        <ReportsIcon className="size-4" />
+        <NotebookText className="size-4 text-mid" strokeWidth={1.5} />
         {reportId ? (
           <div className="text-high">{reportId}</div>
         ) : (
@@ -62,7 +58,7 @@ const ReportHeader = ({
           <Button
             className="absolute right-6"
             title={'Download Report'}
-            icon={<DownloadIcon className="size-4" />}
+            icon={<Download className="size-4" strokeWidth={2}/>}
             active={true}
             onClick={async () => {
               if (reportId && reportData) {

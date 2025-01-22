@@ -1,6 +1,5 @@
 import { AoGateway } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
-import { DownloadIcon } from '@src/components/icons';
 import TableView from '@src/components/TableView';
 import { downloadReport } from '@src/hooks/useReport';
 import useReports, { ReportTransactionData } from '@src/hooks/useReports';
@@ -8,6 +7,7 @@ import { formatDateTime } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { saveAs } from 'file-saver';
+import { Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const columnHelper = createColumnHelper<ReportTransactionData>();
@@ -67,7 +67,7 @@ const ReportsTable = ({
               buttonType={ButtonType.SECONDARY}
               active={true}
               title="Download Report"
-              text={<DownloadIcon className="size-4" />}
+              text={<Download className="size-4" strokeWidth={2}/>}
               onClick={async (e) => {
                 e.stopPropagation();
                 const txid = row.original.txid;

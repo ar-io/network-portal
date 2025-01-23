@@ -20,7 +20,7 @@
     "deploy": "yarn build && permaweb-deploy --ant-process ${DEPLOY_ANT_PROCESS_ID}"
   },
   "dependencies": {
-    "@ar.io/sdk": "3.3.0-alpha.11",
+    "@ar.io/sdk": "^3.3.0-alpha.12",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^2.2.0",
     "@radix-ui/react-dropdown-menu": "^2.1.2",

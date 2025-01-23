@@ -7,7 +7,7 @@ import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
   return (
-    <div className="flex h-screen flex-col overflow-y-auto pr-6 scrollbar">
+    <div className="flex flex-col">
       <Header />
       <div className="flex w-full gap-6 py-6">
         <div className="flex flex-col gap-6">

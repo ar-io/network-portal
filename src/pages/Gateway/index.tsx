@@ -306,7 +306,7 @@ const Gateway = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-y-auto pr-6 scrollbar gap-6">
+    <div className="flex flex-col pb-6 gap-6">
       <div className="min-w-[68rem]">
         <GatewayHeader gateway={gateway} />
       </div>

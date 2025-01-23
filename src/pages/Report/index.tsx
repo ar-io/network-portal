@@ -16,7 +16,7 @@ const Report = () => {
   const { isLoading, data:reportData } = useReport(reportId);
 
   return (
-    <div className="flex h-screen max-w-full flex-col gap-6 overflow-auto pr-6 scrollbar">
+    <div className="flex max-w-full flex-col gap-6 overflow-auto">
       <ReportHeader gateway={gateway} reportData={reportData} />
       {isLoading || !reportData ? undefined : reportData ? (
         <GatewayAssessmentsTable gateway={gateway} reportData={reportData} />

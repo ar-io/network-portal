@@ -4,7 +4,7 @@ import ObserversTable from './ObserversTable';
 
 const Observers = () => {
   return (
-    <div className="flex h-screen max-w-full flex-col gap-6 overflow-auto pb-6 pr-6 scrollbar">
+    <div className="flex max-w-full flex-col gap-6 overflow-auto pb-6">
       <Header />
       <Banner />
       <ObserversTable />

@@ -70,7 +70,7 @@ const Sidebar = () => {
     localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
 
-  const sideBarClasses = `flex h-screen w-fit flex-col p-6
+  const sideBarClasses = `flex h-full w-fit flex-col p-6
   dark:bg-grey-1000 dark:text-mid`;
 
   return (

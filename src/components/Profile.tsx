@@ -32,7 +32,7 @@ const CustomPopoverButton = forwardRef<
     <Button
       forwardRef={ref}
       buttonType={ButtonType.PRIMARY}
-      icon={props.logo ? <img src={`https://arweave.net/${props.logo}`} alt="Logo" className="size-4" /> : <ConnectIcon className="size-4" />}
+      icon={props.logo ? <div className="size-4 overflow-hidden"><img src={`https://arweave.net/${props.logo}`} alt="Logo" className="size-4" /></div> : <ConnectIcon className="size-4" />}
       title="Profile"
       text={props.children}
       {...props}

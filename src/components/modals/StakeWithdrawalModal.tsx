@@ -11,9 +11,9 @@ import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import { validateWithdrawAmount } from '../forms/validation';
-import { CircleCheckIcon, CircleIcon } from '../icons';
 import BaseModal from './BaseModal';
 import ReviewWithdrawalModal from './ReviewWithdrawalModal';
+import { Circle, CircleCheck } from 'lucide-react';
 
 const StakeWithdrawalModal = ({
   onClose,
@@ -64,10 +64,10 @@ const StakeWithdrawalModal = ({
   const returningAmount = isNaN(parseFloat(amountToWithdraw))
     ? '-'
     : +(
-        isNaN(withdrawalFee)
-          ? parseFloat(amountToWithdraw)
-          : parseFloat(amountToWithdraw) - withdrawalFee
-      ).toFixed(4);
+      isNaN(withdrawalFee)
+        ? parseFloat(amountToWithdraw)
+        : parseFloat(amountToWithdraw) - withdrawalFee
+    ).toFixed(4);
 
   const validators = {
     withdrawAmount: validateWithdrawAmount(
@@ -186,8 +186,8 @@ const StakeWithdrawalModal = ({
               >
                 <div className="m-px flex size-full flex-col gap-1 rounded  bg-containerL3 px-4 py-2">
                   <div className="flex items-center gap-2">
-                    <CircleIcon className="visible size-4 group-data-[checked]:hidden" />
-                    <CircleCheckIcon className="hidden size-4 group-data-[checked]:block" />
+                    <Circle className="visible size-4 group-data-[checked]:hidden" />
+                    <CircleCheck className="hidden size-4 group-data-[checked]:block" />
                     <Label>Standard Withdrawal</Label>
                   </div>
                   <p className="pl-6 text-left text-xs text-mid">
@@ -203,8 +203,8 @@ const StakeWithdrawalModal = ({
               >
                 <div className="m-px flex size-full flex-col gap-1 rounded  bg-containerL3 px-4 py-2">
                   <div className="flex items-center gap-2">
-                    <CircleIcon className="visible size-4 group-data-[checked]:hidden" />
-                    <CircleCheckIcon className="hidden size-4 group-data-[checked]:block" />
+                    <Circle className="visible size-4 group-data-[checked]:hidden" />
+                    <CircleCheck className="hidden size-4 group-data-[checked]:block" />
                     <Label>Expedited Withdrawal</Label>
                   </div>
                   <p className="pl-6 text-left text-xs text-mid">
@@ -234,13 +234,12 @@ const StakeWithdrawalModal = ({
           <div className="flex flex-col gap-2">
             <LabelValueRow
               label="New Total Stake:"
-              value={`${
-                isFormValid()
+              value={`${isFormValid()
                   ? formatWithCommas(
-                      currentStake - parseFloat(amountToWithdraw),
-                    )
+                    currentStake - parseFloat(amountToWithdraw),
+                  )
                   : '-'
-              } ${ticker}`}
+                } ${ticker}`}
             />
           </div>
           <div

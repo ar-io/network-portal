@@ -19,9 +19,9 @@ import {
   ConnectIcon,
   LinkArrowIcon,
   LogoutIcon,
-  WalletIcon,
 } from './icons';
 import ConnectModal from './modals/ConnectModal';
+import { WalletMinimal } from 'lucide-react';
 
 // eslint-disable-next-line react/display-name
 const CustomPopoverButton = forwardRef<
@@ -72,7 +72,7 @@ const Profile = () => {
 
       <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">
         <div className="flex gap-2 px-4 py-5 ">
-          <WalletIcon className="size-4" />
+          <WalletMinimal className="size-4" />
 
           <div className="flex gap-2 align-middle text-mid">
             <a

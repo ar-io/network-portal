@@ -9,9 +9,9 @@ import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import { validateOperatorWithdrawAmount } from '../forms/validation';
-import { CircleCheckIcon, CircleIcon } from '../icons';
 import BaseModal from './BaseModal';
 import ReviewWithdrawalModal from './ReviewWithdrawalModal';
+import { Circle, CircleCheck } from 'lucide-react';
 
 const OperatorStakingModal = ({
   onClose,
@@ -174,8 +174,8 @@ const OperatorStakingModal = ({
               >
                 <div className="m-px flex size-full flex-col gap-1 rounded  bg-containerL3 px-4 py-2">
                   <div className="flex items-center gap-2">
-                    <CircleIcon className="visible size-4 group-data-[checked]:hidden" />
-                    <CircleCheckIcon className="hidden size-4 group-data-[checked]:block" />
+                    <Circle className="visible size-4 group-data-[checked]:hidden" />
+                    <CircleCheck className="hidden size-4 group-data-[checked]:block" />
                     <Label>Standard Withdrawal</Label>
                   </div>
                   <p className="pl-6 text-left text-xs text-mid">
@@ -191,8 +191,8 @@ const OperatorStakingModal = ({
               >
                 <div className="m-px flex size-full flex-col gap-1 rounded  bg-containerL3 px-4 py-2">
                   <div className="flex items-center gap-2">
-                    <CircleIcon className="visible size-4 group-data-[checked]:hidden" />
-                    <CircleCheckIcon className="hidden size-4 group-data-[checked]:block" />
+                    <Circle className="visible size-4 group-data-[checked]:hidden" />
+                    <CircleCheck className="hidden size-4 group-data-[checked]:block" />
                     <Label>Expedited Withdrawal</Label>
                   </div>
                   <p className="pl-6 text-left text-xs text-mid">

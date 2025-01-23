@@ -1,4 +1,4 @@
-import { AO_CU_URL, log } from '@src/constants';
+import { AO_CU_URL, ARIO_PROCESS_ID, log } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { useGlobalState } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
@@ -66,7 +66,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
 
     const checkAoCongestion = () => {
       const startTime = Date.now();
-      fetch(AO_CU_URL, { method: 'HEAD' })
+      fetch(`${AO_CU_URL}/state/${ARIO_PROCESS_ID}`, { method: 'HEAD' })
         .then((res) => {
           const endTime = Date.now();
           if (!res.ok) {

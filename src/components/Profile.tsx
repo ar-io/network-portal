@@ -1,6 +1,7 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import useBalances from '@src/hooks/useBalances';
+import useLogo from '@src/hooks/useLogo';
 import usePrimaryName from '@src/hooks/usePrimaryName';
 import { useGlobalState } from '@src/store';
 import {
@@ -25,13 +26,21 @@ import ConnectModal from './modals/ConnectModal';
 // eslint-disable-next-line react/display-name
 const CustomPopoverButton = forwardRef<
   HTMLButtonElement,
-  { children?: ReactElement }
+  { children?: ReactElement; logo?: HTMLImageElement }
 >((props, ref) => {
   return (
     <Button
       forwardRef={ref}
       buttonType={ButtonType.PRIMARY}
-      icon={<ConnectIcon className="size-4" />}
+      icon={
+        props.logo ? (
+          <div className="size-4 overflow-hidden">
+            <img src={props.logo.src} alt="Profile" className="size-4" />
+          </div>
+        ) : (
+          <ConnectIcon className="size-4" />
+        )
+      }
       title="Profile"
       text={props.children}
       {...props}
@@ -51,10 +60,11 @@ const Profile = () => {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { data: primaryName } = usePrimaryName(walletAddress?.toString());
+  const { data: logo } = useLogo({ primaryName: primaryName?.name });
 
   return walletAddress ? (
     <Popover className="relative">
-      <PopoverButton as={CustomPopoverButton}>
+      <PopoverButton as={CustomPopoverButton} logo={logo}>
         {primaryName
           ? formatPrimaryName(primaryName.name)
           : formatWalletAddress(walletAddress.toString())}

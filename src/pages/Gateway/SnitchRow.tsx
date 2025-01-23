@@ -34,7 +34,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
         const entries = observers.map<ReportedOnByEntry>((observerId) => {
           return {
             observerId,
-            reportId: selectedEpoch.observations.reports[observerId],
+            reportId: selectedEpoch?.observations.reports[observerId],
           };
         });
         setFailureObservers(entries);

@@ -21,7 +21,16 @@ const useLogo = ({ primaryName }: { primaryName?: string }) => {
         processId: record.processId,
       });
 
-      return await antProcess.getLogo();
+      const logoTxId = await antProcess.getLogo();
+
+      const imgSrc = `https://arweave.net/${logoTxId}`;
+
+      return new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = imgSrc;
+      });
     },
     enabled: !!primaryName && !!arIOReadSDK,
   });

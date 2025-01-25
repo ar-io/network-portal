@@ -28,7 +28,7 @@ const useDelegateStakes = (address?: string) => {
         const pageResult = await arIOReadSDK.getDelegations({
           address,
           cursor,
-          limit: 10,
+          limit: 100,
         });
 
         pageResult.items.forEach((d) => {

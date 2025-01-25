@@ -20,7 +20,7 @@ const useGatewayDelegateStakes = (address?: string) => {
         const pageResult = await arIOReadSDK.getGatewayDelegates({
           address,
           cursor,
-          limit: 10,
+          limit: 100,
         });
 
         results = results.concat(pageResult.items);

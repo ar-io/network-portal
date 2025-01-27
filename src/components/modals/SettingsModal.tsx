@@ -5,6 +5,7 @@ import {
 import { AO_CU_URL } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
+import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
@@ -45,6 +46,16 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   Testnet
                 </button>
               </div>
+            </div>
+            <div className="my-4 text-center text-sm text-mid">
+              <a
+                href={`https://www.ao.link/#/entity/${arioProcessId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center"
+              >
+                {arioProcessId} <LinkArrowIcon className="size-4" />
+              </a>
             </div>
           </div>
 

@@ -8,7 +8,7 @@ import {
 } from '@src/components/icons';
 import { log } from '@src/constants';
 import usePrescribedNames from '@src/hooks/usePrescribedNames';
-import db from '@src/store/db';
+import { useGlobalState } from '@src/store';
 import { Assessment } from '@src/types';
 import { performAssessment } from '@src/utils/observations';
 import { ChevronRightIcon } from 'lucide-react';
@@ -33,6 +33,7 @@ const ObserveHeader = ({
 }) => {
   const params = useParams();
   const ownerId = params?.ownerId;
+  const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
 
   const [runningObservation, setRunningObservation] = useState(false);
 
@@ -60,7 +61,7 @@ const ObserveHeader = ({
 
     setSelectedAssessment(assessment);
 
-    await db.observations.add({
+    await networkPortalDB.observations.add({
       gatewayAddress: ownerId!,
       timestamp: Date.now(),
       assessment,

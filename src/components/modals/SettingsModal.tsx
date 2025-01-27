@@ -1,0 +1,91 @@
+import {
+  ARIO_DEVNET_PROCESS_ID,
+  ARIO_TESTNET_PROCESS_ID,
+} from '@ar.io/sdk/web';
+import { AO_CU_URL } from '@src/constants';
+import { useGlobalState } from '@src/store';
+import { useState } from 'react';
+import BaseModal from './BaseModal';
+
+const SettingsModal = ({ onClose }: { onClose: () => void }) => {
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
+  const setArioProcessId = useGlobalState((state) => state.setArioProcessId);
+  const isDevnet = arioProcessId == ARIO_DEVNET_PROCESS_ID;
+  const aoCuUrl = useGlobalState((state) => state.aoCuUrl);
+  const setAoCuUrl = useGlobalState((state) => state.setAoCuUrl);
+
+  const [localCuUrl, setLocalCuUrl] = useState(aoCuUrl);
+
+  return (
+    <BaseModal onClose={onClose} useDefaultPadding={false}>
+      <div className="h-[32rem] w-[28.4375rem] text-left">
+        <div className="flex w-full flex-col px-8 pb-4 pt-6">
+          <div className="text-lg text-high">Settings</div>
+
+          <div className="my-2 grow overflow-y-auto text-sm text-mid scrollbar">
+            <div className="flex items-center">
+              <div className="grow">AR.IO Process</div>
+              <div className="grid grid-cols-2">
+                <button
+                  className={`rounded-l border border-grey-500 px-4 py-2 ${isDevnet ? 'bg-streak-up text-containerL0' : undefined}`}
+                  disabled={isDevnet}
+                  onClick={() => {
+                    setArioProcessId(ARIO_DEVNET_PROCESS_ID);
+                  }}
+                >
+                  Devnet
+                </button>
+                <button
+                  className={`rounded-r border border-grey-500 px-4 py-2 ${!isDevnet ? 'bg-streak-up text-containerL0' : undefined}`}
+                  disabled={!isDevnet}
+                  onClick={() => {
+                    setArioProcessId(ARIO_TESTNET_PROCESS_ID);
+                  }}
+                >
+                  Testnet
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="my-8 flex grow flex-col gap-2 overflow-y-auto text-sm text-mid scrollbar">
+            <div className="flex items-center">
+              <div className="grow">AO CU URL</div>
+
+              <button
+                className={`rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0`}
+                onClick={() => {
+                  setLocalCuUrl(AO_CU_URL);
+                }}
+              >
+                Reset to Default
+              </button>
+            </div>
+            <div className="flex items-center">
+              <input
+                className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
+                value={localCuUrl}
+                onChange={(e) => {
+                  setLocalCuUrl(e.target.value);
+                }}
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                className={`rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low`}
+                onClick={() => {
+                  setAoCuUrl(localCuUrl);
+                }}
+                disabled={localCuUrl === aoCuUrl}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </BaseModal>
+  );
+};
+
+export default SettingsModal;

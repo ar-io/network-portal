@@ -1,6 +1,6 @@
 import Bubble from '@src/components/Bubble';
 import TableView from '@src/components/TableView';
-import { db } from '@src/store/db';
+import { useGlobalState } from '@src/store';
 import { Assessment } from '@src/types';
 import { formatDateTime } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
@@ -27,8 +27,9 @@ const ObservationsTable = ({
     React.SetStateAction<Assessment | undefined>
   >;
 }) => {
+  const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
   const observations = useLiveQuery(async () => {
-    return db.observations
+    return networkPortalDB.observations
       .where('gatewayAddress')
       .equals(gatewayAddress)
       .toArray();

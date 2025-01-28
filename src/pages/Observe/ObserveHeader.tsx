@@ -5,13 +5,13 @@ import Profile from '@src/components/Profile';
 import {
   BinocularsGradientIcon,
   BinocularsIcon,
-  HeaderSeparatorIcon,
 } from '@src/components/icons';
 import { log } from '@src/constants';
 import usePrescribedNames from '@src/hooks/usePrescribedNames';
-import db from '@src/store/db';
+import { useGlobalState } from '@src/store';
 import { Assessment } from '@src/types';
 import { performAssessment } from '@src/utils/observations';
+import { ChevronRightIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -33,6 +33,7 @@ const ObserveHeader = ({
 }) => {
   const params = useParams();
   const ownerId = params?.ownerId;
+  const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
 
   const [runningObservation, setRunningObservation] = useState(false);
 
@@ -60,7 +61,7 @@ const ObserveHeader = ({
 
     setSelectedAssessment(assessment);
 
-    await db.observations.add({
+    await networkPortalDB.observations.add({
       gatewayAddress: ownerId!,
       timestamp: Date.now(),
       assessment,
@@ -79,7 +80,7 @@ const ObserveHeader = ({
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <HeaderSeparatorIcon className="size-4" />
+        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
         {gateway ? (
           <Link className="text-mid" to={`/gateways/${ownerId}`}>
             {gateway.settings.label}
@@ -87,7 +88,7 @@ const ObserveHeader = ({
         ) : (
           <Placeholder />
         )}
-        <HeaderSeparatorIcon className="size-4" />
+        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
         <Link className="text-mid" to={`/gateways/${ownerId}/reports`}>
           Observe
         </Link>

@@ -23,7 +23,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
   const { data: epochs } = useEpochs();
 
   const queryResults = useQuery({
-    queryKey: ['reports', ownerId],
+    queryKey: ['reports', ownerId, arIOReadSDK],
     queryFn: async () => {
       if (
         !arIOReadSDK ||

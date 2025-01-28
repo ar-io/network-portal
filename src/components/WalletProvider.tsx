@@ -1,6 +1,3 @@
-import { AOProcess, ARIO } from '@ar.io/sdk/web';
-import { connect } from '@permaweb/aoconnect';
-import { AO_CU_URL, ARIO_PROCESS_ID } from '@src/constants';
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { useGlobalState } from '@src/store';
@@ -16,8 +13,8 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
 
   const wallet = useGlobalState((state) => state.wallet);
   const updateWallet = useGlobalState((state) => state.updateWallet);
-  const setArIOWriteableSDK = useGlobalState(
-    (state) => state.setArIOWriteableSDK,
+  const setContractSigner = useGlobalState(
+    (state) => state.setContractSigner,
   );
 
   useEffect(() => {
@@ -38,22 +35,11 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
     if (wallet) {
       const signer = wallet.signer;
 
-      if (signer) {
-        const writeable = ARIO.init({
-          signer,
-          process: new AOProcess({
-            processId: ARIO_PROCESS_ID.toString(),
-            ao: connect({
-              CU_URL: AO_CU_URL,
-            }),
-          }),
-        });
-        setArIOWriteableSDK(writeable);
-      }
+      setContractSigner(signer);
     } else {
-      setArIOWriteableSDK(undefined);
+      setContractSigner(undefined);
     }
-  }, [setArIOWriteableSDK, wallet]);
+  }, [setContractSigner, wallet]);
 
   const updateIfConnected = async () => {
     const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);

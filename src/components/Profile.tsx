@@ -1,6 +1,7 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import useBalances from '@src/hooks/useBalances';
+import useLogo from '@src/hooks/useLogo';
 import usePrimaryName from '@src/hooks/usePrimaryName';
 import { useGlobalState } from '@src/store';
 import {
@@ -18,20 +19,28 @@ import {
   ConnectIcon,
   LinkArrowIcon,
   LogoutIcon,
-  WalletIcon,
 } from './icons';
 import ConnectModal from './modals/ConnectModal';
+import { WalletMinimal } from 'lucide-react';
 
 // eslint-disable-next-line react/display-name
 const CustomPopoverButton = forwardRef<
   HTMLButtonElement,
-  { children?: ReactElement }
+  { children?: ReactElement; logo?: HTMLImageElement }
 >((props, ref) => {
   return (
     <Button
       forwardRef={ref}
       buttonType={ButtonType.PRIMARY}
-      icon={<ConnectIcon className="size-4" />}
+      icon={
+        props.logo ? (
+          <div className="size-4 overflow-hidden">
+            <img src={props.logo.src} alt="Profile" className="size-4" />
+          </div>
+        ) : (
+          <ConnectIcon className="size-4" />
+        )
+      }
       title="Profile"
       text={props.children}
       {...props}
@@ -51,10 +60,11 @@ const Profile = () => {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const { data: primaryName } = usePrimaryName(walletAddress?.toString());
+  const { data: logo } = useLogo({ primaryName: primaryName?.name });
 
   return walletAddress ? (
     <Popover className="relative">
-      <PopoverButton as={CustomPopoverButton}>
+      <PopoverButton as={CustomPopoverButton} logo={logo}>
         {primaryName
           ? formatPrimaryName(primaryName.name)
           : formatWalletAddress(walletAddress.toString())}
@@ -62,7 +72,7 @@ const Profile = () => {
 
       <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">
         <div className="flex gap-2 px-4 py-5 ">
-          <WalletIcon className="size-4" />
+          <WalletMinimal className="size-4" />
 
           <div className="flex gap-2 align-middle text-mid">
             <a

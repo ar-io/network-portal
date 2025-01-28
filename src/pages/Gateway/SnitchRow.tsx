@@ -1,10 +1,11 @@
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import Button from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
-import { ReportsIcon, StatsArrowIcon } from '@src/components/icons';
+import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
 import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
+import { NotebookText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -29,12 +30,12 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
       if (gateway) {
         const observers =
           selectedEpoch?.observations.failureSummaries[
-            gateway.gatewayAddress
+          gateway.gatewayAddress
           ] || [];
         const entries = observers.map<ReportedOnByEntry>((observerId) => {
           return {
             observerId,
-            reportId: selectedEpoch.observations.reports[observerId],
+            reportId: selectedEpoch?.observations.reports[observerId],
           };
         });
         setFailureObservers(entries);
@@ -103,7 +104,9 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
                     <Button
                       className="h-fit last:p-2"
                       active={true}
-                      text={<ReportsIcon className="size-3" />}
+                      text={
+                        <NotebookText className="size-3 text-mid" strokeWidth={1.5} />
+                      }
                       onClick={() => {
                         if (entry.reportId) {
                           navigate(
@@ -193,7 +196,9 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
                 <Button
                   className="ml-3 h-fit last:p-2"
                   active={true}
-                  text={<ReportsIcon className="size-3" />}
+                  text={
+                    <NotebookText className="size-3 text-mid" strokeWidth={1.5} />
+                  }
                   onClick={() => {
                     if (reportId) {
                       navigate(

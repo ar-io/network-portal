@@ -5,12 +5,12 @@ import {
   FailSquareIcon,
   SortAsc,
   SortDesc,
-  TimerIcon,
 } from '@src/components/icons';
 import { ArNSAssessment, Assessment } from '@src/types';
 import { useState } from 'react';
 import Bubble from './Bubble';
 import Placeholder from './Placeholder';
+import { Timer } from 'lucide-react';
 
 const extraTimingsLabels: Record<string, string> = {
   dns: 'DNS',
@@ -138,7 +138,7 @@ const ArNSAssessmentPanel = ({
           {timingsPanelOpen && arnsAssessment.timings && (
             <div className="flex flex-col gap-1 px-3 pb-3">
               <div className="flex gap-1">
-                <TimerIcon className="size-4" />
+                <Timer className="size-4" />
                 <div className="text-high">
                   Total: {arnsAssessment.timings.total} ms
                 </div>

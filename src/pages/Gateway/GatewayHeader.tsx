@@ -4,9 +4,8 @@ import Profile from '@src/components/Profile';
 import {
   BinocularsIcon,
   GatewayIcon,
-  HeaderSeparatorIcon,
-  ReportsIcon,
 } from '@src/components/icons';
+import { ChevronRightIcon, NotebookText } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
@@ -20,7 +19,7 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <HeaderSeparatorIcon className="size-4" />
+        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
         {gateway ? (
           <div className="text-low">{gateway.settings.label}</div>
         ) : (
@@ -43,7 +42,7 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
                   className="flex gap-2 "
                   to={`/gateways/${ownerId}/reports`}
                 >
-                  <ReportsIcon className="size-4" />
+                  <NotebookText className="size-4 text-mid" strokeWidth={1.5} />
                   Reports
                 </Link>
               </div>

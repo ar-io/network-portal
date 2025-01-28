@@ -1,6 +1,7 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
+import CopyButton from '@src/components/CopyButton';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
@@ -125,15 +126,19 @@ const DelegateStake = () => {
       header: 'Domain',
       sortDescFirst: false,
       cell: ({ row }) => (
-        <div className="text-gradient">
+        <div className="flex items-center gap-2">
           <a
             href={`https://${row.getValue('domain')}`}
             target="_blank"
             rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            className="text-gradient"
           >
             {row.getValue('domain')}
-          </a>{' '}
+          </a>
+          <CopyButton textToCopy={row.getValue('domain')} />
         </div>
       ),
     }),

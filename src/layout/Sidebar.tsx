@@ -1,4 +1,4 @@
-import { ARIO_DOCS_URL, IO_PROCESS_INFO_URL } from '@src/constants';
+import { ARIO_DOCS_URL } from '@src/constants';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -6,6 +6,9 @@ import Button from '@src/components/Button';
 import MarkdownModal from '@src/components/modals/MarkdownModal';
 import changeLog from '../../CHANGELOG.md?raw';
 
+import SettingsModal from '@src/components/modals/SettingsModal';
+import { useGlobalState } from '@src/store';
+import { Settings } from 'lucide-react';
 import {
   ArioLogoIcon,
   BinocularsIcon,
@@ -42,15 +45,6 @@ const ROUTES_PRIMARY = [
   },
 ];
 
-const ROUTES_SECONDARY = [
-  { title: 'Docs', icon: <DocsIcon className="size-4" />, path: ARIO_DOCS_URL },
-  {
-    title: 'Process',
-    icon: <ContractIcon className="size-4" />,
-    path: IO_PROCESS_INFO_URL,
-  },
-];
-
 const FORMATTED_CHANGELOG = changeLog
   .substring(changeLog.indexOf('## [Unreleased]') + 16)
   .trim()
@@ -63,14 +57,36 @@ const Sidebar = () => {
     const storedValue = localStorage.getItem('sidebarOpen');
     return storedValue == null ? true : JSON.parse(storedValue);
   });
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  const ROUTES_SECONDARY = [
+    {
+      title: 'Docs',
+      icon: <DocsIcon className="size-4" />,
+      path: ARIO_DOCS_URL,
+    },
+    {
+      title: 'Process',
+      icon: <ContractIcon className="size-4" />,
+      path: `https://www.ao.link/#/entity/${arioProcessId}`,
+    },
+    {
+      title: 'Settings',
+      icon: <Settings className="size-4" />,
+      action: () => {
+        setShowSettingsModal(true);
+      },
+    },
+  ];
 
   useEffect(() => {
     localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
 
-  const sideBarClasses = `flex h-screen w-fit flex-col p-6
+  const sideBarClasses = `flex h-full w-fit flex-col p-6
   dark:bg-grey-1000 dark:text-mid`;
 
   return (
@@ -104,17 +120,20 @@ const Sidebar = () => {
       <div className="grow"></div>
       <hr className="text-divider" />
       <div className="py-3">
-        {ROUTES_SECONDARY.map(({ title, icon, path }, index) => (
+        {ROUTES_SECONDARY.map(({ title, icon, path, action }, index) => (
           <Button
             key={index}
             className="w-full"
             icon={icon}
-            rightIcon={<LinkArrowIcon className="size-3" />}
-            title={path}
+            rightIcon={action ? <></> : <LinkArrowIcon className="size-3" />}
+            title={path || title}
             text={sidebarOpen ? title : undefined}
-            onClick={() => {
-              window.open(path, '_blank');
-            }}
+            onClick={
+              action ||
+              (() => {
+                window.open(path, '_blank');
+              })
+            }
           />
         ))}
       </div>
@@ -151,6 +170,9 @@ const Sidebar = () => {
           title="Changelog"
           markdownText={FORMATTED_CHANGELOG}
         />
+      )}
+      {showSettingsModal && (
+        <SettingsModal onClose={() => setShowSettingsModal(false)} />
       )}
     </aside>
   );

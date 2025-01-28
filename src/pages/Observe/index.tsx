@@ -17,7 +17,7 @@ const Report = () => {
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
   return (
-    <div className="flex h-screen max-w-full flex-col gap-6 overflow-auto pr-6 scrollbar">
+    <div className="flex max-w-full flex-col gap-6 overflow-auto">
       <ObserveHeader
         gateway={gateway}
         setSelectedAssessment={setSelectedAssessment}

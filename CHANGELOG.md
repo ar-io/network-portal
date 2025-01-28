@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2025-01-28
+
+### Added
+
+- Show ArNS ANT Logo in profile if user is using primary name
+- Applications Settings: use new sidebar Settings option to open modal to
+  configure ARIO Process ID and AO CU URL
+- Added copy button for domain name columns in tables
+- Show Delegate EAY for gateways in Active Stakes table
+
+### Changed
+
+- Signing with ArConnect now uses signDataItem API, providing a more informed signing experience.
+
+### Fixed
+
+- Fixed height sizing issue of view port when network congestion banner is shown
+
 ## [1.7.0] - 2024-12-20
 
 ### Added

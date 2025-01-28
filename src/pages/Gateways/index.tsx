@@ -1,5 +1,6 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
+import CopyButton from '@src/components/CopyButton';
 import Header from '@src/components/Header';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
@@ -54,7 +55,9 @@ const Gateways = () => {
             totalDelegatedStake: new mARIOToken(gateway.totalDelegatedStake)
               .toARIO()
               .valueOf(),
-            operatorStake: new mARIOToken(gateway.operatorStake).toARIO().valueOf(),
+            operatorStake: new mARIOToken(gateway.operatorStake)
+              .toARIO()
+              .valueOf(),
             totalStake: new mARIOToken(
               gateway.totalDelegatedStake + gateway.operatorStake,
             )
@@ -92,7 +95,7 @@ const Gateways = () => {
       header: 'Domain',
       sortDescFirst: false,
       cell: ({ row }) => (
-        <div className="text-gradient">
+        <div className="flex items-center gap-2">
           <a
             href={`https://${row.getValue('domain')}`}
             target="_blank"
@@ -100,9 +103,11 @@ const Gateways = () => {
             onClick={(e) => {
               e.stopPropagation();
             }}
+            className="text-gradient"
           >
             {row.getValue('domain')}
-          </a>{' '}
+          </a>
+          <CopyButton textToCopy={row.getValue('domain')} />
         </div>
       ),
     }),

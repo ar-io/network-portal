@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Show ArNS ANT Logo in profile if user is using primary name
 - Applications Settings: use new sidebar Settings option to open modal to
   configure ARIO Process ID and AO CU URL
 - Added copy button for domain name columns in tables

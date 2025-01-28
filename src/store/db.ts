@@ -48,7 +48,6 @@ export const getEpoch = async (networkPortalDB: NetworkPortalDB, arIOReadSDK: Ao
 
   if (epochData) {
     try {
-      console.log('Saving epoch', epochIndex, epochData)
       await networkPortalDB.epochs.add(epochData);
     } catch (e) {
       console.error('Error with epoch data saving:', epochIndex, e);

@@ -5,7 +5,8 @@ import Button, { ButtonType } from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
-import { ThreeDotsIcon } from '@src/components/icons';
+import Tooltip from '@src/components/Tooltip';
+import { InfoIcon, ThreeDotsIcon } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
 import RedelegateModal, {
@@ -14,10 +15,15 @@ import RedelegateModal, {
 import StakeWithdrawalModal from '@src/components/modals/StakeWithdrawalModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import WithdrawAllModal from '@src/components/modals/WithdrawAllModal';
+import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
+import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
+import { formatWithCommas } from '@src/utils';
+import { calculateGatewayRewards } from '@src/utils/rewards';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { MathJax } from 'better-react-mathjax';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +34,7 @@ interface ActiveStakesTableData {
   gateway: AoGatewayWithAddress;
   pendingWithdrawals: number;
   streak: number;
+  eay: number;
 }
 
 interface PendingWithdrawalsTableData {
@@ -79,10 +86,12 @@ const MyStakesTable = () => {
 
   const { data: delegateStakes } = useDelegateStakes(walletAddress?.toString());
 
+  const { data: protocolBalance } = useProtocolBalance();
+
   useEffect(() => {
     const activeStakes: Array<ActiveStakesTableData> | undefined = isFetching
       ? undefined
-      : !delegateStakes || !gateways
+      : !delegateStakes || !gateways || !protocolBalance
         ? []
         : delegateStakes.stakes
             .filter((stake) => stake.balance > 0)
@@ -101,6 +110,12 @@ const MyStakesTable = () => {
                     : gateway.stats.failedConsecutiveEpochs > 0
                       ? -gateway.stats.failedConsecutiveEpochs
                       : gateway.stats.passedConsecutiveEpochs,
+                eay: calculateGatewayRewards(
+                  new mARIOToken(protocolBalance).toARIO(),
+                  Object.values(gateways).filter((g) => g.status == 'joined')
+                    .length,
+                  gateway,
+                ).EAY,
               };
             });
 
@@ -125,7 +140,7 @@ const MyStakesTable = () => {
 
     setActiveStakes(activeStakes);
     setPendingWithdrawals(pendingWithdrawals);
-  }, [delegateStakes, gateways, isFetching]);
+  }, [delegateStakes, gateways, isFetching, protocolBalance]);
 
   // Define columns for the active stakes table
   const activeStakesColumns: ColumnDef<ActiveStakesTableData, any>[] = [
@@ -164,6 +179,32 @@ const MyStakesTable = () => {
       cell: ({ row }) => {
         return `${new mARIOToken(row.original.delegatedStake).toARIO().valueOf()}`;
       },
+    }),
+    columnHelper.accessor('eay', {
+      id: 'eay',
+      header: () => (
+        <div className="flex gap-1">
+          Delegate EAY
+          <Tooltip
+            message={
+              <div>
+                <p>{EAY_TOOLTIP_TEXT}</p>
+                <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
+              </div>
+            }
+          >
+            <InfoIcon className="h-full" />
+          </Tooltip>
+        </div>
+      ),
+      sortDescFirst: true,
+      cell: ({ row }) => (
+        <div>
+          {row.original.eay < 0
+            ? 'N/A'
+            : `${formatWithCommas(row.original.eay * 100)}%`}
+        </div>
+      ),
     }),
     columnHelper.accessor('streak', {
       id: 'streak',

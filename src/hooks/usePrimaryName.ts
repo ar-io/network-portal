@@ -5,7 +5,7 @@ const usePrimaryName = (walletAddress?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const res = useQuery({
-    queryKey: ['primaryName', walletAddress],
+    queryKey: ['primaryName', walletAddress, arIOReadSDK],
     queryFn: async () => {
       if (!walletAddress || !arIOReadSDK) {
         throw new Error('Wallet Address or SDK not available');
@@ -15,6 +15,7 @@ const usePrimaryName = (walletAddress?: string) => {
       });
       return primaryName;
     },
+    enabled: !!walletAddress && !!arIOReadSDK,
   });
 
   return res;

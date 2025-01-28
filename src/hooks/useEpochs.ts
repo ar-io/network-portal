@@ -9,6 +9,7 @@ const HISTORICAL_EPOCHS_TO_FETCH = 13;
 const useEpochs = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const startEpoch = useGlobalState((state) => state.currentEpoch);
+  const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
 
   const queryResults = useQuery({
     queryKey: ['epochs', arIOReadSDK, startEpoch],
@@ -18,11 +19,18 @@ const useEpochs = () => {
       }
 
       const additionalEpochs = await Promise.all(
-        Array.from({ length: HISTORICAL_EPOCHS_TO_FETCH }, (_, index) => startEpoch.epochIndex - index - 1)
-          .map(epochIndex => getEpoch(arIOReadSDK, epochIndex))
-      );      
+        Array.from(
+          { length: HISTORICAL_EPOCHS_TO_FETCH },
+          (_, index) => startEpoch.epochIndex - index - 1,
+        ).map((epochIndex) =>
+          getEpoch(networkPortalDB, arIOReadSDK, epochIndex),
+        ),
+      );
 
-      return [startEpoch, ...additionalEpochs.filter((e: any) => e !== undefined)];
+      return [
+        startEpoch,
+        ...additionalEpochs.filter((e: any) => e !== undefined),
+      ];
     },
   });
 

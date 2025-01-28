@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Applications Settings: use new sidebar Settings option to open modal to
+  configure ARIO Process ID and AO CU URL
+
 ### Changed
 
 - Signing with ArConnect now uses signDataItem API, providing a more informed signing experience.

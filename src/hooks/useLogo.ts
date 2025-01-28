@@ -6,7 +6,7 @@ const useLogo = ({ primaryName }: { primaryName?: string }) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const queryResults = useQuery({
-    queryKey: ['logo', primaryName],
+    queryKey: ['logo', primaryName, arIOReadSDK],
     queryFn: async () => {
       if (!primaryName || !arIOReadSDK) {
         throw new Error('Primary Name or ArIO Read SDK not available');

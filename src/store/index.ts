@@ -157,7 +157,8 @@ export class GlobalStateActionBase implements GlobalStateActions {
   setAoCuUrl = (aoCuUrl: string) => {
     const signer = this.get().contractSigner;
 
-    this.set({ aoCuUrl: aoCuUrl,
+    this.set({
+      aoCuUrl: aoCuUrl,
       arIoReadSDK: ARIO.init({
         process: new AOProcess({
           processId: this.get().arioProcessId,

@@ -81,8 +81,9 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           if (!res.ok) {
             log.error('AO CU URL is down');
             setAoCongested(true);
-          } else if (endTime - startTime > CONGESTION_WINDOW) {
-            setAoCongested(true);
+          } else {
+            const congested = endTime - startTime > CONGESTION_WINDOW;
+            setAoCongested(congested);
           }
         })
         .catch((error) => {

@@ -73,8 +73,9 @@ const Gateway = () => {
   const weightFields: Array<[string, number | undefined]> = [
     ['Stake', gateway?.weights?.stakeWeight],
     ['Tenure', gateway?.weights?.tenureWeight],
-    ['Gateway Performance Ratio', gateway?.weights?.gatewayRewardRatioWeight],
-    ['Observer Performance Ratio', gateway?.weights?.observerRewardRatioWeight],
+    // there will be a period where old epoch notices have the old field, and new epoch notices have the new field, so check both
+    ['Gateway Performance Ratio', gateway?.weights?.gatewayPerformanceRatio || gateway?.weights?.gatewayRewardRatioWeight],
+    ['Observer Performance Ratio', gateway?.weights?.observerPerformanceRatio || gateway?.weights?.observerRewardRatioWeight],
     ['Composite', gateway?.weights?.compositeWeight],
     ['Normalized', gateway?.weights?.normalizedCompositeWeight],
   ];

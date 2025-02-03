@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2025-02-03
+
+### Changed 
+
+- Updated to latest ar.io SDK to support changes in property names for data returned by the network 
+
 ## [1.8.1] - 2025-01-29
 
 ### Fixed

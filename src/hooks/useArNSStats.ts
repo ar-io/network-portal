@@ -33,6 +33,7 @@ const useArNSStats = () => {
         ...currentEpoch.arnsStats
       };
     },
+    enabled: !!arioReadSDK && !!currentEpoch,
   });
   return res;
 };

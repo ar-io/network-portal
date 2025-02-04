@@ -76,7 +76,10 @@ const ObserversTable = () => {
             gatewayAddress: observer.gatewayAddress,
             observerAddress: observer.observerAddress,
             ncw: observer.normalizedCompositeWeight,
-            successRatio: observer.observerRewardRatioWeight,
+            successRatio:
+              // there will be a period where old epoch notices have the old field, and new epoch notices have the new field, so check both
+              observer.observerPerformanceRatio ||
+              observer.observerRewardRatioWeight,
             reportStatus: status,
             failedGateways: numFailedGatewaysFound,
           },

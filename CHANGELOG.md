@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added Info icon to ArNS Stats panel with tooltip to view additional ArNS stats 
+
 ## [1.8.3] - 2025-02-03
 
 ### Changed 

@@ -43,6 +43,8 @@ export const FQDN_REGEX = new RegExp(
   '^(?:(?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{1,63}$',
 );
 
+export const ARNS_TX_ID_REGEX = new RegExp('^[a-zA-Z0-9\\-_s+]{43}$');
+
 loglevel.setLevel('info');
 export const log = loglevel;
 

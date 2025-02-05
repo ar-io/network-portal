@@ -99,7 +99,7 @@ const StakeWithdrawalModal = ({
   const errorMessages = {
     withdrawAmount: validators.withdrawAmount(amountToWithdraw),
     cannotStake:
-      (balances?.io || 0) < minRequiredStakeToAdd
+      (balances?.ario || 0) < minRequiredStakeToAdd
         ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
         : !allowDelegatedStaking
           ? 'Gateway does not allow delegated staking.'

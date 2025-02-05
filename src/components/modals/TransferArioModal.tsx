@@ -63,7 +63,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
   const [txid, setTxid] = useState<string>();
 
   useEffect(() => {
-    const arioBalance = balances?.io ?? 0;
+    const arioBalance = balances?.ario ?? 0;
     const hasRecipientError =
       !isValidAoAddress(recipient) && recipient.length > 0;
     const hasAmountError = isNaN(+amount) || +amount > arioBalance;
@@ -82,7 +82,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
         recipient.length > 0 &&
         +amount > 0,
     );
-  }, [amount, balances, balances?.io, recipient]);
+  }, [amount, balances, balances?.ario, recipient]);
 
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
@@ -111,7 +111,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
               <div className="flex grow items-center">
                 <div className="grow">Amount</div>
                 <div className="text-xs text-low">
-                  Balance: {balances?.io ?? 0}
+                  Balance: {balances?.ario ?? 0}
                 </div>
               </div>
               <div
@@ -129,7 +129,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
                 />
                 <Button
                   className="mr-3 h-7"
-                  onClick={() => setAmount(String(balances?.io))}
+                  onClick={() => setAmount(String(balances?.ario))}
                   buttonType={ButtonType.SECONDARY}
                   active={true}
                   title="Max"

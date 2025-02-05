@@ -105,9 +105,9 @@ const Profile = () => {
               <div className="relative border-b border-grey-800">
                 <div className="px-4 text-xs text-low">{ticker} Balance</div>
                 <div className="px-4 pb-3 pt-1 text-high">
-                  {balances ? formatBalance(balances.io) : <Placeholder />}
+                  {balances ? formatBalance(balances.ario) : <Placeholder />}
                 </div>
-                {balances?.io && (
+                {balances?.ario && (
                   <button
                     className="absolute right-4 top-1/2 -translate-y-5 rounded border border-grey-800 p-2"
                     title={`Send ${ticker}`}

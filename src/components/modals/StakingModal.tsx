@@ -74,7 +74,7 @@ const StakingModal = ({
       'Stake Amount',
       ticker,
       minRequiredStakeToAdd,
-      balances?.io,
+      balances?.ario,
     ),
   };
 
@@ -89,21 +89,21 @@ const StakingModal = ({
     amountToStake.length === 0 ? '0' : amountToStake,
   );
   const remainingBalance =
-    balances && parsedStake <= balances.io ? balances.io - parsedStake : -1;
+    balances && parsedStake <= balances.ario ? balances.ario - parsedStake : -1;
 
   const setMaxAmount = () => {
-    setAmountToStake((balances?.io || 0) + '');
+    setAmountToStake((balances?.ario || 0) + '');
   };
 
   const disableInput =
     !gateway ||
-    (balances?.io || 0) < minRequiredStakeToAdd ||
+    (balances?.ario || 0) < minRequiredStakeToAdd ||
     !allowDelegatedStaking;
 
   const errorMessages = {
     stakeAmount: validators.stakeAmount(amountToStake),
     cannotStake:
-      (balances?.io || 0) < minRequiredStakeToAdd
+      (balances?.ario || 0) < minRequiredStakeToAdd
         ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
         : !allowDelegatedStaking
           ? 'Gateway does not allow delegated staking.'
@@ -169,7 +169,7 @@ const StakingModal = ({
             />
             {gateway &&
               (amountToStake?.length > 0 ||
-                (balances?.io || 0) < minRequiredStakeToAdd ||
+                (balances?.ario || 0) < minRequiredStakeToAdd ||
                 !allowDelegatedStaking) &&
               (errorMessages.cannotStake || errorMessages.stakeAmount) && (
                 <ErrorMessageIcon

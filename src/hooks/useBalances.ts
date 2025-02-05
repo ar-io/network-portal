@@ -4,7 +4,7 @@ import { useGlobalState } from '@src/store';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { useQuery } from '@tanstack/react-query';
 
-export type Balances = { ar: number; io: number };
+export type Balances = { ar: number; ario: number };
 
 const useBalances = (walletAddress?: ArweaveTransactionID) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
@@ -28,7 +28,7 @@ const useBalances = (walletAddress?: ArweaveTransactionID) => {
       const arBalance = +AR.winstonToAr(winstonBalance);
       const ioBalance = new mARIOToken(mioBalance).toARIO().valueOf();
 
-      return { ar: arBalance, io: ioBalance };
+      return { ar: arBalance, ario: ioBalance };
     },
     staleTime: 5 * 60 * 1000,
   });

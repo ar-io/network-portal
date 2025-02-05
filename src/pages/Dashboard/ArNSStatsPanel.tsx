@@ -2,11 +2,13 @@ import Button from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
 import useArNSStats from '@src/hooks/useArNSStats';
+import useHostGatewayDomain from '@src/hooks/useHostGatewayDomain';
 import { formatWithCommas } from '@src/utils';
 import { InfoIcon } from 'lucide-react';
 
 const ArNSStatsPanel = () => {
   const { data: arnsStats } = useArNSStats();
+  const { data: hostGatewayDomain } = useHostGatewayDomain();
 
   return (
     <div className="flex min-w-[22rem] flex-col rounded-xl border border-grey-500 px-6 py-5">
@@ -40,7 +42,10 @@ const ArNSStatsPanel = () => {
           text={'Open ArNS app'}
           active={true}
           onClick={() => {
-            window.open('https://arns.app', '_blank', 'noopener,noreferrer');
+            const arnsUrl = hostGatewayDomain
+              ? `https://arns.${hostGatewayDomain}`
+              : 'https://arns.app';
+            window.open(arnsUrl, '_blank', 'noopener,noreferrer');
           }}
         />
       </div>

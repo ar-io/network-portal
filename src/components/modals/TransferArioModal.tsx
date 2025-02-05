@@ -4,16 +4,15 @@ import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
 import { isValidAoAddress } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import { useQueryClient } from '@tanstack/react-query';
 
 const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
-
   const queryClient = useQueryClient();
 
   const ticker = useGlobalState((state) => state.ticker);
@@ -97,9 +96,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
               <input
                 type="text"
                 onChange={(e) => setRecipient(e.target.value)}
-                className={
-                  'h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
-                }
+                className={`h-7 w-full rounded-md border ${recipientError ? 'border-red-600' : 'border-grey-700'} bg-grey-1000 px-4 py-6 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high`}
                 placeholder="Enter Arweave or ETH Wallet Address"
                 value={recipient}
               />
@@ -117,16 +114,28 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
                   Balance: {balances?.io ?? 0}
                 </div>
               </div>
-              <input
-                type="text"
-                onChange={(e) => {
-                  setAmount(e.target.value);
-                }}
-                className={
-                  'h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
-                }
-                value={amount}
-              />
+              <div
+                className={`flex rounded-md border ${amountError ? ' border-red-600' : 'border-grey-700'} py-2`}
+              >
+                <input
+                  type="text"
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                  }}
+                  className={
+                    'h-7 w-full grow bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+                  }
+                  value={amount}
+                />
+                <Button
+                  className="mr-3 h-7"
+                  onClick={() => setAmount(String(balances?.io))}
+                  buttonType={ButtonType.SECONDARY}
+                  active={true}
+                  title="Max"
+                  text="Max"
+                />
+              </div>
             </div>
             {amountError && (
               <div className="p-2 text-xs text-red-600">{amountError}</div>

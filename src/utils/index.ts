@@ -1,5 +1,6 @@
 import { encode } from 'base64-arraybuffer';
-import { THEME_TYPES } from '../constants';
+import { isAddress } from 'viem';
+import { ARNS_TX_ID_REGEX, THEME_TYPES } from '../constants';
 
 const COMMA_NUMBER_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
@@ -125,3 +126,23 @@ export const fetchWithTimeout = async (
 
   return response;
 };
+
+export function isArweaveTransactionID(id?: string) {
+  if (!id) {
+    return false;
+  }
+  if (!ARNS_TX_ID_REGEX.test(id)) {
+    return false;
+  }
+  return true;
+}
+
+export function isEthAddress(address: string) {
+  return isAddress(address, {
+    strict: true,
+  });
+}
+
+export function isValidAoAddress(address: string) {
+  return isEthAddress(address) || isArweaveTransactionID(address);
+}

@@ -96,7 +96,7 @@ const ConnectedLandingPage = () => {
   const topPanels = [
     {
       title: 'Your Balance',
-      balance: balances ? formatWithCommas(balances.io) : undefined,
+      balance: balances ? formatWithCommas(balances.ario) : undefined,
     },
     {
       title: 'Amount Staking + Pending Withdrawals',

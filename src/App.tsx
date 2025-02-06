@@ -11,12 +11,15 @@ import {
 } from 'react-router-dom';
 
 import { MathJaxContext } from 'better-react-mathjax';
+import { createConfig, http, WagmiProvider } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
+import { metaMask } from 'wagmi/connectors';
 import GlobalDataProvider from './components/GlobalDataProvider';
 import WalletProvider from './components/WalletProvider';
 import AppRouterLayout from './layout/AppRouterLayout';
+import Dashboard from './pages/Dashboard';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
-import Dashboard from './pages/Dashboard';
 
 // Main Pages
 // const Dashboard = React.lazy(() => import('./pages/Dashboard'));
@@ -33,6 +36,15 @@ const Observe = React.lazy(() => import('./pages/Observe'));
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createHashRouter);
 
 const queryClient = new QueryClient();
+
+// Wagmi setup
+const config = createConfig({
+  chains: [mainnet],
+  connectors: [metaMask({ extensionOnly: true, injectProvider: false })],
+  transports: {
+    [mainnet.id]: http(),
+  },
+});
 
 function App() {
   const router = sentryCreateBrowserRouter(
@@ -116,15 +128,17 @@ function App() {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <GlobalDataProvider>
-        <WalletProvider>
-          <MathJaxContext>
-            <RouterProvider router={router} />
-          </MathJaxContext>
-        </WalletProvider>
-      </GlobalDataProvider>
-    </QueryClientProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <GlobalDataProvider>
+          <WalletProvider>
+            <MathJaxContext>
+              <RouterProvider router={router} />
+            </MathJaxContext>
+          </WalletProvider>
+        </GlobalDataProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
 

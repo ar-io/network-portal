@@ -1,5 +1,6 @@
-import { ARWEAVE_TX_REGEX, AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
+import { isValidAoAddress } from '@src/utils';
 import { useQuery } from '@tanstack/react-query';
 
 const useGateway = ({
@@ -18,10 +19,10 @@ const useGateway = ({
         );
       }
 
-      if (!ARWEAVE_TX_REGEX.test(ownerWalletAddress)) {
+      if (!isValidAoAddress(ownerWalletAddress)) {
         return Promise.reject(
           new Error(
-            `Error: Unable to find gateway. '${ownerWalletAddress}' is not a valid Arweave wallet address.`,
+            `Error: Unable to find gateway. '${ownerWalletAddress}' is not a valid AO wallet address.`,
           ),
         );
       }
@@ -37,7 +38,7 @@ const useGateway = ({
                 } as AoGatewayWithAddress)
               : undefined;
           });
-      } 
+      }
     },
   });
 

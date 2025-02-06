@@ -53,6 +53,7 @@ const Gateway = () => {
   const { data: gateway } = useGateway({
     ownerWalletAddress: ownerId || undefined,
   });
+  console.log('gateway', gateway);
 
   const [editing, setEditing] = useState(false);
 
@@ -74,8 +75,8 @@ const Gateway = () => {
     ['Stake', gateway?.weights?.stakeWeight],
     ['Tenure', gateway?.weights?.tenureWeight],
     // there will be a period where old epoch notices have the old field, and new epoch notices have the new field, so check both
-    ['Gateway Performance Ratio', gateway?.weights?.gatewayPerformanceRatio || gateway?.weights?.gatewayRewardRatioWeight],
-    ['Observer Performance Ratio', gateway?.weights?.observerPerformanceRatio || gateway?.weights?.observerRewardRatioWeight],
+    ['Gateway Performance Ratio', gateway?.weights?.gatewayPerformanceRatio ?? gateway?.weights?.gatewayRewardRatioWeight],
+    ['Observer Performance Ratio', gateway?.weights?.observerPerformanceRatio ?? gateway?.weights?.observerRewardRatioWeight],
     ['Composite', gateway?.weights?.compositeWeight],
     ['Normalized', gateway?.weights?.normalizedCompositeWeight],
   ];
@@ -333,7 +334,7 @@ const Gateway = () => {
                     {title}:
                   </div>
                   <div className="text-right text-sm">
-                    {value !== undefined ? value.toFixed(3) : <Placeholder />}
+                    {value !== undefined ? value.toFixed(3) : <Placeholder className="w-10" />}
                   </div>
                 </div>
               ))}

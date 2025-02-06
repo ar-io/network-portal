@@ -6,7 +6,8 @@ import { log } from '@src/constants';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
 import { executeWithTimeout } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
-import { ArweaveWalletConnector, WALLET_TYPES } from '../../types';
+import { NetworkPortalWalletConnector, WALLET_TYPES } from '../../types';
+import { ContractSigner } from '@ar.io/sdk/web';
 
 export const ARCONNECT_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
@@ -19,13 +20,13 @@ export const ARCONNECT_WALLET_PERMISSIONS: PermissionType[] = [
 export const ARCONNECT_UNRESPONSIVE_ERROR =
   'There was an issue initializing ArConnect. Please reload the page to initialize.';
 
-export class ArConnectWalletConnector implements ArweaveWalletConnector {
+export class ArConnectWalletConnector implements NetworkPortalWalletConnector {
   private _wallet: Window['arweaveWallet'];
-  signer?: Window['arweaveWallet'];
+  contractSigner?: ContractSigner;
 
   constructor() {
     this._wallet = window?.arweaveWallet;
-    this.signer = this._wallet;
+    this.contractSigner = this._wallet;
   }
 
   // The API has been shown to be unreliable, so we call each function with a timeout

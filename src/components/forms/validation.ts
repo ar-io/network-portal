@@ -1,4 +1,5 @@
-import { ARWEAVE_TX_REGEX, FQDN_REGEX } from '@ar.io/sdk/web';
+import { FQDN_REGEX } from '@ar.io/sdk/web';
+import { isArweaveTransactionID, isValidAoAddress } from '@src/utils';
 
 /* Higher-order functions that return a FormValidationFunction for use with FormRowDefs */
 
@@ -30,7 +31,7 @@ export const validateWalletAddress = (
   propertyName: string,
 ): FormValidationFunction => {
   return (v: string) => {
-    return v.trim() === '' || !ARWEAVE_TX_REGEX.test(v)
+    return v.trim() === '' || !isValidAoAddress(v)
       ? `${propertyName} is required and must be a wallet address.`
       : undefined;
   };
@@ -40,7 +41,7 @@ export const validateTransactionId = (
   propertyName: string,
 ): FormValidationFunction => {
   return (v: string) => {
-    return v.trim() === '' || !ARWEAVE_TX_REGEX.test(v)
+    return v.trim() === '' || !isArweaveTransactionID(v)
       ? `${propertyName} is required and must be a valid Arweave transaction ID.`
       : undefined;
   };
@@ -109,7 +110,6 @@ export const validateOperatorWithdrawAmount = (
     return undefined;
   };
 };
-
 
 export const validateWithdrawAmount = (
   propertyName: string,

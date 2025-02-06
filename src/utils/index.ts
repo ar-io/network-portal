@@ -127,7 +127,7 @@ export const fetchWithTimeout = async (
   return response;
 };
 
-export function isArweaveTransactionID(id?: string) {
+export const isArweaveTransactionID = (id?: string) => {
   if (!id) {
     return false;
   }
@@ -137,12 +137,21 @@ export function isArweaveTransactionID(id?: string) {
   return true;
 }
 
-export function isEthAddress(address: string) {
+export const isEthAddress = (address: string) => {
   return isAddress(address, {
     strict: true,
   });
 }
 
-export function isValidAoAddress(address: string) {
+export const isValidAoAddress = (address: string) =>{
   return isEthAddress(address) || isArweaveTransactionID(address);
+}
+
+export const getBlockExplorerUrlForAddress = (address: string) => {
+  if (isEthAddress(address)) {
+    return `https://etherscan.io/address/${address}`;
+  } else if (isArweaveTransactionID(address)) {
+    return `https://viewblock.io/arweave/address/${address}`;
+  }
+  return '';
 }

@@ -9,9 +9,10 @@ export type Balances = { ar: number; ario: number };
 const useBalances = (walletAddress?: AoAddress) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const arweave = useGlobalState((state) => state.arweave);
+  const blockHeight = useGlobalState((state) => state.blockHeight);
 
   const res = useQuery<Balances>({
-    queryKey: ['balances', arIOReadSDK, arweave, walletAddress],
+    queryKey: ['balances', arIOReadSDK, arweave, walletAddress, blockHeight],
     queryFn: async () => {
       if (!walletAddress || !arweave || !arIOReadSDK) {
         throw new Error(

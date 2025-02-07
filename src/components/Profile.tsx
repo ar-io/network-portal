@@ -9,6 +9,7 @@ import {
   formatPrimaryName,
   formatWalletAddress,
   getBlockExplorerUrlForAddress,
+  isEthAddress,
 } from '@src/utils';
 import { SendHorizonal, WalletMinimal } from 'lucide-react';
 import { forwardRef, ReactElement, useState } from 'react';
@@ -75,7 +76,7 @@ const Profile = () => {
               : formatWalletAddress(walletAddress.toString())}
           </PopoverButton>
 
-          <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">
+          <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl min-w-52">
             <div className="flex gap-2 px-4 py-5 ">
               <WalletMinimal className="size-4" />
 
@@ -126,23 +127,25 @@ const Profile = () => {
                 {balances ? formatBalance(balances.ar) : <Placeholder />}
               </div>
             </div>
-            <div className="flex flex-col gap-3 text-nowrap px-6 py-3 text-mid">
-              <button
-                className="flex items-center"
-                title="Transaction History"
-                onClick={async () => {
-                  window.open(
-                    `https://ao.link/#/entity/${walletAddress.toString()}`,
-                    '_blank',
-                  );
-                }}
-              >
-                <ClockRewindIcon className="mr-2 h-4 w-[.9375rem]" />{' '}
-                Transaction History
-                <LinkArrowIcon className="ml-1 size-3" />
-              </button>
-            </div>
-            <div className="flex flex-col gap-3 bg-btn-secondary-default px-6 py-3 text-mid">
+            {!isEthAddress(walletAddress.toString()) && (
+              <div className="flex flex-col gap-3 text-nowrap px-6 pt-3 text-mid">
+                <button
+                  className="flex items-center"
+                  title="Transaction History"
+                  onClick={async () => {
+                    window.open(
+                      `https://ao.link/#/entity/${walletAddress.toString()}`,
+                      '_blank',
+                    );
+                  }}
+                >
+                  <ClockRewindIcon className="mr-2 h-4 w-[.9375rem]" />{' '}
+                  Transaction History
+                  <LinkArrowIcon className="ml-1 size-3" />
+                </button>
+              </div>
+            )}
+            <div className="mt-3 flex flex-col gap-3 bg-btn-secondary-default px-6 py-3 text-mid">
               <button
                 className="flex items-center gap-2"
                 title="Logout"

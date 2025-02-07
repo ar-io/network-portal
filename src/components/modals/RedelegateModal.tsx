@@ -145,7 +145,7 @@ const RedelegateModal = ({
 
     if (maxStake < minRequiredStakeToAdd) {
       setErrorMessage(
-        `Insufficient redelegation balance, at least ${minRequiredStakeToAdd} IO required for target gateway.`,
+        `Insufficient redelegation balance, at least ${minRequiredStakeToAdd} ${ticker} required for target gateway.`,
       );
       setIsFormValid(false);
       return;

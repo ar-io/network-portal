@@ -15,8 +15,7 @@ import {
   DEFAULT_ARWEAVE_PROTOCOL,
   THEME_TYPES,
 } from '@src/constants';
-import { ArweaveWalletConnector } from '@src/types';
-import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
+import { AoAddress, NetworkPortalWalletConnector } from '@src/types';
 import Arweave from 'arweave/web';
 import { create } from 'zustand';
 import { createDb, NetworkPortalDB } from './db';
@@ -30,8 +29,8 @@ export type GlobalState = {
   arIOWriteableSDK?: AoARIOWrite;
   blockHeight?: number;
   currentEpoch?: AoEpochData;
-  walletAddress?: ArweaveTransactionID;
-  wallet?: ArweaveWalletConnector;
+  walletAddress?: AoAddress;
+  wallet?: NetworkPortalWalletConnector;
   walletStateInitialized: boolean;
   ticker: string;
   aoCongested: boolean;
@@ -46,8 +45,8 @@ export type GlobalStateActions = {
   setBlockHeight: (blockHeight: number) => void;
   setCurrentEpoch: (currentEpoch: AoEpochData) => void;
   updateWallet: (
-    walletAddress?: ArweaveTransactionID,
-    wallet?: ArweaveWalletConnector,
+    walletAddress?: AoAddress,
+    wallet?: NetworkPortalWalletConnector,
   ) => void;
   setContractSigner: (signer?: ContractSigner) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
@@ -100,8 +99,8 @@ export class GlobalStateActionBase implements GlobalStateActions {
   };
 
   updateWallet = (
-    walletAddress?: ArweaveTransactionID,
-    wallet?: ArweaveWalletConnector,
+    walletAddress?: AoAddress,
+    wallet?: NetworkPortalWalletConnector,
   ) => {
     this.set({ walletAddress, wallet });
   };

@@ -1,12 +1,12 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import { AR } from '@src/constants';
 import { useGlobalState } from '@src/store';
-import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
+import { AoAddress } from '@src/types';
 import { useQuery } from '@tanstack/react-query';
 
 export type Balances = { ar: number; ario: number };
 
-const useBalances = (walletAddress?: ArweaveTransactionID) => {
+const useBalances = (walletAddress?: AoAddress) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const arweave = useGlobalState((state) => state.arweave);
   const blockHeight = useGlobalState((state) => state.blockHeight);

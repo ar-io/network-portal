@@ -91,7 +91,9 @@ const FormRow = ({
   return (
     <>
       <div className="bg-grey-900 pb-px">
-        <div className="bg-grey-1000 px-6 py-3 text-xs text-low">{label}</div>
+        <div className="text-nowrap bg-grey-1000 px-6 py-3 text-xs text-low">
+          {label}
+        </div>
       </div>
       {readOnly ? (
         <div className="content-center border-b border-grey-800 px-6 text-sm text-low">
@@ -128,7 +130,7 @@ const FormRow = ({
           ].join(' ')}
         >
           <div
-            className={`flex items-center gap-[.1875rem] overflow-hidden bg-grey-1000 ${roundStyle}`}
+            className={`flex size-full items-center gap-[.1875rem] overflow-hidden bg-grey-1000 ${roundStyle}`}
           >
             {leftComponent}
             <input

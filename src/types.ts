@@ -1,20 +1,26 @@
+import { ContractSigner } from '@ar.io/sdk/web';
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export interface Equatable<T> {
   equals(other: T): boolean;
 }
 
-export interface ArweaveWalletConnector {
+export type EthAddress = `0x${string}`;
+export type AoAddress = EthAddress | ArweaveTransactionID;
+
+
+export interface NetworkPortalWalletConnector {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
-  getWalletAddress(): Promise<ArweaveTransactionID>;
+  getWalletAddress(): Promise<AoAddress>;
   // getGatewayConfig(): Promise<ApiConfig>;
-  signer?: Window['arweaveWallet'];
+  contractSigner?: ContractSigner;
 }
 
 export enum WALLET_TYPES {
   ARCONNECT = 'ArConnect',
   ARWEAVE_APP = 'ArweaveApp',
+  ETHEREUM = 'Ethereum',
 }
 
 export interface ReportData {

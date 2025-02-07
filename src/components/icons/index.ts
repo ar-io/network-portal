@@ -26,6 +26,7 @@ import InstantWithdrawalIcon from './instant_withdrawal.svg?react';
 import InfoIcon from './info_icon.svg?react';
 import LinkArrowIcon from './link_arrow.svg?react';
 import LogoutIcon from './logout.svg?react';
+import MetamaskIcon from './metamask_logo_flat.svg?react';
 import ObserversBgIcon from './observers_bg.svg?react';
 import ObserversConnectIcon from './observers_connect_icon.svg?react';
 import OpenDrawerIcon from './open_drawer.svg?react';
@@ -73,6 +74,7 @@ export {
   InstantWithdrawalIcon,
   LinkArrowIcon,
   LogoutIcon,
+  MetamaskIcon,
   ObserversBgIcon,
   ObserversConnectIcon,
   OpenDrawerIcon,

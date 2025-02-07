@@ -20,6 +20,13 @@ export class ArconnectError extends NotificationOnlyError {
   }
 }
 
+export class MetamaskError extends NotificationOnlyError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'Metamask';
+  }
+}
+
 export class InsufficientFundsError extends NotificationOnlyError {
   constructor(message: string) {
     super(message);

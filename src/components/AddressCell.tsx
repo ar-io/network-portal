@@ -1,4 +1,4 @@
-import { formatAddress } from '@src/utils';
+import { formatAddress, getBlockExplorerUrlForAddress } from '@src/utils';
 import CopyButton from './CopyButton';
 import Tooltip from './Tooltip';
 
@@ -6,7 +6,7 @@ export const AddressCell = ({ address }: { address: string }) => {
   return (
     <div className="flex gap-2 align-middle text-mid">
       <a
-        href={`https://viewblock.io/arweave/address/${address}`}
+        href={getBlockExplorerUrlForAddress(address)}
         target="_blank"
         rel="noreferrer"
         onClick={(e) => {

@@ -1,9 +1,8 @@
 import { AoGatewayWithAddress, ARIOToken } from '@ar.io/sdk/web';
 import { log, WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
-import { WithdrawalType } from '@src/types';
+import { AoAddress, WithdrawalType } from '@src/types';
 import { formatAddress, formatDateTime, formatWithCommas } from '@src/utils';
-import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -29,7 +28,7 @@ const ReviewWithdrawalModal = ({
   gateway: AoGatewayWithAddress;
   amountToWithdraw: number;
   withdrawalType: WithdrawalType;
-  walletAddress: ArweaveTransactionID;
+  walletAddress: AoAddress;
   onClose: () => void;
   onSuccess: () => void;
   ticker: string;

@@ -8,6 +8,7 @@ import {
   formatBalance,
   formatPrimaryName,
   formatWalletAddress,
+  getBlockExplorerUrlForAddress,
 } from '@src/utils';
 import { SendHorizonal, WalletMinimal } from 'lucide-react';
 import { forwardRef, ReactElement, useState } from 'react';
@@ -80,7 +81,7 @@ const Profile = () => {
 
               <div className="flex gap-2 align-middle text-mid">
                 <a
-                  href={`https://viewblock.io/arweave/address/${walletAddress.toString()}`}
+                  href={getBlockExplorerUrlForAddress(walletAddress.toString())}
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => {

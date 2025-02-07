@@ -40,6 +40,7 @@ const useGateway = ({
           });
       }
     },
+    enabled: !!ownerWalletAddress && !!arIOReadSDK,
   });
 
   return queryResults;

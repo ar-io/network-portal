@@ -29,6 +29,7 @@ const useReport = (reportId?: string) => {
 
       return JSON.parse(strFromU8(data));
     },
+    enabled: !!reportId,
   });
 
   return queryResults;

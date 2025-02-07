@@ -13,6 +13,7 @@ const useObservers = (epoch?: AoEpochData) => {
       }
       throw new Error('arIOReadSDK or epoch not available');
     },
+    enabled: !!arIOReadSDK && !!epoch,
   });
 
   return queryResults;

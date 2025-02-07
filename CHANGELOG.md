@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
  
 - Updated wallet name from ArConnect to Wander to reflect new branding 
+- Minor optimizations for queries 
 
 ## [1.8.3] - 2025-02-03
 

@@ -32,6 +32,7 @@ const useEpochs = () => {
         ...additionalEpochs.filter((e: any) => e !== undefined),
       ];
     },
+    enabled: !!arIOReadSDK && startEpoch !== undefined,
   });
 
   return queryResults;

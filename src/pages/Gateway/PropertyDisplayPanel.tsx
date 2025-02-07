@@ -5,6 +5,7 @@ import ConnectModal from '@src/components/modals/ConnectModal';
 import LeaveNetworkModal from '@src/components/modals/LeaveNetworkModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { useGlobalState } from '@src/store';
+import { getBlockExplorerUrlForAddress } from '@src/utils';
 import { useState } from 'react';
 
 type DisplayRowProps = {
@@ -38,7 +39,11 @@ const DisplayRow = ({
         ) : type == 'address' || type == 'tx' ? (
           <a
             className="text-high"
-            href={`https://viewblock.io/arweave/${type}/${value}`}
+            href={
+              type == 'tx'
+                ? `https://viewblock.io/arweave/tx/${value}`
+                : getBlockExplorerUrlForAddress((value || '').toString())
+            }
             target="_blank"
             rel="noreferrer"
           >
@@ -177,7 +182,7 @@ const PropertyDisplayPanel = ({
 
   return (
     <div className="grid grid-cols-[14.375rem_auto]">
-      {gatewayRows.map(({ label, value, rightComponent  }, index) => (
+      {gatewayRows.map(({ label, value, rightComponent }, index) => (
         <DisplayRow
           key={index}
           label={label}

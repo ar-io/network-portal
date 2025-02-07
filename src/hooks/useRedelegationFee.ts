@@ -12,6 +12,7 @@ const useRedelegationFee = (walletAddress?: string) => {
 
       return await arioReadSDK.getRedelegationFee({ address: walletAddress });
     },
+    enabled: !!arioReadSDK && !!walletAddress,
   });
   return res;
 };

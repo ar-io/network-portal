@@ -1,21 +1,21 @@
-import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
+import { WanderWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
+import { EthWalletConnector } from '@src/services/wallets/EthWalletConnector';
 import { useGlobalState } from '@src/store';
-import { ArweaveWalletConnector } from '@src/types';
+import { NetworkPortalWalletConnector } from '@src/types';
 import { useState } from 'react';
+import { useConfig } from 'wagmi';
 import Button from '../Button';
-import { ArConnectIcon, ConnectIcon } from '../icons';
+import { ConnectIcon, MetamaskIcon, WanderIcon } from '../icons';
 import BaseModal from './BaseModal';
 
-const ConnectModal = ({
-  onClose,
-}: {
-  onClose: () => void;
-}) => {
+const ConnectModal = ({ onClose }: { onClose: () => void }) => {
+  const config = useConfig();
+
   const [connecting, setConnecting] = useState<boolean>(false);
 
   const updateWallet = useGlobalState((state) => state.updateWallet);
 
-  const connect = async (walletConnector: ArweaveWalletConnector) => {
+  const connect = async (walletConnector: NetworkPortalWalletConnector) => {
     try {
       setConnecting(true);
       await walletConnector.connect();
@@ -45,24 +45,38 @@ const ConnectModal = ({
 
   return (
     <BaseModal onClose={onClose}>
-      <div className='w-[24.5rem]'>
+      <div className="w-[24.5rem]">
         <div className="flex grow justify-center pb-4">
           <ConnectIcon className="size-6" />
         </div>
         <h2 className="pb-4 text-2xl text-high">Connect Your Wallet</h2>
-        <div className="flex grow justify-center pb-8">
+        <div className="mx-auto flex w-fit grow flex-col items-center justify-center gap-2 pb-8">
           <Button
             onClick={() => {
               if (!connecting) {
-                connect(new ArConnectWalletConnector());
+                connect(new WanderWalletConnector());
               }
             }}
             active={true}
-            icon={<ArConnectIcon className="size-4" />}
-            title="Connect with ArConnect"
-            text="Connect with ArConnect"
+            icon={<WanderIcon className="size-4" />}
+            title="Connect with Wander"
+            text="Connect with Wander"
+            className="w-full"
+          />
+
+          <Button
+            onClick={() => {
+              if (!connecting) {
+                connect(new EthWalletConnector(config));
+              }
+            }}
+            active={true}
+            icon={<MetamaskIcon className="size-4" />}
+            title="Connect with Metamask"
+            text="Connect with Metamask"
           />
         </div>
+
         <div className="flex grow justify-center gap-1 text-sm">
           <div className="text-low">Don&apos;t have a wallet?</div>
 

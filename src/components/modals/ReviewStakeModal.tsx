@@ -1,8 +1,8 @@
 import { AoGatewayWithAddress, ARIOToken } from '@ar.io/sdk/web';
 import { log, WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
+import { AoAddress } from '@src/types';
 import { formatAddress, formatWithCommas } from '@src/utils';
-import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -24,7 +24,7 @@ const ReviewStakeModal = ({
 }: {
   gateway: AoGatewayWithAddress;
   amountToStake: number;
-  walletAddress: ArweaveTransactionID;
+  walletAddress: AoAddress;
   onClose: () => void;
   onSuccess: () => void;
   ticker: string;
@@ -43,29 +43,27 @@ const ReviewStakeModal = ({
       setShowBlockingMessageModal(true);
 
       try {
-        if(gateway.gatewayAddress === walletAddress.toString()) {
-        const { id: txID } = await arIOWriteableSDK.increaseOperatorStake(
-          {
-            increaseQty: new ARIOToken(amountToStake).toMARIO(),
-          },
-          WRITE_OPTIONS,
-        );
-        setTxid(txID);
+        if (gateway.gatewayAddress === walletAddress.toString()) {
+          const { id: txID } = await arIOWriteableSDK.increaseOperatorStake(
+            {
+              increaseQty: new ARIOToken(amountToStake).toMARIO(),
+            },
+            WRITE_OPTIONS,
+          );
+          setTxid(txID);
 
-        log.info(`Increase Operator Stake txID: ${txID}`);
-
+          log.info(`Increase Operator Stake txID: ${txID}`);
         } else {
-        const { id: txID } = await arIOWriteableSDK.delegateStake(
-          {
-            target: gateway.gatewayAddress,
-            stakeQty: new ARIOToken(amountToStake).toMARIO(),
-          },
-          WRITE_OPTIONS,
-        );
-        setTxid(txID);
+          const { id: txID } = await arIOWriteableSDK.delegateStake(
+            {
+              target: gateway.gatewayAddress,
+              stakeQty: new ARIOToken(amountToStake).toMARIO(),
+            },
+            WRITE_OPTIONS,
+          );
+          setTxid(txID);
 
-        log.info(`Increase Delegate Stake txID: ${txID}`);
-
+          log.info(`Increase Delegate Stake txID: ${txID}`);
         }
 
         queryClient.invalidateQueries({

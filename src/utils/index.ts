@@ -1,5 +1,6 @@
 import { encode } from 'base64-arraybuffer';
-import { THEME_TYPES } from '../constants';
+import { isAddress } from 'viem';
+import { ARNS_TX_ID_REGEX, THEME_TYPES } from '../constants';
 
 const COMMA_NUMBER_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
@@ -125,3 +126,32 @@ export const fetchWithTimeout = async (
 
   return response;
 };
+
+export const isArweaveTransactionID = (id?: string) => {
+  if (!id) {
+    return false;
+  }
+  if (!ARNS_TX_ID_REGEX.test(id)) {
+    return false;
+  }
+  return true;
+}
+
+export const isEthAddress = (address: string) => {
+  return isAddress(address, {
+    strict: true,
+  });
+}
+
+export const isValidAoAddress = (address: string) =>{
+  return isEthAddress(address) || isArweaveTransactionID(address);
+}
+
+export const getBlockExplorerUrlForAddress = (address: string) => {
+  if (isEthAddress(address)) {
+    return `https://etherscan.io/address/${address}`;
+  } else if (isArweaveTransactionID(address)) {
+    return `https://viewblock.io/arweave/address/${address}`;
+  }
+  return '';
+}

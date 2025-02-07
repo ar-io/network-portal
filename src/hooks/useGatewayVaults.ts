@@ -31,6 +31,7 @@ const useGatewayVaults = (address?: string) => {
       return results;
     },
     staleTime: Infinity,
+    enabled: !!address && !!arIOReadSDK,
   });
 
   return res;

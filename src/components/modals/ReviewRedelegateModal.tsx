@@ -6,8 +6,8 @@ import {
 } from '@src/constants';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
+import { AoAddress } from '@src/types';
 import { formatAddress, formatWithCommas } from '@src/utils';
-import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { InfoIcon } from 'lucide-react';
@@ -27,7 +27,7 @@ type ReviewRedelegateModalProps = {
   amountToRedelegate: ARIOToken;
   fee: number;
   newTotalStake: number;
-  walletAddress: ArweaveTransactionID;
+  walletAddress: AoAddress;
   vaultId?: string;
   onClose: () => void;
   onSuccess: () => void;

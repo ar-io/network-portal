@@ -1,18 +1,18 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import { AR } from '@src/constants';
 import { useGlobalState } from '@src/store';
-import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
+import { AoAddress } from '@src/types';
 import { useQuery } from '@tanstack/react-query';
 
-export type Balances = { ar: number; io: number };
+export type Balances = { ar: number; ario: number };
 
-const useBalances = (walletAddress?: ArweaveTransactionID) => {
+const useBalances = (walletAddress?: AoAddress) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const arweave = useGlobalState((state) => state.arweave);
   const blockHeight = useGlobalState((state) => state.blockHeight);
 
   const res = useQuery<Balances>({
-    queryKey: ['balances', arIOReadSDK, arweave, blockHeight, walletAddress],
+    queryKey: ['balances', arIOReadSDK, arweave, walletAddress, blockHeight],
     queryFn: async () => {
       if (!walletAddress || !arweave || !arIOReadSDK) {
         throw new Error(
@@ -28,9 +28,10 @@ const useBalances = (walletAddress?: ArweaveTransactionID) => {
       const arBalance = +AR.winstonToAr(winstonBalance);
       const ioBalance = new mARIOToken(mioBalance).toARIO().valueOf();
 
-      return { ar: arBalance, io: ioBalance };
+      return { ar: arBalance, ario: ioBalance };
     },
     staleTime: 5 * 60 * 1000,
+    enabled: !!walletAddress && !!arweave && !!arIOReadSDK,
   });
 
   return res;

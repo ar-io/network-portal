@@ -10,6 +10,7 @@ const useTokenSupply = () => {
       if (!arioReadSDK) throw new Error('arIOReadSDK not initialized');
       return arioReadSDK.getTokenSupply();
     },
+    enabled: !!arioReadSDK,
   });
   return res;
 };

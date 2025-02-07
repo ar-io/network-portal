@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2025-02-07
+
+### Added
+
+- Added support for Metamask Wallet
+- Added support for sending ARIO using "Transfer ARIO" modal, accessible from Profile menu
+- Added Info icon to ArNS Stats panel with tooltip to view additional ArNS stats 
+
+### Changed
+ 
+- Updated wallet name from ArConnect to Wander to reflect new branding 
+- Minor optimizations for queries 
+
 ## [1.8.3] - 2025-02-03
 
 ### Changed 

@@ -28,8 +28,8 @@ const useGateways = () => {
         return fetchAllGateways(arIOReadSDK);
       }
     },
-
     staleTime: 5 * 60 * 1000,
+    enabled: !!arIOReadSDK,
   });
 
   return queryResults;

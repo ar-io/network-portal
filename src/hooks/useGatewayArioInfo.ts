@@ -29,6 +29,7 @@ const useGatewayArioInfo = ({
       return responseJson as ArioInfoResponse; 
 
     },
+    enabled: !!url,
   });
 
   return queryResults;

@@ -31,6 +31,7 @@ const useGatewayDelegateStakes = (address?: string) => {
       return results.filter(delegate => delegate.delegatedStake > 0);
     },
     staleTime: Infinity,
+    enabled: !!address && !!arIOReadSDK,
   });
 
   return res;

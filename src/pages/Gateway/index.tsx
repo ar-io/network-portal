@@ -53,7 +53,6 @@ const Gateway = () => {
   const { data: gateway } = useGateway({
     ownerWalletAddress: ownerId || undefined,
   });
-  console.log('gateway', gateway);
 
   const [editing, setEditing] = useState(false);
 

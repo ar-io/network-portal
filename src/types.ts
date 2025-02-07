@@ -18,7 +18,7 @@ export interface NetworkPortalWalletConnector {
 }
 
 export enum WALLET_TYPES {
-  ARCONNECT = 'ArConnect',
+  WANDER = 'Wander',
   ARWEAVE_APP = 'ArweaveApp',
   ETHEREUM = 'Ethereum',
 }

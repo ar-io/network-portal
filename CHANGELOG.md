@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support for Metamask Wallet
 - Added Info icon to ArNS Stats panel with tooltip to view additional ArNS stats 
+
+### Changed
+ 
+- Updated wallet name from ArConnect to Wander to reflect new branding 
 
 ## [1.8.3] - 2025-02-03
 

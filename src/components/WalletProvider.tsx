@@ -1,5 +1,5 @@
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
-import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
+import { WanderWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
 import { EthWalletConnector } from '@src/services/wallets/EthWalletConnector';
 import { useGlobalState } from '@src/store';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
@@ -42,8 +42,8 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
     const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);
 
     try {
-      if (walletType === WALLET_TYPES.ARCONNECT) {
-        const connector = new ArConnectWalletConnector();
+      if (walletType === WALLET_TYPES.WANDER) {
+        const connector = new WanderWalletConnector();
         const address = await connector?.getWalletAddress();
 
         updateWallet(address, connector);

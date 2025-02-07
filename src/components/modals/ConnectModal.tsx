@@ -1,12 +1,12 @@
-import { ArConnectWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
+import { WanderWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
+import { EthWalletConnector } from '@src/services/wallets/EthWalletConnector';
 import { useGlobalState } from '@src/store';
 import { NetworkPortalWalletConnector } from '@src/types';
 import { useState } from 'react';
-import Button from '../Button';
-import { ArConnectIcon, ConnectIcon, MetamaskIcon } from '../icons';
-import BaseModal from './BaseModal';
-import { EthWalletConnector } from '@src/services/wallets/EthWalletConnector';
 import { useConfig } from 'wagmi';
+import Button from '../Button';
+import { ConnectIcon, MetamaskIcon, WanderIcon } from '../icons';
+import BaseModal from './BaseModal';
 
 const ConnectModal = ({ onClose }: { onClose: () => void }) => {
   const config = useConfig();
@@ -50,20 +50,20 @@ const ConnectModal = ({ onClose }: { onClose: () => void }) => {
           <ConnectIcon className="size-6" />
         </div>
         <h2 className="pb-4 text-2xl text-high">Connect Your Wallet</h2>
-        <div className="flex grow justify-center pb-2">
+        <div className="mx-auto flex w-fit grow flex-col items-center justify-center gap-2 pb-8">
           <Button
             onClick={() => {
               if (!connecting) {
-                connect(new ArConnectWalletConnector());
+                connect(new WanderWalletConnector());
               }
             }}
             active={true}
-            icon={<ArConnectIcon className="size-4" />}
-            title="Connect with ArConnect"
-            text="Connect with ArConnect"
+            icon={<WanderIcon className="size-4" />}
+            title="Connect with Wander"
+            text="Connect with Wander"
+            className="w-full"
           />
-        </div>
-        <div className="flex grow justify-center pb-8">
+
           <Button
             onClick={() => {
               if (!connecting) {

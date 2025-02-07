@@ -1,4 +1,4 @@
-import { ArconnectError, WalletNotInstalledError } from '@src/utils/errors';
+import { WanderError, WalletNotInstalledError } from '@src/utils/errors';
 import { PermissionType } from 'arconnect';
 import { ApiConfig } from 'arweave/web/lib/api';
 
@@ -9,7 +9,7 @@ import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { NetworkPortalWalletConnector, WALLET_TYPES } from '../../types';
 import { ContractSigner } from '@ar.io/sdk/web';
 
-export const ARCONNECT_WALLET_PERMISSIONS: PermissionType[] = [
+export const WANDER_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
   'ACCESS_ALL_ADDRESSES',
   'ACCESS_PUBLIC_KEY',
@@ -17,10 +17,10 @@ export const ARCONNECT_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ARWEAVE_CONFIG',
   'SIGNATURE',
 ];
-export const ARCONNECT_UNRESPONSIVE_ERROR =
-  'There was an issue initializing ArConnect. Please reload the page to initialize.';
+export const WANDER_UNRESPONSIVE_ERROR =
+  'There was an issue initializing Wander. Please reload the page to initialize.';
 
-export class ArConnectWalletConnector implements NetworkPortalWalletConnector {
+export class WanderWalletConnector implements NetworkPortalWalletConnector {
   private _wallet: Window['arweaveWallet'];
   contractSigner?: ContractSigner;
 
@@ -30,49 +30,49 @@ export class ArConnectWalletConnector implements NetworkPortalWalletConnector {
   }
 
   // The API has been shown to be unreliable, so we call each function with a timeout
-  async safeArconnectApiExecutor<T>(fn: () => T): Promise<T> {
+  async safeWanderApiExecutor<T>(fn: () => T): Promise<T> {
     if (!this._wallet)
-      throw new WalletNotInstalledError('Arconnect is not installed.');
+      throw new WalletNotInstalledError('Wander is not installed.');
     /**
-     * This is here because occasionally arconnect injects but does not initialize internally properly,
+     * This is here because occasionally wander injects but does not initialize internally properly,
      * allowing the api to be called but then hanging.
      * This is a workaround to check that and emit appropriate errors,
-     * and to trigger the workaround workflow of reloading the page and re-initializing arconnect.
+     * and to trigger the workaround workflow of reloading the page and re-initializing wander.
      */
     const res = await executeWithTimeout(() => fn(), 3000);
 
     if (res === 'timeout') {
-      throw new Error(ARCONNECT_UNRESPONSIVE_ERROR);
+      throw new Error(WANDER_UNRESPONSIVE_ERROR);
     }
     return res as T;
   }
 
   async connect(): Promise<void> {
     if (!window.arweaveWallet) {
-      window.open('https://arconnect.io');
+      window.open('https://wander.app');
 
       return;
     }
     // confirm they have the extension installed
-    localStorage.setItem(KEY_WALLET_TYPE, WALLET_TYPES.ARCONNECT);
-    const permissions = await this.safeArconnectApiExecutor(
+    localStorage.setItem(KEY_WALLET_TYPE, WALLET_TYPES.WANDER);
+    const permissions = await this.safeWanderApiExecutor(
       this._wallet?.getPermissions,
     );
     if (
       permissions &&
-      !ARCONNECT_WALLET_PERMISSIONS.every((permission) =>
+      !WANDER_WALLET_PERMISSIONS.every((permission) =>
         permissions.includes(permission),
       )
     ) {
       // disconnect due to missing permissions, then re-connect
-      await this.safeArconnectApiExecutor(this._wallet?.disconnect);
+      await this.safeWanderApiExecutor(this._wallet?.disconnect);
     } else if (permissions) {
       return;
     }
 
     await this._wallet
       .connect(
-        ARCONNECT_WALLET_PERMISSIONS,
+        WANDER_WALLET_PERMISSIONS,
         {
           name: 'NETWORK PORTAL by ar.io',
         },
@@ -81,17 +81,17 @@ export class ArConnectWalletConnector implements NetworkPortalWalletConnector {
       .catch((err) => {
         localStorage.removeItem(KEY_WALLET_TYPE);
         log.error(err);
-        throw new ArconnectError('User cancelled authentication.');
+        throw new WanderError('User cancelled authentication.');
       });
   }
 
   async disconnect(): Promise<void> {
     localStorage.removeItem(KEY_WALLET_TYPE);
-    return this.safeArconnectApiExecutor(this._wallet?.disconnect);
+    return this.safeWanderApiExecutor(this._wallet?.disconnect);
   }
 
   async getWalletAddress(): Promise<ArweaveTransactionID> {
-    return this.safeArconnectApiExecutor(() =>
+    return this.safeWanderApiExecutor(() =>
       this._wallet
         ?.getActiveAddress()
         .then((res) => new ArweaveTransactionID(res)),
@@ -99,7 +99,7 @@ export class ArConnectWalletConnector implements NetworkPortalWalletConnector {
   }
 
   async getGatewayConfig(): Promise<ApiConfig> {
-    const config = await this.safeArconnectApiExecutor(
+    const config = await this.safeWanderApiExecutor(
       this._wallet?.getArweaveConfig,
     );
     return config as unknown as ApiConfig;

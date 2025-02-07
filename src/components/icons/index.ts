@@ -1,5 +1,4 @@
 /// <reference types="vite-plugin-svgr/client" />
-import ArConnectIcon from './arconnect.svg?react';
 import ArioLogoIcon from './ario.svg?react';
 import BannerRightChevron from './banner_right_chevron.svg?react';
 import BinocularsIcon from './binoculars.svg?react';
@@ -43,11 +42,11 @@ import StreakUpArrowIcon from './streak_up_arrow.svg?react';
 import SuccessCheck from './success_check.svg?react';
 import ThreeDotsIcon from './three_dots_icon.svg?react';
 import ToastCloseIcon from './toast_close.svg?react';
+import WanderIcon from './wander.svg?react';
 import WarningIcon from './warning.svg?react';
 import WarningTriangleIcon from './warning_triangle.svg?react';
 
 export {
-  ArConnectIcon,
   ArioLogoIcon,
   BannerRightChevron,
   BinocularsIcon,
@@ -91,6 +90,7 @@ export {
   SuccessCheck,
   ThreeDotsIcon,
   ToastCloseIcon,
+  WanderIcon,
   WarningIcon,
   WarningTriangleIcon,
 };

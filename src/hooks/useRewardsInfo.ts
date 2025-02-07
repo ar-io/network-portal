@@ -1,9 +1,10 @@
 import { AoGateway, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
 import {
-  UserRewards,
   calculateGatewayRewards,
   calculateUserRewards,
+  UserRewards,
 } from '@src/utils/rewards';
+import { useEffect, useState } from 'react';
 import useGateways from './useGateways';
 import useProtocolBalance from './useProtocolBalance';
 
@@ -11,33 +12,34 @@ const useRewardsInfo = (gateway: AoGateway | undefined, userStake: number) => {
   const { data: gateways } = useGateways();
   const { data: protocolBalance } = useProtocolBalance();
 
-  let res: UserRewards | undefined = undefined;
+  const [userRewards, setUserRewards] = useState<UserRewards>();
 
-  if (
-    gateways &&
-    gateway &&
-    protocolBalance &&
-    protocolBalance > 0 &&
-    !isNaN(userStake)
-  ) {
-    const numGateways = gateways
-      ? Object.values(gateways).filter((g) => g.status == 'joined').length
-      : 0;
-    const gatewayRewards = calculateGatewayRewards(
-      new mARIOToken(protocolBalance).toARIO(),
-      numGateways,
-      gateway,
-    );
+  useEffect(() => {
+    if (
+      gateways &&
+      gateway &&
+      protocolBalance &&
+      protocolBalance > 0 &&
+      !isNaN(userStake)
+    ) {
+      const numGateways = gateways
+        ? Object.values(gateways).filter((g) => g.status == 'joined').length
+        : 0;
+      const gatewayRewards = calculateGatewayRewards(
+        new mARIOToken(protocolBalance).toARIO(),
+        numGateways,
+        gateway,
+      );
 
-    const userRewards = calculateUserRewards(
-      gatewayRewards,
-      new ARIOToken(Math.abs(userStake)),
-      userStake < 0,
-    );
-    res = userRewards;
-  }
+      const userRewards = calculateUserRewards(
+        gatewayRewards,
+        new ARIOToken(Math.abs(userStake)),
+        userStake < 0,
+      );
+      setUserRewards(userRewards);
+    }
+  }, [gateways, gateway, protocolBalance, userStake]);
 
-  return res;
+  return userRewards;
 };
-
 export default useRewardsInfo;

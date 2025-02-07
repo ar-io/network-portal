@@ -31,6 +31,7 @@ const useGatewaysPerEpoch = () => {
           };
         });
     },
+    enabled: !!arioReadSDK && !!epochs,
   });
   return res;
 };

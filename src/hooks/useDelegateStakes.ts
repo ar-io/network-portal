@@ -44,6 +44,7 @@ const useDelegateStakes = (address?: string) => {
       return retVal;
     },
     staleTime: Infinity,
+    enabled: !!address && !!arIOReadSDK,
   });
 
   return res;

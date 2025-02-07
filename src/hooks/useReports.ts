@@ -97,6 +97,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
 
       return data;
     },
+    enabled: !!arIOReadSDK && !!epochs && gatewayStart !== undefined && !!observerAddress,
   });
 
   return queryResults;

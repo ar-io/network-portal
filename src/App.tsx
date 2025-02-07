@@ -3,11 +3,11 @@ import { wrapCreateBrowserRouter } from '@sentry/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { Suspense } from 'react';
 import {
+  createHashRouter,
+  createRoutesFromElements,
   Navigate,
   Route,
   RouterProvider,
-  createHashRouter,
-  createRoutesFromElements,
 } from 'react-router-dom';
 
 import { MathJaxContext } from 'better-react-mathjax';
@@ -40,7 +40,13 @@ const queryClient = new QueryClient();
 // Wagmi setup
 const config = createConfig({
   chains: [mainnet],
-  connectors: [metaMask({ extensionOnly: true, injectProvider: false })],
+  connectors: [
+    metaMask({
+      extensionOnly: true,
+      injectProvider: false,
+      dappMetadata: { name: 'Network Portal by ar.io', iconUrl: './ario.svg' },
+    }),
+  ],
   transports: {
     [mainnet.id]: http(),
   },

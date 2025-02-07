@@ -47,7 +47,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
         const address = await connector?.getWalletAddress();
 
         updateWallet(address, connector);
-      } else if (ethAccount?.isConnected && ethAccount?.address) {
+      } else if (walletType === WALLET_TYPES.ETHEREUM && ethAccount?.isConnected && ethAccount?.address) {
         const connector = new EthWalletConnector(config);
 
         updateWallet(ethAccount.address, connector);

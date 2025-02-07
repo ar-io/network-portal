@@ -1,13 +1,27 @@
 import { AoSigner, ContractSigner } from '@ar.io/sdk/web';
 import { MetamaskError } from '@src/utils/errors';
-import { InjectedEthereumSigner, createData } from 'arbundles';
+import { createData, InjectedEthereumSigner } from 'arbundles';
 import { ApiConfig } from 'arweave/node/lib/api';
-import { hashMessage, recoverPublicKey, toBytes } from 'viem';
+import {
+  hashMessage,
+  recoverPublicKey,
+  SwitchChainError,
+  toBytes,
+  UserRejectedRequestError,
+} from 'viem';
 import { Config, Connector } from 'wagmi';
 import { connect, disconnect, getAccount, signMessage } from 'wagmi/actions';
 
-import { AoAddress, NetworkPortalWalletConnector, WALLET_TYPES } from '../../types';
-import { DEFAULT_ARWEAVE_HOST, DEFAULT_ARWEAVE_PORT, DEFAULT_ARWEAVE_PROTOCOL } from '@src/constants';
+import {
+  DEFAULT_ARWEAVE_HOST,
+  DEFAULT_ARWEAVE_PORT,
+  DEFAULT_ARWEAVE_PROTOCOL,
+} from '@src/constants';
+import {
+  AoAddress,
+  NetworkPortalWalletConnector,
+  WALLET_TYPES,
+} from '../../types';
 
 export class EthWalletConnector implements NetworkPortalWalletConnector {
   contractSigner?: ContractSigner;
@@ -57,8 +71,29 @@ export class EthWalletConnector implements NetworkPortalWalletConnector {
     };
 
     const aoSigner: AoSigner = async ({ data, tags, target }) => {
+      const ethAccount = getAccount(config);
+
       if (!signer.publicKey) {
         await signer.setPublicKey();
+      }
+
+      const ETHEREUM_MAINNET_CHAIN_ID = 1;
+
+      if (ethAccount.chainId !== ETHEREUM_MAINNET_CHAIN_ID) {
+        try {
+          await this.connector.switchChain?.({
+            chainId: ETHEREUM_MAINNET_CHAIN_ID,
+          });
+        } catch (error) {
+          // Handle different switch errors
+          if (error instanceof UserRejectedRequestError) {
+            throw new Error('User rejected network switch');
+          } else if (error instanceof SwitchChainError) {
+            throw new Error('Unable to switch to Ethereum Mainnet');
+          } else {
+            throw new Error('Unexpected error switching networks');
+          }
+        }
       }
 
       const dataToSign = typeof data === 'string' ? data : new Uint8Array(data);

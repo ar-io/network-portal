@@ -14,9 +14,9 @@ export type ArNSStats = {
 const useArNSStats = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
-
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const res = useQuery<ArNSStats>({
-    queryKey: ['arNSStats', arioReadSDK, currentEpoch],
+    queryKey: ['arNSStats', arioReadSDK, currentEpoch, arioProcessId],
     queryFn: async () => {
       if (!arioReadSDK) throw new Error('arIOReadSDK not initialized');
       if (!currentEpoch) throw new Error('currentEpoch not initialized');
@@ -33,7 +33,7 @@ const useArNSStats = () => {
         ...currentEpoch.arnsStats
       };
     },
-    enabled: !!arioReadSDK && !!currentEpoch,
+    enabled: !!arioReadSDK && !!currentEpoch && !!arioProcessId,
   });
   return res;
 };

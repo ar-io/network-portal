@@ -44,7 +44,10 @@ export const getEpoch = async (networkPortalDB: NetworkPortalDB, arIOReadSDK: Ao
     return epoch;
   }
 
-  const epochData = await arIOReadSDK.getEpoch({ epochIndex });
+  const epochData = await arIOReadSDK.getEpoch({ epochIndex }).catch((e) => {
+    console.error('Error with epoch data fetching:', epochIndex, e);
+    return undefined;
+  });
 
   if (epochData) {
     try {

@@ -9,10 +9,11 @@ export type GatewayEpochCount = {
 
 const useGatewaysPerEpoch = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const { data: epochs } = useEpochs();
 
   const res = useQuery<Array<GatewayEpochCount>>({
-    queryKey: ['gatewaysPerEpoch', epochs, arioReadSDK],
+    queryKey: ['gatewaysPerEpoch', epochs, arioReadSDK, arioProcessId],
     queryFn: () => {
       if (!arioReadSDK || !epochs) {
         throw new Error('arIOReadSDK not initialized or epochs not available');

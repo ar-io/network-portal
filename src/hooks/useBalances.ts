@@ -10,9 +10,9 @@ const useBalances = (walletAddress?: AoAddress) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const arweave = useGlobalState((state) => state.arweave);
   const blockHeight = useGlobalState((state) => state.blockHeight);
-
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const res = useQuery<Balances>({
-    queryKey: ['balances', arIOReadSDK, arweave, walletAddress, blockHeight],
+    queryKey: ['balances', arIOReadSDK, arweave, walletAddress, blockHeight, arioProcessId],
     queryFn: async () => {
       if (!walletAddress || !arweave || !arIOReadSDK) {
         throw new Error(
@@ -31,7 +31,7 @@ const useBalances = (walletAddress?: AoAddress) => {
       return { ar: arBalance, ario: ioBalance };
     },
     staleTime: 5 * 60 * 1000,
-    enabled: !!walletAddress && !!arweave && !!arIOReadSDK,
+    enabled: !!walletAddress && !!arweave && !!arIOReadSDK && !!arioProcessId,
   });
 
   return res;

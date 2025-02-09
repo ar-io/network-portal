@@ -16,14 +16,14 @@ export interface ReportTransactionData {
 
 const useReports = (ownerId?: string, gateway?: AoGateway) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const observerAddress = gateway?.observerAddress;
   const gatewayStart = gateway?.startTimestamp;
 
   const { data: epochs } = useEpochs();
 
   const queryResults = useQuery({
-    queryKey: ['reports', ownerId, arIOReadSDK],
+    queryKey: ['reports', ownerId, arIOReadSDK, arioProcessId],
     queryFn: async () => {
       if (
         !arIOReadSDK ||

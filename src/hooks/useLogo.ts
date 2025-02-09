@@ -4,9 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 const useLogo = ({ primaryName }: { primaryName?: string }) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
 
   const queryResults = useQuery({
-    queryKey: ['logo', primaryName, arIOReadSDK],
+    queryKey: ['logo', primaryName, arIOReadSDK, arioProcessId],
     queryFn: async () => {
       if (!primaryName || !arIOReadSDK) {
         throw new Error('Primary Name or ArIO Read SDK not available');

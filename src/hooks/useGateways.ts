@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 const useGateways = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
 
   const fetchAllGateways = async (
     arIOReadSDK: AoARIORead,
@@ -22,7 +23,7 @@ const useGateways = () => {
   };
 
   const queryResults = useQuery({
-    queryKey: ['gateways', arIOReadSDK],
+    queryKey: ['gateways', arIOReadSDK, arioProcessId],
     queryFn: () => {
       if (arIOReadSDK) {
         return fetchAllGateways(arIOReadSDK);

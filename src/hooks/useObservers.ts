@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 
 const useObservers = (epoch?: AoEpochData) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const queryResults = useQuery({
-    queryKey: ['prescribedObservers', arIOReadSDK, epoch?.epochIndex || -1],
+    queryKey: ['prescribedObservers', arIOReadSDK, epoch?.epochIndex || -1, arioProcessId],
     queryFn: () => {
       if (arIOReadSDK && epoch) {
         return arIOReadSDK.getPrescribedObservers(epoch);

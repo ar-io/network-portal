@@ -7,12 +7,13 @@ const HISTORICAL_EPOCHS_TO_FETCH = 13;
 
 /** Returns last EPOCHS_TO_FETCH epochs */
 const useEpochs = () => {
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const startEpoch = useGlobalState((state) => state.currentEpoch);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
 
   const queryResults = useQuery({
-    queryKey: ['epochs', arIOReadSDK, startEpoch],
+    queryKey: ['epochs', arIOReadSDK, startEpoch, arioProcessId],
     queryFn: async () => {
       if (!arIOReadSDK || startEpoch === undefined) {
         throw new Error('arIOReadSDK or startEpoch not available');

@@ -7,9 +7,9 @@ const usePrescribedNames = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
-
+  const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const queryResults = useQuery({
-    queryKey: ['prescribedNames', arIOReadSDK, currentEpoch?.epochIndex || -1],
+    queryKey: ['prescribedNames', arIOReadSDK, currentEpoch?.epochIndex || -1, arioProcessId],
     queryFn: () => {
       if (arIOReadSDK && currentEpoch) {
         return arIOReadSDK.getPrescribedNames(currentEpoch).catch((e) => {
@@ -24,7 +24,7 @@ const usePrescribedNames = () => {
       // log error
       throw new Error('arIOReadSDK or currentEpoch not available');
     },
-    enabled: !!arIOReadSDK && !!currentEpoch,
+    enabled: !!arIOReadSDK && !!currentEpoch && !!arioProcessId,
   });
 
   return queryResults;

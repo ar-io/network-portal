@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2025-02-10
+
+### Fixed
+
+- Updated to latest ar.io SDK and updated Dashboard to fix refresh issues when
+  switching AR.IO Process in Settings
+
 ## [1.9.0] - 2025-02-07
 
 ### Added

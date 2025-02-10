@@ -151,31 +151,28 @@ const RewardsDistributionPanel = () => {
   const { data: epochs } = useEpochs();
 
   useEffect(() => {
-    if (epochs) {
-      setRewardsData(
-        epochs
-          .filter((epoch) => epoch !== undefined)
-          .sort((a, b) => a!.epochIndex - b!.epochIndex)
-          .map((epoch) => {
-            const eligible = new mARIOToken(
-              epoch!.distributions.totalEligibleRewards,
-            )
-              .toARIO()
-              .valueOf();
-            const claimed = new mARIOToken(
-              epoch!.distributions.totalDistributedRewards ?? 0,
-            )
-              .toARIO()
-              .valueOf();
-            return {
-              epoch: epoch!.epochIndex,
-              eligible,
-              claimed,
-              unclaimed: eligible - claimed,
-            };
-          }),
-      );
-    }
+    setRewardsData(
+      epochs?.filter((epoch) => epoch !== undefined)
+        .sort((a, b) => a!.epochIndex - b!.epochIndex)
+        .map((epoch) => {
+          const eligible = new mARIOToken(
+            epoch!.distributions.totalEligibleRewards,
+          )
+            .toARIO()
+            .valueOf();
+          const claimed = new mARIOToken(
+            epoch!.distributions.totalDistributedRewards ?? 0,
+          )
+            .toARIO()
+            .valueOf();
+          return {
+            epoch: epoch!.epochIndex,
+            eligible,
+            claimed,
+            unclaimed: eligible - claimed,
+          };
+        }),
+    );
   }, [epochs]);
 
   return (

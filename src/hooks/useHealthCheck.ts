@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import ky from 'ky';
 
 // {"uptime":464459.77230359,"message":"Welcome to the Permaweb.","date":"2024-05-08T08:53:50.015Z"}
 export interface HealthCheckResponse {
@@ -7,29 +8,24 @@ export interface HealthCheckResponse {
   date: Date;
 }
 
-const useHealthcheck = ({
-  url 
-}: {
-  url?: string;
-}) => {
+const useHealthcheck = ({ url }: { url?: string }) => {
   const queryResults = useQuery({
     queryKey: ['healthcheck', url],
     queryFn: async () => {
       if (url === undefined) {
-        throw new Error('Error: no URL provided.')
+        throw new Error('Error: no URL provided.');
       }
 
       const healthCheckEndpoint = `${url}/ar-io/healthcheck`;
 
-      const response = await fetch(healthCheckEndpoint); 
-      const responseJson = await response.json(); 
+      const response = await ky.get(healthCheckEndpoint);
+      const responseJson = await response.json() as any;
 
       return {
         uptime: responseJson.uptime,
         message: responseJson.message,
-        date: new Date(responseJson.date)
-      }
-
+        date: new Date(responseJson.date),
+      };
     },
     enabled: !!url,
   });

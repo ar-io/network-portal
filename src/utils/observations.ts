@@ -1,15 +1,29 @@
 /* Based on code by elliotsayes from https://github.com/elliotsayes/gateway-explorer */
 
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
-import { log, NAME_PASS_THRESHOLD, REFERENCE_GATEWAY_FQDN } from '@src/constants';
+import {
+  log,
+  NAME_PASS_THRESHOLD,
+  REFERENCE_GATEWAY_FQDN,
+} from '@src/constants';
 import { ArNSAssessment, Assessment, OwnershipAssessment } from '@src/types';
-import { arrayBufferToBase64Url, fetchWithTimeout } from '.';
+import ky from 'ky';
+import { arrayBufferToBase64Url } from '.';
+
+// create a ky instance with default options
+const gatewayRequest = ky.create({
+  timeout: 5000,
+  headers: {
+    'Accept-Encoding': 'identity',
+  },
+  throwHttpErrors: false,
+});
 
 export const assessOwnership = async (
   gateway: AoGatewayWithAddress,
 ): Promise<OwnershipAssessment> => {
   try {
-    const res = await fetchWithTimeout(
+    const res = await gatewayRequest.get(
       `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}/ar-io/info`,
     );
     if (res.status !== 200) {
@@ -20,7 +34,7 @@ export const assessOwnership = async (
       };
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as any;
 
     const expectedWallet = gateway.gatewayAddress;
     const observedWallet = data.wallet;
@@ -43,9 +57,8 @@ export const assessOwnership = async (
 
 const fetchArnsData = async (arnsNameURL: string) => {
   try {
-    const res = await fetchWithTimeout(arnsNameURL);
-
-    if(res.status === 404) {
+    const res = await gatewayRequest.get(arnsNameURL);
+    if (res.status === 404) {
       return {
         statusCode: 404,
         resolvedId: '',
@@ -53,7 +66,7 @@ const fetchArnsData = async (arnsNameURL: string) => {
         contentType: '',
         contentLength: '',
         dataHashDigest: '',
-      }
+      };
     }
 
     if (res.status !== 200) {
@@ -91,7 +104,7 @@ const assessArNSName = async (
   const startTimestamp = Date.now();
   const gatewayRes = await fetchArnsData(gatewayURL);
 
-  const endTimestamp = Date.now(); 
+  const endTimestamp = Date.now();
 
   if (!referenceRes) {
     throw new Error('Unable to fetch reference ARNS data');
@@ -139,8 +152,10 @@ export const performAssessment = async (
   );
 
   const nameCount = prescribedNames.length + chosenNames.length;
-  const namePassCount = [...chosenNamesResults, ...prescribedNamesResults]
-  .reduce((count, assessment) => (assessment[1].pass ? count + 1 : count), 0);
+  const namePassCount = [
+    ...chosenNamesResults,
+    ...prescribedNamesResults,
+  ].reduce((count, assessment) => (assessment[1].pass ? count + 1 : count), 0);
   const arnsAssessmentPass = namePassCount >= nameCount * NAME_PASS_THRESHOLD;
 
   const assessment: Assessment = {

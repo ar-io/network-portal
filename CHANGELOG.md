@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.2] - 2025-02-12
+
 ### Updated
 
 - Revised observations to use ky library and use 5000ms timeout to better match with gateway observer scheme 

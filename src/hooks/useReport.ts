@@ -1,11 +1,12 @@
 import { DEFAULT_ARWEAVE_HOST, DEFAULT_ARWEAVE_PROTOCOL } from '@src/constants';
 import { useQuery } from '@tanstack/react-query';
 import { gunzipSync, strFromU8 } from 'fflate';
+import ky from 'ky';
 
 export const downloadReport = async (reportId: string) => {
       const reportURL = `${DEFAULT_ARWEAVE_PROTOCOL}://${DEFAULT_ARWEAVE_HOST}/${reportId}`;
 
-      const response = await fetch(reportURL);
+      const response = await ky.get(reportURL);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch report: ${response.statusText}`);

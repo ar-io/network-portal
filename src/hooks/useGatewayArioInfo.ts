@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import ky from 'ky';
 
 export interface ArioInfoResponse {
   wallet: string;
@@ -23,7 +24,7 @@ const useGatewayArioInfo = ({
 
       const arioInfoEndpoint = `${url}/ar-io/info`;
 
-      const response = await fetch(arioInfoEndpoint); 
+      const response = await ky.get(arioInfoEndpoint); 
       const responseJson = await response.json(); 
 
       return responseJson as ArioInfoResponse; 

@@ -3,6 +3,7 @@ import { useGlobalState } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import ky from 'ky';
 import { ReactElement, useEffect } from 'react';
 
 // Time to wait in ms to check if the AO CU URL is congested
@@ -75,7 +76,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
 
     const checkAoCongestion = () => {
       const startTime = Date.now();
-      fetch(`${aoCuUrl}/state/${arioProcessId}`, { method: 'HEAD' })
+      ky.head(`${aoCuUrl}/state/${arioProcessId}`)
         .then((res) => {
           const endTime = Date.now();
           if (!res.ok) {

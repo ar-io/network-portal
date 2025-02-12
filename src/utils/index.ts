@@ -106,27 +106,6 @@ export const arrayBufferToBase64Url = (arrayBuffer: ArrayBuffer) => {
   return base64ToBase64url(base64);
 };
 
-export const fetchWithTimeout = async (
-  resource: string,
-  options?: RequestInit,
-  timeout?: number,
-) => {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout ?? 10_000);
-
-  const response = await fetch(resource, {
-    ...options,
-    headers: {
-      ...options?.headers,
-      'Accept-Encoding': 'identity',
-    },
-    signal: controller.signal,
-  });
-  clearTimeout(id);
-
-  return response;
-};
-
 export const isArweaveTransactionID = (id?: string) => {
   if (!id) {
     return false;

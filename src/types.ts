@@ -66,12 +66,12 @@ export interface ArNSAssessment {
   assesedAt: number;
   expectedDataHash: string;
   expectedId: string;
-  expectedStatusCode: number;
+  expectedStatusCode?: number;
   pass: boolean;
   failureReason?: string;
   resolvedDataHash: string;
   resolvedId: string;
-  resolvedStatusCode: number;
+  resolvedStatusCode?: number;
   timings?: ArNSAssessmentTimings;
 }
 

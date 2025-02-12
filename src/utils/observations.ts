@@ -7,7 +7,7 @@ import {
   REFERENCE_GATEWAY_FQDN,
 } from '@src/constants';
 import { ArNSAssessment, Assessment, OwnershipAssessment } from '@src/types';
-import ky from 'ky';
+import ky, { TimeoutError } from 'ky';
 import { arrayBufferToBase64Url } from '.';
 
 // create a ky instance with default options
@@ -17,6 +17,7 @@ const gatewayRequest = ky.create({
     'Accept-Encoding': 'identity',
   },
   throwHttpErrors: false,
+  cache: 'no-store',
 });
 
 export const assessOwnership = async (
@@ -87,6 +88,17 @@ const fetchArnsData = async (arnsNameURL: string) => {
       dataHashDigest: dataHashBase64URL,
     };
   } catch (error) {
+    if (error instanceof TimeoutError) {
+      return {
+        statusCode: undefined,
+        resolvedId: '',
+        ttlSeconds: '',
+        contentType: '',
+        contentLength: '',
+        dataHashDigest: '',
+        failureReason: 'Timeout awaiting response for 5000ms',
+      };
+    }
     log.error(error);
     return undefined;
   }

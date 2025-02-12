@@ -2,15 +2,13 @@ import { AoGateway } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
-import {
-  BinocularsGradientIcon,
-  BinocularsIcon,
-} from '@src/components/icons';
+import { BinocularsGradientIcon, BinocularsIcon } from '@src/components/icons';
 import { log } from '@src/constants';
 import usePrescribedNames from '@src/hooks/usePrescribedNames';
 import { useGlobalState } from '@src/store';
 import { Assessment } from '@src/types';
 import { performAssessment } from '@src/utils/observations';
+import { showErrorToast } from '@src/utils/toast';
 import { ChevronRightIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -47,26 +45,32 @@ const ObserveHeader = ({
 
   const runObservation = async () => {
     setRunningObservation(true);
-    const assessment = await performAssessment(
-      { ...gateway!, gatewayAddress: ownerId! },
-      [],
-      arnsNamesToSearch
-        .split(',')
-        .reduce(
-          (acc, s) => (s.trim().length > 0 ? [...acc, s.trim()] : acc),
-          [] as string[],
-        ),
-    );
-    log.debug(assessment);
+    try {
+      const assessment = await performAssessment(
+        { ...gateway!, gatewayAddress: ownerId! },
+        [],
+        arnsNamesToSearch
+          .split(',')
+          .reduce(
+            (acc, s) => (s.trim().length > 0 ? [...acc, s.trim()] : acc),
+            [] as string[],
+          ),
+      );
 
-    setSelectedAssessment(assessment);
+      log.debug(assessment);
 
-    await networkPortalDB.observations.add({
-      gatewayAddress: ownerId!,
-      timestamp: Date.now(),
-      assessment,
-    });
-    setRunningObservation(false);
+      setSelectedAssessment(assessment);
+
+      await networkPortalDB.observations.add({
+        gatewayAddress: ownerId!,
+        timestamp: Date.now(),
+        assessment,
+      });
+    } catch (e) {
+      showErrorToast(`${e}`);
+    } finally {
+      setRunningObservation(false);
+    }
   };
 
   // update prescribed names after loading

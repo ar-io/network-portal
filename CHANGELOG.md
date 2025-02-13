@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.3] - 2025-02-13
+
 ### Changed
 
 - Added support for account switching with Metamask
+
+### Fixed
+
+- Observer page banner performance field fixed to use updated field from process
 
 ## [1.9.2] - 2025-02-12
 
@@ -20,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Added better error handling for observations 
-- Observer page banner performance field fixed to use updated field from process
 
 ## [1.9.1] - 2025-02-10
 

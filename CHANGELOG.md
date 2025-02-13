@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Added better error handling for observations 
+- Observer page banner performance field fixed to use updated field from process
 
 ## [1.9.1] - 2025-02-10
 

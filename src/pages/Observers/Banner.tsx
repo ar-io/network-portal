@@ -149,7 +149,7 @@ const Banner = () => {
                     label="Observer Performance"
                     value={
                       myObserver
-                        ? formatPercentage(myObserver.observerRewardRatioWeight)
+                        ? formatPercentage(myObserver.observerPerformanceRatio)
                         : 'N/A'
                     }
                   />

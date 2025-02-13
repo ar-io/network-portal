@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Added support for account switching with Metamask
+
 ## [1.9.2] - 2025-02-12
 
 ### Updated

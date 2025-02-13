@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.4] - 2025-02-13
+
+### Fixed
+
+- Fixed profile menu errant display of 0 when ARIO balance is 0
+
 ## [1.9.3] - 2025-02-13
 
 ### Changed

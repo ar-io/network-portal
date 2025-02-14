@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.5] - 2025-02-14
+
+### Fixed
+
+- Adjusted rewards calculation to work with new scheme where rewards were unavailable on current epoch
+
 ## [1.9.4] - 2025-02-13
 
 ### Fixed

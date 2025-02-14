@@ -27,7 +27,7 @@ const useGatewaysPerEpoch = () => {
             epochIndex: epoch.epochIndex,
             totalEligibleGateways:
               epoch.distributions.totalEligibleGateways ||
-              Object.keys(epoch.distributions.rewards.eligible).length,
+              Object.keys(epoch.distributions.rewards?.eligible ?? {}).length,
           };
         });
     },

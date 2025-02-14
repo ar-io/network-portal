@@ -76,7 +76,7 @@ const Profile = () => {
               : formatWalletAddress(walletAddress.toString())}
           </PopoverButton>
 
-          <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl min-w-52">
+          <PopoverPanel className="absolute right-0 z-50 mt-2.5 w-fit min-w-52 rounded-xl border border-grey-800 bg-grey-1000 text-sm shadow-xl">
             <div className="flex gap-2 px-4 py-5 ">
               <WalletMinimal className="size-4" />
 

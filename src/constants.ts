@@ -20,7 +20,7 @@ export const ARIO_PROCESS_ID = new ArweaveTransactionID(
   process.env.VITE_ARIO_PROCESS_ID ??
     'vGBEeCYVq03RC_Di_x865nGelN5WIxl3sSEyvGu0AWY',
 );
-export const AO_CU_URL = process.env.VITE_AO_CU_URL || 'https://cu.ar-io.dev';
+export const AO_CU_URL = 'https://cu.ar-io.dev';
 export const DEFAULT_ARWEAVE_PROTOCOL =
   process.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =

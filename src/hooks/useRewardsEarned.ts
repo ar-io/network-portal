@@ -13,17 +13,18 @@ const useRewardsEarned = (walletAddress?: string) => {
 
   useEffect(() => {
     if (epochs && walletAddress) {
-      const sorted = epochs.sort((a, b) => (a?.epochIndex || 0) - (b?.epochIndex || 0));
+      const sorted = epochs.sort(
+        (a, b) => (a?.epochIndex || 0) - (b?.epochIndex || 0),
+      );
       const previousEpoch = sorted[sorted.length - 2];
+      // rewards are not avialable on current epoch
       const previousEpochDistributed =
-        previousEpoch?.distributions.rewards.distributed;
-      const previousEpochRewards = previousEpochDistributed
-        ? previousEpochDistributed[walletAddress] || 0
-        : 0;
+        previousEpoch?.distributions.rewards?.distributed ?? {};
+      const previousEpochRewards = previousEpochDistributed[walletAddress] || 0;
 
       const totalForPastAvailableEpochs = epochs.reduce((acc, epoch) => {
-        const distributed = epoch?.distributions.rewards.distributed;
-        return acc + (distributed ? distributed[walletAddress] || 0 : 0);
+        const distributed = epoch?.distributions.rewards?.distributed ?? {};
+        return acc + (distributed[walletAddress] || 0);
       }, 0);
 
       setRewardsEarned({

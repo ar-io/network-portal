@@ -1,5 +1,6 @@
 import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
+import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGatewaysPerEpoch from '@src/hooks/useGatewaysPerEpoch';
 import { useEffect, useState } from 'react';
 import {
@@ -36,6 +37,7 @@ const CustomTooltip = ({
 
 const GatewaysInNetworkPanel = () => {
   const { data: gatewaysPerEpoch } = useGatewaysPerEpoch();
+  const { data: epochSettings } = useEpochSettings();
 
   const [activeIndex, setActiveIndex] = useState<number>();
 
@@ -75,7 +77,7 @@ const GatewaysInNetworkPanel = () => {
         </div>
         {percentageChange && (
           <div className="flex h-full flex-col justify-end pb-4">
-            <Streak streak={percentageChange} fixedDigits={2} rightLabel="%"/>
+            <Streak streak={percentageChange} fixedDigits={2} rightLabel="%" />
           </div>
         )}
       </div>
@@ -145,6 +147,10 @@ const GatewaysInNetworkPanel = () => {
             />
           </AreaChart>
         </ResponsiveContainer>
+      ) : epochSettings && !epochSettings.hasEpochZeroStarted ? (
+        <div className="m-auto pb-12 text-sm italic text-low">
+          Awaiting first epoch...
+        </div>
       ) : (
         <Placeholder className="m-auto" />
       )}

@@ -1,25 +1,34 @@
 import { useGlobalState } from '@src/store';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import useEpochSettings from './useEpochSettings';
 
 const useEpochCountdown = () => {
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
+  const { data: epochSettings } = useEpochSettings();
 
   const [countdown, setCountdown] = useState<string>();
 
   useEffect(() => {
-    if (currentEpoch) {
+    if (currentEpoch || epochSettings) {
       const updateCountdown = () => {
         const now = dayjs();
-        const end = dayjs(new Date(currentEpoch.endTimestamp));
+        const end = dayjs(
+          new Date(
+            currentEpoch?.endTimestamp ??
+              epochSettings?.epochZeroStartTimestamp ??
+              0,
+          ),
+        );
         const diff = end.diff(now, 'seconds');
 
         if (diff <= 0) {
-          setCountdown('0h 0m');
+          setCountdown('Awaiting...');
         } else {
-          const hours = Math.floor(diff / 3600);
-          const minutes = Math.floor(diff % 3600 / 60);
-          setCountdown(`${hours}h ${minutes}m`);
+          const days = Math.floor(diff / 86400);
+          const hours = Math.floor((diff % 86400) / 3600) % 24;
+          const minutes = Math.floor((diff % 3600) / 60);
+          setCountdown(`${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m`);
         }
       };
 
@@ -30,7 +39,7 @@ const useEpochCountdown = () => {
     } else {
       setCountdown(undefined);
     }
-  }, [currentEpoch]);
+  }, [currentEpoch, epochSettings]);
 
   return countdown;
 };

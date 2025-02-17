@@ -5,9 +5,10 @@ import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Placeholder from './Placeholder';
 import Profile from './Profile';
+import useEpochSettings from '@src/hooks/useEpochSettings';
 
 interface HeaderItemProps {
   value?: ReactNode;
@@ -53,19 +54,33 @@ const Header = () => {
   const { isLoading: gatewaysLoading, data: gateways } = useGateways();
 
   const { data: protocolBalance } = useProtocolBalance();
+  
+  const { data:epochSettings} = useEpochSettings();
+
+  const [currentEpochLabel, setCurrentEpochLabel] = useState<string>();
+
+  useEffect(() => {
+    if(currentEpoch) {
+      setCurrentEpochLabel(currentEpoch?.epochIndex.toLocaleString('en-US'));
+    } else if(epochSettings && !epochSettings.hasEpochZeroStarted) {
+      setCurrentEpochLabel('Awaiting first epoch');
+    } else {
+      setCurrentEpochLabel(undefined);
+    }
+  }, [currentEpoch,epochSettings]);
 
   return (
     <header className="mt-6 flex h-[4.5rem] rounded-xl border py-4 pl-6 pr-4 leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
       <HeaderItem
-        value={currentEpoch?.epochIndex.toLocaleString('en-US')}
+        value={currentEpochLabel}
         label="AR.IO EPOCH"
-        loading={!currentEpoch}
+        loading={currentEpochLabel == undefined}
         leftPadding={false}
       />
       <HeaderItem
         value={epochCountdown}
         label="NEXT EPOCH"
-        loading={!currentEpoch}
+        loading={epochCountdown == undefined}
       />
       <HeaderItem
         value={blockHeight?.toLocaleString('en-US')}

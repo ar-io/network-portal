@@ -1,4 +1,4 @@
-import { AoGateway, AoARIORead } from '@ar.io/sdk/web';
+import { AoARIORead, AoGateway } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -18,6 +18,7 @@ const useGateways = () => {
       });
       cursor = pageResult.nextCursor;
     } while (cursor !== undefined);
+
     return gateways;
   };
 

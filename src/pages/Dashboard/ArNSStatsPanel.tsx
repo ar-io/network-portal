@@ -51,19 +51,17 @@ const ArNSStatsPanel = () => {
           }}
         />
       </div>
-      {epochSettings && !epochSettings.hasEpochZeroStarted && (
-        <div className="self-center px-24 py-6 text-center text-[2.625rem]">
-          {arnsStats ? (
-            formatWithCommas(arnsStats.namesPurchased)
-          ) : epochSettings && !epochSettings.hasEpochZeroStarted ? (
-            <div className="text-sm italic text-low">
-              Awaiting first epoch...
-            </div>
-          ) : (
+      <div className="self-center px-24 py-6 text-center text-[2.625rem]">
+        {arnsStats ? (
+          formatWithCommas(arnsStats.namesPurchased)
+        ) : epochSettings && !epochSettings.hasEpochZeroStarted ? (
+          <div className="text-sm italic text-low">Awaiting first epoch...</div>
+        ) : (
+          <div className="h-[5.125rem]">
             <Placeholder />
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
       <div className="flex h-full justify-between align-bottom font-bold text-high">
         <div className="flex flex-col place-items-start text-left text-xs">
           <div className="grow" />

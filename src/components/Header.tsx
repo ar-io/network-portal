@@ -1,14 +1,14 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import { NBSP } from '@src/constants';
 import useEpochCountdown from '@src/hooks/useEpochCountdown';
+import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
 import Placeholder from './Placeholder';
 import Profile from './Profile';
-import useEpochSettings from '@src/hooks/useEpochSettings';
 
 interface HeaderItemProps {
   value?: ReactNode;
@@ -54,18 +54,18 @@ const Header = () => {
   const { isLoading: gatewaysLoading, data: gateways } = useGateways();
 
   const { data: protocolBalance } = useProtocolBalance();
-  
-  const { data:epochSettings} = useEpochSettings();
+
+  const { data: epochSettings } = useEpochSettings();
 
   const currentEpochLabel = useMemo(() => {
-    if(currentEpoch) {
+    if (currentEpoch) {
       return currentEpoch?.epochIndex.toLocaleString('en-US');
-    } else if(epochSettings && !epochSettings.hasEpochZeroStarted) {
+    } else if (epochSettings && !epochSettings.hasEpochZeroStarted) {
       return 'Awaiting first epoch';
     } else {
       return undefined;
     }
-  },[currentEpoch,epochSettings]);
+  }, [currentEpoch, epochSettings]);
 
   return (
     <header className="mt-6 flex h-[4.5rem] rounded-xl border py-4 pl-6 pr-4 leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
@@ -89,9 +89,9 @@ const Header = () => {
         value={
           gateways
             ? Object.entries(gateways).filter(
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              ([_address, gateway]) => gateway.status === 'joined',  
-            ).length
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                ([_address, gateway]) => gateway.status === 'joined',
+              ).length
             : undefined
         }
         label="GATEWAYS"
@@ -101,7 +101,9 @@ const Header = () => {
         value={
           protocolBalance ? (
             <div>
-              {formatWithCommas(new mARIOToken(protocolBalance).toARIO().valueOf())}{' '}
+              {formatWithCommas(
+                new mARIOToken(protocolBalance).toARIO().valueOf(),
+              )}{' '}
               {ticker}
             </div>
           ) : undefined

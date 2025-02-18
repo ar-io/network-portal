@@ -5,7 +5,7 @@ import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import Placeholder from './Placeholder';
 import Profile from './Profile';
 import useEpochSettings from '@src/hooks/useEpochSettings';
@@ -57,17 +57,15 @@ const Header = () => {
   
   const { data:epochSettings} = useEpochSettings();
 
-  const [currentEpochLabel, setCurrentEpochLabel] = useState<string>();
-
-  useEffect(() => {
+  const currentEpochLabel = useMemo(() => {
     if(currentEpoch) {
-      setCurrentEpochLabel(currentEpoch?.epochIndex.toLocaleString('en-US'));
+      return currentEpoch?.epochIndex.toLocaleString('en-US');
     } else if(epochSettings && !epochSettings.hasEpochZeroStarted) {
-      setCurrentEpochLabel('Awaiting first epoch');
+      return 'Awaiting first epoch';
     } else {
-      setCurrentEpochLabel(undefined);
+      return undefined;
     }
-  }, [currentEpoch,epochSettings]);
+  },[currentEpoch,epochSettings]);
 
   return (
     <header className="mt-6 flex h-[4.5rem] rounded-xl border py-4 pl-6 pr-4 leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">

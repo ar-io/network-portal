@@ -34,6 +34,7 @@ const useArNSStats = () => {
       };
     },
     enabled: !!arioReadSDK && !!currentEpoch,
+    staleTime: Infinity,
   });
   return res;
 };

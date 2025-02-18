@@ -1,4 +1,4 @@
-import { mARIOToken } from '@ar.io/sdk/web';
+import { isDistributedEpochData, mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
 import useEpochSettings from '@src/hooks/useEpochSettings';
@@ -162,11 +162,12 @@ const RewardsDistributionPanel = () => {
           )
             .toARIO()
             .valueOf();
-          const claimed = new mARIOToken(
-            epoch!.distributions.totalDistributedRewards ?? 0,
-          )
-            .toARIO()
-            .valueOf();
+
+          const distributed = isDistributedEpochData(epoch!.distributions)
+            ? epoch!.distributions.totalDistributedRewards
+            : 0;
+
+          const claimed = new mARIOToken(distributed).toARIO().valueOf();
           return {
             epoch: epoch!.epochIndex,
             eligible,

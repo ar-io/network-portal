@@ -7,6 +7,7 @@ import { useGlobalState } from '@src/store';
 import { useState } from 'react';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
+import CopyButton from '../CopyButton';
 
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   const arioProcessId = useGlobalState((state) => state.arioProcessId);
@@ -58,6 +59,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   setArioProcessId(e.target.value);
                 }}
               />
+              <CopyButton textToCopy={arioProcessId} />
               <a
                 href={`https://www.ao.link/#/entity/${arioProcessId}`}
                 target="_blank"

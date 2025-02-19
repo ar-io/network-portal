@@ -18,7 +18,7 @@ export const WRITE_OPTIONS = {
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARIO_PROCESS_ID = new ArweaveTransactionID(
   process.env.VITE_ARIO_PROCESS_ID ??
-    'oIiRrqvW7ZaX7wZbaz2YMmPJED_0aJLHsjTq_lZceKo',
+    'ebLLp8uxMHv8l5_TiADYwmibh4FKZ0BzFJjIoBOpRho',
 );
 export const AO_CU_URL = 'https://cu.ar-io.dev';
 export const DEFAULT_ARWEAVE_PROTOCOL =

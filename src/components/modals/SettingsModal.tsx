@@ -12,6 +12,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const setArioProcessId = useGlobalState((state) => state.setArioProcessId);
   const isDevnet = arioProcessId == ARIO_DEVNET_PROCESS_ID;
+  const isTestnet = arioProcessId == ARIO_TESTNET_PROCESS_ID;
   const aoCuUrl = useGlobalState((state) => state.aoCuUrl);
   const setAoCuUrl = useGlobalState((state) => state.setAoCuUrl);
 
@@ -37,8 +38,8 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   Devnet
                 </button>
                 <button
-                  className={`rounded-r border border-grey-500 px-4 py-2 ${!isDevnet ? 'bg-streak-up text-containerL0' : undefined}`}
-                  disabled={!isDevnet}
+                  className={`rounded-r border border-grey-500 px-4 py-2 ${isTestnet ? 'bg-streak-up text-containerL0' : undefined}`}
+                  disabled={isTestnet}
                   onClick={() => {
                     setArioProcessId(ARIO_TESTNET_PROCESS_ID);
                   }}
@@ -48,14 +49,15 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
               </div>
             </div>
             <div className="my-4 text-center text-sm text-mid">
-              <a
-                href={`https://www.ao.link/#/entity/${arioProcessId}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-center"
-              >
-                {arioProcessId} <LinkArrowIcon className="size-4" />
-              </a>
+              <input
+                type="text"
+                value={arioProcessId}
+                className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
+                onChange={(e) => {
+                  if (e.target.value.length !== 43) return;
+                  setArioProcessId(e.target.value);
+                }}
+              />
             </div>
           </div>
 

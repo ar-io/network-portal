@@ -48,7 +48,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                 </button>
               </div>
             </div>
-            <div className="my-4 text-center text-sm text-mid">
+            <div className="my-4 flex items-center justify-center gap-2 text-center text-sm text-mid">
               <input
                 type="text"
                 value={arioProcessId}
@@ -58,6 +58,13 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   setArioProcessId(e.target.value);
                 }}
               />
+              <a
+                href={`https://www.ao.link/#/entity/${arioProcessId}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <LinkArrowIcon className="size-4" />
+              </a>
             </div>
           </div>
 

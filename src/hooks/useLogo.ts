@@ -33,6 +33,7 @@ const useLogo = ({ primaryName }: { primaryName?: string }) => {
       });
     },
     enabled: !!primaryName && !!arIOReadSDK,
+    staleTime: 5 * 60 * 1000,
   });
 
   return queryResults;

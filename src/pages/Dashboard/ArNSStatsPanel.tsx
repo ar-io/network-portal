@@ -2,11 +2,13 @@ import Button from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
 import useArNSStats from '@src/hooks/useArNSStats';
+import useEpochSettings from '@src/hooks/useEpochSettings';
 import useHostGatewayDomain from '@src/hooks/useHostGatewayDomain';
 import { formatWithCommas } from '@src/utils';
 import { InfoIcon } from 'lucide-react';
 
 const ArNSStatsPanel = () => {
+  const { data: epochSettings } = useEpochSettings();
   const { data: arnsStats } = useArNSStats();
   const { data: hostGatewayDomain } = useHostGatewayDomain();
 
@@ -52,8 +54,12 @@ const ArNSStatsPanel = () => {
       <div className="self-center px-24 py-6 text-center text-[2.625rem]">
         {arnsStats ? (
           formatWithCommas(arnsStats.namesPurchased)
+        ) : epochSettings && !epochSettings.hasEpochZeroStarted ? (
+          <div className="text-sm italic text-low">Awaiting first epoch...</div>
         ) : (
-          <Placeholder />
+          <div className="h-[5.125rem]">
+            <Placeholder />
+          </div>
         )}
       </div>
       <div className="flex h-full justify-between align-bottom font-bold text-high">
@@ -65,7 +71,8 @@ const ArNSStatsPanel = () => {
               <div>Demand Factor</div>
             </>
           ) : (
-            <Placeholder />
+            epochSettings &&
+            epochSettings.hasEpochZeroStarted && <Placeholder />
           )}
         </div>
       </div>

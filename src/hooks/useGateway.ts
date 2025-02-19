@@ -41,6 +41,7 @@ const useGateway = ({
       }
     },
     enabled: !!ownerWalletAddress && !!arIOReadSDK,
+    staleTime: 5 * 60 * 1000,
   });
 
   return queryResults;

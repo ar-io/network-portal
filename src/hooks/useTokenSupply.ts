@@ -11,6 +11,7 @@ const useTokenSupply = () => {
       return arioReadSDK.getTokenSupply();
     },
     enabled: !!arioReadSDK,
+    staleTime: Infinity,
   });
   return res;
 };

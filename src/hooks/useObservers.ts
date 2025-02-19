@@ -6,14 +6,14 @@ const useObservers = (epoch?: AoEpochData) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const queryResults = useQuery({
-    queryKey: ['prescribedObservers', arIOReadSDK, epoch?.epochIndex || -1],
+    queryKey: ['prescribedObservers', arIOReadSDK, epoch?.epochIndex],
     queryFn: () => {
       if (arIOReadSDK && epoch) {
         return arIOReadSDK.getPrescribedObservers(epoch);
       }
       throw new Error('arIOReadSDK or epoch not available');
     },
-    enabled: !!arIOReadSDK && !!epoch,
+    enabled: !!arIOReadSDK && !!epoch?.epochIndex,
   });
 
   return queryResults;

@@ -36,11 +36,11 @@ const ObserveHeader = ({
   const [runningObservation, setRunningObservation] = useState(false);
 
   // fetch current prescribed names, fallback to defaults
-  const { data: prescribedNames = [], isLoading: loadingPrescribedNames } =
+  const { data: prescribedNames, isLoading: loadingPrescribedNames } =
     usePrescribedNames();
 
   const [arnsNamesToSearch, setArnsNamesToSearch] = useState(
-    prescribedNames.join(', '),
+    prescribedNames?.join(', ') ?? '',
   );
 
   const runObservation = async () => {
@@ -75,7 +75,7 @@ const ObserveHeader = ({
 
   // update prescribed names after loading
   useEffect(() => {
-    setArnsNamesToSearch(prescribedNames.join(','));
+    setArnsNamesToSearch(prescribedNames?.join(', ') ?? '');
   }, [prescribedNames]);
 
   return (

@@ -13,7 +13,7 @@ type IOCategory =
   | 'Actively Staked'
   | 'Pending Withdrawal'
   | 'Liquid'
-  | 'Locked Supply';
+  | 'Locked';
 
 type IODistribution = { name: IOCategory; value: number }[];
 
@@ -40,7 +40,7 @@ const calculateIODistribution = (
       value: new mARIOToken(tokenSupply.circulating).toARIO().valueOf(),
     },
     {
-      name: 'Locked Supply',
+      name: 'Locked',
       value: new mARIOToken(tokenSupply.locked).toARIO().valueOf(),
     },
   ];

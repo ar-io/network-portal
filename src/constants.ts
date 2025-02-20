@@ -16,6 +16,9 @@ export const WRITE_OPTIONS = {
   ],
 };
 
+export const ARIO_MAINNET_PROCESS_ID =
+  'qNvAoz0TgcH7DMg8BCVn8jF32QH5L6T29VjHxhHqqGE';
+
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARIO_PROCESS_ID = new ArweaveTransactionID(
   process.env.VITE_ARIO_PROCESS_ID ?? ARIO_DEVNET_PROCESS_ID,

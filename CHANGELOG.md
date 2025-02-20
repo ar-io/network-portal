@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2025-02-20
+
+### Updated
+
+- Application configured for mainnet process
+- Modified to handle pre-epoch-zero state  
+
 ## [1.9.5] - 2025-02-14
 
 ### Fixed

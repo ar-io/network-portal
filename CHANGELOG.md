@@ -7,12 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.1] - 2025-02-20
+
+### Changed
+
+- Updated to ar.io SDK 3.8.0
+
+### Fixed
+
+- Allow editing ArNS names for observations when prescribed names are unavailable
+
 ## [1.10.0] - 2025-02-20
 
 ### Updated
 
 - Application configured for mainnet process
-- Modified to handle pre-epoch-zero state  
+- Modified to handle pre-epoch-zero state
 
 ## [1.9.5] - 2025-02-14
 
@@ -40,11 +50,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Updated
 
-- Revised observations to use ky library and use 5000ms timeout to better match with gateway observer scheme 
+- Revised observations to use ky library and use 5000ms timeout to better match with gateway observer scheme
 
 ### Fixed
 
-- Added better error handling for observations 
+- Added better error handling for observations
 
 ## [1.9.1] - 2025-02-10
 
@@ -59,24 +69,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added support for Metamask Wallet
 - Added support for sending ARIO using "Transfer ARIO" modal, accessible from Profile menu
-- Added Info icon to ArNS Stats panel with tooltip to view additional ArNS stats 
+- Added Info icon to ArNS Stats panel with tooltip to view additional ArNS stats
 
 ### Changed
- 
-- Updated wallet name from ArConnect to Wander to reflect new branding 
-- Minor optimizations for queries 
+
+- Updated wallet name from ArConnect to Wander to reflect new branding
+- Minor optimizations for queries
 
 ## [1.8.3] - 2025-02-03
 
-### Changed 
+### Changed
 
-- Minor fix for property name change. 
+- Minor fix for property name change.
 
 ## [1.8.2] - 2025-02-03
 
-### Changed 
+### Changed
 
-- Updated to latest ar.io SDK to support changes in property names for data returned by the network 
+- Updated to latest ar.io SDK to support changes in property names for data returned by the network
 
 ## [1.8.1] - 2025-01-29
 

@@ -1,8 +1,9 @@
 import {
   ARIO_DEVNET_PROCESS_ID,
+  ARIO_MAINNET_PROCESS_ID,
   ARIO_TESTNET_PROCESS_ID,
 } from '@ar.io/sdk/web';
-import { AO_CU_URL, ARIO_MAINNET_PROCESS_ID } from '@src/constants';
+import { AO_CU_URL } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
 import { LinkArrowIcon } from '../icons';

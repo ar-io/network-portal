@@ -25,6 +25,7 @@ const usePrescribedNames = () => {
       throw new Error('arIOReadSDK or currentEpoch not available');
     },
     enabled: !!arIOReadSDK && !!currentEpoch,
+    staleTime: Infinity,
   });
 
   return queryResults;

@@ -16,6 +16,9 @@ export const WRITE_OPTIONS = {
   ],
 };
 
+// TODO: Replace with final mainnet process ID from SDK
+export const ARIO_MAINNET_PROCESS_ID = "PklI5-ORsL310QNAwh-LMcFycFxPkJ67MmoriUCaL3I";
+
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARIO_PROCESS_ID = new ArweaveTransactionID(
   process.env.VITE_ARIO_PROCESS_ID ?? ARIO_DEVNET_PROCESS_ID,

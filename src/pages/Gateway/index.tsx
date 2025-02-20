@@ -1,7 +1,7 @@
 /* eslint-disable tailwindcss/classnames-order */
 import {
-  AoUpdateGatewaySettingsParams,
   ARIOToken,
+  AoUpdateGatewaySettingsParams,
   mARIOToken,
 } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
@@ -13,8 +13,8 @@ import {
   isFormValid,
 } from '@src/components/forms/formData';
 import {
-  validateDomainName,
   validateARIOAmount,
+  validateDomainName,
   validateNumberRange,
   validateString,
   validateTransactionId,
@@ -24,20 +24,21 @@ import { EditIcon } from '@src/components/icons';
 import BlockingMessageModal from '@src/components/modals/BlockingMessageModal';
 import SuccessModal from '@src/components/modals/SuccessModal';
 import { WRITE_OPTIONS, log } from '@src/constants';
+import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGateway from '@src/hooks/useGateway';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import ActiveDelegates from './ActiveDelegates';
 import GatewayHeader from './GatewayHeader';
+import OperatorStake from './OperatorStake';
+import PendingWithdrawals from './PendingWIthdrawals';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
 import SnitchRow from './SnitchRow';
 import SoftwareDetails from './SoftwareDetails';
 import StatsPanel from './StatsPanel';
-import OperatorStake from './OperatorStake';
-import PendingWithdrawals from './PendingWIthdrawals';
-import ActiveDelegates from './ActiveDelegates';
 
 const Gateway = () => {
   const queryClient = useQueryClient();
@@ -53,6 +54,8 @@ const Gateway = () => {
   const { data: gateway } = useGateway({
     ownerWalletAddress: ownerId || undefined,
   });
+
+  const { data: epochSettings } = useEpochSettings();
 
   const [editing, setEditing] = useState(false);
 
@@ -74,8 +77,16 @@ const Gateway = () => {
     ['Stake', gateway?.weights?.stakeWeight],
     ['Tenure', gateway?.weights?.tenureWeight],
     // there will be a period where old epoch notices have the old field, and new epoch notices have the new field, so check both
-    ['Gateway Performance Ratio', gateway?.weights?.gatewayPerformanceRatio ?? gateway?.weights?.gatewayRewardRatioWeight],
-    ['Observer Performance Ratio', gateway?.weights?.observerPerformanceRatio ?? gateway?.weights?.observerRewardRatioWeight],
+    [
+      'Gateway Performance Ratio',
+      gateway?.weights?.gatewayPerformanceRatio ??
+        gateway?.weights?.gatewayRewardRatioWeight,
+    ],
+    [
+      'Observer Performance Ratio',
+      gateway?.weights?.observerPerformanceRatio ??
+        gateway?.weights?.observerRewardRatioWeight,
+    ],
     ['Composite', gateway?.weights?.compositeWeight],
     ['Normalized', gateway?.weights?.normalizedCompositeWeight],
   ];
@@ -226,8 +237,9 @@ const Gateway = () => {
       delegateRewardShareRatio:
         (gateway.settings.delegateRewardShareRatio || 0) + '',
       minDelegatedStake:
-        new mARIOToken(gateway.settings.minDelegatedStake || 0).toARIO().valueOf() +
-        '',
+        new mARIOToken(gateway.settings.minDelegatedStake || 0)
+          .toARIO()
+          .valueOf() + '',
     };
     setInitialState(initialState);
     setFormState(initialState);
@@ -307,13 +319,19 @@ const Gateway = () => {
   };
 
   return (
-    <div className="flex flex-col pb-6 gap-6">
+    <div className="flex flex-col gap-6 pb-6">
       <div className="min-w-[68rem]">
         <GatewayHeader gateway={gateway} />
       </div>
-      <OperatorStake gateway={gateway} walletAddress={walletAddress?.toString()} />
-      <PendingWithdrawals gateway={gateway} walletAddress={walletAddress?.toString()} />
-      <ActiveDelegates gateway={gateway}/>
+      <OperatorStake
+        gateway={gateway}
+        walletAddress={walletAddress?.toString()}
+      />
+      <PendingWithdrawals
+        gateway={gateway}
+        walletAddress={walletAddress?.toString()}
+      />
+      <ActiveDelegates gateway={gateway} />
 
       <div className="flex gap-6">
         <div className="flex min-w-72 flex-col gap-6">
@@ -333,7 +351,11 @@ const Gateway = () => {
                     {title}:
                   </div>
                   <div className="text-right text-sm">
-                    {value !== undefined ? value.toFixed(3) : <Placeholder className="w-10" />}
+                    {value !== undefined ? (
+                      value.toFixed(3)
+                    ) : (
+                      <Placeholder className="w-10" />
+                    )}
                   </div>
                 </div>
               ))}
@@ -410,7 +432,9 @@ const Gateway = () => {
             )}
           </div>
 
-          <SnitchRow gateway={gateway} />
+          {epochSettings?.hasEpochZeroStarted && (
+            <SnitchRow gateway={gateway} />
+          )}
         </div>
       </div>
       {showBlockingMessageModal && (

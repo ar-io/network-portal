@@ -2,16 +2,19 @@ import {
   ARIO_DEVNET_PROCESS_ID,
   ARIO_TESTNET_PROCESS_ID,
 } from '@ar.io/sdk/web';
-import { AO_CU_URL } from '@src/constants';
+import { AO_CU_URL, ARIO_MAINNET_PROCESS_ID } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
+import CopyButton from '../CopyButton';
 
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   const arioProcessId = useGlobalState((state) => state.arioProcessId);
   const setArioProcessId = useGlobalState((state) => state.setArioProcessId);
   const isDevnet = arioProcessId == ARIO_DEVNET_PROCESS_ID;
+  const isTestnet = arioProcessId == ARIO_TESTNET_PROCESS_ID;
+  const isMainnet = arioProcessId == ARIO_MAINNET_PROCESS_ID;
   const aoCuUrl = useGlobalState((state) => state.aoCuUrl);
   const setAoCuUrl = useGlobalState((state) => state.setAoCuUrl);
 
@@ -26,7 +29,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
           <div className="my-2 grow overflow-y-auto text-sm text-mid scrollbar">
             <div className="flex items-center">
               <div className="grow">AR.IO Process</div>
-              <div className="grid grid-cols-2">
+              <div className="grid grid-cols-3">
                 <button
                   className={`rounded-l border border-grey-500 px-4 py-2 ${isDevnet ? 'bg-streak-up text-containerL0' : undefined}`}
                   disabled={isDevnet}
@@ -37,24 +40,43 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   Devnet
                 </button>
                 <button
-                  className={`rounded-r border border-grey-500 px-4 py-2 ${!isDevnet ? 'bg-streak-up text-containerL0' : undefined}`}
-                  disabled={!isDevnet}
+                  className={`border border-grey-500 px-4 py-2 ${isTestnet ? 'bg-streak-up text-containerL0' : undefined}`}
+                  disabled={isTestnet}
                   onClick={() => {
                     setArioProcessId(ARIO_TESTNET_PROCESS_ID);
                   }}
                 >
                   Testnet
                 </button>
+
+                <button
+                  className={`rounded-r border border-grey-500 px-4 py-2 ${isMainnet ? 'bg-streak-up text-containerL0' : undefined}`}
+                  disabled={isMainnet}
+                  onClick={() => {
+                    setArioProcessId(ARIO_MAINNET_PROCESS_ID);
+                  }}
+                >
+                  Mainnet
+                </button>
               </div>
             </div>
-            <div className="my-4 text-center text-sm text-mid">
+            <div className="my-4 flex items-center justify-center gap-2 text-center text-sm text-mid">
+              <input
+                type="text"
+                value={arioProcessId}
+                className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
+                onChange={(e) => {
+                  if (e.target.value.length !== 43) return;
+                  setArioProcessId(e.target.value);
+                }}
+              />
+              <CopyButton textToCopy={arioProcessId} />
               <a
                 href={`https://www.ao.link/#/entity/${arioProcessId}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center"
               >
-                {arioProcessId} <LinkArrowIcon className="size-4" />
+                <LinkArrowIcon className="size-4" />
               </a>
             </div>
           </div>

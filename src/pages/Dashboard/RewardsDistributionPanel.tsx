@@ -1,6 +1,7 @@
-import { mARIOToken } from '@ar.io/sdk/web';
+import { isDistributedEpochData, mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
+import useEpochSettings from '@src/hooks/useEpochSettings';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
@@ -126,7 +127,6 @@ const CustomUnclaimedBar = ({
         stroke={stroke}
         strokeDasharray={strokeDashArray}
       />
-
     </g>
   ) : (
     <g>
@@ -149,10 +149,12 @@ const RewardsDistributionPanel = () => {
   const [mouseLeave, setMouseLeave] = useState(true);
   const [rewardsData, setRewardsData] = useState<Array<RewardsData>>();
   const { data: epochs } = useEpochs();
+  const { data: epochSettings } = useEpochSettings();
 
   useEffect(() => {
     setRewardsData(
-      epochs?.filter((epoch) => epoch !== undefined)
+      epochs
+        ?.filter((epoch) => epoch !== undefined)
         .sort((a, b) => a!.epochIndex - b!.epochIndex)
         .map((epoch) => {
           const eligible = new mARIOToken(
@@ -160,11 +162,12 @@ const RewardsDistributionPanel = () => {
           )
             .toARIO()
             .valueOf();
-          const claimed = new mARIOToken(
-            epoch!.distributions.totalDistributedRewards ?? 0,
-          )
-            .toARIO()
-            .valueOf();
+
+          const distributed = isDistributedEpochData(epoch!.distributions)
+            ? epoch!.distributions.totalDistributedRewards
+            : 0;
+
+          const claimed = new mARIOToken(distributed).toARIO().valueOf();
           return {
             epoch: epoch!.epochIndex,
             eligible,
@@ -256,6 +259,12 @@ const RewardsDistributionPanel = () => {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        ) : epochSettings && !epochSettings.hasEpochZeroStarted ? (
+          <div className="flex size-full">
+            <div className="m-auto h-4 text-sm italic text-low">
+              Awaiting first epoch...
+            </div>
           </div>
         ) : (
           <div className="flex size-full">

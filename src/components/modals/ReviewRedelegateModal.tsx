@@ -1,25 +1,18 @@
 import { AoGatewayWithAddress, ARIOToken } from '@ar.io/sdk/web';
-import {
-  log,
-  REDELEGATION_FEE_TOOLTIP_TEXT,
-  WRITE_OPTIONS,
-} from '@src/constants';
+import { log, WRITE_OPTIONS } from '@src/constants';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
 import { formatAddress, formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { InfoIcon } from 'lucide-react';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import { LinkArrowIcon } from '../icons';
 import LabelValueRow from '../LabelValueRow';
-import Tooltip from '../Tooltip';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import WithdrawWarning from './WithdrawWarning';
 
 type ReviewRedelegateModalProps = {
   sourceGateway: AoGatewayWithAddress;
@@ -165,17 +158,6 @@ const ReviewRedelegateModal = ({
               <LabelValueRow
                 label="Fee:"
                 value={`${fee > 0 && fee} ${redelegationFee ? `(-${redelegationFee.redelegationFeeRate}%)` : ''} ${ticker}`}
-                rightIcon={
-                  <Tooltip
-                    message={
-                      <div>
-                        <p>{REDELEGATION_FEE_TOOLTIP_TEXT}</p>
-                      </div>
-                    }
-                  >
-                    <InfoIcon className="size-[1.125rem]" />
-                  </Tooltip>
-                }
               />
             )}
 
@@ -191,7 +173,15 @@ const ReviewRedelegateModal = ({
           </div>
 
           <div className="px-8 pb-6 text-left">
-            <WithdrawWarning />
+            <div>
+              <div className="flex gap-3 rounded bg-containerL3 p-4">
+                <div className="grow text-[0.8125rem] text-mid">
+                  Users get one free redelegation every 7 days. Fees then
+                  increase incrementally (10%, 20%, ... up to 60%) and stay at
+                  60% until resetting after 7 days of no action.
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex size-full flex-col bg-containerL0 px-8 pb-2 pt-6">

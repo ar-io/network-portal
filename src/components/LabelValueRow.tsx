@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 const LabelValueRow = ({
   label,
   value,
@@ -6,7 +8,7 @@ const LabelValueRow = ({
   rightIcon,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   isLink?: boolean;
   className?: string;
   rightIcon?: React.ReactNode;

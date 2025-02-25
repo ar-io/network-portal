@@ -294,7 +294,7 @@ const RedelegateModal = ({
                       </div>
                     }
                   >
-                    <InfoIcon className="size-[1.125rem]" />
+                    <InfoIcon className="size-4 text-text-red" />
                   </Tooltip>
                 }
               />

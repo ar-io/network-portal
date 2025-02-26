@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.3] - 2025-02-25
+
+### Changed
+
+- Updated to ar.io SDK 3.8.2-alpha.1 for improved retry logic on AO interactions
+- Made info icon red on redelegation modal to make it more noticeable for users
+
 ## [1.10.2] - 2025-02-20
 
 ### Changed

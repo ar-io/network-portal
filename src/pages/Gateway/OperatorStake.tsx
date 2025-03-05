@@ -6,7 +6,8 @@ import OperatorWithdrawalModal from '@src/components/modals/OperatorWithdrawalMo
 import RedelegateModal, { RedelegateModalProps } from '@src/components/modals/RedelegateModal';
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
-import { EAY_TOOLTIP_TEXT, GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
+import { EAY_TOOLTIP_TEXT, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
+import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -14,7 +15,7 @@ import { formatPercentage, formatWithCommas } from '@src/utils';
 import { calculateOperatorRewards } from '@src/utils/rewards';
 import { MathJax } from 'better-react-mathjax';
 import { InfoIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type OperatorStakeProps = {
   gateway?: AoGatewayWithAddress;
@@ -32,6 +33,16 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
 
   const [showRedelegateModal, setShowRedelegateModal] =
     useState<RedelegateModalProps>();
+
+  const { data: gatewayRegistrySettings } = useGatewayRegistrySettings();
+
+  const minOperatorStake = useMemo(() => {
+    return gatewayRegistrySettings
+      ? new mARIOToken(gatewayRegistrySettings.operators.minStake)
+          .toARIO()
+          .valueOf()
+      : 10000;
+  }, [gatewayRegistrySettings]);
 
   useEffect(() => {
     if (gateways && gateway && protocolBalance) {
@@ -95,7 +106,7 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
                         onClose: () => setShowRedelegateModal(undefined),
                         maxRedelegationStake: new mARIOToken(
                           gateway.operatorStake -
-                            new ARIOToken(GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO)
+                            new ARIOToken(minOperatorStake)
                               .toMARIO()
                               .valueOf(),
                         ).toARIO(),

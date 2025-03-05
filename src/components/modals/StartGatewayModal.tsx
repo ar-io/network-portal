@@ -1,15 +1,16 @@
-import { ARIOToken } from '@ar.io/sdk/web';
-import { GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO, WRITE_OPTIONS, log } from '@src/constants';
+import { ARIOToken, mARIOToken } from '@ar.io/sdk/web';
+import { WRITE_OPTIONS, log } from '@src/constants';
+import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import FormRow, { RowType } from '../forms/FormRow';
 import { FormRowDef, isFormValid } from '../forms/formData';
 import {
-  validateDomainName,
   validateARIOAmount,
+  validateDomainName,
   validateNumberRange,
   validateString,
   validateTransactionId,
@@ -43,6 +44,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
   const arioWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
+  const { data: gatewayRegistrySettings } = useGatewayRegistrySettings();
+
   const [formState, setFormState] =
     useState<Record<string, string | boolean>>(DEFAULT_FORM_STATE);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -62,67 +65,87 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
   const allowDelegatedStaking = formState.allowDelegatedStaking as boolean;
 
-  const formRowDefs: FormRowDef[] = [
-    {
-      formPropertyName: 'label',
-      label: '*Label:',
-      rowType: RowType.TOP,
-      validateProperty: validateString('Label', 1, 64),
-    },
-    {
-      formPropertyName: 'address',
-      label: '*Address:',
-      leftComponent: <div className="pl-6 text-xs text-low">https://</div>,
-      rightComponent: <div className="pr-6 text-xs text-low">:443</div>,
+  const formRowDefs: FormRowDef[] = useMemo(() => {
+    const minOperatorStake = gatewayRegistrySettings
+      ? new mARIOToken(gatewayRegistrySettings.operators.minStake)
+          .toARIO()
+          .valueOf()
+      : 10000;
 
-      validateProperty: validateDomainName('Address'),
-    },
-    {
-      formPropertyName: 'observerAddress',
-      label: '*Observer Wallet:',
-      validateProperty: validateWalletAddress('Observer Wallet'),
-    },
-    {
-      formPropertyName: 'propertiesId',
-      label: '*Properties ID:',
-      placeholder: DEFAULT_FORM_STATE.propertiesId,
-      validateProperty: validateTransactionId('Properties ID'),
-    },
-    {
-      formPropertyName: 'stake',
-      label: `*Stake (${ticker}):`,
-      placeholder: `Minimum ${GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO} ${ticker}`,
-      validateProperty: validateARIOAmount('Stake', ticker, GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO),
-    },
-    {
-      formPropertyName: 'allowDelegatedStaking',
-      label: 'Delegated Staking:',
-    },
-    {
-      formPropertyName: 'minDelegatedStake',
-      label: `Minimum Delegated Stake (${ticker}):`,
-      enabled: allowDelegatedStaking,
-      placeholder: allowDelegatedStaking
-        ? `Minimum 10 ${ticker}`
-        : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateARIOAmount('Minimum Delegated Stake', ticker, 10),
-    },
-    {
-      formPropertyName: 'delegatedStakingShareRatio',
-      label: 'Reward Share Ratio:',
-      enabled: allowDelegatedStaking,
-      placeholder: allowDelegatedStaking
-        ? 'Enter value 0-95'
-        : 'Enable Delegated Staking to set this value.',
-      validateProperty: validateNumberRange('Reward Share Ratio', 0, 95),
-    },
-    {
-      formPropertyName: 'note',
-      label: '*Note:',
-      rowType: RowType.BOTTOM,
-      validateProperty: validateString('Note', 1, 256),
-    },
-  ];
+    return [
+      {
+        formPropertyName: 'label',
+        label: '*Label:',
+        rowType: RowType.TOP,
+        validateProperty: validateString('Label', 1, 64),
+      },
+      {
+        formPropertyName: 'address',
+        label: '*Address:',
+        leftComponent: <div className="pl-6 text-xs text-low">https://</div>,
+        rightComponent: <div className="pr-6 text-xs text-low">:443</div>,
+
+        validateProperty: validateDomainName('Address'),
+      },
+      {
+        formPropertyName: 'observerAddress',
+        label: '*Observer Wallet:',
+        validateProperty: validateWalletAddress('Observer Wallet'),
+      },
+      {
+        formPropertyName: 'propertiesId',
+        label: '*Properties ID:',
+        placeholder: DEFAULT_FORM_STATE.propertiesId,
+        validateProperty: validateTransactionId('Properties ID'),
+      },
+      {
+        formPropertyName: 'stake',
+        label: `*Stake (${ticker}):`,
+        placeholder: `Minimum ${minOperatorStake} ${ticker}`,
+        validateProperty: validateARIOAmount('Stake', ticker, minOperatorStake),
+      },
+      {
+        formPropertyName: 'allowDelegatedStaking',
+        label: 'Delegated Staking:',
+      },
+      {
+        formPropertyName: 'minDelegatedStake',
+        label: `Minimum Delegated Stake (${ticker}):`,
+        enabled: allowDelegatedStaking,
+        placeholder: allowDelegatedStaking
+          ? `Minimum 10 ${ticker}`
+          : 'Enable Delegated Staking to set this value.',
+        validateProperty: validateARIOAmount(
+          'Minimum Delegated Stake',
+          ticker,
+          gatewayRegistrySettings
+            ? new mARIOToken(gatewayRegistrySettings.delegates.minStake)
+                .toARIO()
+                .valueOf()
+            : 10,
+        ),
+      },
+      {
+        formPropertyName: 'delegatedStakingShareRatio',
+        label: 'Reward Share Ratio:',
+        enabled: allowDelegatedStaking,
+        placeholder: allowDelegatedStaking
+          ? 'Enter value 0-95'
+          : 'Enable Delegated Staking to set this value.',
+        validateProperty: validateNumberRange(
+          'Reward Share Ratio',
+          0,
+          gatewayRegistrySettings?.operators.maxDelegateRewardSharePct ?? 95,
+        ),
+      },
+      {
+        formPropertyName: 'note',
+        label: '*Note:',
+        rowType: RowType.BOTTOM,
+        validateProperty: validateString('Note', 1, 256),
+      },
+    ];
+  }, [allowDelegatedStaking, ticker]);
 
   const submitForm = async () => {
     const formValid = isFormValid({ formRowDefs, formValues: formState });
@@ -153,11 +176,13 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
             allowDelegatedStaking
               ? parseFloat(String(formState.minDelegatedStake))
               : DEFAULT_DELEGATED_STAKING,
-          ).toMARIO().valueOf(),
+          )
+            .toMARIO()
+            .valueOf(),
           autoStake: true,
-          operatorStake: new ARIOToken(
-            parseFloat(String(formState.stake)),
-          ).toMARIO().valueOf(),
+          operatorStake: new ARIOToken(parseFloat(String(formState.stake)))
+            .toMARIO()
+            .valueOf(),
         };
 
         // UNCOMMENT AND COMMENT OUT JOIN NETWORK FOR DEV WORK

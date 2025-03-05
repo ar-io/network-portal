@@ -5,14 +5,14 @@ import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
 
-const InfoSection = ({ label, value }: { label: string; value: string }) => {
-  return (
-    <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-12 text-left dark:border-transparent-100-8">
-      <div className="pt-1 text-xs leading-none text-low">{label}</div>
-      <div className="text-nowrap text-xs text-mid">{value}</div>
-    </div>
-  );
-};
+// const InfoSection = ({ label, value }: { label: string; value: string }) => {
+//   return (
+//     <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-12 text-left dark:border-transparent-100-8">
+//       <div className="pt-1 text-xs leading-none text-low">{label}</div>
+//       <div className="text-nowrap text-xs text-mid">{value}</div>
+//     </div>
+//   );
+// };
 
 const Banner = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);

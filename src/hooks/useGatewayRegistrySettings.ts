@@ -15,6 +15,7 @@ const useGatewayRegistrySettings = () => {
       return await arIOReadSDK.getGatewayRegistrySettings();
     },
     enabled: !!arIOReadSDK,
+    staleTime: Infinity,
   });
 
   return queryResults;

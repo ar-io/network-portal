@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Update to read min operator stake and max reward share ratio values from process
+
+### Fixed
+
+- Read error that caused page crash in Dashboard when switching processes in settings
+
 ## [1.10.3] - 2025-02-25
 
 ### Changed

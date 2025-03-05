@@ -1,14 +1,16 @@
+import { WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import { GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO, WRITE_OPTIONS } from '@src/constants';
+import { mARIOToken } from '@ar.io/sdk/web';
+import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 
 const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
   const queryClient = useQueryClient();
@@ -26,6 +28,16 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
   const [leaveNetworkText, setLeaveNetworkText] = useState('');
 
   const termsAccepted = leaveNetworkText === 'LEAVE NETWORK';
+
+  const { data: gatewayRegistrySettings } = useGatewayRegistrySettings();
+
+  const minOperatorStake = useMemo(() => {
+    return gatewayRegistrySettings
+      ? new mARIOToken(gatewayRegistrySettings.operators.minStake)
+          .toARIO()
+          .valueOf()
+      : 10000;
+  }, [gatewayRegistrySettings]);
 
   const processLeaveNetwork = async () => {
     if (walletAddress && arIOWriteableSDK) {
@@ -73,13 +85,13 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
             <ul className="mt-6 list-disc space-y-2 pl-8">
               <li>
                 Your gateway&apos;s primary stake (
-                {formatWithCommas(GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO)} {ticker})
-                will be vaulted and subject to a 90-day withdrawal period.
+                {formatWithCommas(minOperatorStake)} {ticker}
+                ) will be vaulted and subject to a 90-day withdrawal period.
               </li>
               <li>
                 Any additional operator stake above the minimum (
-                {formatWithCommas(GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO)} {ticker})
-                will be vaulted and subject to a 90-day withdrawal period.
+                {formatWithCommas(minOperatorStake)} {ticker}
+                ) will be vaulted and subject to a 90-day withdrawal period.
               </li>
               <li>
                 Any existing delegated stakes will be vaulted and subject to
@@ -94,7 +106,10 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
 
           <div className="bg-containerL0 px-8 pb-8 pt-6">
             <div className="mb-6 flex flex-col items-center gap-2 text-sm text-mid">
-              <div>Please type &quot;LEAVE NETWORK&quot; in the text box to proceed.</div>
+              <div>
+                Please type &quot;LEAVE NETWORK&quot; in the text box to
+                proceed.
+              </div>
               <input
                 type="text"
                 onChange={(e) => setLeaveNetworkText(e.target.value)}

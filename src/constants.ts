@@ -60,7 +60,5 @@ export const NAME_PASS_THRESHOLD = 0.8;
 export const REFERENCE_GATEWAY_FQDN =
   process.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'arweave.net';
 
-export const GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO = 10000;
-
 export const REDELEGATION_FEE_TOOLTIP_TEXT =
   'Redelegation fees are assessed at 10% per redelegation performed since the last fee reset, up to 60%. Fees are reset when no redelegations are performed in the last 7 days.';

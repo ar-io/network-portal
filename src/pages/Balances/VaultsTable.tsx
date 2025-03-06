@@ -1,10 +1,11 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import TableView from '@src/components/TableView';
+import Tooltip from '@src/components/Tooltip';
 import useVaults from '@src/hooks/useVaults';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
-import { formatDate, formatWithCommas } from '@src/utils';
+import { formatDate, formatDateTime, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
@@ -46,20 +47,48 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
     return [
       columnHelper.accessor('startTimestamp', {
         id: 'startTimeStamp',
-        header: 'Start Time Stamp',
+        header: 'Start Date',
         sortDescFirst: false,
+        cell: ({ row }) => (
+          <Tooltip
+            message={
+              <div>
+                <div>Timestamp: {row.original.startTimestamp}</div>
+                <div>
+                  Date:{' '}
+                  {formatDateTime(new Date(row.original.startTimestamp))}
+                </div>
+              </div>
+            }
+          >
+            <div className="cursor-pointer">
+              {formatDate(new Date(row.original.startTimestamp))}
+            </div>
+          </Tooltip>
+        ),
       }),
 
       columnHelper.accessor('endTimestamp', {
         id: 'endTimestamp',
-        header: 'End Time Stamp',
+        header: 'End Date',
         sortDescFirst: false,
-      }),
-      columnHelper.accessor('endTimestamp', {
-        id: 'unlockDate',
-        header: 'Unlock Date',
-        sortDescFirst: false,
-        cell: ({ row }) => formatDate(new Date(row.original.endTimestamp)),
+        cell: ({ row }) => (
+          <Tooltip
+            message={
+              <div>
+                <div>Timestamp: {row.original.endTimestamp}</div>
+                <div>
+                  Date:{' '}
+                  {formatDateTime(new Date(row.original.endTimestamp))}
+                </div>
+              </div>
+            }
+          >
+            <div className="cursor-pointer">
+              {formatDate(new Date(row.original.endTimestamp))}
+            </div>
+          </Tooltip>
+        ),
       }),
       columnHelper.accessor('daysRemaining', {
         id: 'daysRemaining',

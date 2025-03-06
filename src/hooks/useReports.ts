@@ -1,5 +1,5 @@
 import { AoGateway } from '@ar.io/sdk/web';
-import { DEFAULT_ARWEAVE_HOST } from '@src/constants';
+import { DEFAULT_ARWEAVE_GQL_ENDPOINT } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 import arweaveGraphql from 'arweave-graphql';
@@ -62,7 +62,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
       if (keys.length > 0) {
         // Epoch pruning on contract means we have at most 14 reports. Retrieve as a batch here.
         const transactions = await arweaveGraphql(
-          `https://${DEFAULT_ARWEAVE_HOST}/graphql`,
+          DEFAULT_ARWEAVE_GQL_ENDPOINT,
         ).getTransactions({
           ids: keys,
         });

@@ -16,7 +16,7 @@ const useVaults = (walletAddress?: AoAddress) => {
       let vaults: Array<AoWalletVault> = [];
 
       do {
-        const pageResult = await arioReadSDK.getVaults({ cursor });
+        const pageResult = await arioReadSDK.getVaults({ cursor, limit: 1000 });
         vaults = vaults.concat(
           pageResult.items.filter((v) => v.address === walletAddress),
         );

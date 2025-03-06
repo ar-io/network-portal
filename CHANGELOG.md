@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New Balances page for viewing breakdown of ARIO balances and vaulted funds
+
 ### Changed
 
 - Update to read min operator stake and max reward share ratio values from process
+- Update GQL endpoint to use Goldsky
 
 ### Fixed
 

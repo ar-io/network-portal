@@ -1,18 +1,35 @@
-import { ArioCoinIcon, ObserversBgIcon, ObserversConnectIcon } from '@src/components/icons';
+import { mARIOToken } from '@ar.io/sdk/web';
+import {
+  ArioCoinIcon,
+  ObserversBgIcon,
+  ObserversConnectIcon,
+} from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StartGatewayModal from '@src/components/modals/StartGatewayModal';
+import Placeholder from '@src/components/Placeholder';
 import useBalances from '@src/hooks/useBalances';
+import useDelegateStakes from '@src/hooks/useDelegateStakes';
+import useGateway from '@src/hooks/useGateway';
+import useVaults from '@src/hooks/useVaults';
 import { useGlobalState } from '@src/store';
-import { useState } from 'react';
+import { formatWithCommas } from '@src/utils';
+import { useMemo, useState } from 'react';
 
-// const InfoSection = ({ label, value }: { label: string; value: string }) => {
-//   return (
-//     <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-12 text-left dark:border-transparent-100-8">
-//       <div className="pt-1 text-xs leading-none text-low">{label}</div>
-//       <div className="text-nowrap text-xs text-mid">{value}</div>
-//     </div>
-//   );
-// };
+const InfoSection = ({ label, value }: { label: string; value?: string }) => {
+  return (
+    <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-12 text-left dark:border-transparent-100-8">
+      <div className="pt-1 text-xs leading-none text-low">{label}</div>
+      <div className="text-nowrap text-xs text-mid">
+        {value !== undefined ? value : <Placeholder className="w-12" />}
+      </div>
+    </div>
+  );
+};
+
+type Balance = {
+  label: string;
+  value?: string;
+};
 
 const Banner = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
@@ -21,6 +38,72 @@ const Banner = () => {
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [startGatewayOpen, setStartGatewayOpen] = useState(false);
+
+  const { data: delegations } = useDelegateStakes(walletAddress?.toString());
+  const { data: gateway, isFetched: gatewayFetched } = useGateway({
+    ownerWalletAddress: walletAddress?.toString(),
+  });
+  const { data: vaults } = useVaults(walletAddress);
+
+  const myBalances: Balance[] = useMemo(() => {
+    const delegated = delegations?.stakes.reduce((acc, stake) => {
+      return acc + new mARIOToken(stake.balance).toARIO().valueOf();
+    }, 0);
+
+    const withdrawing = delegations?.withdrawals.reduce((acc, withdrawal) => {
+      return acc + new mARIOToken(withdrawal.balance).toARIO().valueOf();
+    }, 0);
+
+    const operator = gatewayFetched
+      ? gateway
+        ? new mARIOToken(gateway.operatorStake).toARIO().valueOf()
+        : 0
+      : undefined;
+
+    const locked = vaults?.reduce((acc, vault) => {
+      return acc + new mARIOToken(vault.balance).toARIO().valueOf();
+    }, 0);
+
+    const liquid = balances?.ario;
+
+    const total =
+      liquid !== undefined &&
+      delegated !== undefined &&
+      operator !== undefined &&
+      withdrawing !== undefined &&
+      locked !== undefined
+        ? liquid + delegated + operator + withdrawing + locked
+        : undefined;
+
+    return [
+      {
+        label: 'Total',
+        value: total !== undefined ? formatWithCommas(total) : undefined,
+      },
+      {
+        label: 'Liquid',
+        value: liquid !== undefined ? formatWithCommas(liquid) : undefined,
+      },
+      {
+        label: 'Delegated',
+        value:
+          delegated !== undefined ? formatWithCommas(delegated) : undefined,
+      },
+      {
+        label: 'Operator',
+        value: operator !== undefined ? formatWithCommas(operator) : undefined,
+      },
+      {
+        label: 'Withdrawing',
+        value:
+          withdrawing !== undefined ? formatWithCommas(withdrawing) : undefined,
+      },
+      {
+        label: 'Locked',
+        value: locked !== undefined ? formatWithCommas(locked) : undefined,
+      },
+    ];
+  }, [balances, delegations, gateway, gatewayFetched, vaults]);
 
   return (
     <div>
@@ -67,6 +150,13 @@ const Banner = () => {
               </div>
             </div>
             <div className="mt-3 flex pl-1.5">
+              {myBalances.map((balance, i) => (
+                <InfoSection
+                  key={i}
+                  label={balance.label}
+                  value={balance.value}
+                />
+              ))}
               {/* <InfoSection
                 label="Observer Address"
                 value={formatAddress(gateway.observerAddress)}

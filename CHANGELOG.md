@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update GQL endpoint to use Goldsky
 - Dashboard: Modified from "Rewards Claimed" to "Rewards Distributed" to more accurately represent
   the system
+- Dashboard: ArNS Stats panel: Replaced Active Names with Names Purchased in tooltip
 
 ### Fixed
 

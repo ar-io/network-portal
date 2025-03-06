@@ -24,7 +24,7 @@ const ObserveHeader = ({
   gateway,
   setSelectedAssessment,
 }: {
-  gateway?: AoGateway;
+  gateway?: AoGateway | null;
   setSelectedAssessment: React.Dispatch<
     React.SetStateAction<Assessment | undefined>
   >;

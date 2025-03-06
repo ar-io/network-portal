@@ -18,7 +18,7 @@ import { InfoIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 type OperatorStakeProps = {
-  gateway?: AoGatewayWithAddress;
+  gateway?: AoGatewayWithAddress | null;
   walletAddress?: string;
 };
 

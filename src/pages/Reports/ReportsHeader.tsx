@@ -4,7 +4,7 @@ import Profile from '@src/components/Profile';
 import { ChevronRightIcon, NotebookText } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
-const ReportsHeader = ({ gateway }: { gateway?: AoGateway }) => {
+const ReportsHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
   const params = useParams();
 
   const ownerId = params?.ownerId;

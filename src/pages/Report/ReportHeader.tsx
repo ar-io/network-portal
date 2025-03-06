@@ -13,7 +13,7 @@ const ReportHeader = ({
   gateway,
   reportData,
 }: {
-  gateway?: AoGateway;
+  gateway?: AoGateway | null;
   reportData?: ReportData;
 }) => {
   const params = useParams();

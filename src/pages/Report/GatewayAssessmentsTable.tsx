@@ -25,7 +25,7 @@ const GatewayAssessmentsTable = ({
   gateway,
   reportData,
 }: {
-  gateway?: AoGatewayWithAddress;
+  gateway?: AoGatewayWithAddress | null;
   reportData: ReportData;
 }) => {
   const [tableData, setTableData] = useState<Array<TableData>>([]);

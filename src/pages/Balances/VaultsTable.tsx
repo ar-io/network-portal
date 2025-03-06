@@ -3,6 +3,7 @@ import AddressCell from '@src/components/AddressCell';
 import TableView from '@src/components/TableView';
 import useVaults from '@src/hooks/useVaults';
 import { useGlobalState } from '@src/store';
+import { AoAddress } from '@src/types';
 import { formatDate, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import dayjs from 'dayjs';
@@ -20,24 +21,25 @@ interface TableData {
 
 const columnHelper = createColumnHelper<TableData>();
 
-const VaultsTable = () => {
-  const walletAddress = useGlobalState((state) => state.walletAddress);
+const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   const ticker = useGlobalState((state) => state.ticker);
-  const { isLoading, data: vaults } = useVaults(walletAddress);
+  const { isLoading, data: vaults } = useVaults();
 
   const vaultsTableData: Array<TableData> = useMemo(() => {
     return (
-      vaults?.map((vault) => {
-        return {
-          startTimestamp: vault.startTimestamp,
-          endTimestamp: vault.endTimestamp,
-          daysRemaining: dayjs(vault.endTimestamp).diff(dayjs(), 'days'),
-          balance: new mARIOToken(vault.balance).toARIO().valueOf(),
-          controller: vault.address,
-        };
-      }) ?? []
+      vaults
+        ?.filter((vault) => vault.address === walletAddress?.toString())
+        .map((vault) => {
+          return {
+            startTimestamp: vault.startTimestamp,
+            endTimestamp: vault.endTimestamp,
+            daysRemaining: dayjs(vault.endTimestamp).diff(dayjs(), 'days'),
+            balance: new mARIOToken(vault.balance).toARIO().valueOf(),
+            controller: vault.address,
+          };
+        }) ?? []
     );
-  }, [vaults]);
+  }, [vaults, walletAddress]);
 
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = useMemo(() => {

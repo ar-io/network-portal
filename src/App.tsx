@@ -27,7 +27,8 @@ const Gateways = React.lazy(() => import('./pages/Gateways'));
 const Gateway = React.lazy(() => import('./pages/Gateway'));
 const Staking = React.lazy(() => import('./pages/Staking'));
 const Observers = React.lazy(() => import('./pages/Observers'));
-const Balances = React.lazy(() => import('./pages/Balances'));
+const BalancesMain = React.lazy(() => import('./pages/Balances'));
+const Balances = React.lazy(() => import('./pages/Balances/Balances'));
 
 // Sub-Pages
 const Reports = React.lazy(() => import('./pages/Reports'));
@@ -130,10 +131,19 @@ function App() {
         />
         ,
         <Route
-          path="balances"
+          path="balances/:walletAddress"
           element={
             <Suspense fallback={<Loading />}>
               <Balances />
+            </Suspense>
+          }
+        />
+        ,
+        <Route
+          path="balances"
+          element={
+            <Suspense fallback={<Loading />}>
+              <BalancesMain />
             </Suspense>
           }
         />

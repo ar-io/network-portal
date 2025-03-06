@@ -1,15 +1,14 @@
 import { AoWalletVault } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
-import { AoAddress } from '@src/types';
 import { useQuery } from '@tanstack/react-query';
 
-const useVaults = (walletAddress?: AoAddress) => {
+const useVaults = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const res = useQuery({
-    queryKey: ['vaults', arioReadSDK, walletAddress],
+    queryKey: ['vaults', arioReadSDK],
     queryFn: async () => {
-      if (!arioReadSDK || !walletAddress)
+      if (!arioReadSDK)
         throw new Error('arIOReadSDK or walletAddress is not initialized');
 
       let cursor: string | undefined;
@@ -17,15 +16,13 @@ const useVaults = (walletAddress?: AoAddress) => {
 
       do {
         const pageResult = await arioReadSDK.getVaults({ cursor, limit: 1000 });
-        vaults = vaults.concat(
-          pageResult.items.filter((v) => v.address === walletAddress),
-        );
+        vaults = vaults.concat(pageResult.items);
         cursor = pageResult.nextCursor;
       } while (cursor !== undefined);
 
       return vaults;
     },
-    enabled: !!arioReadSDK && !!walletAddress,
+    enabled: !!arioReadSDK,
     staleTime: Infinity,
   });
   return res;

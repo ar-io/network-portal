@@ -1,19 +1,23 @@
 import { mARIOToken } from '@ar.io/sdk/web';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import {
   ArioCoinIcon,
   ObserversBgIcon,
   ObserversConnectIcon,
+  ThreeDotsIcon,
 } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
-import StartGatewayModal from '@src/components/modals/StartGatewayModal';
+import WalletAddressModal from '@src/components/modals/WalletAddressModal';
 import Placeholder from '@src/components/Placeholder';
 import useBalances from '@src/hooks/useBalances';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateway from '@src/hooks/useGateway';
 import useVaults from '@src/hooks/useVaults';
 import { useGlobalState } from '@src/store';
+import { AoAddress } from '@src/types';
 import { formatWithCommas } from '@src/utils';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const InfoSection = ({ label, value }: { label: string; value?: string }) => {
   return (
@@ -31,19 +35,28 @@ type Balance = {
   value?: string;
 };
 
-const Banner = () => {
-  const walletAddress = useGlobalState((state) => state.walletAddress);
+const Banner = ({
+  walletAddress,
+  showActions = false,
+}: {
+  walletAddress?: AoAddress;
+  showActions?: boolean;
+}) => {
+  const navigate = useNavigate();
+
   const ticker = useGlobalState((state) => state.ticker);
+  const loggedinWalletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
 
   const [loginOpen, setLoginOpen] = useState(false);
-  const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
   const { data: delegations } = useDelegateStakes(walletAddress?.toString());
   const { data: gateway, isFetched: gatewayFetched } = useGateway({
     ownerWalletAddress: walletAddress?.toString(),
   });
-  const { data: vaults } = useVaults(walletAddress);
+  const { data: vaults } = useVaults();
+
+  const [showWalletAddressModal, setShowWalletAddressModal] = useState(false);
 
   const myBalances: Balance[] = useMemo(() => {
     const delegated = delegations?.stakes.reduce((acc, stake) => {
@@ -60,9 +73,11 @@ const Banner = () => {
         : 0
       : undefined;
 
-    const locked = vaults?.reduce((acc, vault) => {
-      return acc + new mARIOToken(vault.balance).toARIO().valueOf();
-    }, 0);
+    const locked = vaults
+      ?.filter((vault) => vault.address === walletAddress?.toString())
+      .reduce((acc, vault) => {
+        return acc + new mARIOToken(vault.balance).toARIO().valueOf();
+      }, 0);
 
     const liquid = balances?.ario;
 
@@ -103,7 +118,15 @@ const Banner = () => {
         value: locked !== undefined ? formatWithCommas(locked) : undefined,
       },
     ];
-  }, [balances, delegations, gateway, gatewayFetched, vaults]);
+  }, [
+    balances?.ario,
+    delegations?.stakes,
+    delegations?.withdrawals,
+    gateway,
+    gatewayFetched,
+    vaults,
+    walletAddress,
+  ]);
 
   return (
     <div>
@@ -112,11 +135,7 @@ const Banner = () => {
           <button
             className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
             onClick={() => {
-              if (!walletAddress) {
-                setLoginOpen(true);
-              } else {
-                setStartGatewayOpen(true);
-              }
+              setLoginOpen(true);
             }}
           >
             <div
@@ -131,22 +150,55 @@ const Banner = () => {
             <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
               <div className="flex items-center gap-2">
                 <ObserversConnectIcon className="size-4" />
-                <div className="text-gradient">Connect your wallet</div>{' '}
+                <div className="text-gradient">
+                  Login to see your balances
+                </div>{' '}
               </div>
 
               <div className="pt-2 text-sm text-low">
-                Login to view your observer status.
+                See your liquid, staked, operator, and locked ${ticker} token
+                balances.
               </div>
             </div>
           </button>
         </div>
-      ) : balances ? (
+      ) : (
         <div className="relative h-[7.5rem] w-full overflow-hidden rounded-xl border border-grey-800">
           <div className="absolute top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle">
+            {showActions && (
+              <div className="absolute right-4">
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger
+                    asChild
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end p-px">
+                      <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
+                        <ThreeDotsIcon className="size-4" />
+                      </div>
+                    </div>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
+                    <DropdownMenu.Item
+                      className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowWalletAddressModal(true);
+                      }}
+                    >
+                      View balances for another address
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Root>
+              </div>
+            )}
+
             <div className="flex items-center gap-3 pl-6">
               <ArioCoinIcon className="size-6" />
               <div className="group-hover:text-gradient text-sm text-high">
-                My ${ticker} Balances
+                {walletAddress.toString() ==
+                  loggedinWalletAddress?.toString() && 'My '}
+                ${ticker} Balances
               </div>
             </div>
             <div className="mt-3 flex pl-1.5">
@@ -157,48 +209,18 @@ const Banner = () => {
                   value={balance.value}
                 />
               ))}
-              {/* <InfoSection
-                label="Observer Address"
-                value={formatAddress(gateway.observerAddress)}
-              />
-              <InfoSection label="Status" value={prescribedStatus} />
-              {myObserver && (
-                <>
-                  <InfoSection
-                    label="Observation Chance"
-                    value={
-                      myObserver
-                        ? formatPercentage(myObserver.normalizedCompositeWeight)
-                        : 'N/A'
-                    }
-                  />
-                  <InfoSection
-                    label="Observer Performance"
-                    value={
-                      myObserver
-                        ? formatPercentage(myObserver.observerPerformanceRatio)
-                        : 'N/A'
-                    }
-                  />
-                  <InfoSection
-                    label="Failed Gateways"
-                    value={numFailedGatewaysFound.toString()}
-                  /> */}
-              {/* </>
-              )} */}
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="relative h-[7.5rem] w-full justify-center overflow-hidden rounded-xl bg-grey-800 ">
-          <div className="h-full content-center text-center text-sm text-low">
-            Loading balances...
           </div>
         </div>
       )}
       {loginOpen && <ConnectModal onClose={() => setLoginOpen(false)} />}
-      {startGatewayOpen && (
-        <StartGatewayModal onClose={() => setStartGatewayOpen(false)} />
+      {showWalletAddressModal && (
+        <WalletAddressModal
+          onClose={() => setShowWalletAddressModal(false)}
+          onSuccess={(walletAddress) => {
+            navigate(`/balances/${walletAddress}`);
+          }}
+        />
       )}
     </div>
   );

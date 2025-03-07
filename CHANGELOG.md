@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Read error that caused page crash in Dashboard when switching processes in settings
+- Fixed handling account switching with Wander
 
 ## [1.10.3] - 2025-02-25
 

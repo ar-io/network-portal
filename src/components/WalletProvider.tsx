@@ -54,8 +54,10 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
 
   useEffect(() => {
     window.addEventListener('arweaveWalletLoaded', updateIfConnected);
+    window.addEventListener('walletSwitch', updateIfConnected);
     return () => {
       window.removeEventListener('arweaveWalletLoaded', updateIfConnected);
+      window.removeEventListener('walletSwitch', updateIfConnected);
     };
   });
 

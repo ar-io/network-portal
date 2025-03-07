@@ -8,7 +8,7 @@ import {
 import { ChevronRightIcon, NotebookText } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
-const GatewayHeader = ({ gateway }: { gateway?: AoGateway }) => {
+const GatewayHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
   const params = useParams();
 
   const ownerId = params?.ownerId;

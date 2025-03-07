@@ -74,7 +74,7 @@ const PropertyDisplayPanel = ({
   gateway,
 }: {
   ownerId?: string;
-  gateway?: AoGateway;
+  gateway?: AoGateway | null;
 }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const ticker = useGlobalState((state) => state.ticker);

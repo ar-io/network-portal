@@ -18,7 +18,7 @@ interface TableData {
 
 const columnHelper = createColumnHelper<TableData>();
 
-const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
+const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
   const ticker = useGlobalState((state) => state.ticker);
   const { isLoading, data: gatewayDelegateStakes } = useGatewayDelegateStakes(
     gateway?.gatewayAddress,

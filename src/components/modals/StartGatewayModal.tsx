@@ -145,7 +145,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
         validateProperty: validateString('Note', 1, 256),
       },
     ];
-  }, [allowDelegatedStaking, ticker]);
+  }, [allowDelegatedStaking, gatewayRegistrySettings, ticker]);
 
   const submitForm = async () => {
     const formValid = isFormValid({ formRowDefs, formValues: formState });

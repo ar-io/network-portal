@@ -14,7 +14,7 @@ type ReportedOnByEntry = {
   reportId?: string;
 };
 
-const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
+const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
   const [failureObservers, setFailureObservers] = useState<ReportedOnByEntry[]>(
@@ -129,7 +129,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
   );
 };
 
-const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
+const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
   const [snitchedOn, setSnitchedOn] = useState<string[]>([]);
@@ -244,7 +244,7 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
   );
 };
 
-const SnitchRow = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
+const SnitchRow = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
   return (
     <div className="grid min-w-[50rem] grid-cols-2 gap-6">
       <ReportedOnByCard gateway={gateway} />

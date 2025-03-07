@@ -38,7 +38,7 @@ const CustomTooltip = ({
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
         <p>{`Epoch ${label}`}</p>
-        <p>{`Claimed Rewards: ${formatWithCommas(Number(payload[0].value))}`}</p>
+        <p>{`Distributed Rewards: ${formatWithCommas(Number(payload[0].value))}`}</p>
         <p>{`Eligible Rewards: ${formatWithCommas(Number(payload[0].value) + Number(payload[1].value))}`}</p>
       </div>
     );
@@ -181,7 +181,7 @@ const RewardsDistributionPanel = () => {
   return (
     <div className="min-w-[22rem] rounded-xl border border-grey-500">
       <div className="px-5 pb-3 pt-5 text-sm text-mid">
-        Eligible Rewards in {ticker} by Epoch vs. Rewards Claimed
+        Eligible Rewards in {ticker} by Epoch vs. Rewards Distributed 
       </div>
       <div className="relative h-80">
         {rewardsData ? (

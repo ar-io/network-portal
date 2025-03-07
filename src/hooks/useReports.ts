@@ -1,5 +1,4 @@
 import { AoGateway } from '@ar.io/sdk/web';
-import { DEFAULT_ARWEAVE_HOST } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 import arweaveGraphql from 'arweave-graphql';
@@ -16,6 +15,7 @@ export interface ReportTransactionData {
 
 const useReports = (ownerId?: string, gateway?: AoGateway) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const arweaveGqlUrl = useGlobalState((state) => state.arweaveGqlUrl);
 
   const observerAddress = gateway?.observerAddress;
   const gatewayStart = gateway?.startTimestamp;
@@ -23,7 +23,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
   const { data: epochs } = useEpochs();
 
   const queryResults = useQuery({
-    queryKey: ['reports', ownerId, arIOReadSDK],
+    queryKey: ['reports', ownerId, arIOReadSDK, arweaveGqlUrl],
     queryFn: async () => {
       if (
         !arIOReadSDK ||
@@ -38,31 +38,34 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
 
       let data: ReportTransactionData[] = [];
 
-      const reportTransactionData = epochs.reduce((acc, epoch) => {
-        if (epoch) {
-          const observations = epoch.observations;
-          const txid = observations.reports[observerAddress];
+      const reportTransactionData = epochs.reduce(
+        (acc, epoch) => {
+          if (epoch) {
+            const observations = epoch.observations;
+            const txid = observations.reports[observerAddress];
 
-          const failedGateways = Object.values(
-            observations.failureSummaries,
-          ).reduce((acc, summary) => {
-            return summary.includes(observerAddress) ? acc + 1 : acc;
-          }, 0);
+            const failedGateways = Object.values(
+              observations.failureSummaries,
+            ).reduce((acc, summary) => {
+              return summary.includes(observerAddress) ? acc + 1 : acc;
+            }, 0);
 
-          const record = { txid, failedGateways };
+            const record = { txid, failedGateways };
 
-          return {...acc, [txid]: record};
-        } else {
-          return acc;
-        }
-      }, {} as Record<string, {txid:string, failedGateways: number}>);
+            return { ...acc, [txid]: record };
+          } else {
+            return acc;
+          }
+        },
+        {} as Record<string, { txid: string; failedGateways: number }>,
+      );
 
       const keys = Object.keys(reportTransactionData);
 
       if (keys.length > 0) {
         // Epoch pruning on contract means we have at most 14 reports. Retrieve as a batch here.
         const transactions = await arweaveGraphql(
-          `https://${DEFAULT_ARWEAVE_HOST}/graphql`,
+          arweaveGqlUrl,
         ).getTransactions({
           ids: keys,
         });
@@ -97,7 +100,12 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
 
       return data;
     },
-    enabled: !!arIOReadSDK && !!epochs && gatewayStart !== undefined && !!observerAddress,
+    enabled:
+      !!arweaveGqlUrl &&
+      !!arIOReadSDK &&
+      !!epochs &&
+      gatewayStart !== undefined &&
+      !!observerAddress,
   });
 
   return queryResults;

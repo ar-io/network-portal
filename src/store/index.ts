@@ -10,6 +10,7 @@ import { connect } from '@permaweb/aoconnect';
 import {
   AO_CU_URL,
   ARIO_PROCESS_ID,
+  DEFAULT_ARWEAVE_GQL_ENDPOINT,
   DEFAULT_ARWEAVE_HOST,
   DEFAULT_ARWEAVE_PORT,
   DEFAULT_ARWEAVE_PROTOCOL,
@@ -38,6 +39,7 @@ export type GlobalState = {
   contractSigner?: ContractSigner;
   networkPortalDB: NetworkPortalDB;
   aoCuUrl: string;
+  arweaveGqlUrl: string;
 };
 
 export type GlobalStateActions = {
@@ -54,6 +56,7 @@ export type GlobalStateActions = {
   setAoCongested: (congested: boolean) => void;
   setArioProcessId: (processId: string) => void;
   setAoCuUrl: (cuUrl: string) => void;
+  setArweaveGqlUrl: (url: string) => void;
 };
 
 export const initialGlobalState: GlobalState = {
@@ -77,6 +80,7 @@ export const initialGlobalState: GlobalState = {
   arioProcessId: ARIO_PROCESS_ID.toString(),
   networkPortalDB: createDb(ARIO_PROCESS_ID.toString()),
   aoCuUrl: AO_CU_URL,
+  arweaveGqlUrl: DEFAULT_ARWEAVE_GQL_ENDPOINT,
 };
 export class GlobalStateActionBase implements GlobalStateActions {
   constructor(
@@ -178,6 +182,10 @@ export class GlobalStateActionBase implements GlobalStateActions {
           })
         : undefined,
     });
+  };
+
+  setArweaveGqlUrl = (url: string) => {
+    this.set({ arweaveGqlUrl: url });
   };
 }
 

@@ -3,7 +3,7 @@ import {
   ARIO_MAINNET_PROCESS_ID,
   ARIO_TESTNET_PROCESS_ID,
 } from '@ar.io/sdk/web';
-import { AO_CU_URL } from '@src/constants';
+import { AO_CU_URL, DEFAULT_ARWEAVE_GQL_ENDPOINT } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
 import { LinkArrowIcon } from '../icons';
@@ -18,8 +18,12 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   const isMainnet = arioProcessId == ARIO_MAINNET_PROCESS_ID;
   const aoCuUrl = useGlobalState((state) => state.aoCuUrl);
   const setAoCuUrl = useGlobalState((state) => state.setAoCuUrl);
+  const arweaveGqlUrl = useGlobalState((state) => state.arweaveGqlUrl);
+  const setArweaveGqlUrl = useGlobalState((state) => state.setArweaveGqlUrl);
 
   const [localCuUrl, setLocalCuUrl] = useState(aoCuUrl);
+  const [localGqlUrl, setLocalGqlUrl] = useState(arweaveGqlUrl);
+
 
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
@@ -116,6 +120,42 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
               </button>
             </div>
           </div>
+
+          <div className="my-8 flex grow flex-col gap-2 overflow-y-auto text-sm text-mid scrollbar">
+            <div className="flex items-center">
+              <div className="grow">Arweave GQL URL</div>
+
+              <button
+                className={`rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0`}
+                onClick={() => {
+                  setLocalGqlUrl(DEFAULT_ARWEAVE_GQL_ENDPOINT);
+                }}
+              >
+                Reset to Default
+              </button>
+            </div>
+            <div className="flex items-center">
+              <input
+                className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
+                value={localGqlUrl}
+                onChange={(e) => {
+                  setLocalGqlUrl(e.target.value);
+                }}
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                className={`rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low`}
+                onClick={() => {
+                  setArweaveGqlUrl(localGqlUrl);
+                }}
+                disabled={localGqlUrl === arweaveGqlUrl}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
     </BaseModal>

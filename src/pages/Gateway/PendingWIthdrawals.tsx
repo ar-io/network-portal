@@ -21,7 +21,7 @@ import { useState } from 'react';
 import CollapsiblePanel from './CollapsiblePanel';
 
 type PendingWithdrawalProps = {
-  gateway?: AoGatewayWithAddress;
+  gateway?: AoGatewayWithAddress | null;
   walletAddress?: string;
 };
 

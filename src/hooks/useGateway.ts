@@ -36,7 +36,7 @@ const useGateway = ({
                   ...gateway,
                   gatewayAddress: ownerWalletAddress,
                 } as AoGatewayWithAddress)
-              : undefined;
+              : null;
           });
       }
     },

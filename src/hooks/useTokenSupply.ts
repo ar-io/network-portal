@@ -5,7 +5,7 @@ const useTokenSupply = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const res = useQuery({
-    queryKey: ['tokenSupply'],
+    queryKey: ['tokenSupply', arioReadSDK],
     queryFn: () => {
       if (!arioReadSDK) throw new Error('arIOReadSDK not initialized');
       return arioReadSDK.getTokenSupply();

@@ -8,7 +8,7 @@ import changeLog from '../../CHANGELOG.md?raw';
 
 import SettingsModal from '@src/components/modals/SettingsModal';
 import { useGlobalState } from '@src/store';
-import { Settings } from 'lucide-react';
+import { HandCoins, Settings } from 'lucide-react';
 import {
   ArioLogoIcon,
   BinocularsIcon,
@@ -42,6 +42,11 @@ const ROUTES_PRIMARY = [
     title: 'Observers',
     icon: <BinocularsIcon className="size-4" />,
     path: '/observers',
+  },
+  {
+    title: 'Balances',
+    icon: <HandCoins className="size-4" />,
+    path: '/balances',
   },
 ];
 

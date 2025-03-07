@@ -6,7 +6,7 @@ import BalancesHeader from './BalancesHeader';
 import Banner from './Banner';
 import VaultsTable from './VaultsTable';
 
-const Balances = () => {
+const BalancesForAddress = () => {
   const params = useParams();
   const walletAddress = params?.walletAddress;
 
@@ -35,4 +35,4 @@ const Balances = () => {
   );
 };
 
-export default Balances;
+export default BalancesForAddress;

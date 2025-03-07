@@ -38,7 +38,7 @@ const CustomTooltip = ({
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
         <p>{`Epoch ${label}`}</p>
-        <p>{`DistributedRewards: ${formatWithCommas(Number(payload[0].value))}`}</p>
+        <p>{`Distributed Rewards: ${formatWithCommas(Number(payload[0].value))}`}</p>
         <p>{`Eligible Rewards: ${formatWithCommas(Number(payload[0].value) + Number(payload[1].value))}`}</p>
       </div>
     );

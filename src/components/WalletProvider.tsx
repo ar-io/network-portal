@@ -26,10 +26,14 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
 
     try {
       if (walletType === WALLET_TYPES.WANDER) {
-        const connector = new WanderWalletConnector();
-        const address = await connector?.getWalletAddress();
+        const permissions = await window?.arweaveWallet.getPermissions();
 
-        updateWallet(address, connector);
+        if (permissions.includes('ACCESS_ADDRESS')) {
+          const connector = new WanderWalletConnector();
+          const address = await connector?.getWalletAddress();
+
+          updateWallet(address, connector);
+        }
       } else if (
         walletType === WALLET_TYPES.ETHEREUM &&
         ethAccount?.isConnected &&

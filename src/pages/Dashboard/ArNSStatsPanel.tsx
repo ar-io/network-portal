@@ -23,7 +23,7 @@ const ArNSStatsPanel = () => {
                 <div>
                   <div className="mb-2 font-semibold text-high">ArNS Stats</div>
                   <div>
-                    <div>Active Names: {arnsStats.totalActiveNames}</div>
+                    <div>Names Purchased: {arnsStats.namesPurchased}</div>
                     <div>Returned Names: {arnsStats.totalReturnedNames}</div>
                     <div>
                       Grace Period Names: {arnsStats.totalGracePeriodNames}

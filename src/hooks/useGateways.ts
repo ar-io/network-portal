@@ -12,7 +12,7 @@ const useGateways = () => {
     const gateways: Record<string, AoGateway> = {};
 
     do {
-      const pageResult = await arIOReadSDK.getGateways({ cursor });
+      const pageResult = await arIOReadSDK.getGateways({ cursor, limit: 1000 });
       pageResult.items.forEach((gateway) => {
         gateways[gateway.gatewayAddress] = gateway;
       });

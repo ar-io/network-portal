@@ -1,6 +1,7 @@
 import { encode } from 'base64-arraybuffer';
 import { isAddress } from 'viem';
 import { ARNS_TX_ID_REGEX, THEME_TYPES } from '../constants';
+import { EthAddress } from '@src/types';
 
 const COMMA_NUMBER_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
@@ -116,7 +117,7 @@ export const isArweaveTransactionID = (id?: string) => {
   return true;
 }
 
-export const isEthAddress = (address: string) => {
+export const isEthAddress = (address: string): address is EthAddress => {
   return isAddress(address, {
     strict: true,
   });

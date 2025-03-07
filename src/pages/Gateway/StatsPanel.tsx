@@ -13,7 +13,7 @@ const formatUptime = (uptime: number) => {
 };
 
 type StatsPanelProps = {
-  gateway?: AoGatewayWithAddress;
+  gateway?: AoGatewayWithAddress | null;
 };
 
 const StatsPanel = ({ gateway }: StatsPanelProps) => {

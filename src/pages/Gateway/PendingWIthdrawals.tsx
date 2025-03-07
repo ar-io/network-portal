@@ -21,7 +21,7 @@ import { useState } from 'react';
 import CollapsiblePanel from './CollapsiblePanel';
 
 type PendingWithdrawalProps = {
-  gateway?: AoGatewayWithAddress;
+  gateway?: AoGatewayWithAddress | null;
   walletAddress?: string;
 };
 
@@ -125,12 +125,6 @@ const PendingWithdrawals = ({
                       setShowRedelegateModal({
                         sourceGateway: gateway,
                         onClose: () => setShowRedelegateModal(undefined),
-                        // maxRedelegationStake: new mARIOToken(
-                        //   gateway.operatorStake -
-                        //     new ARIOToken(GATEWAY_OPERATOR_STAKE_MINIMUM_ARIO)
-                        //       .toMARIO()
-                        //       .valueOf(),
-                        // ).toARIO(),
                         maxRedelegationStake: new mARIOToken(
                           row.original.balance,
                         ).toARIO(),

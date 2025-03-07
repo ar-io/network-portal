@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2025-03-06
+
+### Added
+
+- New Balances page for viewing breakdown of ARIO balances and vaulted funds
+
+### Changed
+
+- Update to read min operator stake and max reward share ratio values from process
+- Update GQL endpoint to use Goldsky
+- Dashboard: Modified from "Rewards Claimed" to "Rewards Distributed" to more accurately represent
+  the system
+- Dashboard: ArNS Stats panel: Replaced Active Names with Names Purchased in tooltip
+
+### Fixed
+
+- Read error that caused page crash in Dashboard when switching processes in settings
+- Fixed handling account switching with Wander
+- Fix display of total stake as ARIO instead of mARIO on gateway selector for redelegation
+
 ## [1.10.3] - 2025-02-25
 
 ### Changed

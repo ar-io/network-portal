@@ -26,6 +26,7 @@ const useEpochSettings = () => {
       };
     },
     enabled: !!arIOReadSDK,
+    staleTime: Infinity,
   });
 
   return queryResults;

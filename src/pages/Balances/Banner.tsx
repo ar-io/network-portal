@@ -178,7 +178,10 @@ const Banner = ({
                       </div>
                     </div>
                   </DropdownMenu.Trigger>
-                  <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
+                  <DropdownMenu.Content
+                    className="z-50 rounded border border-grey-500 bg-containerL0 text-sm"
+                    align="end"
+                  >
                     <DropdownMenu.Item
                       className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
                       onClick={(e) => {

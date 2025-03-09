@@ -37,7 +37,6 @@ export default defineConfig({
   ],
   base: '',
   define: {
-    'process.env': process.env,
     'process.version': `"${process.version}"`,
     VITE_CONFIG: {
       version: JSON.stringify(process.env.npm_package_version),

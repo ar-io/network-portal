@@ -6,7 +6,6 @@ import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
 
-// USING process.env here instead of import.meta.env as there were problems with defining this in vite.config.ts
 export const APP_VERSION = __NPM_PACKAGE_VERSION__ || '1.0.0';
 export const WRITE_OPTIONS = {
   tags: [

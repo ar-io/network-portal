@@ -25,7 +25,8 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
 
   useEffect(() => {
     const update = async () => {
-      queryClient.resetQueries();
+      await queryClient.cancelQueries();
+      await queryClient.resetQueries();
 
       // perform this first as retrieving the current epic takes some time
       const { Ticker } = await arioReadSDK.getInfo();

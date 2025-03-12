@@ -37,9 +37,10 @@ export default defineConfig({
   ],
   base: '',
   define: {
+    "__NPM_PACKAGE_VERSION__": JSON.stringify(process.env.npm_package_version),
     'process.env': {
       // DO NOT EXPOSE THE ENTIRE process.env HERE - sensitive information on CI/CD could be exposed.
-      VITE_NPM_PACKAGE_VERSION: process.env.npm_package_version,
+      // defining here as an empty object as there are errors otherwise
     },
     'process.version': `"${process.version}"`,
   },

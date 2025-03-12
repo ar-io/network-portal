@@ -1,4 +1,4 @@
-import { ARIO_DOCS_URL } from '@src/constants';
+import { APP_VERSION, ARIO_DOCS_URL } from '@src/constants';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -156,8 +156,8 @@ const Sidebar = () => {
               className="grow pl-3 text-left text-xs text-low/50"
               onClick={() => setShowChangeLogModal(true)}
             >
-              v{process.env.npm_package_version}-
-              {process.env.VITE_GITHUB_HASH?.slice(0, 6)}
+              v{APP_VERSION}-
+              {import.meta.env.VITE_GITHUB_HASH?.slice(0, 6)}
             </button>
           )}
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>

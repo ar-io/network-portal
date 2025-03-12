@@ -36,7 +36,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
             endTimestamp: vault.endTimestamp,
             daysRemaining: dayjs(vault.endTimestamp).diff(dayjs(), 'days'),
             balance: new mARIOToken(vault.balance).toARIO().valueOf(),
-            controller: vault.address,
+            controller: vault.controller || 'N/A',
           };
         }) ?? []
     );

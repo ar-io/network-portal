@@ -5,7 +5,8 @@ import Ar from 'arweave/web/ar';
 import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
-export const APP_VERSION = process.env.npm_package_version || '1.0.0';
+
+export const APP_VERSION = __NPM_PACKAGE_VERSION__ || '1.0.0';
 export const WRITE_OPTIONS = {
   tags: [
     {
@@ -17,19 +18,19 @@ export const WRITE_OPTIONS = {
 };
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARIO_PROCESS_ID = new ArweaveTransactionID(
-  process.env.VITE_ARIO_PROCESS_ID ?? ARIO_DEVNET_PROCESS_ID,
+  import.meta.env.VITE_ARIO_PROCESS_ID ?? ARIO_DEVNET_PROCESS_ID,
 );
-export const AO_CU_URL = process.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';
+export const AO_CU_URL = import.meta.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';
 export const DEFAULT_ARWEAVE_PROTOCOL =
-  process.env.VITE_GATEWAY_PROTOCOL ?? 'https';
+  import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
-  process.env.VITE_GATEWAY_HOST ?? 'arweave.net';
+  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net';
 
 export const DEFAULT_ARWEAVE_GQL_ENDPOINT =
-  process.env.VITE_ARWEAVE_GQL_ENDPOINT ??
+  import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ??
   'https://arweave-search.goldsky.com/graphql';
 export const DEFAULT_ARWEAVE_PORT =
-  Number(process.env.VITE_GATEWAY_PORT) ?? 443;
+  Number(import.meta.env.VITE_GATEWAY_PORT) ?? 443;
 
 export const THEME_TYPES = {
   LIGHT: 'light',
@@ -61,7 +62,7 @@ export const OPERATOR_EAY_TOOLTIP_FORMULA =
 // OBSERVATION ASSESSMENT CONSTANTS
 export const NAME_PASS_THRESHOLD = 0.8;
 export const REFERENCE_GATEWAY_FQDN =
-  process.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'arweave.net';
+  import.meta.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'arweave.net';
 
 export const REDELEGATION_FEE_TOOLTIP_TEXT =
   'Redelegation fees are assessed at 10% per redelegation performed since the last fee reset, up to 60%. Fees are reset when no redelegations are performed in the last 7 days.';

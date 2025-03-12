@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.1] - 2025-03-12
+
+### Fixed
+
+- Fixed display of controller for vaults in Balances page
+
 ## [1.11.0] - 2025-03-06
 
 ### Added

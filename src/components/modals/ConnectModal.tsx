@@ -5,8 +5,9 @@ import { NetworkPortalWalletConnector } from '@src/types';
 import { useState } from 'react';
 import { useConfig } from 'wagmi';
 import Button from '../Button';
-import { ConnectIcon, MetamaskIcon, WanderIcon } from '../icons';
+import { BeaconIcon, ConnectIcon, MetamaskIcon, WanderIcon } from '../icons';
 import BaseModal from './BaseModal';
+import { BeaconWalletConnector } from '@src/services/wallets/BeaconWalletConnector';
 
 const ConnectModal = ({ onClose }: { onClose: () => void }) => {
   const config = useConfig();
@@ -74,6 +75,18 @@ const ConnectModal = ({ onClose }: { onClose: () => void }) => {
             icon={<MetamaskIcon className="size-4" />}
             title="Connect with Metamask"
             text="Connect with Metamask"
+          />
+          <Button
+            onClick={() => {
+              if (!connecting) {
+                connect(new BeaconWalletConnector());
+              }
+            }}
+            active={true}
+            icon={<BeaconIcon className="size-4" />}
+            title="Connect with Beacon"
+            text="Connect with Beacon"
+            className="w-full"
           />
         </div>
 

@@ -21,6 +21,7 @@ export enum WALLET_TYPES {
   WANDER = 'Wander',
   ARWEAVE_APP = 'ArweaveApp',
   ETHEREUM = 'Ethereum',
+  BEACON = 'Beacon',
 }
 
 export interface ReportData {

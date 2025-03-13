@@ -15,6 +15,8 @@ export interface NetworkPortalWalletConnector {
   getWalletAddress(): Promise<AoAddress>;
   // getGatewayConfig(): Promise<ApiConfig>;
   contractSigner?: ContractSigner;
+  on?: (event: string, listener: (data: any) => void) => Promise<void>;
+  off?: (event: string, listener: (data: any) => void) => Promise<void>;
 }
 
 export enum WALLET_TYPES {

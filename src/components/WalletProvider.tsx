@@ -20,6 +20,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
   const wallet = useGlobalState((state) => state.wallet);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const setContractSigner = useGlobalState((state) => state.setContractSigner);
+  const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);
 
   const updateIfConnected = useCallback(async () => {
     const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);
@@ -56,12 +57,22 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
     updateWallet,
   ]);
 
+  const handleBeaconDisconnect = () => {
+    updateWallet(undefined, undefined);
+  };
+
   useEffect(() => {
     window.addEventListener('arweaveWalletLoaded', updateIfConnected);
     window.addEventListener('walletSwitch', updateIfConnected);
+    if (walletType === WALLET_TYPES.BEACON) {
+      wallet?.on!('disconnected', handleBeaconDisconnect);
+    }
     return () => {
       window.removeEventListener('arweaveWalletLoaded', updateIfConnected);
       window.removeEventListener('walletSwitch', updateIfConnected);
+      if (walletType === WALLET_TYPES.BEACON) {
+        wallet?.off!('disconnected', handleBeaconDisconnect);
+      }
     };
   });
 

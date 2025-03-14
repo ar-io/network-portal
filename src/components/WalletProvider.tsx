@@ -1,5 +1,6 @@
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { WanderWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
+import { BeaconWalletConnector } from '@src/services/wallets/BeaconWalletConnector';
 import { EthWalletConnector } from '@src/services/wallets/EthWalletConnector';
 import { useGlobalState } from '@src/store';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
@@ -44,6 +45,11 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
 
         updateWallet(ethAccount.address, connector);
       }
+      if (walletType === WALLET_TYPES.BEACON) {
+        const connector = new BeaconWalletConnector();
+        const address = await connector?.getWalletAddress();
+        updateWallet(address, connector);
+      }
     } catch (error) {
       showErrorToast(`${error}`);
     } finally {
@@ -59,6 +65,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
 
   const handleBeaconDisconnect = () => {
     updateWallet(undefined, undefined);
+    localStorage.removeItem(KEY_WALLET_TYPE);
   };
 
   useEffect(() => {

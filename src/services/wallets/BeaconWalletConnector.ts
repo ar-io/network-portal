@@ -5,6 +5,7 @@ import { ApiConfig } from 'arweave/node/lib/api';
 
 import { NetworkPortalWalletConnector, WALLET_TYPES } from '../../types';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
+import { KEY_WALLET_TYPE } from '@src/store/persistent';
 
 export const BEACON_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',
@@ -25,12 +26,12 @@ export class BeaconWalletConnector implements NetworkPortalWalletConnector {
   }
 
   async connect(): Promise<void> {
-    localStorage.setItem('walletType', WALLET_TYPES.BEACON);
+    localStorage.setItem(KEY_WALLET_TYPE, WALLET_TYPES.BEACON);
 
     await this._wallet
       .connect({ appInfo: { name: 'NETWORK PORTAL by ar.io' } })
       .catch((err) => {
-        localStorage.removeItem('walletType');
+        localStorage.removeItem(KEY_WALLET_TYPE);
         console.error(err);
         throw new BeaconError('User cancelled authentication.');
       });
@@ -45,7 +46,7 @@ export class BeaconWalletConnector implements NetworkPortalWalletConnector {
   }
 
   async disconnect(): Promise<void> {
-    localStorage.removeItem('walletType');
+    localStorage.removeItem(KEY_WALLET_TYPE);
     return await this._wallet?.disconnect();
   }
 

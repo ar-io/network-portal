@@ -109,7 +109,7 @@ const Profile = () => {
                 <div className="px-4 pb-3 pt-1 text-high">
                   {balances ? formatBalance(balances.ario) : <Placeholder />}
                 </div>
-                {balances && balances.ario > 0 && (
+                {balances && (
                   <button
                     className="absolute right-4 top-1/2 -translate-y-5 rounded border border-grey-800 p-2"
                     title={`Send ${ticker}`}

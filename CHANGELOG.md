@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.4] - 2025-03-20
+
+### Updated
+
+- Gateway Details page: show actual number of observers per epoch in "Failed by x/y Observers" card 
+
 ## [1.11.3] - 2025-03-20
 
 ### Added

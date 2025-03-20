@@ -28,7 +28,7 @@ export const DEFAULT_ARWEAVE_HOST =
 
 export const DEFAULT_ARWEAVE_GQL_ENDPOINT =
   import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ??
-  'https://arweave-search.goldsky.com/graphql';
+  'https://arweave.net/graphql';
 export const DEFAULT_ARWEAVE_PORT =
   Number(import.meta.env.VITE_GATEWAY_PORT) ?? 443;
 

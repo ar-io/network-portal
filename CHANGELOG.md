@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.3] - 2025-03-20
+
+### Added
+
+- Added an error notification when app is unable to retrieve epoch data for an epoch index
+- Added fallback retrieval method for epochs when Epoch-Distribution-Notice is not available
+
+### Updated
+
+- Set default graphql endpoint to arweave.net
+
+
 ## [1.11.2] - 2025-03-19
 
 ### Changed

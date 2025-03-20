@@ -1,5 +1,6 @@
 import { useGlobalState } from '@src/store';
 import { getEpoch } from '@src/store/db';
+import { showErrorToast } from '@src/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 
 // TODO: this could be a parameter provided by the user now
@@ -23,7 +24,14 @@ const useEpochs = () => {
           { length: HISTORICAL_EPOCHS_TO_FETCH },
           (_, index) => startEpoch.epochIndex - index - 1,
         ).map((epochIndex) =>
-          getEpoch(networkPortalDB, arIOReadSDK, epochIndex),
+          getEpoch(networkPortalDB, arIOReadSDK, epochIndex).then((epoch) => {
+            if (!epoch) {
+              showErrorToast(
+                `Unable to retrieve epoch data for epoch ${epochIndex}.`,
+              );
+            }
+            return epoch;
+          }),
         ),
       );
 

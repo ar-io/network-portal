@@ -65,8 +65,6 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
         {} as Record<string, { txid: string; failedGateways: number }>,
       );
 
-      console.log(reportTransactionData)
-
       const keys = Object.keys(reportTransactionData);
 
       if (keys.length > 0) {

@@ -44,6 +44,11 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
             const observations = epoch.observations;
             const txid = observations.reports[observerAddress];
 
+            if(!txid) {
+              // did not submit a report this epoch
+              return acc;
+            }
+
             const failedGateways = Object.values(
               observations.failureSummaries,
             ).reduce((acc, summary) => {

@@ -20,12 +20,14 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }
   const [failureObservers, setFailureObservers] = useState<ReportedOnByEntry[]>(
     [],
   );
+  const [totalReportsForEpoch, setTotalReportsForEpoch] = useState<number>(0);
   const observerToGatewayMap = useObserverToGatewayMap();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (epochs) {
       const selectedEpoch = epochs[selectedEpochIndex];
+      setTotalReportsForEpoch(selectedEpoch?.observations?.reports ? Object.keys(selectedEpoch?.observations?.reports).length : 0);
 
       if (gateway) {
         const observers =
@@ -59,7 +61,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }
                 <div className="text-mid">
                   Failed by{' '}
                   <span className="text-red-500">
-                    {failureObservers.length}/50
+                    {failureObservers.length}/{totalReportsForEpoch}
                   </span>{' '}
                   observers
                 </div>

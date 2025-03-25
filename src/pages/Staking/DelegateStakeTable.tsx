@@ -242,22 +242,34 @@ const DelegateStake = () => {
       id: 'action',
       header: '',
       cell: ({ row }) => {
+        const ownGateway = row.original.owner === walletAddress?.toString();
+        const btn = (
+          <Button
+            buttonType={ButtonType.PRIMARY}
+            active={true}
+            title="Manage Stake"
+            text="Stake"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (walletAddress) {
+                if (!ownGateway) {
+                  setStakingModalWalletAddress(row.getValue('owner') as string);
+                }
+              } else {
+                setIsConnectModalOpen(true);
+              }
+            }}
+          />
+        );
         return (
           <div className="pr-6">
-            <Button
-              buttonType={ButtonType.PRIMARY}
-              active={true}
-              title="Manage Stake"
-              text="Stake"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (walletAddress) {
-                  setStakingModalWalletAddress(row.getValue('owner') as string);
-                } else {
-                  setIsConnectModalOpen(true);
-                }
-              }}
-            />
+            {ownGateway ? (
+              <Tooltip message="Delegate staking is not supported for gateways you operate. Please use operator staking on your gateway details page.">
+                <div className="pointer-events-none opacity-30">{btn}</div>
+              </Tooltip>
+            ) : (
+              btn
+            )}
           </div>
         );
       },

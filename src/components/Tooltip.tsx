@@ -10,7 +10,6 @@ const Tooltip = ({
   useMaxWidth?: boolean;
 }) => {
   return (
-    <div className="relative flex">
       <ReactTooltip.Provider>
         <ReactTooltip.Root delayDuration={0}>
           <ReactTooltip.Trigger asChild={true}>
@@ -29,7 +28,6 @@ const Tooltip = ({
           </ReactTooltip.Portal>
         </ReactTooltip.Root>
       </ReactTooltip.Provider>
-    </div>
   );
 };
 

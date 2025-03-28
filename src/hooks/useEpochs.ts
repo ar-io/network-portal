@@ -25,12 +25,12 @@ const useEpochs = () => {
           (_, index) => startEpoch.epochIndex - index - 1,
         ).map((epochIndex) =>
           getEpoch(networkPortalDB, arIOReadSDK, epochIndex).then((epoch) => {
-            if (!epoch) {
-              showErrorToast(
-                `Unable to retrieve epoch data for epoch ${epochIndex}.`,
-              );
-            }
             return epoch;
+          }).catch(() => {
+            showErrorToast(
+              `Unable to retrieve epoch data for epoch ${epochIndex}.`,
+            );
+            return undefined;
           }),
         ),
       );

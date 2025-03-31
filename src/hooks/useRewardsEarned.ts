@@ -22,7 +22,7 @@ const useRewardsEarned = (walletAddress?: string) => {
         const previousEpoch = sorted[sorted.length - 2];
         const previousDistribution = previousEpoch?.distributions;
 
-        // rewards are not avialable on current epoch
+        // rewards are not available on current epoch
         const previousEpochDistributed =
           previousDistribution && isDistributedEpochData(previousDistribution)
             ? previousDistribution.rewards.distributed ?? {}

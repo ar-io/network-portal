@@ -1,5 +1,6 @@
 import { useEffectOnce } from '@src/hooks/useEffectOnce';
 import { WanderWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
+import { BeaconWalletConnector } from '@src/services/wallets/BeaconWalletConnector';
 import { EthWalletConnector } from '@src/services/wallets/EthWalletConnector';
 import { useGlobalState } from '@src/store';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
@@ -20,6 +21,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
   const wallet = useGlobalState((state) => state.wallet);
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const setContractSigner = useGlobalState((state) => state.setContractSigner);
+  const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);
 
   const updateIfConnected = useCallback(async () => {
     const walletType = window.localStorage.getItem(KEY_WALLET_TYPE);
@@ -43,6 +45,11 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
 
         updateWallet(ethAccount.address, connector);
       }
+      if (walletType === WALLET_TYPES.BEACON) {
+        const connector = new BeaconWalletConnector();
+        const address = await connector?.getWalletAddress();
+        updateWallet(address, connector);
+      }
     } catch (error) {
       showErrorToast(`${error}`);
     } finally {
@@ -56,12 +63,23 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
     updateWallet,
   ]);
 
+  const handleBeaconDisconnect = () => {
+    updateWallet(undefined, undefined);
+    localStorage.removeItem(KEY_WALLET_TYPE);
+  };
+
   useEffect(() => {
     window.addEventListener('arweaveWalletLoaded', updateIfConnected);
     window.addEventListener('walletSwitch', updateIfConnected);
+    if (walletType === WALLET_TYPES.BEACON) {
+      wallet?.on!('disconnected', handleBeaconDisconnect);
+    }
     return () => {
       window.removeEventListener('arweaveWalletLoaded', updateIfConnected);
       window.removeEventListener('walletSwitch', updateIfConnected);
+      if (walletType === WALLET_TYPES.BEACON) {
+        wallet?.off!('disconnected', handleBeaconDisconnect);
+      }
     };
   });
 

@@ -17,7 +17,7 @@ export const BEACON_WALLET_PERMISSIONS: PermissionType[] = [
 ];
 
 export class BeaconWalletConnector implements NetworkPortalWalletConnector {
-  private _wallet: WalletClient;
+  public _wallet: WalletClient;
   contractSigner: Window['arweaveWallet'];
   constructor() {
     this._wallet = new WalletClient();

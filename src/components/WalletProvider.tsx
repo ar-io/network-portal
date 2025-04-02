@@ -47,6 +47,11 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
       }
       if (walletType === WALLET_TYPES.BEACON) {
         const connector = new BeaconWalletConnector();
+        if (!connector._wallet.uid) {
+          updateWallet(undefined, undefined);
+          localStorage.removeItem(KEY_WALLET_TYPE);
+          return;
+        }
         const address = await connector?.getWalletAddress();
         updateWallet(address, connector);
       }

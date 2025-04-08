@@ -2,6 +2,7 @@ import AddressCell from '@src/components/AddressCell';
 import CopyButton from '@src/components/CopyButton';
 import Dropdown from '@src/components/Dropdown';
 import TableView from '@src/components/TableView';
+import Tooltip from '@src/components/Tooltip';
 import useEpochs from '@src/hooks/useEpochs';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
@@ -18,6 +19,8 @@ interface TableData {
   observerAddress: string;
   ncw: number;
   successRatio: number;
+  observedEpochs: number;
+  prescribedEpochs: number;
   reportStatus: string;
   failedGateways?: number;
 }
@@ -76,6 +79,8 @@ const ObserversTable = () => {
             gatewayAddress: observer.gatewayAddress,
             observerAddress: observer.observerAddress,
             ncw: observer.normalizedCompositeWeight,
+            observedEpochs: gateway.stats.observedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
+            prescribedEpochs: gateway.stats.prescribedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
             successRatio:
               // there will be a period where old epoch notices have the old field, and new epoch notices have the new field, so check both
               observer.observerPerformanceRatio ||
@@ -145,7 +150,18 @@ const ObserversTable = () => {
       id: 'successRatio',
       header: 'Observer Performance',
       sortDescFirst: true,
-      cell: ({ row }) => formatPercentage(row.original.successRatio),
+      cell: ({ row }) => (
+        <Tooltip
+            message={
+              <div>
+                <div>Observed Epochs: {row.original.observedEpochs}</div>
+                <div>Prescribed Epochs: {row.original.prescribedEpochs}</div>
+              </div>
+            }
+        >
+          {`${(row.original.successRatio * 100).toFixed(2)}%`}
+        </Tooltip>
+      ),
     }),
     columnHelper.accessor('reportStatus', {
       id: 'reportStatus',

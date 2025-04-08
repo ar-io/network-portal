@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.6] - 2025-03-28
+
+## Changed
+
+- Improved error handling when loading historical epoch data
+
+## [1.11.5] - 2025-03-25
+
+### Fixed
+
+- Disable delegate stake button for gateways operated by logged-in user and direct them to use operator staking. 
+
 ## [1.11.4] - 2025-03-20
 
 ### Updated

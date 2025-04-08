@@ -5,7 +5,7 @@ import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
 import useEpochs from '@src/hooks/useEpochs';
 import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
-import { NotebookText } from 'lucide-react';
+import { CheckCircleIcon, NotebookText, XCircleIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -64,6 +64,19 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }
                     {failureObservers.length}/{totalReportsForEpoch}
                   </span>{' '}
                   observers
+                </div>
+              )}
+            </div>
+            <div className="mr-4 flex items-center">
+              {failureObservers.length  <= totalReportsForEpoch / 2? (
+                <div className="flex items-center text-green-500">
+                  <CheckCircleIcon className="mr-1 size-4" />
+                  <span>{selectedEpochIndex === 0 ? 'Passing' : 'Passed'}</span>
+                </div>
+              ) : (
+                <div className="flex items-center text-red-500">
+                  <XCircleIcon className="mr-1 size-4" />
+                  <span>{selectedEpochIndex === 0 ? 'Failing' : 'Failed'}</span>
                 </div>
               )}
             </div>

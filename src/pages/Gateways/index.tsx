@@ -25,6 +25,7 @@ interface TableData {
   endTimeStamp: number;
   performance: number;
   passedEpochCount: number;
+  prescribedCount: number;
   totalEpochCount: number;
   streak: number;
 }
@@ -43,8 +44,8 @@ const Gateways = () => {
     const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
       (acc: Array<TableData>, [owner, gateway]) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
-        const totalEpochCount = (gateway.stats as any).totalEpochCount;
-
+        const totalEpochCount = gateway.stats.totalEpochCount;
+        const prescribedCount = gateway.stats.prescribedEpochCount;
         return [
           ...acc,
           {
@@ -67,6 +68,7 @@ const Gateways = () => {
             endTimeStamp: gateway.endTimestamp,
             performance:
               totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
+            prescribedCount,
             passedEpochCount,
             totalEpochCount,
             streak:
@@ -179,11 +181,9 @@ const Gateways = () => {
           <Tooltip
             message={
               <div>
-                <div>Passed Epoch Count: {row.original.passedEpochCount}</div>
-                <div className="mt-1">
-                  Total Epoch Participation Count:{' '}
-                  {row.original.totalEpochCount}
-                </div>
+                <div>Prescribed Epochs: {row.original.prescribedCount}</div>
+                <div>Passed Epochs: {row.original.passedEpochCount}</div>
+                <div>Total Epochs: {row.original.totalEpochCount}</div>
               </div>
             }
           >

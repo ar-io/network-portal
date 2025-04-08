@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.7] - 2025-04-08
+
+## Added
+
+- Gateway: Shows passed/failed for epoch in Reported On By card 
+- Observers: Tooltip added to Observer Performance column to show observed and prescribed counts
+
 ## [1.11.6] - 2025-03-28
 
 ## Changed

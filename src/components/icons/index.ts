@@ -2,6 +2,7 @@
 import ArioLogoIcon from './ario.svg?react';
 import ArioCoinIcon from './ario_coin.svg?react';
 import BannerRightChevron from './banner_right_chevron.svg?react';
+import BeaconIcon from './BeaconIcon.svg?react';
 import BinocularsIcon from './binoculars.svg?react';
 import BinocularsGradientIcon from './binoculars_gradient.svg?react';
 import CancelButtonXIcon from './cancel_button_x.svg?react';
@@ -22,8 +23,8 @@ import FormErrorIcon from './form_error.svg?react';
 import GatewayIcon from './gateway.svg?react';
 import GatewayHoverIcon from './gateway_hover.svg?react';
 import GatewaysIcon from './gateways.svg?react';
-import InstantWithdrawalIcon from './instant_withdrawal.svg?react';
 import InfoIcon from './info_icon.svg?react';
+import InstantWithdrawalIcon from './instant_withdrawal.svg?react';
 import LinkArrowIcon from './link_arrow.svg?react';
 import LogoutIcon from './logout.svg?react';
 import MetamaskIcon from './metamask_logo_flat.svg?react';
@@ -48,13 +49,14 @@ import WarningIcon from './warning.svg?react';
 import WarningTriangleIcon from './warning_triangle.svg?react';
 
 export {
-  ArioLogoIcon,
   ArioCoinIcon,
+  ArioLogoIcon,
   BannerRightChevron,
-  BinocularsIcon,
+  BeaconIcon,
   BinocularsGradientIcon,
-  CaretDoubleRightIcon,
+  BinocularsIcon,
   CancelButtonXIcon,
+  CaretDoubleRightIcon,
   CheckSquareIcon,
   ClockRewindIcon,
   CloseDrawerIcon,

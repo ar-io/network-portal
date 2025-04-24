@@ -136,30 +136,31 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
             id: 'revoke',
             header: '',
             size: 0,
-            cell: ({ row }) => (
-              <div className="flex justify-end pr-4">
-                <Button
-                  buttonType={ButtonType.PRIMARY}
-                  active={true}
-                  title="Revoke Vault"
-                  text="Revoke"
-                  className="w-fit"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (walletAddress) {
-                      setShowRevokeVaultModal({
-                        recipient: walletAddress.toString(),
-                        vaultId: row.original.vaultId,
-                      });
-                    }
-                  }}
-                />
-              </div>
-            ),
+            cell: ({ row }) =>
+              row.original.controller === userWalletAddress?.toString() ? (
+                <div className="flex justify-end pr-4">
+                  <Button
+                    buttonType={ButtonType.PRIMARY}
+                    active={true}
+                    title="Revoke Vault"
+                    text="Revoke"
+                    className="w-fit"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (walletAddress) {
+                        setShowRevokeVaultModal({
+                          recipient: walletAddress.toString(),
+                          vaultId: row.original.vaultId,
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              ) : null,
           }),
         ]
       : base;
-  }, [ticker, userCanRevoke, walletAddress]);
+  }, [ticker, userCanRevoke, walletAddress, userWalletAddress]);
 
   return (
     <div>

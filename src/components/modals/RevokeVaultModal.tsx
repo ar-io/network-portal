@@ -1,10 +1,12 @@
 import { WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
+import { formatAddress, formatDate, formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import { LinkArrowIcon } from '../icons';
+import LabelValueRow from '../LabelValueRow';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
@@ -12,16 +14,21 @@ import SuccessModal from './SuccessModal';
 const RevokeVaultModal = ({
   recipient,
   vaultId,
+  balance,
+  endTimestamp,
   onClose,
 }: {
   recipient: string;
   vaultId: string;
+  balance: number;
+  endTimestamp: number;
   onClose: () => void;
 }) => {
   const queryClient = useQueryClient();
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const ticker = useGlobalState((state) => state.ticker);
 
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
@@ -71,7 +78,27 @@ const RevokeVaultModal = ({
 
           <div className="border-y border-grey-800 p-8 text-sm text-mid">
             <div>
-              This action will revoke the vault and return the balance to you. This action cannot be undone.
+              This action will revoke the vault and return the balance to you.
+              This action cannot be undone.
+            </div>
+          </div>
+
+          <div className="flex flex-col p-8">
+            <div className="flex flex-col gap-2">
+              <LabelValueRow
+                label="Recipient:"
+                value={formatAddress(recipient)}
+              />
+
+              <LabelValueRow
+                label="Balance:"
+                value={`${formatWithCommas(balance)} ${ticker}`}
+              />
+
+              <LabelValueRow
+                label="End Date:"
+                value={formatDate(new Date(endTimestamp))}
+              />
             </div>
           </div>
 

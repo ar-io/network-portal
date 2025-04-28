@@ -226,7 +226,7 @@ const InstantWithdrawalModal = ({
           title="Confirmed"
           bodyText={
             <div className="mb-8 text-sm text-mid">
-              <div>You have successfully canceled the withdrawal.</div>
+              <div>You have successfully expedited the withdrawal.</div>
               <div className="my-2 flex flex-col justify-center gap-2">
                 <div>Transaction ID:</div>
                 <button

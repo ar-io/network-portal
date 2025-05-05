@@ -85,6 +85,6 @@ jobs:
           VITE_SENTRY_DSN_PROJECT_ID: ${{ secrets.SENTRY_DSN_PROJECT_ID }}
           VITE_GITHUB_HASH: ${{ github.sha }}
           VITE_ARIO_PROCESS_ID: ${{ vars.VITE_ARIO_PROCESS_ID }}
-          DEPLOY_ANT_PROCESS_ID: ${{ secrets.DEPLOY_ANT_PROCESS_ID }}
+          VITE_ARNS_NAME: ${{ vars.ARNS_NAME }}
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
           VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}

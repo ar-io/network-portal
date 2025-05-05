@@ -1,6 +1,6 @@
 import { AoSigner, ContractSigner } from '@ar.io/sdk/web';
+import { createData, InjectedEthereumSigner } from '@dha-team/arbundles';
 import { MetamaskError } from '@src/utils/errors';
-import { createData, InjectedEthereumSigner } from 'arbundles';
 import { ApiConfig } from 'arweave/node/lib/api';
 import {
   hashMessage,

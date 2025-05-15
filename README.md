@@ -31,16 +31,16 @@ Running `yarn deploy` uses the following environment variables:
 
 ```
 export VITE_IO_PROCESS_ID=[process ID for IO process]
-export DEPLOY_ANT_PROCESS_ID=[process id of the ant process to deploy to]
+export VITE_ARNS_NAME=[The ArNS name to deploy to]
 export DEPLOY_KEY=[base64 encoded version of wallet keyfile]
 ```
 
-For local testing, you can create a deploy.sh script with the above values defined, run `source deploy.sh`, then use `yarn deploy`. 
+For local testing, you can create a deploy.sh script with the above values defined, run `source deploy.sh`, then use `yarn deploy`.
 
 ## Resources
 
-* [ar.io](https://ar.io)
-* [ar.io Whitepaper](https://whitepaper_ar-io.arweave.net/)
-* [ar.io SDK](https://github.com/ar-io/ar-io-sdk)
-* [arweave](https://arweave.org) 
-* [ao](https://ao.arweave.net/)
+- [ar.io](https://ar.io)
+- [ar.io Whitepaper](https://whitepaper_ar-io.arweave.net/)
+- [ar.io SDK](https://github.com/ar-io/ar-io-sdk)
+- [arweave](https://arweave.org)
+- [ao](https://ao.arweave.net/)

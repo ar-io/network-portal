@@ -24,7 +24,7 @@ export const AO_CU_URL = import.meta.env.VITE_AO_CU_URL || 'https://cu.ardrive.i
 export const DEFAULT_ARWEAVE_PROTOCOL =
   import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
-  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net';
+  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net'; // TODO: likely should change to ar-io.net depending on how this is used throughout the app
 
 export const DEFAULT_ARWEAVE_GQL_ENDPOINT =
   import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ??
@@ -62,7 +62,7 @@ export const OPERATOR_EAY_TOOLTIP_FORMULA =
 // OBSERVATION ASSESSMENT CONSTANTS
 export const NAME_PASS_THRESHOLD = 0.8;
 export const REFERENCE_GATEWAY_FQDN =
-  import.meta.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'arweave.net';
+  import.meta.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'ar-io.net';
 
 export const REDELEGATION_FEE_TOOLTIP_TEXT =
   'Redelegation fees are assessed at 10% per redelegation performed since the last fee reset, up to 60%. Fees are reset when no redelegations are performed in the last 7 days.';

@@ -12,7 +12,7 @@ jobs:
         step: ['lint:check', 'test', 'build']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -64,7 +64,7 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -85,6 +85,6 @@ jobs:
           VITE_SENTRY_DSN_PROJECT_ID: ${{ secrets.SENTRY_DSN_PROJECT_ID }}
           VITE_GITHUB_HASH: ${{ github.sha }}
           VITE_ARIO_PROCESS_ID: ${{ vars.VITE_ARIO_PROCESS_ID }}
-          DEPLOY_ANT_PROCESS_ID: ${{ secrets.DEPLOY_ANT_PROCESS_ID }}
+          VITE_ARNS_NAME: ${{ vars.ARNS_NAME }}
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
           VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}

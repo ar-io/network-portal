@@ -43,8 +43,7 @@ const Gateways = () => {
     const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
       (acc: Array<TableData>, [owner, gateway]) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
-        const totalEpochCount = (gateway.stats as any).totalEpochCount;
-
+        const totalEpochCount = gateway.stats.totalEpochCount;
         return [
           ...acc,
           {
@@ -179,11 +178,8 @@ const Gateways = () => {
           <Tooltip
             message={
               <div>
-                <div>Passed Epoch Count: {row.original.passedEpochCount}</div>
-                <div className="mt-1">
-                  Total Epoch Participation Count:{' '}
-                  {row.original.totalEpochCount}
-                </div>
+                <div>Passed Epochs: {row.original.passedEpochCount}</div>
+                <div>Total Epochs: {row.original.totalEpochCount}</div>
               </div>
             }
           >

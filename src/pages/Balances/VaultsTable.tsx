@@ -1,5 +1,7 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
+import Button, { ButtonType } from '@src/components/Button';
+import RevokeVaultModal from '@src/components/modals/RevokeVaultModal';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
 import useVaults from '@src/hooks/useVaults';
@@ -8,7 +10,7 @@ import { AoAddress } from '@src/types';
 import { formatDate, formatDateTime, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface TableData {
   startTimestamp: number;
@@ -18,6 +20,8 @@ interface TableData {
 
   daysRemaining: number;
   balance: number;
+  vaultId: string;
+  vaultAddress: string;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -25,6 +29,20 @@ const columnHelper = createColumnHelper<TableData>();
 const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   const ticker = useGlobalState((state) => state.ticker);
   const { isLoading, data: vaults } = useVaults();
+
+  const { walletAddress: userWalletAddress } = useGlobalState();
+
+  const [showRevokeVaultModal, setShowRevokeVaultModal] = useState<
+    { recipient: string; vaultId: string; balance: number; endTimestamp: number } | undefined
+  >();
+
+  const userCanRevoke = useMemo(() => {
+    return vaults
+      ? vaults.some(
+          (vault) => vault.controller === userWalletAddress?.toString(),
+        )
+      : false;
+  }, [userWalletAddress, vaults]);
 
   const vaultsTableData: Array<TableData> = useMemo(() => {
     return (
@@ -37,6 +55,8 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
             daysRemaining: dayjs(vault.endTimestamp).diff(dayjs(), 'days'),
             balance: new mARIOToken(vault.balance).toARIO().valueOf(),
             controller: vault.controller || 'N/A',
+            vaultId: vault.vaultId,
+            vaultAddress: vault.address,
           };
         }) ?? []
     );
@@ -44,7 +64,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
 
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = useMemo(() => {
-    return [
+    const base = [
       columnHelper.accessor('startTimestamp', {
         id: 'startTimeStamp',
         header: 'Start Date',
@@ -55,8 +75,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
               <div>
                 <div>Timestamp: {row.original.startTimestamp}</div>
                 <div>
-                  Date:{' '}
-                  {formatDateTime(new Date(row.original.startTimestamp))}
+                  Date: {formatDateTime(new Date(row.original.startTimestamp))}
                 </div>
               </div>
             }
@@ -78,8 +97,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
               <div>
                 <div>Timestamp: {row.original.endTimestamp}</div>
                 <div>
-                  Date:{' '}
-                  {formatDateTime(new Date(row.original.endTimestamp))}
+                  Date: {formatDateTime(new Date(row.original.endTimestamp))}
                 </div>
               </div>
             }
@@ -110,7 +128,41 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
         ),
       }),
     ];
-  }, [ticker]);
+
+    return userCanRevoke
+      ? [
+          ...base,
+          columnHelper.display({
+            id: 'revoke',
+            header: '',
+            size: 0,
+            cell: ({ row }) =>
+              row.original.controller === userWalletAddress?.toString() ? (
+                <div className="flex justify-end pr-4">
+                  <Button
+                    buttonType={ButtonType.PRIMARY}
+                    active={true}
+                    title="Revoke Vault"
+                    text="Revoke"
+                    className="w-fit"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (walletAddress) {
+                        setShowRevokeVaultModal({
+                          recipient: walletAddress.toString(),
+                          vaultId: row.original.vaultId,
+                          balance: row.original.balance,
+                          endTimestamp: row.original.endTimestamp
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              ) : null,
+          }),
+        ]
+      : base;
+  }, [ticker, userCanRevoke, walletAddress, userWalletAddress]);
 
   return (
     <div>
@@ -124,6 +176,15 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
         noDataFoundText="No locked token vaults found."
         defaultSortingState={{ id: 'endTimestamp', desc: false }}
       />
+      {showRevokeVaultModal && (
+        <RevokeVaultModal
+          recipient={showRevokeVaultModal.recipient}
+          vaultId={showRevokeVaultModal.vaultId}
+          balance={showRevokeVaultModal.balance}
+          endTimestamp={showRevokeVaultModal.endTimestamp}
+          onClose={() => setShowRevokeVaultModal(undefined)}
+        />
+      )}
     </div>
   );
 };

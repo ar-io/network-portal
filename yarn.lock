@@ -1479,6 +1479,30 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
+"@dha-team/arbundles@1.0.3", "@dha-team/arbundles@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.npmjs.org/@dha-team/arbundles/-/arbundles-1.0.3.tgz#4080514945a830e7d61f3d079401f28e8bd198d2"
+  integrity sha512-/XelOo5V/1o1M8VchCQ+F7N5kxwirWh5jD5zg1KECaV80Qld6aKBSgG19VLlBsRUXbRUfjM+LDRPJm9Hjfmycg==
+  dependencies:
+    "@ethersproject/bytes" "^5.7.0"
+    "@ethersproject/hash" "^5.7.0"
+    "@ethersproject/providers" "^5.7.2"
+    "@ethersproject/signing-key" "^5.7.0"
+    "@ethersproject/transactions" "^5.7.0"
+    "@ethersproject/wallet" "^5.7.0"
+    "@noble/ed25519" "^1.6.1"
+    arweave "^1.15.7"
+    base64url "^3.0.1"
+    bs58 "^4.0.1"
+    keccak "^3.0.2"
+    secp256k1 "^5.0.0"
+  optionalDependencies:
+    "@randlabs/myalgo-connect" "^1.1.2"
+    algosdk "^1.13.1"
+    arweave-stream-tx "^1.1.0"
+    multistream "^4.1.0"
+    tmp-promise "^3.0.2"
+
 "@dha-team/arbundles@^1.0.1":
   version "1.0.1"
   resolved "https://registry.npmjs.org/@dha-team/arbundles/-/arbundles-1.0.1.tgz"
@@ -1492,30 +1516,6 @@
     "@ethersproject/wallet" "^5.7.0"
     "@noble/ed25519" "^1.6.1"
     arweave "^1.15.1"
-    base64url "^3.0.1"
-    bs58 "^4.0.1"
-    keccak "^3.0.2"
-    secp256k1 "^5.0.0"
-  optionalDependencies:
-    "@randlabs/myalgo-connect" "^1.1.2"
-    algosdk "^1.13.1"
-    arweave-stream-tx "^1.1.0"
-    multistream "^4.1.0"
-    tmp-promise "^3.0.2"
-
-"@dha-team/arbundles@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/@dha-team/arbundles/-/arbundles-1.0.3.tgz#4080514945a830e7d61f3d079401f28e8bd198d2"
-  integrity sha512-/XelOo5V/1o1M8VchCQ+F7N5kxwirWh5jD5zg1KECaV80Qld6aKBSgG19VLlBsRUXbRUfjM+LDRPJm9Hjfmycg==
-  dependencies:
-    "@ethersproject/bytes" "^5.7.0"
-    "@ethersproject/hash" "^5.7.0"
-    "@ethersproject/providers" "^5.7.2"
-    "@ethersproject/signing-key" "^5.7.0"
-    "@ethersproject/transactions" "^5.7.0"
-    "@ethersproject/wallet" "^5.7.0"
-    "@noble/ed25519" "^1.6.1"
-    arweave "^1.15.7"
     base64url "^3.0.1"
     bs58 "^4.0.1"
     keccak "^3.0.2"
@@ -2825,6 +2825,15 @@
     ramda "^0.30.0"
     zod "^3.23.5"
 
+"@permaweb/ao-scheduler-utils@~0.0.25":
+  version "0.0.25"
+  resolved "https://registry.yarnpkg.com/@permaweb/ao-scheduler-utils/-/ao-scheduler-utils-0.0.25.tgz#50c96a411d59f58010ace322d6abd3cd5e11e4cd"
+  integrity sha512-b0UYSTgnLMIYLScrfNBgcqK7ZMmd78L3J0Jz4RIsIq2P5PtkdRqQ7fYqLlltg7bD1f3dvl4TkO1925ED4ei7LA==
+  dependencies:
+    lru-cache "^10.2.2"
+    ramda "^0.30.0"
+    zod "^3.23.5"
+
 "@permaweb/aoconnect@0.0.57", "@permaweb/aoconnect@^0.0.57":
   version "0.0.57"
   resolved "https://registry.npmjs.org/@permaweb/aoconnect/-/aoconnect-0.0.57.tgz"
@@ -2838,6 +2847,30 @@
     ramda "^0.30.1"
     warp-arbundles "^1.0.4"
     zod "^3.23.8"
+
+"@permaweb/aoconnect@^0.0.84":
+  version "0.0.84"
+  resolved "https://registry.yarnpkg.com/@permaweb/aoconnect/-/aoconnect-0.0.84.tgz#1e5d7c358c8c7462da6b36c65c1de80c145eb28e"
+  integrity sha512-VwYwfcWaRhZ0ii1uHEtU1LSDLjmYE0l/6rwfZU6/xlvUpyZI0O/kunp+LkW+fbu+uVNFN6ubIn4ycLj+qfSvFA==
+  dependencies:
+    "@dha-team/arbundles" "1.0.3"
+    "@permaweb/ao-scheduler-utils" "~0.0.25"
+    "@permaweb/protocol-tag-utils" "~0.0.2"
+    axios "^1.7.9"
+    base64url "^3.0.1"
+    buffer "^6.0.3"
+    debug "^4.4.0"
+    http-message-signatures "^1.0.4"
+    hyper-async "^1.1.2"
+    mnemonist "^0.39.8"
+    ramda "^0.30.1"
+    structured-headers "^2.0.0"
+    zod "^3.24.1"
+
+"@permaweb/protocol-tag-utils@~0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@permaweb/protocol-tag-utils/-/protocol-tag-utils-0.0.2.tgz#c8a2eddf7da15d70a6e60aecff839730cb59aee3"
+  integrity sha512-2IiKu71W7pkHKIzxabCGQ5q8DSppZaE/sPcPF2hn+OWwfe04M7b5X5LHRXQNPRuxHWuioieGdPQb3F7apOlffQ==
 
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
@@ -5592,7 +5625,7 @@ axios@^0.27.2:
     follow-redirects "^1.14.9"
     form-data "^4.0.0"
 
-axios@^1.6.0:
+axios@^1.6.0, axios@^1.7.9:
   version "1.9.0"
   resolved "https://registry.npmjs.org/axios/-/axios-1.9.0.tgz#25534e3b72b54540077d33046f77e3b8d7081901"
   integrity sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==
@@ -8276,6 +8309,13 @@ html-escaper@^2.0.0:
   resolved "https://registry.npmjs.org/html-escaper/-/html-escaper-2.0.2.tgz"
   integrity sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==
 
+http-message-signatures@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/http-message-signatures/-/http-message-signatures-1.0.4.tgz#3d1f614977d3a435af7c1d35a75e1e48d9094075"
+  integrity sha512-gavCQWnxHFg0BVlKs6CmYK7hNSH1o0x0mHTC68yBAHYOYuTVXPv52mEE7QuT5TenfiagTdOa/zPJzen4lEX7Rg==
+  dependencies:
+    structured-headers "^1.0.1"
+
 https-browserify@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/https-browserify/-/https-browserify-1.0.0.tgz"
@@ -10236,13 +10276,14 @@ pbkdf2@^3.0.3, pbkdf2@^3.1.2:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-permaweb-deploy@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/permaweb-deploy/-/permaweb-deploy-2.0.0.tgz#11557872cef9f76875bf57b64e7f16cab64c0c5f"
-  integrity sha512-o/lESVEhKjb4Hfqdxad21GM/ruxZlYXkNiuHUSn3Wj/DWKKIL3vUXHs8NQkOJeBi1kHeWHH7H69mT6mWWwJkmQ==
+permaweb-deploy@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/permaweb-deploy/-/permaweb-deploy-2.1.0.tgz#e6e0b3d46c5f7a9bccd4a0c7aa3fa3026246e690"
+  integrity sha512-WNP4bVr9/kfyZ2q4cwB6pEs7uuf4g1cjCpDo94Toh/1x5gc3KCxKmN95i/sK3wHNsFqiSxWDQJ5TX27qIz1RuQ==
   dependencies:
     "@ar.io/sdk" "^3.10.1"
     "@ardrive/turbo-sdk" "^1.17.0"
+    "@permaweb/aoconnect" "^0.0.84"
     mime-types "^2.1.35"
     yargs "17.7.2"
 
@@ -11760,6 +11801,16 @@ strip-json-comments@^3.1.1:
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-3.1.1.tgz"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
 
+structured-headers@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/structured-headers/-/structured-headers-1.0.1.tgz#1821e434e0fe45bdd78f07c779b16519ab520415"
+  integrity sha512-QYBxdBtA4Tl5rFPuqmbmdrS9kbtren74RTJTcs0VSQNVV5iRhJD4QlYTLD0+81SBwUQctjEQzjTRI3WG4DzICA==
+
+structured-headers@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/structured-headers/-/structured-headers-2.0.0.tgz#b8759de60a94cc9eb48716d1fde1b365fbfb0b75"
+  integrity sha512-qX9utDaDolZWTcAep0EZDSQASTu4mx16Jh5dBSpplfvK3ro1CF8mWqRByAwncRojnlaCCUZA2jPcCqKNnp7uCA==
+
 sucrase@^3.32.0:
   version "3.35.0"
   resolved "https://registry.npmjs.org/sucrase/-/sucrase-3.35.0.tgz"
@@ -12990,6 +13041,11 @@ zod@^3.23.5, zod@^3.23.8:
   version "3.23.8"
   resolved "https://registry.npmjs.org/zod/-/zod-3.23.8.tgz"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
+
+zod@^3.24.1:
+  version "3.25.5"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.5.tgz#465c258507eed24bce4ba2689bf59208277516ae"
+  integrity sha512-ualArhgJydGAKkSdtxQyu6RXFW8nHFKWaw20jey8UFXU9uzkHYqWXJ93Iz+hUVVJb37VpF4LCCsOOfj6xaCVRQ==
 
 zustand@5.0.0:
   version "5.0.0"

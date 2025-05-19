@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2025-05-19
+
+### Added
+
+- Added Beacon Wallet Support (credit to Vela Ventures) 
+
 ## [1.11.9] - 2025-05-15
 
 ### Changed

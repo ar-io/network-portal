@@ -1,7 +1,7 @@
 {
   "name": "@ar-io/network-portal",
   "private": true,
-  "version": "1.11.9",
+  "version": "1.12.0",
   "type": "module",
   "scripts": {
     "build": "yarn clean && tsc --build tsconfig.build.json && NODE_OPTIONS=--max-old-space-size=32768 vite build",
@@ -28,6 +28,7 @@
     "@sentry/react": "^7.101.1",
     "@tanstack/react-query": "^5.35.1",
     "@tanstack/react-table": "^8.17.3",
+    "@vela-ventures/ao-sync-sdk": "^1.1.22",
     "arweave": "^1.15.0",
     "arweave-graphql": "^0.0.5",
     "base64-arraybuffer": "^1.0.2",

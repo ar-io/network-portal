@@ -26,7 +26,7 @@ import { calculateGatewayRewards } from '@src/utils/rewards';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import dayjs from 'dayjs';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface ActiveStakesTableData {
@@ -144,153 +144,161 @@ const MyStakesTable = () => {
   }, [delegateStakes, gateways, isFetching, protocolBalance]);
 
   // Define columns for the active stakes table
-  const activeStakesColumns: ColumnDef<ActiveStakesTableData, any>[] = [
-    columnHelper.accessor('gateway.settings.label', {
-      id: 'label',
-      header: 'Label',
-      sortDescFirst: false,
-    }),
-    columnHelper.accessor('gateway.settings.fqdn', {
-      id: 'domain',
-      header: 'Domain',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <a
-            href={`https://${row.getValue('domain')}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            className="text-gradient"
-          >
-            {row.getValue('domain')}
-          </a>
-          <CopyButton textToCopy={row.getValue('domain')} />
-        </div>
-      ),
-    }),
-    columnHelper.accessor('owner', {
-      id: 'owner',
-      header: 'Address',
-      sortDescFirst: false,
-      cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
-    }),
-    columnHelper.accessor('delegatedStake', {
-      id: 'delegatedStake',
-      header: `Current Stake (${ticker})`,
-      sortDescFirst: true,
-      cell: ({ row }) => {
-        return `${new mARIOToken(row.original.delegatedStake).toARIO().valueOf()}`;
-      },
-    }),
-    columnHelper.accessor('eay', {
-      id: 'eay',
-      header: () => (
-        <div className="flex gap-1">
-          Delegate EAY
-          <Tooltip
-            message={
-              <div>
-                <p>{EAY_TOOLTIP_TEXT}</p>
-                <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
-              </div>
+  const activeStakesColumns: ColumnDef<ActiveStakesTableData, any>[] = useMemo(
+    () => [
+      columnHelper.accessor('gateway.settings.label', {
+        id: 'label',
+        header: 'Label',
+        sortDescFirst: false,
+      }),
+      columnHelper.accessor('gateway.settings.fqdn', {
+        id: 'domain',
+        header: 'Domain',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://${row.getValue('domain')}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              className="text-gradient"
+            >
+              {row.getValue('domain')}
+            </a>
+            <CopyButton textToCopy={row.getValue('domain')} />
+          </div>
+        ),
+      }),
+      columnHelper.accessor('owner', {
+        id: 'owner',
+        header: 'Address',
+        sortDescFirst: false,
+        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+      }),
+      columnHelper.accessor('delegatedStake', {
+        id: 'delegatedStake',
+        header: `Current Stake (${ticker})`,
+        sortDescFirst: true,
+        cell: ({ row }) => {
+          return `${new mARIOToken(row.original.delegatedStake).toARIO().valueOf()}`;
+        },
+      }),
+      columnHelper.accessor('eay', {
+        id: 'eay',
+        header: () => (
+          <div className="flex gap-1">
+            Delegate EAY
+            <Tooltip
+              message={
+                <div>
+                  <p>{EAY_TOOLTIP_TEXT}</p>
+                  <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
+                </div>
+              }
+            >
+              <InfoIcon className="h-full" />
+            </Tooltip>
+          </div>
+        ),
+        sortDescFirst: true,
+        cell: ({ row }) => (
+          <div>
+            {row.original.eay < 0
+              ? 'N/A'
+              : `${formatWithCommas(row.original.eay * 100)}%`}
+          </div>
+        ),
+      }),
+      columnHelper.accessor('streak', {
+        id: 'streak',
+        header: 'Streak',
+        sortDescFirst: true,
+        cell: ({ row }) => <Streak streak={row.original.streak} />,
+      }),
+      columnHelper.accessor('pendingWithdrawals', {
+        id: 'pendingWithdrawals',
+        header: 'Pending Withdrawals',
+        sortDescFirst: true,
+        cell: ({ row }) => (
+          <div
+            className={
+              row.original.pendingWithdrawals > 0 ? 'text-high' : 'text-low'
             }
           >
-            <InfoIcon className="h-full" />
-          </Tooltip>
-        </div>
-      ),
-      sortDescFirst: true,
-      cell: ({ row }) => (
-        <div>
-          {row.original.eay < 0
-            ? 'N/A'
-            : `${formatWithCommas(row.original.eay * 100)}%`}
-        </div>
-      ),
-    }),
-    columnHelper.accessor('streak', {
-      id: 'streak',
-      header: 'Streak',
-      sortDescFirst: true,
-      cell: ({ row }) => <Streak streak={row.original.streak} />,
-    }),
-    columnHelper.accessor('pendingWithdrawals', {
-      id: 'pendingWithdrawals',
-      header: 'Pending Withdrawals',
-      sortDescFirst: true,
-      cell: ({ row }) => (
-        <div
-          className={
-            row.original.pendingWithdrawals > 0 ? 'text-high' : 'text-low'
-          }
-        >
-          {`${row.original.pendingWithdrawals}`}
-        </div>
-      ),
-    }),
-    columnHelper.display({
-      id: 'action',
-      header: '',
-      cell: ({ row }) => {
-        return (
-          <div className="flex w-full justify-end pr-6">
-            <DropdownMenu.Root modal={false}>
-              <DropdownMenu.Trigger
-                asChild
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end  p-px">
-                  <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
-                    <ThreeDotsIcon className="size-4" />
-                  </div>
-                </div>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
-                <DropdownMenu.Item
-                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setStakingModalWalletAddress(row.original.owner);
-                  }}
-                >
-                  Add Stake
-                </DropdownMenu.Item>
-
-                <DropdownMenu.Item
-                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setWithdrawalModalWalletAddress(row.original.owner);
-                  }}
-                >
-                  Withdraw Stake
-                </DropdownMenu.Item>
-
-                <DropdownMenu.Item
-                  className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowRedelegateModal({
-                      sourceGateway: row.original.gateway,
-                      onClose: () => setShowRedelegateModal(undefined),
-                      maxRedelegationStake: new mARIOToken(
-                        row.original.delegatedStake,
-                      ).toARIO(),
-                    });
-                  }}
-                >
-                  Redelegate
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+            {`${row.original.pendingWithdrawals}`}
           </div>
-        );
-      },
-    }),
-  ];
+        ),
+      }),
+      columnHelper.display({
+        id: 'action',
+        header: '',
+        cell: ({ row }) => {
+          return (
+            <div className="flex w-full justify-end pr-6">
+              <DropdownMenu.Root modal={false}>
+                <DropdownMenu.Trigger
+                  asChild
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end  p-px">
+                    <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
+                      <ThreeDotsIcon className="size-4" />
+                    </div>
+                  </div>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
+                  <DropdownMenu.Item
+                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStakingModalWalletAddress(row.original.owner);
+                    }}
+                  >
+                    Add Stake
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setWithdrawalModalWalletAddress(row.original.owner);
+                    }}
+                  >
+                    Withdraw Stake
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowRedelegateModal({
+                        sourceGateway: row.original.gateway,
+                        onClose: () => setShowRedelegateModal(undefined),
+                        maxRedelegationStake: new mARIOToken(
+                          row.original.delegatedStake,
+                        ).toARIO(),
+                      });
+                    }}
+                  >
+                    Redelegate
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            </div>
+          );
+        },
+      }),
+    ],
+    [
+      ticker,
+      setStakingModalWalletAddress,
+      setWithdrawalModalWalletAddress,
+      setShowRedelegateModal,
+    ],
+  );
 
   const hasDelegatedStake =
     activeStakes?.some((v) => v.delegatedStake > 0) ?? false;
@@ -299,119 +307,127 @@ const MyStakesTable = () => {
   const pendingWithdrawalsColumns: ColumnDef<
     PendingWithdrawalsTableData,
     any
-  >[] = [
-    columnHelperWithdrawals.accessor('gateway.settings.label', {
-      id: 'label',
-      header: 'Label',
-      sortDescFirst: false,
-    }),
-    columnHelperWithdrawals.accessor('gateway.settings.fqdn', {
-      id: 'domain',
-      header: 'Domain',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="text-gradient">
-          <a
-            href={`https://${row.getValue('domain')}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {row.getValue('domain')}
-          </a>{' '}
-        </div>
-      ),
-    }),
-    columnHelperWithdrawals.accessor('owner', {
-      id: 'owner',
-      header: 'Address',
-      sortDescFirst: false,
-      cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
-    }),
-    columnHelperWithdrawals.accessor('withdrawal.balance', {
-      id: 'withdrawal',
-      header: `Stake Withdrawing (${ticker})`,
-      sortDescFirst: true,
-      cell: ({ row }) => {
-        return `${new mARIOToken(row.original.withdrawal.balance).toARIO().valueOf()}`;
-      },
-    }),
-    columnHelperWithdrawals.accessor((row) => row.withdrawal.endTimestamp, {
-      id: 'endDate',
-      header: `Date Returning`,
-      sortDescFirst: true,
-      cell: ({ row }) => {
-        return `${dayjs(new Date(row.original.withdrawal.endTimestamp)).format('YYYY-MM-DD')}`;
-      },
-    }),
-    columnHelperWithdrawals.display({
-      id: 'actions',
-      cell: ({ row }) => {
-        return (
-          <div className="flex w-full justify-end pr-6">
-            <DropdownMenu.Root modal={false}>
-              <DropdownMenu.Trigger
-                asChild
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end  p-px">
-                  <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
-                    <ThreeDotsIcon className="size-4" />
-                  </div>
-                </div>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
-                <DropdownMenu.Item
-                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmInstantWithdrawal({
-                      gateway: row.original.gateway,
-                      gatewayAddress: row.original.owner,
-                      vault: row.original.withdrawal,
-                      vaultId: row.original.withdrawalId,
-                    });
-                  }}
-                >
-                  Expedite Withdrawal
-                </DropdownMenu.Item>
-
-                <DropdownMenu.Item
-                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmCancelWithdrawal({
-                      gatewayAddress: row.original.owner,
-                      vaultId: row.original.withdrawalId,
-                    });
-                  }}
-                >
-                  Cancel Withdrawal
-                </DropdownMenu.Item>
-
-                <DropdownMenu.Item
-                  className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowRedelegateModal({
-                      sourceGateway: row.original.gateway,
-                      onClose: () => setShowRedelegateModal(undefined),
-                      maxRedelegationStake: new mARIOToken(
-                        row.original.withdrawal.balance,
-                      ).toARIO(),
-                      vaultId: row.original.withdrawalId,
-                    });
-                  }}
-                >
-                  Redelegate
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+  >[] = useMemo(
+    () => [
+      columnHelperWithdrawals.accessor('gateway.settings.label', {
+        id: 'label',
+        header: 'Label',
+        sortDescFirst: false,
+      }),
+      columnHelperWithdrawals.accessor('gateway.settings.fqdn', {
+        id: 'domain',
+        header: 'Domain',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <div className="text-gradient">
+            <a
+              href={`https://${row.getValue('domain')}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {row.getValue('domain')}
+            </a>{' '}
           </div>
-        );
-      },
-    }),
-  ];
+        ),
+      }),
+      columnHelperWithdrawals.accessor('owner', {
+        id: 'owner',
+        header: 'Address',
+        sortDescFirst: false,
+        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+      }),
+      columnHelperWithdrawals.accessor('withdrawal.balance', {
+        id: 'withdrawal',
+        header: `Stake Withdrawing (${ticker})`,
+        sortDescFirst: true,
+        cell: ({ row }) => {
+          return `${new mARIOToken(row.original.withdrawal.balance).toARIO().valueOf()}`;
+        },
+      }),
+      columnHelperWithdrawals.accessor((row) => row.withdrawal.endTimestamp, {
+        id: 'endDate',
+        header: `Date Returning`,
+        sortDescFirst: true,
+        cell: ({ row }) => {
+          return `${dayjs(new Date(row.original.withdrawal.endTimestamp)).format('YYYY-MM-DD')}`;
+        },
+      }),
+      columnHelperWithdrawals.display({
+        id: 'actions',
+        cell: ({ row }) => {
+          return (
+            <div className="flex w-full justify-end pr-6">
+              <DropdownMenu.Root modal={false}>
+                <DropdownMenu.Trigger
+                  asChild
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end  p-px">
+                    <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
+                      <ThreeDotsIcon className="size-4" />
+                    </div>
+                  </div>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
+                  <DropdownMenu.Item
+                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmInstantWithdrawal({
+                        gateway: row.original.gateway,
+                        gatewayAddress: row.original.owner,
+                        vault: row.original.withdrawal,
+                        vaultId: row.original.withdrawalId,
+                      });
+                    }}
+                  >
+                    Expedite Withdrawal
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmCancelWithdrawal({
+                        gatewayAddress: row.original.owner,
+                        vaultId: row.original.withdrawalId,
+                      });
+                    }}
+                  >
+                    Cancel Withdrawal
+                  </DropdownMenu.Item>
+
+                  <DropdownMenu.Item
+                    className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowRedelegateModal({
+                        sourceGateway: row.original.gateway,
+                        onClose: () => setShowRedelegateModal(undefined),
+                        maxRedelegationStake: new mARIOToken(
+                          row.original.withdrawal.balance,
+                        ).toARIO(),
+                        vaultId: row.original.withdrawalId,
+                      });
+                    }}
+                  >
+                    Redelegate
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            </div>
+          );
+        },
+      }),
+    ],
+    [
+      ticker,
+      setConfirmInstantWithdrawal,
+      setConfirmCancelWithdrawal,
+      setShowRedelegateModal,
+    ],
+  );
 
   return (
     <div>

@@ -237,7 +237,7 @@ const MyStakesTable = () => {
       cell: ({ row }) => {
         return (
           <div className="flex w-full justify-end pr-6">
-            <DropdownMenu.Root>
+            <DropdownMenu.Root modal={false}>
               <DropdownMenu.Trigger
                 asChild
                 onClick={(e) => e.stopPropagation()}
@@ -349,7 +349,7 @@ const MyStakesTable = () => {
       cell: ({ row }) => {
         return (
           <div className="flex w-full justify-end pr-6">
-            <DropdownMenu.Root>
+            <DropdownMenu.Root modal={false}>
               <DropdownMenu.Trigger
                 asChild
                 onClick={(e) => e.stopPropagation()}

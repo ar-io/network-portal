@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.1] - 2025-05-28
+
+### Fixed
+
+- Fix stakes dropdown to allow for access to redelegation workflow
+
 ## [1.12.0] - 2025-05-19
 
 ### Added
 
-- Added Beacon Wallet Support (credit to Vela Ventures) 
+- Added Beacon Wallet Support (credit to Vela Ventures)
 
 ## [1.11.9] - 2025-05-15
 
@@ -29,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Added
 
-- Gateway: Shows passed/failed for epoch in Reported On By card 
+- Gateway: Shows passed/failed for epoch in Reported On By card
 - Observers: Tooltip added to Observer Performance column to show observed and prescribed counts
 
 ## [1.11.6] - 2025-03-28
@@ -42,13 +48,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Disable delegate stake button for gateways operated by logged-in user and direct them to use operator staking. 
+- Disable delegate stake button for gateways operated by logged-in user and direct them to use operator staking.
 
 ## [1.11.4] - 2025-03-20
 
 ### Updated
 
-- Gateway Details page: show actual number of observers per epoch in "Failed by x/y Observers" card 
+- Gateway Details page: show actual number of observers per epoch in "Failed by x/y Observers" card
 
 ## [1.11.3] - 2025-03-20
 
@@ -60,7 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Updated
 
 - Set default graphql endpoint to arweave.net
-
 
 ## [1.11.2] - 2025-03-19
 

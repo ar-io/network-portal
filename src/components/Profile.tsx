@@ -145,7 +145,7 @@ const Profile = () => {
                 </button>
               </div>
             )}
-            <div className="mt-3 flex flex-col gap-3 bg-btn-secondary-default px-6 py-3 text-mid">
+            <div className="mt-3 flex flex-col gap-3 rounded-b-xl bg-btn-secondary-default px-6 py-3 text-mid">
               <button
                 className="flex items-center gap-2"
                 title="Logout"

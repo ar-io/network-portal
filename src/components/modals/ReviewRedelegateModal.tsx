@@ -47,12 +47,15 @@ const ReviewRedelegateModal = ({
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isPenaltyAcknowledged, setIsPenaltyAcknowledged] = useState(false);
 
   const { data: redelegationFee } = useRedelegationFee();
+  const hasFee = fee > 0;
 
   const totalRedelegatedStake = amountToRedelegate.valueOf() - fee;
 
   const submitForm = async () => {
+    if (hasFee && !isPenaltyAcknowledged) return;
     if (arIOWriteableSDK) {
       setShowBlockingMessageModal(true);
 
@@ -185,13 +188,49 @@ const ReviewRedelegateModal = ({
           </div>
 
           <div className="flex size-full flex-col bg-containerL0 px-8 pb-2 pt-6">
-            <Button
-              className="h-[3.25rem] w-full"
-              onClick={submitForm}
-              buttonType={ButtonType.PRIMARY}
-              title={`Redelegate ${ticker}`}
-              text={`Redelegate ${ticker}`}
-            />
+            {hasFee && (
+              <div className="mb-4 flex items-start">
+                <div className="flex h-5 items-center ">
+                  <input
+                    type="checkbox"
+                    id="penalty-acknowledgement"
+                    checked={isPenaltyAcknowledged}
+                    onChange={(e) => setIsPenaltyAcknowledged(e.target.checked)}
+                    className="size-4 rounded border-mid text-high focus:ring-high"
+                  />
+                </div>
+                <label
+                  htmlFor="penalty-acknowledgement"
+                  className="ml-2 w-full text-left text-sm  text-mid"
+                >
+                  I acknowledge there will be a penalty of {fee} {ticker} for
+                  redelegating.
+                </label>
+              </div>
+            )}
+            <div
+              className={
+                showBlockingMessageModal || (hasFee && !isPenaltyAcknowledged)
+                  ? 'pointer-events-none opacity-30'
+                  : ''
+              }
+            >
+              <Button
+                className="h-12 w-full"
+                onClick={submitForm}
+                buttonType={ButtonType.PRIMARY}
+                title={
+                  hasFee && !isPenaltyAcknowledged
+                    ? 'Please acknowledge the penalty to continue'
+                    : `Redelegate ${ticker}`
+                }
+                text={
+                  showBlockingMessageModal
+                    ? 'Processing...'
+                    : `Redelegate ${ticker}`
+                }
+              />
+            </div>
             <div>
               <button className="h-[3.25rem] p-4 text-sm" onClick={onClose}>
                 Back

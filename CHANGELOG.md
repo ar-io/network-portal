@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added low balance check for observer wallet addresses
+- Added "Observer" badge next to gateway name when selected as observer in current epoch
+- Added Streak display to gateway page
+
+### Changed
+
+- Updated redelegation confirmation to require typing "CONFIRM" 
+
+### Fixed
+
+- Fixed logout button styling to prevent visual bleed
+
+
 ## [1.12.1] - 2025-05-28
 
 ### Fixed

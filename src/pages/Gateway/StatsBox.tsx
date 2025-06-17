@@ -20,7 +20,7 @@ const StatsBox = ({
   value,
 }: {
   title: string | ReactNode;
-  value: Array<ReactNode> | string | number | undefined;
+  value: Array<ReactNode> | string | number | undefined | ReactNode;
 }) => {
   return (
     <div className="flex flex-col gap-1 border-t border-transparent-100-16 px-6 py-4">

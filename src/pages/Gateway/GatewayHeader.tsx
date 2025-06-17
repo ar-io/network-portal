@@ -1,28 +1,14 @@
 import { AoGateway } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
-import Streak from '@src/components/Streak';
-import {
-  BinocularsIcon,
-  GatewayIcon,
-} from '@src/components/icons';
+import { BinocularsIcon, GatewayIcon } from '@src/components/icons';
 import { ChevronRightIcon, NotebookText } from 'lucide-react';
-import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 const GatewayHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
   const params = useParams();
 
   const ownerId = params?.ownerId;
-
-  const streak = useMemo(() => {
-    if (!gateway) return;
-    
-    return gateway.stats.failedConsecutiveEpochs > 0
-      ? -gateway.stats.failedConsecutiveEpochs
-      : gateway.stats.passedConsecutiveEpochs;
-  }, [gateway]);
-
 
   return (
     <header className="mt-6 flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
@@ -46,9 +32,6 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
         {gateway ? (
           <>
             <div className="text-high">{gateway.settings.label}</div>
-            { streak && (
-              <Streak streak={streak} />
-            )}
             <div className="grow"></div>
             <div className="flex">
               <div className="pr-6 text-sm text-mid">

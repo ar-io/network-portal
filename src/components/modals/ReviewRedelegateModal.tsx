@@ -47,15 +47,17 @@ const ReviewRedelegateModal = ({
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [isPenaltyAcknowledged, setIsPenaltyAcknowledged] = useState(false);
+  const [confirmationInput, setConfirmationInput] = useState('');
 
   const { data: redelegationFee } = useRedelegationFee();
   const hasFee = fee > 0;
 
   const totalRedelegatedStake = amountToRedelegate.valueOf() - fee;
 
+  const isDisabled = showBlockingMessageModal || (hasFee && confirmationInput !== 'CONFIRM');
+
   const submitForm = async () => {
-    if (hasFee && !isPenaltyAcknowledged) return;
+    if (isDisabled) return;
     if (arIOWriteableSDK) {
       setShowBlockingMessageModal(true);
 
@@ -189,28 +191,25 @@ const ReviewRedelegateModal = ({
 
           <div className="flex size-full flex-col bg-containerL0 px-8 pb-2 pt-6">
             {hasFee && (
-              <div className="mb-4 flex items-start">
-                <div className="flex h-5 items-center ">
-                  <input
-                    type="checkbox"
-                    id="penalty-acknowledgement"
-                    checked={isPenaltyAcknowledged}
-                    onChange={(e) => setIsPenaltyAcknowledged(e.target.checked)}
-                    className="size-4 rounded border-mid text-high focus:ring-high"
-                  />
-                </div>
+              <div className="mb-6">
                 <label
-                  htmlFor="penalty-acknowledgement"
-                  className="ml-2 w-full text-left text-sm  text-mid"
+                  htmlFor="confirmation-input"
+                  className="mb-2 block text-sm font-medium text-mid"
                 >
-                  I acknowledge there will be a penalty of {fee} {ticker} for
-                  redelegating.
+                  Please type CONFIRM to acknowledge there will be a fee of {fee} {ticker} for redelegating.
                 </label>
+                <input
+                  type="text"
+                  id="confirmation-input"
+                  value={confirmationInput}
+                  onChange={(e) => setConfirmationInput(e.target.value)}
+                  className='h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+                />
               </div>
             )}
             <div
               className={
-                showBlockingMessageModal || (hasFee && !isPenaltyAcknowledged)
+                showBlockingMessageModal || (hasFee && confirmationInput !== 'CONFIRM')
                   ? 'pointer-events-none opacity-30'
                   : ''
               }
@@ -220,8 +219,8 @@ const ReviewRedelegateModal = ({
                 onClick={submitForm}
                 buttonType={ButtonType.PRIMARY}
                 title={
-                  hasFee && !isPenaltyAcknowledged
-                    ? 'Please acknowledge the penalty to continue'
+                  hasFee && confirmationInput !== 'CONFIRM'
+                    ? 'Please type CONFIRM to acknowledge the fee and continue'
                     : `Redelegate ${ticker}`
                 }
                 text={

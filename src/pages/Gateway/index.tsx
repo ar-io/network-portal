@@ -26,6 +26,7 @@ import SuccessModal from '@src/components/modals/SuccessModal';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGateway from '@src/hooks/useGateway';
+import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -70,6 +71,15 @@ const Gateway = () => {
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Check observer balances for low balance warnings
+  const { data: observerBalances } = useObserverBalances(
+    gateway?.observerAddress,
+  );
+
+  const hasLowBalance =
+    observerBalances &&
+    (observerBalances.ar < 0.01 && observerBalances.turboCredits < 0.01);
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
 
@@ -322,6 +332,30 @@ const Gateway = () => {
     <div className="flex flex-col gap-6 pb-6">
       <div className="min-w-[68rem]">
         <GatewayHeader gateway={gateway} />
+
+        {/* Low Balance Warning Banner */}
+        {hasLowBalance && (
+          <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4 text-warning">
+            <div className="flex items-center gap-2 font-medium">
+              <svg className="size-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Low Balance Warning
+            </div>
+            <div className="mt-1 text-sm">
+              <ul>
+                <li>
+                  Observer AR and Turbo Credit balance is low. Please add more AR or Turbo Credits to the observer wallet.
+                </li>
+              </ul>
+
+            </div>
+          </div>
+        )}
       </div>
       <OperatorStake
         gateway={gateway}

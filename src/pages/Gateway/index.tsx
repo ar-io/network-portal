@@ -26,6 +26,7 @@ import SuccessModal from '@src/components/modals/SuccessModal';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGateway from '@src/hooks/useGateway';
+import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -39,6 +40,7 @@ import PropertyDisplayPanel from './PropertyDisplayPanel';
 import SnitchRow from './SnitchRow';
 import SoftwareDetails from './SoftwareDetails';
 import StatsPanel from './StatsPanel';
+import { TriangleAlertIcon } from 'lucide-react';
 
 const Gateway = () => {
   const queryClient = useQueryClient();
@@ -50,6 +52,7 @@ const Gateway = () => {
   const params = useParams();
 
   const ownerId = params?.ownerId;
+  const isOwnGateway = ownerId === walletAddress?.toString();
 
   const { data: gateway } = useGateway({
     ownerWalletAddress: ownerId || undefined,
@@ -70,6 +73,15 @@ const Gateway = () => {
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Check observer balances for low balance warnings
+  const { data: observerBalances } = useObserverBalances(
+    gateway?.observerAddress,
+  );
+
+  const hasLowBalance =
+    observerBalances &&
+    (observerBalances.ar < 0.01 && observerBalances.turboCredits < 0.01);
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
 
@@ -322,6 +334,24 @@ const Gateway = () => {
     <div className="flex flex-col gap-6 pb-6">
       <div className="min-w-[68rem]">
         <GatewayHeader gateway={gateway} />
+
+        {/* Low Balance Warning Banner */}
+        {isOwnGateway && hasLowBalance && (
+          <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4 text-warning">
+            <div className="flex items-center gap-2 font-medium">
+              <TriangleAlertIcon className="size-5" />
+              Low Balance Warning
+            </div>
+            <div className="mt-1 text-sm">
+              <ul>
+                <li>
+                  Observer AR and Turbo Credit balance is low. Please add more AR or Turbo Credits to the observer wallet.
+                </li>
+              </ul>
+
+            </div>
+          </div>
+        )}
       </div>
       <OperatorStake
         gateway={gateway}
@@ -370,7 +400,7 @@ const Gateway = () => {
             <div className="flex items-center bg-containerL3 py-4 pl-6 pr-3">
               <div className="text-sm text-high">General Information</div>
               <div className="flex grow gap-6" />
-              {ownerId === walletAddress?.toString() &&
+              {isOwnGateway &&
                 (editing ? (
                   <>
                     <div className="flex">

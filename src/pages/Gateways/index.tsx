@@ -9,7 +9,7 @@ import useGateways from '@src/hooks/useGateways';
 import { useGlobalState } from '@src/store';
 import { formatDate, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Banner from './Banner';
 
@@ -83,117 +83,120 @@ const Gateways = () => {
   }, [gateways]);
 
   // Define columns for the table
-  const columns: ColumnDef<TableData, any>[] = [
-    columnHelper.accessor('label', {
-      id: 'label',
-      header: 'Label',
-      sortDescFirst: false,
-    }),
-    columnHelper.accessor('domain', {
-      id: 'domain',
-      header: 'Domain',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <a
-            href={`https://${row.getValue('domain')}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            className="text-gradient"
-          >
-            {row.getValue('domain')}
-          </a>
-          <CopyButton textToCopy={row.getValue('domain')} />
-        </div>
-      ),
-    }),
-    columnHelper.accessor('owner', {
-      id: 'owner',
-      header: 'Address',
-      sortDescFirst: false,
-      cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
-    }),
-    columnHelper.accessor('start', {
-      id: 'start',
-      header: 'Join Date',
-      sortDescFirst: true,
-      cell: ({ row }) => formatDate(row.original.start),
-    }),
-    columnHelper.accessor('totalStake', {
-      id: 'totalStake',
-      header: `Total Stake (${ticker})`,
-      sortDescFirst: true,
-      cell: ({ row }) => (
-        <Tooltip
-          message={
-            <div>
-              <div>
-                Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
-                {ticker}
-              </div>
-              <div className="mt-1">
-                Delegated Stake:{' '}
-                {formatWithCommas(row.original.totalDelegatedStake)} {ticker}
-              </div>
-            </div>
-          }
-        >
-          {formatWithCommas(row.getValue('totalStake'))}
-        </Tooltip>
-      ),
-    }),
-    columnHelper.accessor('status', {
-      id: 'status',
-      header: 'Status',
-      sortDescFirst: false,
-      cell: ({ row }) =>
-        row.original.status == 'leaving' ? (
+  const columns = useMemo<ColumnDef<TableData, any>[]>(
+    () => [
+      columnHelper.accessor('label', {
+        id: 'label',
+        header: 'Label',
+        sortDescFirst: false,
+      }),
+      columnHelper.accessor('domain', {
+        id: 'domain',
+        header: 'Domain',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://${row.getValue('domain')}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              className="text-gradient"
+            >
+              {row.getValue('domain')}
+            </a>
+            <CopyButton textToCopy={row.getValue('domain')} />
+          </div>
+        ),
+      }),
+      columnHelper.accessor('owner', {
+        id: 'owner',
+        header: 'Address',
+        sortDescFirst: false,
+        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+      }),
+      columnHelper.accessor('start', {
+        id: 'start',
+        header: 'Join Date',
+        sortDescFirst: true,
+        cell: ({ row }) => formatDate(row.original.start),
+      }),
+      columnHelper.accessor('totalStake', {
+        id: 'totalStake',
+        header: `Total Stake (${ticker})`,
+        sortDescFirst: true,
+        cell: ({ row }) => (
           <Tooltip
             message={
               <div>
                 <div>
-                  Final Withdrawal:{' '}
-                  {formatDate(new Date(row.original.endTimeStamp))}
+                  Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
+                  {ticker}
+                </div>
+                <div className="mt-1">
+                  Delegated Stake:{' '}
+                  {formatWithCommas(row.original.totalDelegatedStake)} {ticker}
                 </div>
               </div>
             }
           >
-            <div className="text-red-500">leaving</div>
-          </Tooltip>
-        ) : (
-          row.original.status
-        ),
-    }),
-    columnHelper.accessor('performance', {
-      id: 'performance',
-      header: 'Performance',
-      sortDescFirst: true,
-      cell: ({ row }) =>
-        row.original.performance < 0 ? (
-          'N/A'
-        ) : (
-          <Tooltip
-            message={
-              <div>
-                <div>Passed Epochs: {row.original.passedEpochCount}</div>
-                <div>Total Epochs: {row.original.totalEpochCount}</div>
-              </div>
-            }
-          >
-            {`${(row.original.performance * 100).toFixed(2)}%`}
+            {formatWithCommas(row.getValue('totalStake'))}
           </Tooltip>
         ),
-    }),
-    columnHelper.accessor('streak', {
-      id: 'streak',
-      header: 'Streak',
-      sortDescFirst: true,
-      cell: ({ row }) => <Streak streak={row.original.streak} />,
-    }),
-  ];
+      }),
+      columnHelper.accessor('status', {
+        id: 'status',
+        header: 'Status',
+        sortDescFirst: false,
+        cell: ({ row }) =>
+          row.original.status == 'leaving' ? (
+            <Tooltip
+              message={
+                <div>
+                  <div>
+                    Final Withdrawal:{' '}
+                    {formatDate(new Date(row.original.endTimeStamp))}
+                  </div>
+                </div>
+              }
+            >
+              <div className="text-red-500">leaving</div>
+            </Tooltip>
+          ) : (
+            row.original.status
+          ),
+      }),
+      columnHelper.accessor('performance', {
+        id: 'performance',
+        header: 'Performance',
+        sortDescFirst: true,
+        cell: ({ row }) =>
+          row.original.performance < 0 ? (
+            'N/A'
+          ) : (
+            <Tooltip
+              message={
+                <div>
+                  <div>Passed Epochs: {row.original.passedEpochCount}</div>
+                  <div>Total Epochs: {row.original.totalEpochCount}</div>
+                </div>
+              }
+            >
+              {`${(row.original.performance * 100).toFixed(2)}%`}
+            </Tooltip>
+          ),
+      }),
+      columnHelper.accessor('streak', {
+        id: 'streak',
+        header: 'Streak',
+        sortDescFirst: true,
+        cell: ({ row }) => <Streak streak={row.original.streak} />,
+      }),
+    ],
+    [ticker],
+  ); // Only recalculate when ticker changes
 
   return (
     <div className="flex max-w-full flex-col gap-6">

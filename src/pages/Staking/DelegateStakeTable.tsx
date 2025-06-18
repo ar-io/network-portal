@@ -16,7 +16,7 @@ import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface TableData {
@@ -115,166 +115,176 @@ const DelegateStake = () => {
   }, [gateways, protocolBalance, walletAddress]);
 
   // Define columns for the table
-  const columns: ColumnDef<TableData, any>[] = [
-    columnHelper.accessor('label', {
-      id: 'label',
-      header: 'Label',
-      sortDescFirst: false,
-    }),
-    columnHelper.accessor('domain', {
-      id: 'domain',
-      header: 'Domain',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <a
-            href={`https://${row.getValue('domain')}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            className="text-gradient"
-          >
-            {row.getValue('domain')}
-          </a>
-          <CopyButton textToCopy={row.getValue('domain')} />
-        </div>
-      ),
-    }),
-    columnHelper.accessor('owner', {
-      id: 'owner',
-      header: 'Address',
-      sortDescFirst: false,
-      cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
-    }),
-    columnHelper.accessor('totalStake', {
-      id: 'totalStake',
-      header: `Total Stake (${ticker})`,
-      sortDescFirst: true,
-      cell: ({ row }) => (
-        <Tooltip
-          message={
-            <div>
-              <div>
-                Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
-                {ticker}
-              </div>
-              <div className="mt-1">
-                Delegated Stake:{' '}
-                {formatWithCommas(row.original.totalDelegatedStake)} {ticker}
-              </div>
-            </div>
-          }
-        >
-          {formatWithCommas(row.getValue('totalStake'))}
-        </Tooltip>
-      ),
-    }),
-    columnHelper.accessor('rewardShareRatio', {
-      id: 'rewardShareRatio',
-      header: 'Reward Share Ratio',
-      sortDescFirst: true,
-      cell: ({ row }) =>
-        row.original.rewardShareRatio >= 0
-          ? `${row.original.rewardShareRatio}%`
-          : 'N/A',
-    }),
-
-    columnHelper.accessor('eay', {
-      id: 'eay',
-      header: () => (
-        <div className="flex gap-1">
-          Delegate EAY
+  const columns = useMemo<ColumnDef<TableData, any>[]>(
+    () => [
+      columnHelper.accessor('label', {
+        id: 'label',
+        header: 'Label',
+        sortDescFirst: false,
+      }),
+      columnHelper.accessor('domain', {
+        id: 'domain',
+        header: 'Domain',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://${row.getValue('domain')}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              className="text-gradient"
+            >
+              {row.getValue('domain')}
+            </a>
+            <CopyButton textToCopy={row.getValue('domain')} />
+          </div>
+        ),
+      }),
+      columnHelper.accessor('owner', {
+        id: 'owner',
+        header: 'Address',
+        sortDescFirst: false,
+        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+      }),
+      columnHelper.accessor('totalStake', {
+        id: 'totalStake',
+        header: `Total Stake (${ticker})`,
+        sortDescFirst: true,
+        cell: ({ row }) => (
           <Tooltip
             message={
               <div>
-                <p>{EAY_TOOLTIP_TEXT}</p>
-                <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
-              </div>
-            }
-          >
-            <InfoIcon className="h-full" />
-          </Tooltip>
-        </div>
-      ),
-      sortDescFirst: true,
-      cell: ({ row }) => (
-        <div>
-          {row.original.eay < 0
-            ? 'N/A'
-            : `${formatWithCommas(row.original.eay * 100)}%`}
-        </div>
-      ),
-    }),
-    columnHelper.accessor('performance', {
-      id: 'performance',
-      header: 'Performance',
-      sortDescFirst: true,
-      cell: ({ row }) =>
-        row.original.performance < 0 ? (
-          'N/A'
-        ) : (
-          <Tooltip
-            message={
-              <div>
-                <div>Passed Epoch Count: {row.original.passedEpochCount}</div>
+                <div>
+                  Operator Stake: {formatWithCommas(row.original.operatorStake)}{' '}
+                  {ticker}
+                </div>
                 <div className="mt-1">
-                  Total Epoch Participation Count:{' '}
-                  {row.original.totalEpochCount}
+                  Delegated Stake:{' '}
+                  {formatWithCommas(row.original.totalDelegatedStake)} {ticker}
                 </div>
               </div>
             }
           >
-            {`${(row.original.performance * 100).toFixed(2)}%`}
+            {formatWithCommas(row.getValue('totalStake'))}
           </Tooltip>
         ),
-    }),
+      }),
+      columnHelper.accessor('rewardShareRatio', {
+        id: 'rewardShareRatio',
+        header: 'Reward Share Ratio',
+        sortDescFirst: true,
+        cell: ({ row }) =>
+          row.original.rewardShareRatio >= 0
+            ? `${row.original.rewardShareRatio}%`
+            : 'N/A',
+      }),
 
-    columnHelper.accessor('streak', {
-      id: 'streak',
-      header: 'Streak',
-      sortDescFirst: true,
-      cell: ({ row }) => <Streak streak={row.original.streak} />,
-    }),
-
-    columnHelper.display({
-      id: 'action',
-      header: '',
-      cell: ({ row }) => {
-        const ownGateway = row.original.owner === walletAddress?.toString();
-        const btn = (
-          <Button
-            buttonType={ButtonType.PRIMARY}
-            active={true}
-            title="Manage Stake"
-            text="Stake"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (walletAddress) {
-                if (!ownGateway) {
-                  setStakingModalWalletAddress(row.getValue('owner') as string);
-                }
-              } else {
-                setIsConnectModalOpen(true);
+      columnHelper.accessor('eay', {
+        id: 'eay',
+        header: () => (
+          <div className="flex gap-1">
+            Delegate EAY
+            <Tooltip
+              message={
+                <div>
+                  <p>{EAY_TOOLTIP_TEXT}</p>
+                  <MathJax className="mt-4">{EAY_TOOLTIP_FORMULA}</MathJax>
+                </div>
               }
-            }}
-          />
-        );
-        return (
-          <div className="pr-6">
-            {ownGateway ? (
-              <Tooltip message="Delegate staking is not supported for gateways you operate. Please use operator staking on your gateway details page.">
-                <div className="pointer-events-none opacity-30">{btn}</div>
-              </Tooltip>
-            ) : (
-              btn
-            )}
+            >
+              <InfoIcon className="h-full" />
+            </Tooltip>
           </div>
-        );
-      },
-    }),
-  ];
+        ),
+        sortDescFirst: true,
+        cell: ({ row }) => (
+          <div>
+            {row.original.eay < 0
+              ? 'N/A'
+              : `${formatWithCommas(row.original.eay * 100)}%`}
+          </div>
+        ),
+      }),
+      columnHelper.accessor('performance', {
+        id: 'performance',
+        header: 'Performance',
+        sortDescFirst: true,
+        cell: ({ row }) =>
+          row.original.performance < 0 ? (
+            'N/A'
+          ) : (
+            <Tooltip
+              message={
+                <div>
+                  <div>Passed Epoch Count: {row.original.passedEpochCount}</div>
+                  <div className="mt-1">
+                    Total Epoch Participation Count:{' '}
+                    {row.original.totalEpochCount}
+                  </div>
+                </div>
+              }
+            >
+              {`${(row.original.performance * 100).toFixed(2)}%`}
+            </Tooltip>
+          ),
+      }),
+
+      columnHelper.accessor('streak', {
+        id: 'streak',
+        header: 'Streak',
+        sortDescFirst: true,
+        cell: ({ row }) => <Streak streak={row.original.streak} />,
+      }),
+
+      columnHelper.display({
+        id: 'action',
+        header: '',
+        cell: ({ row }) => {
+          const ownGateway = row.original.owner === walletAddress?.toString();
+          const btn = (
+            <Button
+              buttonType={ButtonType.PRIMARY}
+              active={true}
+              title="Manage Stake"
+              text="Stake"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (walletAddress) {
+                  if (!ownGateway) {
+                    setStakingModalWalletAddress(
+                      row.getValue('owner') as string,
+                    );
+                  }
+                } else {
+                  setIsConnectModalOpen(true);
+                }
+              }}
+            />
+          );
+          return (
+            <div className="pr-6">
+              {ownGateway ? (
+                <Tooltip message="Delegate staking is not supported for gateways you operate. Please use operator staking on your gateway details page.">
+                  <div className="pointer-events-none opacity-30">{btn}</div>
+                </Tooltip>
+              ) : (
+                btn
+              )}
+            </div>
+          );
+        },
+      }),
+    ],
+    [
+      ticker,
+      walletAddress,
+      setStakingModalWalletAddress,
+      setIsConnectModalOpen,
+    ],
+  );
 
   return (
     <div>

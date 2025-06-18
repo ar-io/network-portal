@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2025-06-18
+
+### Added
+
+- Added low balance check for observer wallet addresses
+- Added "Observer" badge next to gateway name when selected as observer in current epoch
+- Added Streak display to gateway page
+
+### Changed
+
+- Updated redelegation confirmation to require typing "CONFIRM" 
+
+### Fixed
+
+- Fixed logout button styling to prevent visual bleed
+- Fixed issue handling arweaveWalletLoaded event triggering continously after page load
+
+
 ## [1.12.1] - 2025-05-28
 
 ### Fixed

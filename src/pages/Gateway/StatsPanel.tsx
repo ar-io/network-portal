@@ -1,6 +1,8 @@
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import Streak from '@src/components/Streak';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { formatDateTime } from '@src/utils';
+import { useMemo } from 'react';
 import StatsBox from './StatsBox';
 
 const formatUptime = (uptime: number) => {
@@ -24,6 +26,14 @@ const StatsPanel = ({ gateway }: StatsPanelProps) => {
     url: gatewayAddress,
   });
 
+  const streak = useMemo(() => {
+    if (!gateway) return;
+
+    return gateway.stats.failedConsecutiveEpochs > 0
+      ? -gateway.stats.failedConsecutiveEpochs
+      : gateway.stats.passedConsecutiveEpochs;
+  }, [gateway]);
+
   return (
     <div className="size-fit w-full rounded-xl border border-transparent-100-16 text-sm">
       <div className="bg-containerL3 px-6 py-4">
@@ -39,16 +49,21 @@ const StatsPanel = ({ gateway }: StatsPanelProps) => {
       />
 
       {gateway?.status === 'joined' ? (
-        <StatsBox
-          title="Uptime"
-          value={
-            healthCheckRes.isError
-              ? 'N/A'
-              : healthCheckRes.isLoading
-                ? undefined
-                : formatUptime(healthCheckRes.data?.uptime)
-          }
-        />
+        <>
+          {streak && (
+            <StatsBox title="Streak" value={<Streak streak={streak} />} />
+          )}
+          <StatsBox
+            title="Uptime"
+            value={
+              healthCheckRes.isError
+                ? 'N/A'
+                : healthCheckRes.isLoading
+                  ? undefined
+                  : formatUptime(healthCheckRes.data?.uptime)
+            }
+          />
+        </>
       ) : (
         gateway && (
           <StatsBox

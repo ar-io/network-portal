@@ -44,8 +44,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
         const connector = new EthWalletConnector(config);
 
         updateWallet(ethAccount.address, connector);
-      }
-      if (walletType === WALLET_TYPES.BEACON) {
+      } else if (walletType === WALLET_TYPES.BEACON) {
         const connector = new BeaconWalletConnector();
         const address = await connector?.getWalletAddress();
         updateWallet(address, connector);
@@ -63,25 +62,34 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
     updateWallet,
   ]);
 
-  const handleBeaconDisconnect = () => {
+  const handleBeaconDisconnect = useCallback(() => {
     updateWallet(undefined, undefined);
     localStorage.removeItem(KEY_WALLET_TYPE);
-  };
+  }, [updateWallet]);
 
   useEffect(() => {
-    window.addEventListener('arweaveWalletLoaded', updateIfConnected);
+    window.addEventListener('arweaveWalletLoaded', () => {
+      // remove listener to prevent to prevent multiple triggers since this should only fire once per session 
+      window.removeEventListener('arweaveWalletLoaded', updateIfConnected);
+      updateIfConnected();
+    });
     window.addEventListener('walletSwitch', updateIfConnected);
+    return () => {
+      window.removeEventListener('arweaveWalletLoaded', updateIfConnected);
+      window.removeEventListener('walletSwitch', updateIfConnected);
+    };
+  }, [updateIfConnected]);
+
+  useEffect(() => {
     if (walletType === WALLET_TYPES.BEACON) {
       wallet?.on!('disconnected', handleBeaconDisconnect);
     }
     return () => {
-      window.removeEventListener('arweaveWalletLoaded', updateIfConnected);
-      window.removeEventListener('walletSwitch', updateIfConnected);
       if (walletType === WALLET_TYPES.BEACON) {
         wallet?.off!('disconnected', handleBeaconDisconnect);
       }
     };
-  });
+  }, [handleBeaconDisconnect, wallet, walletType]);
 
   useEffectOnce(() => {
     setTimeout(() => {

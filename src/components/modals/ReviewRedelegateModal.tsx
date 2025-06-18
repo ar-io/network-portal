@@ -47,12 +47,17 @@ const ReviewRedelegateModal = ({
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [confirmationInput, setConfirmationInput] = useState('');
 
   const { data: redelegationFee } = useRedelegationFee();
+  const hasFee = fee > 0;
 
   const totalRedelegatedStake = amountToRedelegate.valueOf() - fee;
 
+  const isDisabled = showBlockingMessageModal || (hasFee && confirmationInput !== 'CONFIRM');
+
   const submitForm = async () => {
+    if (isDisabled) return;
     if (arIOWriteableSDK) {
       setShowBlockingMessageModal(true);
 
@@ -185,13 +190,46 @@ const ReviewRedelegateModal = ({
           </div>
 
           <div className="flex size-full flex-col bg-containerL0 px-8 pb-2 pt-6">
-            <Button
-              className="h-[3.25rem] w-full"
-              onClick={submitForm}
-              buttonType={ButtonType.PRIMARY}
-              title={`Redelegate ${ticker}`}
-              text={`Redelegate ${ticker}`}
-            />
+            {hasFee && (
+              <div className="mb-6">
+                <label
+                  htmlFor="confirmation-input"
+                  className="mb-2 block text-sm font-medium text-mid"
+                >
+                  Please type CONFIRM to acknowledge there will be a fee of {fee} {ticker} for redelegating.
+                </label>
+                <input
+                  type="text"
+                  id="confirmation-input"
+                  value={confirmationInput}
+                  onChange={(e) => setConfirmationInput(e.target.value)}
+                  className='h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+                />
+              </div>
+            )}
+            <div
+              className={
+                showBlockingMessageModal || (hasFee && confirmationInput !== 'CONFIRM')
+                  ? 'pointer-events-none opacity-30'
+                  : ''
+              }
+            >
+              <Button
+                className="h-12 w-full"
+                onClick={submitForm}
+                buttonType={ButtonType.PRIMARY}
+                title={
+                  hasFee && confirmationInput !== 'CONFIRM'
+                    ? 'Please type CONFIRM to acknowledge the fee and continue'
+                    : `Redelegate ${ticker}`
+                }
+                text={
+                  showBlockingMessageModal
+                    ? 'Processing...'
+                    : `Redelegate ${ticker}`
+                }
+              />
+            </div>
             <div>
               <button className="h-[3.25rem] p-4 text-sm" onClick={onClose}>
                 Back

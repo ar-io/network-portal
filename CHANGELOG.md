@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed logout button styling to prevent visual bleed
+- Fixed issue handling arweaveWalletLoaded event triggering continously after page load
 
 
 ## [1.12.1] - 2025-05-28

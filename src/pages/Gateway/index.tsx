@@ -363,8 +363,8 @@ const Gateway = () => {
       />
       <ActiveDelegates gateway={gateway} />
 
-      <div className="flex gap-6">
-        <div className="flex min-w-72 flex-col gap-6">
+      <div className="flex flex-col gap-6 md:flex-row">
+        <div className="flex flex-col gap-6 md:min-w-72">
           <StatsPanel gateway={gateway} />
           {gateway?.weights && gateway?.status === 'joined' && (
             <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
@@ -442,7 +442,7 @@ const Gateway = () => {
                 ))}
             </div>
             {editing ? (
-              <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
+              <div className="grid grid-cols-1 overflow-hidden border-t border-grey-500 md:grid-cols-[14.375rem_auto]">
                 {formRowDefs.map((rowDef, index) => {
                   return (
                     <FormRow

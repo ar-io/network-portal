@@ -30,6 +30,7 @@ import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { TriangleAlertIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ActiveDelegates from './ActiveDelegates';
@@ -40,7 +41,6 @@ import PropertyDisplayPanel from './PropertyDisplayPanel';
 import SnitchRow from './SnitchRow';
 import SoftwareDetails from './SoftwareDetails';
 import StatsPanel from './StatsPanel';
-import { TriangleAlertIcon } from 'lucide-react';
 
 const Gateway = () => {
   const queryClient = useQueryClient();
@@ -81,7 +81,8 @@ const Gateway = () => {
 
   const hasLowBalance =
     observerBalances &&
-    (observerBalances.ar < 0.01 && observerBalances.turboCredits < 0.01);
+    observerBalances.ar < 0.01 &&
+    observerBalances.turboCredits < 0.01;
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
 
@@ -345,10 +346,10 @@ const Gateway = () => {
             <div className="mt-1 text-sm">
               <ul>
                 <li>
-                  Observer AR and Turbo Credit balance is low. Please add more AR or Turbo Credits to the observer wallet.
+                  Observer AR and Turbo Credit balance is low. Please add more
+                  AR or Turbo Credits to the observer wallet.
                 </li>
               </ul>
-
             </div>
           </div>
         )}
@@ -363,8 +364,8 @@ const Gateway = () => {
       />
       <ActiveDelegates gateway={gateway} />
 
-      <div className="flex gap-6">
-        <div className="flex min-w-72 flex-col gap-6">
+      <div className="flex flex-col gap-6 md:flex-row">
+        <div className="flex flex-col gap-6 md:min-w-72">
           <StatsPanel gateway={gateway} />
           {gateway?.weights && gateway?.status === 'joined' && (
             <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
@@ -442,7 +443,7 @@ const Gateway = () => {
                 ))}
             </div>
             {editing ? (
-              <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
+              <div className="grid grid-cols-1 overflow-hidden border-t border-grey-500 md:grid-cols-[14.375rem_auto]">
                 {formRowDefs.map((rowDef, index) => {
                   return (
                     <FormRow

@@ -1,4 +1,5 @@
 import { APP_VERSION, ARIO_DOCS_URL } from '@src/constants';
+import useIsMobile from '@src/hooks/useIsMobile';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -62,6 +63,7 @@ const Sidebar = () => {
     const storedValue = localStorage.getItem('sidebarOpen');
     return storedValue == null ? true : JSON.parse(storedValue);
   });
+  const isMobile = useIsMobile();
   const arioProcessId = useGlobalState((state) => state.arioProcessId);
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
@@ -92,94 +94,132 @@ const Sidebar = () => {
   }, [sidebarOpen]);
 
   const sideBarClasses = `flex h-full w-fit flex-col p-6
-  dark:bg-grey-1000 dark:text-mid`;
+  dark:bg-grey-1000 dark:text-mid ${isMobile ? 'fixed top-0 left-0 z-40 w-64 max-w-[75%] shadow-one' : ''}`;
 
   return (
-    <aside className={sideBarClasses}>
-      <div className="flex h-9 pb-24">
-        <ArioLogoIcon className="h-[1.6875rem] w-[2.125rem]" />
-        {sidebarOpen && (
-          <div className="pl-3">
-            <p className="align-top text-sm leading-none text-neutrals-100">
-              NETWORK PORTAL
-            </p>
-            <p className="text-xs">by ar.io</p>
-          </div>
-        )}
-      </div>
-      <div className="dark:text-grey-100">
-        {ROUTES_PRIMARY.map(({ title, icon, path }, index) => (
-          <Button
-            key={index}
-            className="w-full"
-            icon={icon}
-            title={title}
-            text={sidebarOpen ? title : undefined}
-            active={location.pathname.startsWith(path)}
-            onClick={() => {
-              navigate(path);
-            }}
-          />
-        ))}
-      </div>
-      <div className="grow"></div>
-      <hr className="text-divider" />
-      <div className="py-3">
-        {ROUTES_SECONDARY.map(({ title, icon, path, action }, index) => (
-          <Button
-            key={index}
-            className="w-full"
-            icon={icon}
-            rightIcon={action ? <></> : <LinkArrowIcon className="size-3" />}
-            title={path || title}
-            text={sidebarOpen ? title : undefined}
-            onClick={
-              action ||
-              (() => {
-                window.open(path, '_blank');
-              })
-            }
-          />
-        ))}
-      </div>
-      <hr className="text-divider" />
-      <div className="pt-6">
-        <div
-          className={
-            sidebarOpen
-              ? 'flex items-center justify-end'
-              : 'flex items-center justify-center'
-          }
+    <>
+      {isMobile && !sidebarOpen && (
+        <button
+          className="fixed bottom-4 right-4 z-50 rounded-full bg-containerL3 p-3"
+          onClick={() => setSidebarOpen(true)}
         >
-          {sidebarOpen && (
-            <button
-              className="grow pl-3 text-left text-xs text-low/50"
-              onClick={() => setShowChangeLogModal(true)}
-            >
-              v{APP_VERSION}-
-              {import.meta.env.VITE_GITHUB_HASH?.slice(0, 6)}
-            </button>
+          <OpenDrawerIcon className="size-5" />
+        </button>
+      )}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+      {(!isMobile || sidebarOpen) && (
+        <aside className={sideBarClasses}>
+          {isMobile && (
+            <>
+              <button
+                className="absolute right-4 top-4"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <CloseDrawerIcon className="size-5" />
+              </button>
+              <button
+                className="absolute bottom-4 right-4"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <CloseDrawerIcon className="size-5" />
+              </button>
+            </>
           )}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? (
-              <CloseDrawerIcon className="size-5" />
-            ) : (
-              <OpenDrawerIcon className="size-5" />
+          <div className="flex h-9 pb-24">
+            <ArioLogoIcon className="h-[1.6875rem] w-[2.125rem]" />
+            {sidebarOpen && (
+              <div className="pl-3">
+                <p className="align-top text-sm leading-none text-neutrals-100">
+                  NETWORK PORTAL
+                </p>
+                <p className="text-xs">by ar.io</p>
+              </div>
             )}
-          </button>
-        </div>
-      </div>
-      {showChangLogModal && (
-        <MarkdownModal
-          onClose={() => setShowChangeLogModal(false)}
-          title="Changelog"
-          markdownText={FORMATTED_CHANGELOG}
-        />
+          </div>
+          <div className="dark:text-grey-100">
+            {ROUTES_PRIMARY.map(({ title, icon, path }, index) => (
+              <Button
+                key={index}
+                className="w-full"
+                icon={icon}
+                title={title}
+                text={sidebarOpen ? title : undefined}
+                active={location.pathname.startsWith(path)}
+                onClick={() => {
+                  navigate(path);
+                }}
+              />
+            ))}
+          </div>
+          <div className="grow"></div>
+          <hr className="text-divider" />
+          <div className="py-3">
+            {ROUTES_SECONDARY.map(({ title, icon, path, action }, index) => (
+              <Button
+                key={index}
+                className="w-full"
+                icon={icon}
+                rightIcon={
+                  action ? <></> : <LinkArrowIcon className="size-3" />
+                }
+                title={path || title}
+                text={sidebarOpen ? title : undefined}
+                onClick={
+                  action ||
+                  (() => {
+                    window.open(path, '_blank');
+                  })
+                }
+              />
+            ))}
+          </div>
+          <hr className="text-divider" />
+          {!isMobile && (
+            <div className="pt-6">
+              <div
+                className={
+                  sidebarOpen
+                    ? 'flex items-center justify-end'
+                    : 'flex items-center justify-center'
+                }
+              >
+                {sidebarOpen && (
+                  <button
+                    className="grow pl-3 text-left text-xs text-low/50"
+                    onClick={() => setShowChangeLogModal(true)}
+                  >
+                    v{APP_VERSION}-
+                    {import.meta.env.VITE_GITHUB_HASH?.slice(0, 6)}
+                  </button>
+                )}
+                <button onClick={() => setSidebarOpen(!sidebarOpen)}>
+                  {sidebarOpen ? (
+                    <CloseDrawerIcon className="size-5" />
+                  ) : (
+                    <OpenDrawerIcon className="size-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+          {showChangLogModal && (
+            <MarkdownModal
+              onClose={() => setShowChangeLogModal(false)}
+              title="Changelog"
+              markdownText={FORMATTED_CHANGELOG}
+            />
+          )}
+          {showSettingsModal && (
+            <SettingsModal onClose={() => setShowSettingsModal(false)} />
+          )}
+        </aside>
       )}
-      {showSettingsModal && (
-        <SettingsModal onClose={() => setShowSettingsModal(false)} />
-      )}
-    </aside>
+    </>
   );
 };
 

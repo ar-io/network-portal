@@ -9,14 +9,14 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col">
       <Header />
-      <div className="flex w-full gap-6 py-6">
-        <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 py-6 md:flex-row">
+        <div className="flex flex-col gap-6 md:w-1/3">
           <IOTokenDistributionPanel />
         </div>
 
-        <div className="flex min-w-[50rem] grow flex-col gap-6">
+        <div className="flex grow flex-col gap-6 md:min-w-[50rem]">
           <GatewaysInNetworkPanel />
-          <div className="grid h-fit grid-cols-2 gap-6">
+          <div className="grid h-fit grid-cols-1 gap-6 md:grid-cols-2">
             <ObserverPerformancePanel />
             <ArNSStatsPanel />
           </div>

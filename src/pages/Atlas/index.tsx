@@ -9,6 +9,8 @@ import Header from '@src/components/Header';
 import TableView from '@src/components/TableView';
 import useGateways from '@src/hooks/useGateways';
 
+import PingButton from './PingButton';
+
 interface RowData {
   label: string;
   domain: string;
@@ -82,6 +84,11 @@ const Atlas = () => {
         sortDescFirst: true,
         cell: renderStake,
       }),
+      columnHelper.display({
+        id: 'latency',
+        header: 'Latency',
+        cell: (ctx) => <PingButton domain={ctx.row.getValue('domain')} />,
+      })
     ],
     []
   );

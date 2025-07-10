@@ -14,7 +14,11 @@ type ReportedOnByEntry = {
   reportId?: string;
 };
 
-const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
+const ReportedOnByCard = ({
+  gateway,
+}: {
+  gateway?: AoGatewayWithAddress | null;
+}) => {
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
   const [failureObservers, setFailureObservers] = useState<ReportedOnByEntry[]>(
@@ -27,12 +31,16 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }
   useEffect(() => {
     if (epochs) {
       const selectedEpoch = epochs[selectedEpochIndex];
-      setTotalReportsForEpoch(selectedEpoch?.observations?.reports ? Object.keys(selectedEpoch?.observations?.reports).length : 0);
+      setTotalReportsForEpoch(
+        selectedEpoch?.observations?.reports
+          ? Object.keys(selectedEpoch?.observations?.reports).length
+          : 0,
+      );
 
       if (gateway) {
         const observers =
           selectedEpoch?.observations.failureSummaries[
-          gateway.gatewayAddress
+            gateway.gatewayAddress
           ] || [];
         const entries = observers.map<ReportedOnByEntry>((observerId) => {
           return {
@@ -68,7 +76,7 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }
               )}
             </div>
             <div className="mr-4 flex items-center">
-              {failureObservers.length  <= totalReportsForEpoch / 2? (
+              {failureObservers.length <= totalReportsForEpoch / 2 ? (
                 <div className="flex items-center text-green-500">
                   <CheckCircleIcon className="mr-1 size-4" />
                   <span>{selectedEpochIndex === 0 ? 'Passing' : 'Passed'}</span>
@@ -120,7 +128,10 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }
                       className="h-fit last:p-2"
                       active={true}
                       text={
-                        <NotebookText className="size-3 text-mid" strokeWidth={1.5} />
+                        <NotebookText
+                          className="size-3 text-mid"
+                          strokeWidth={1.5}
+                        />
                       }
                       onClick={() => {
                         if (entry.reportId) {
@@ -144,7 +155,11 @@ const ReportedOnByCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }
   );
 };
 
-const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
+const ReportedOnCard = ({
+  gateway,
+}: {
+  gateway?: AoGatewayWithAddress | null;
+}) => {
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
   const [snitchedOn, setSnitchedOn] = useState<string[]>([]);
@@ -212,7 +227,10 @@ const ReportedOnCard = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) 
                   className="ml-3 h-fit last:p-2"
                   active={true}
                   text={
-                    <NotebookText className="size-3 text-mid" strokeWidth={1.5} />
+                    <NotebookText
+                      className="size-3 text-mid"
+                      strokeWidth={1.5}
+                    />
                   }
                   onClick={() => {
                     if (reportId) {

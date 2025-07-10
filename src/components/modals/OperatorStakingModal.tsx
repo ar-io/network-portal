@@ -12,7 +12,7 @@ import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
 import ErrorMessageIcon from '../forms/ErrorMessageIcon';
-import { validateARIOAmount as validateARIOAmount } from '../forms/validation';
+import { validateARIOAmount } from '../forms/validation';
 import { InfoIcon } from '../icons';
 import BaseModal from './BaseModal';
 import ReviewStakeModal from './ReviewStakeModal';
@@ -54,7 +54,12 @@ const OperatorStakingModal = ({
 
   const validators = useMemo(
     () => ({
-      stakeAmount: validateARIOAmount('Stake Amount', ticker, 1, balances?.ario),
+      stakeAmount: validateARIOAmount(
+        'Stake Amount',
+        ticker,
+        1,
+        balances?.ario,
+      ),
     }),
     [ticker, balances?.ario],
   );
@@ -95,7 +100,8 @@ const OperatorStakingModal = ({
     setAmountToStake((balances?.ario || 0) + '');
   };
 
-  const disableInput = !gateway || (balances?.ario || 0) < minRequiredStakeToAdd;
+  const disableInput =
+    !gateway || (balances?.ario || 0) < minRequiredStakeToAdd;
 
   const errorMessages = {
     stakeAmount: validators.stakeAmount(amountToStake),

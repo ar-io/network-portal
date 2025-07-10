@@ -25,7 +25,7 @@ const useGatewaysPerEpoch = () => {
           if (!epoch) throw new Error('Epoch not available');
           return {
             epochIndex: epoch.epochIndex,
-            totalEligibleGateways: epoch.distributions.totalEligibleGateways ,
+            totalEligibleGateways: epoch.distributions.totalEligibleGateways,
           };
         });
     },

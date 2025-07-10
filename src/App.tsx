@@ -28,7 +28,10 @@ const Gateway = React.lazy(() => import('./pages/Gateway'));
 const Staking = React.lazy(() => import('./pages/Staking'));
 const Observers = React.lazy(() => import('./pages/Observers'));
 const BalancesMain = React.lazy(() => import('./pages/Balances'));
-const BalancesForAddress = React.lazy(() => import('./pages/Balances/BalancesForAddress'));
+const BalancesForAddress = React.lazy(
+  () => import('./pages/Balances/BalancesForAddress'),
+);
+const Extensions = React.lazy(() => import('./pages/Extensions/Extensions'));
 
 // Sub-Pages
 const Reports = React.lazy(() => import('./pages/Reports'));
@@ -144,6 +147,15 @@ function App() {
           element={
             <Suspense fallback={<Loading />}>
               <BalancesMain />
+            </Suspense>
+          }
+        />
+        ,
+        <Route
+          path="extensions"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Extensions />
             </Suspense>
           }
         />

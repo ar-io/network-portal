@@ -142,7 +142,9 @@ const ConnectedLandingPage = () => {
           ? `${formatWithCommas(rewardsEarned.previousEpoch)} ${ticker}`
           : undefined,
       epochZeroStartTimestamp: epochSettings?.epochZeroStartTimestamp,
-      hasEpochZeroStarted: epochSettings ? epochSettings.hasEpochZeroStarted : true,
+      hasEpochZeroStarted: epochSettings
+        ? epochSettings.hasEpochZeroStarted
+        : true,
     },
   ];
 

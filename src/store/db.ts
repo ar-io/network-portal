@@ -21,7 +21,7 @@ export interface Observation {
 }
 
 export const createDb = (dbName: string) => {
-  const db = new Dexie(dbName) as NetworkPortalDB; 
+  const db = new Dexie(dbName) as NetworkPortalDB;
   // Schema declaration:
   db.version(1).stores({
     observations: '++id, timestamp, gatewayAddress', // primary key "id" (for the runtime!)
@@ -38,8 +38,15 @@ export const createDb = (dbName: string) => {
 
   return db;
 };
-export const getEpoch = async (networkPortalDB: NetworkPortalDB, arIOReadSDK: AoARIORead, epochIndex: number) => {
-  const epoch = await networkPortalDB.epochs.where('epochIndex').equals(epochIndex).first();
+export const getEpoch = async (
+  networkPortalDB: NetworkPortalDB,
+  arIOReadSDK: AoARIORead,
+  epochIndex: number,
+) => {
+  const epoch = await networkPortalDB.epochs
+    .where('epochIndex')
+    .equals(epochIndex)
+    .first();
   if (epoch) {
     return epoch;
   }
@@ -57,7 +64,10 @@ export const getEpoch = async (networkPortalDB: NetworkPortalDB, arIOReadSDK: Ao
   return epochData;
 };
 
-export const cleanupDbCache = async (networkPortalDB: NetworkPortalDB, currentEpochNumber: number) => {
+export const cleanupDbCache = async (
+  networkPortalDB: NetworkPortalDB,
+  currentEpochNumber: number,
+) => {
   await networkPortalDB.epochs
     .where('epochIndex')
     .below(currentEpochNumber - 13)

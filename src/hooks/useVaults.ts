@@ -8,8 +8,7 @@ const useVaults = () => {
   const res = useQuery({
     queryKey: ['vaults', arioReadSDK],
     queryFn: async () => {
-      if (!arioReadSDK)
-        throw new Error('arIOReadSDK is not initialized');
+      if (!arioReadSDK) throw new Error('arIOReadSDK is not initialized');
 
       let cursor: string | undefined;
       let vaults: Array<AoWalletVault> = [];

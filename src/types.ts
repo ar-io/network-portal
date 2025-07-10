@@ -8,7 +8,6 @@ export interface Equatable<T> {
 export type EthAddress = `0x${string}`;
 export type AoAddress = EthAddress | ArweaveTransactionID;
 
-
 export interface NetworkPortalWalletConnector {
   connect(): Promise<void>;
   disconnect(): Promise<void>;

@@ -1,4 +1,5 @@
 import { AoGatewayWithAddress, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
+import { REDELEGATION_FEE_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
@@ -14,7 +15,6 @@ import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import { validateARIOAmount } from '../forms/validation';
 import BaseModal from './BaseModal';
 import ReviewRedelegateModal from './ReviewRedelegateModal';
-import { REDELEGATION_FEE_TOOLTIP_TEXT } from '@src/constants';
 
 export type RedelegateModalProps = {
   onClose: () => void;
@@ -288,9 +288,7 @@ const RedelegateModal = ({
                   <Tooltip
                     message={
                       <div>
-                        <p>
-                          {REDELEGATION_FEE_TOOLTIP_TEXT} 
-                        </p>
+                        <p>{REDELEGATION_FEE_TOOLTIP_TEXT}</p>
                       </div>
                     }
                   >

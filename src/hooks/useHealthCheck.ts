@@ -19,7 +19,7 @@ const useHealthcheck = ({ url }: { url?: string }) => {
       const healthCheckEndpoint = `${url}/ar-io/healthcheck`;
 
       const response = await ky.get(healthCheckEndpoint);
-      const responseJson = await response.json() as any;
+      const responseJson = (await response.json()) as any;
 
       return {
         uptime: responseJson.uptime,

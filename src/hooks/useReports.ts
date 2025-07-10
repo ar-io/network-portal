@@ -44,7 +44,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
             const observations = epoch.observations;
             const txid = observations.reports[observerAddress];
 
-            if(!txid) {
+            if (!txid) {
               // did not submit a report this epoch
               return acc;
             }

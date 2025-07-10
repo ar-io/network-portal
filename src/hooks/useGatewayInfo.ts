@@ -1,6 +1,10 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
-import { formatDateTime, formatWalletAddress, formatWithCommas } from '@src/utils';
+import {
+  formatDateTime,
+  formatWalletAddress,
+  formatWithCommas,
+} from '@src/utils';
 import useGateway from './useGateway';
 
 export enum GatewayStatus {
@@ -29,7 +33,9 @@ export const useGatewayInfo = () => {
       ['Joined at', formatDateTime(new Date(gateway.startTimestamp))],
       [
         `Stake (${ticker})`,
-        formatWithCommas(new mARIOToken(gateway.operatorStake).toARIO().valueOf()),
+        formatWithCommas(
+          new mARIOToken(gateway.operatorStake).toARIO().valueOf(),
+        ),
       ],
       ['Status', gateway.status],
       ['Reward Ratio', gateway.settings.delegateRewardShareRatio],

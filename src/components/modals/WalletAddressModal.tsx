@@ -41,10 +41,8 @@ const WalletAddressModal = ({
             }
             value={walletAddress}
           />
-          { !isValidAddress && walletAddress.length > 0 && (
-            <div className="text-xs text-red-500">
-              Invalid wallet address
-            </div>
+          {!isValidAddress && walletAddress.length > 0 && (
+            <div className="text-xs text-red-500">Invalid wallet address</div>
           )}
         </div>
 

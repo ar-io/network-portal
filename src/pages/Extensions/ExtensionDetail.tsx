@@ -3,7 +3,7 @@ import {
   Extension,
   ExtensionCategory,
   ExtensionTag,
-} from '@src/types/extension';
+} from '@src/types';
 import { getImageUrl } from '@src/utils/imageUtils';
 import {
   ArrowLeft,
@@ -50,7 +50,7 @@ const TAG_STYLES: Record<ExtensionTag, string> = {
     'bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end text-grey-1000 font-semibold',
   'grant-funded': 'bg-green-600 text-white',
   community: 'bg-blue-600 text-white',
-  official: 'bg-purple-600 text-white',
+  official: 'bg-purple-600 text-white ring-2 ring-pink-400',
   beta: 'bg-yellow-600 text-black',
   stable: 'bg-green-700 text-white',
 };
@@ -94,10 +94,10 @@ export default function ExtensionDetail({
           <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row">
               {/* Extension logo */}
-              {extension.image && !imageError && (
+              {extension.logo && !imageError && (
                 <div className="size-20 shrink-0 self-start rounded-lg bg-grey-800 p-2 shadow-md sm:size-24">
                   <img
-                    src={getImageUrl(extension.image)}
+                    src={getImageUrl(extension.logo)}
                     alt={extension.name}
                     className="size-full object-contain"
                     onError={() => setImageError(true)}
@@ -115,10 +115,10 @@ export default function ExtensionDetail({
             </div>
             <button
               onClick={() => window.open(extension.url, '_blank')}
-              className="group relative mt-4 flex items-center gap-2 self-start rounded-lg px-4 py-2 text-sm transition-all hover:text-high sm:mt-0"
+              className="group relative mt-4 flex items-center gap-2 self-start rounded-lg px-4 py-2 text-sm transition-all sm:mt-0"
             >
               <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end opacity-0 transition-opacity group-hover:opacity-100" />
-              <div className="relative flex items-center gap-2 text-mid group-hover:text-high">
+              <div className="relative flex items-center gap-2 text-mid group-hover:text-grey-1000">
                 {isGithubUrl ? (
                   <>
                     <Github className="size-4" />
@@ -256,6 +256,14 @@ export default function ExtensionDetail({
                     <Package className="size-3" />v{extension.version}
                   </dd>
                 </div>
+                {extension.imageUri && (
+                  <div>
+                    <dt className="text-xs text-low">Image URI</dt>
+                    <dd className="mt-1 font-mono text-sm text-mid">
+                      {extension.imageUri}
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt className="text-xs text-low">Last Updated</dt>
                   <dd className="mt-1 flex items-center gap-1 text-sm text-mid">

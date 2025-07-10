@@ -3,9 +3,11 @@ import {
   Extension,
   ExtensionCategory,
   ExtensionTag,
-} from '@src/types/extension';
+} from '@src/types';
+import { fetchExtensionsData } from '@src/utils/extensionsLoader';
+import { useQuery } from '@tanstack/react-query';
 import { ExternalLink } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ExtensionCard from './ExtensionCard';
 import ExtensionDetail from './ExtensionDetail';
@@ -38,81 +40,60 @@ const TAG_STYLES: Record<ExtensionTag, string> = {
     'bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end text-grey-1000 font-semibold',
   'grant-funded': 'bg-green-600 text-white',
   community: 'bg-blue-600 text-white',
-  official: 'bg-purple-600 text-white',
+  official: 'bg-purple-600 text-white ring-2 ring-pink-400',
   beta: 'bg-yellow-600 text-black',
   stable: 'bg-green-700 text-white',
 };
 
 export default function Extensions() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [extensions, setExtensions] = useState<Extension[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedTag, setSelectedTag] = useState<string>('all');
-  const [dynamicCategories, setDynamicCategories] = useState<
-    Record<string, string>
-  >({});
-  const [dynamicTags, setDynamicTags] = useState<Record<string, string>>({});
 
   const selectedExtensionId = searchParams.get('id');
+
+  // Use React Query for caching extensions data
+  const { data: extensionsData, isLoading, error } = useQuery({
+    queryKey: ['extensions'],
+    queryFn: fetchExtensionsData,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes (was cacheTime in v4)
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  const extensions: Extension[] = extensionsData?.extensions || [];
+
+  // Process dynamic categories and tags
+  const dynamicCategories: Record<string, string> = {};
+  const dynamicTags: Record<string, string> = {};
+
+  extensions.forEach((ext: Extension) => {
+    // Validate and add category if not in predefined list
+    if (ext.category && !CATEGORY_LABELS[ext.category as ExtensionCategory]) {
+      const category = ext.category.trim();
+      dynamicCategories[category] =
+        category.charAt(0).toUpperCase() +
+        category.slice(1).replace(/-/g, ' ');
+    }
+
+    // Validate and add tags if not in predefined list
+    if (Array.isArray(ext.tags)) {
+      ext.tags.forEach((tag) => {
+        if (tag && !TAG_LABELS[tag as ExtensionTag]) {
+          const trimmedTag = tag.trim();
+          dynamicTags[trimmedTag] =
+            trimmedTag.charAt(0).toUpperCase() +
+            trimmedTag.slice(1).replace(/-/g, ' ');
+        }
+      });
+    }
+  });
+
   const selectedExtension = extensions.find(
     (ext) => ext.id === selectedExtensionId,
   );
-
-  useEffect(() => {
-    const loadExtensions = async () => {
-      try {
-        const response = await fetch('/data/extensions.json');
-        const data = await response.json();
-        setExtensions(data.extensions);
-
-        // Collect dynamic categories and tags
-        const foundCategories: Record<string, string> = {};
-        const foundTags: Record<string, string> = {};
-
-        data.extensions.forEach((ext: any) => {
-          // Validate and add category if not in predefined list
-          if (
-            ext.category &&
-            typeof ext.category === 'string' &&
-            ext.category.trim()
-          ) {
-            const category = ext.category.trim();
-            if (!CATEGORY_LABELS[category as ExtensionCategory]) {
-              foundCategories[category] =
-                category.charAt(0).toUpperCase() +
-                category.slice(1).replace(/-/g, ' ');
-            }
-          }
-
-          // Validate and add tags if not in predefined list
-          if (Array.isArray(ext.tags)) {
-            ext.tags.forEach((tag: any) => {
-              if (
-                typeof tag === 'string' &&
-                tag.trim() &&
-                !TAG_LABELS[tag as ExtensionTag]
-              ) {
-                const trimmedTag = tag.trim();
-                foundTags[trimmedTag] =
-                  trimmedTag.charAt(0).toUpperCase() +
-                  trimmedTag.slice(1).replace(/-/g, ' ');
-              }
-            });
-          }
-        });
-
-        setDynamicCategories(foundCategories);
-        setDynamicTags(foundTags);
-      } catch (error) {
-        console.error('Failed to load extensions:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadExtensions();
-  }, []);
 
   const filteredExtensions = extensions.filter((ext) => {
     const matchesSearch =
@@ -218,9 +199,16 @@ export default function Extensions() {
             </div>
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex h-64 items-center justify-center">
               <div className="text-mid">Loading extensions...</div>
+            </div>
+          ) : error ? (
+            <div className="flex h-64 items-center justify-center">
+              <div className="text-center">
+                <div className="text-lg text-mid">Failed to load extensions</div>
+                <div className="mt-2 text-sm text-low">Unable to load extensions. Please try again later.</div>
+              </div>
             </div>
           ) : filteredExtensions.length === 0 ? (
             <div className="flex h-64 items-center justify-center">

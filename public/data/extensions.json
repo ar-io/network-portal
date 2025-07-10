@@ -10,11 +10,12 @@
       "url": "https://github.com/permaweb/ao/tree/main/servers/cu",
       "category": "compute",
       "tags": ["official", "stable"],
-      "version": "?",
-      "lastUpdated": "?",
+      "version": "0.2.3",
+      "imageUri": "ghcr.io/permaweb/ao-cu:latest",
+      "lastUpdated": "2025-01-09",
       "minGatewayVersion": "N/A", 
       "documentation": "https://docs.ar.io/gateways/cu",
-      "image": "https://github.com/permaweb/ao/raw/main/logos/ao_pictograph_darkmode.svg"
+      "logo": "https://github.com/permaweb/ao/raw/main/logos/ao_pictograph_darkmode.svg"
     },
     {
       "id": "bundler-sidecar",
@@ -26,10 +27,11 @@
       "url": "https://github.com/ardriveapp/turbo-upload-service",
       "category": "storage",
       "tags": ["official", "beta"],
-      "version": "?",
-      "lastUpdated": "?",
+      "version": "1.0.0-beta.2",
+      "imageUri": "ghcr.io/ar-io/turbo-bundler:bundler",
+      "lastUpdated": "2025-01-08",
       "minGatewayVersion": "25",
-      "image": "f_zUr27rrP5AdssUstaPWSlWPkvI9gJ586501AcMui8",
+      "logo": "f_zUr27rrP5AdssUstaPWSlWPkvI9gJ586501AcMui8",
       "documentation": "https://docs.ar.io/gateways/bundler"
     },
     {
@@ -43,9 +45,10 @@
       "category": "monitoring",
       "tags": ["official", "stable"],
       "version": "0.9.2",
-      "lastUpdated": "2025-03-21",
+      "imageUri": "grafana/grafana:0.9.2-alpine",
+      "lastUpdated": "2025-01-07",
       "minGatewayVersion": "25",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Grafana_logo.svg/512px-Grafana_logo.svg.png",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Grafana_logo.svg/512px-Grafana_logo.svg.png",
       "documentation": "https://docs.ar.io/gateways/grafana",
       "screenshots": ["R_qwVFIB4E57W893H974vjJ9r7O_3G9hzxsJY7Z1nt0"]
     }

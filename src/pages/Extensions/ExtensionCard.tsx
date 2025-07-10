@@ -2,7 +2,7 @@ import {
   Extension,
   ExtensionCategory,
   ExtensionTag,
-} from '@src/types/extension';
+} from '@src/types';
 import { getImageUrl } from '@src/utils/imageUtils';
 import { Calendar, Tag, User } from 'lucide-react';
 import { useState } from 'react';
@@ -55,11 +55,11 @@ export default function ExtensionCard({
             {extension.description}
           </p>
         </div>
-        {/* Image only if available */}
-        {extension.image && !imageError && (
+        {/* Logo only if available */}
+        {extension.logo && !imageError && (
           <div className="size-16 shrink-0 rounded-lg bg-grey-800 p-2 shadow-sm sm:size-20">
             <img
-              src={getImageUrl(extension.image)}
+              src={getImageUrl(extension.logo)}
               alt={extension.name}
               className="size-full object-contain"
               onError={() => setImageError(true)}

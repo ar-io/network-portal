@@ -22,10 +22,11 @@ assignees: ''
   "category": "storage",
   "tags": ["community", "stable"],
   "version": "1.0.0",
+  "imageUri": "ghcr.io/your-org/your-extension:1.0.0",
   "lastUpdated": "2024-01-15",
   "minGatewayVersion": "2.0.0",
   "documentation": "https://github.com/your-username/your-extension/blob/main/README.md",
-  "image": "your-logo-tx-id-or-https-url",
+  "logo": "your-logo-tx-id-or-https-url",
   "screenshots": [
     "screenshot1-tx-id-or-https-url",
     "screenshot2-tx-id-or-https-url"
@@ -45,10 +46,11 @@ assignees: ''
 - **category**: One of: `storage`, `routing`, `monitoring`, `security`, `performance`, `indexing`, `caching`, `moderation`, `analytics`, `developer-tools`, `compute`
 - **tags**: Array of tags. Common tags: `community`, `beta`, `stable` (other tags will be assigned by AR.IO team: `official`, `featured`, `grant-funded`)
 - **version**: Current semantic version (e.g., "1.0.0")
+- **imageUri**: (optional) Full Docker image reference (e.g., "ghcr.io/ar-io/ao-cu:latest", "docker.io/myorg/myextension:1.0.0")
 - **lastUpdated**: Date in YYYY-MM-DD format
 - **minGatewayVersion**: (optional) Minimum AR.IO gateway version required
 - **documentation**: (optional) Link to detailed documentation
-- **image**: (optional) Logo - Arweave TX ID or HTTPS URL (256x256px PNG recommended)
+- **logo**: (optional) Logo - Arweave TX ID or HTTPS URL (256x256px PNG recommended)
 - **screenshots**: (optional) Array of screenshots - Arweave TX IDs or HTTPS URLs (1280x800px recommended, max 3)
 
 ## Installation & Testing

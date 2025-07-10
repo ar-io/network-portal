@@ -11,10 +11,11 @@
       "category": "storage",
       "tags": ["featured", "official", "stable"],
       "version": "1.2.0",
+      "imageUri": "docker.io/ipfs/gateway:1.2.0-alpine3.19",
       "lastUpdated": "2025-01-08",
       "minGatewayVersion": "2.0.0",
       "documentation": "https://docs.ar.io/extensions/ipfs-resolver",
-      "image": "https://arweave.net/4Lbvc6i9D7xFKnZPN40261nk0h1lpLT1_nt3oHq7dMc"
+      "logo": "https://arweave.net/4Lbvc6i9D7xFKnZPN40261nk0h1lpLT1_nt3oHq7dMc"
     },
     {
       "id": "arns-moderation",
@@ -27,9 +28,10 @@
       "category": "moderation",
       "tags": ["community", "stable"],
       "version": "2.1.0",
+      "imageUri": "ghcr.io/communitymods/arns-mod:2.1.0",
       "lastUpdated": "2025-01-05",
       "minGatewayVersion": "2.0.0",
-      "image": "https://arweave.net/1-fLvVaiqR-eZV3x3z1XEEb9Npm8puZfBUdFoE0CtYc"
+      "logo": "https://arweave.net/1-fLvVaiqR-eZV3x3z1XEEb9Npm8puZfBUdFoE0CtYc"
     },
     {
       "id": "performance-monitor",
@@ -42,9 +44,10 @@
       "category": "monitoring",
       "tags": ["featured", "grant-funded", "stable"],
       "version": "3.0.1",
+      "imageUri": "ghcr.io/metricslab/gateway-monitor:3.0.1",
       "lastUpdated": "2025-01-07",
       "documentation": "https://metricslab.io/docs/ario-monitor",
-      "image": "https://arweave.net/IIogSaas8Y_3QYig41y06ne4q55Nc3AMHsAXKjhd2xw"
+      "logo": "https://arweave.net/IIogSaas8Y_3QYig41y06ne4q55Nc3AMHsAXKjhd2xw"
     },
     {
       "id": "smart-cache",
@@ -57,9 +60,10 @@
       "category": "caching",
       "tags": ["featured", "beta"],
       "version": "0.9.2",
+      "imageUri": "docker.io/cacheflow/smart-cache:0.9.2-beta",
       "lastUpdated": "2025-01-06",
       "minGatewayVersion": "2.1.0",
-      "image": "DyZb_g2sOBAwYIfn-Z2W-tAoe5-ewJ1OpfrwfGRnx78",
+      "logo": "DyZb_g2sOBAwYIfn-Z2W-tAoe5-ewJ1OpfrwfGRnx78",
       "screenshots": ["https://arweave.net/dn14WTW5-nI9X3iotjZBIhSWe4iHjGjv-VGsqTusAME", "iyKi3KHq1nqeP7xfXDSufs6ZEiws9JgkJ7Wx6DsyQSA", "wR3_MRdozOKLdIsrqQODHlAZrYQLWrK9aVuzK488Q6Y"]
     },
     {
@@ -73,8 +77,9 @@
       "category": "developer-tools",
       "tags": ["official", "stable"],
       "version": "1.0.0",
+      "imageUri": "ghcr.io/ar-io/dev-tools:1.0.0",
       "lastUpdated": "2025-01-04",
-      "image": "https://arweave.net/RiW_HSxPgoSzazQC0F1IfFgmKyJMHjEqWnysk-DN7ns"
+      "logo": "https://arweave.net/RiW_HSxPgoSzazQC0F1IfFgmKyJMHjEqWnysk-DN7ns"
     },
     {
       "id": "geo-router",
@@ -87,8 +92,9 @@
       "category": "routing",
       "tags": ["grant-funded", "stable"],
       "version": "1.5.0",
+      "imageUri": "docker.io/georoute/geo-router:1.5.0-prod",
       "lastUpdated": "2025-01-03",
-      "image": "https://arweave.net/Z7fPn6o_VannUIvR_h1Ulh-rumtKl7E2G-3JfWap_pk"
+      "logo": "https://arweave.net/Z7fPn6o_VannUIvR_h1Ulh-rumtKl7E2G-3JfWap_pk"
     },
     {
       "id": "ddos-shield",
@@ -101,9 +107,10 @@
       "category": "security",
       "tags": ["featured", "stable"],
       "version": "2.3.1",
+      "imageUri": "ghcr.io/securegate/ddos-shield:2.3.1",
       "lastUpdated": "2025-01-09",
       "minGatewayVersion": "2.0.0",
-      "image": "nUrIIrELeQEzIoO_b5Doevg8BE8Bd3fTNSjCsr9fLWs"    
+      "logo": "nUrIIrELeQEzIoO_b5Doevg8BE8Bd3fTNSjCsr9fLWs"    
     },
     {
       "id": "backup-sync",
@@ -116,8 +123,9 @@
       "category": "storage",
       "tags": ["grant-funded", "stable"],
       "version": "1.8.0",
+      "imageUri": "docker.io/datavault/backup-sync:1.8.0",
       "lastUpdated": "2025-01-07",
-      "image": "https://arweave.net/KeLQ8hyWr2GeaYkFIlp3P0GWIcQU8jHRS0RE4ybN9AE"
+      "logo": "https://arweave.net/KeLQ8hyWr2GeaYkFIlp3P0GWIcQU8jHRS0RE4ybN9AE"
     },
     {
       "id": "analytics-dashboard",
@@ -130,9 +138,10 @@
       "category": "analytics",
       "tags": ["featured", "stable"],
       "version": "4.2.0",
+      "imageUri": "ghcr.io/insightflow/analytics:4.2.0-ubuntu22.04",
       "lastUpdated": "2025-01-08",
       "documentation": "https://docs.insightflow.ai/gateway-analytics",
-      "image": "https://arweave.net/S1L8AHLKqFFFoyIfymUi5-aqwbOlCtYsBGtZf3ZDRBg"
+      "logo": "https://arweave.net/S1L8AHLKqFFFoyIfymUi5-aqwbOlCtYsBGtZf3ZDRBg"
     },
     {
       "id": "payment-processor",
@@ -145,8 +154,9 @@
       "category": "moderation",
       "tags": ["community", "beta"],
       "version": "0.8.5",
+      "imageUri": "docker.io/paygate/payment-processor:0.8.5-beta",
       "lastUpdated": "2025-01-06",
-      "image": "https://arweave.net/-Q627UjC3JaNP0TDGZRH2r4DNg3oGmi9zlQFUW8Snk4"
+      "logo": "https://arweave.net/-Q627UjC3JaNP0TDGZRH2r4DNg3oGmi9zlQFUW8Snk4"
     },
     {
       "id": "cdn-accelerator",
@@ -159,9 +169,10 @@
       "category": "performance",
       "tags": ["featured", "grant-funded", "stable"],
       "version": "3.1.0",
+      "imageUri": "ghcr.io/turbocache/cdn-accelerator:3.1.0",
       "lastUpdated": "2025-01-05",
       "minGatewayVersion": "2.0.0",
-      "image": "https://arweave.net/hQatSvdpfp9BEH9UMjTOK1C0ayu9wAv2_CphZghpcO8"
+      "logo": "https://arweave.net/hQatSvdpfp9BEH9UMjTOK1C0ayu9wAv2_CphZghpcO8"
     },
     {
       "id": "ai-content-tagger",
@@ -174,8 +185,9 @@
       "category": "indexing",
       "tags": ["community", "beta"],
       "version": "0.7.3",
+      "imageUri": "docker.io/neuralindex/ai-tagger:0.7.3-cuda12.1",
       "lastUpdated": "2025-01-04",
-      "image": "https://arweave.net/jlnrCuoKrQkGkPbGYM1QJjZefdqypK9yrFLpMpH2ftE"
+      "logo": "https://arweave.net/jlnrCuoKrQkGkPbGYM1QJjZefdqypK9yrFLpMpH2ftE"
     }
   ]
 }

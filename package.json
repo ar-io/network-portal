@@ -108,11 +108,11 @@
     "vitest": "^3.0.8"
   },
   "lint-staged": {
-    "{lib,packages}/**/src/**/*.{ts,tsx}": [
-      "eslint --fix ."
+    "*.{ts,tsx}": [
+      "eslint --fix"
     ],
-    "**/*.{ts,tsx,js,md,json}": [
-      "prettier --write ."
+    "*.{ts,tsx,js,md,json}": [
+      "prettier --write"
     ]
   }
 }

@@ -89,7 +89,7 @@ export default function ExtensionDetail({
         </button>
       </div>
 
-      <div className="rounded-xl border border-grey-500 bg-containerL0 p-4 sm:p-6 lg:p-8">
+      <div className="mb-8 rounded-xl border border-grey-500 bg-containerL0 p-4 sm:p-6 lg:p-8">
         <div className="mb-6">
           <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row">
@@ -118,7 +118,7 @@ export default function ExtensionDetail({
               className="group relative mt-4 flex items-center gap-2 self-start rounded-lg px-4 py-2 text-sm transition-all sm:mt-0"
             >
               <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end opacity-0 transition-opacity group-hover:opacity-100" />
-              <div className="relative flex items-center gap-2 text-mid group-hover:text-grey-1000">
+              <div className="relative flex items-center gap-2 whitespace-nowrap text-mid group-hover:text-grey-1000">
                 {isGithubUrl ? (
                   <>
                     <Github className="size-4" />

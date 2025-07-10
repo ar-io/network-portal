@@ -48,11 +48,11 @@ const TAG_LABELS: Record<ExtensionTag, string> = {
 const TAG_STYLES: Record<ExtensionTag, string> = {
   featured:
     'bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end text-grey-1000 font-semibold',
-  'grant-funded': 'bg-green-600 text-white',
-  community: 'bg-blue-600 text-white',
-  official: 'bg-purple-600 text-white ring-2 ring-pink-400',
-  beta: 'bg-yellow-600 text-black',
-  stable: 'bg-green-700 text-white',
+  'grant-funded': 'bg-containerL3 text-streak-up border border-streak-up/20',
+  community: 'bg-containerL3 text-high border border-grey-400',
+  official: 'bg-gradient-to-r from-gradient-primary-start/20 to-gradient-primary-end/20 text-high border border-gradient-primary-start/40',
+  beta: 'bg-containerL3 text-mid border border-grey-500 italic',
+  stable: 'bg-containerL3 text-high border border-grey-400',
 };
 
 export default function ExtensionDetail({
@@ -89,13 +89,13 @@ export default function ExtensionDetail({
         </button>
       </div>
 
-      <div className="rounded-xl border border-grey-500 bg-grey-1000 p-4 sm:p-6 lg:p-8">
+      <div className="rounded-xl border border-grey-500 bg-containerL0 p-4 sm:p-6 lg:p-8">
         <div className="mb-6">
           <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row">
               {/* Extension logo */}
               {extension.logo && !imageError && (
-                <div className="size-20 shrink-0 self-start rounded-lg bg-grey-800 p-2 shadow-md sm:size-24">
+                <div className="size-20 shrink-0 self-start rounded-lg bg-containerL3 p-2 shadow-md sm:size-24">
                   <img
                     src={getImageUrl(extension.logo)}
                     alt={extension.name}
@@ -175,7 +175,7 @@ export default function ExtensionDetail({
               </div>
             )}
 
-            <div className="rounded-lg border border-grey-600 bg-grey-900 p-6">
+            <div className="rounded-lg border border-grey-600 bg-containerL3 p-6">
               <h3 className="mb-4 font-medium text-high">Installation</h3>
               <ol className="list-inside list-decimal space-y-2 text-sm text-mid">
                 <li>Visit the extension repository using the button above</li>
@@ -208,7 +208,7 @@ export default function ExtensionDetail({
                           }
                         />
                       ) : (
-                        <div className="flex h-48 items-center justify-center bg-grey-900 text-low">
+                        <div className="flex h-48 items-center justify-center bg-containerL3 text-low">
                           <span className="text-sm">
                             Screenshot unavailable
                           </span>
@@ -222,7 +222,7 @@ export default function ExtensionDetail({
           </div>
 
           <div className="lg:col-span-1">
-            <div className="rounded-lg border border-grey-600 bg-grey-900 p-6">
+            <div className="rounded-lg border border-grey-600 bg-containerL3 p-6">
               <h3 className="mb-4 font-medium text-high">Extension Details</h3>
               <dl className="space-y-3">
                 <div>

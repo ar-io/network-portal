@@ -35,7 +35,7 @@ export default function ExtensionCard({
 
   return (
     <div
-      className="group relative flex cursor-pointer flex-col rounded-xl border border-grey-600 bg-grey-900 p-6 transition-all hover:border-grey-400 hover:bg-grey-800"
+      className="group relative flex cursor-pointer flex-col rounded-xl border border-grey-600 bg-containerL3 p-6 transition-all hover:border-grey-400"
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -57,7 +57,7 @@ export default function ExtensionCard({
         </div>
         {/* Logo only if available */}
         {extension.logo && !imageError && (
-          <div className="size-16 shrink-0 rounded-lg bg-grey-800 p-2 shadow-sm sm:size-20">
+          <div className="size-16 shrink-0 rounded-lg bg-containerL0 p-2 shadow-sm sm:size-20">
             <img
               src={getImageUrl(extension.logo)}
               alt={extension.name}

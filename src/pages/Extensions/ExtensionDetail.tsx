@@ -33,6 +33,7 @@ const CATEGORY_LABELS: Record<ExtensionCategory, string> = {
   moderation: 'Moderation',
   analytics: 'Analytics',
   'developer-tools': 'Developer Tools',
+  compute: 'Compute',
 };
 
 const TAG_LABELS: Record<ExtensionTag, string> = {
@@ -94,18 +95,22 @@ export default function ExtensionDetail({
             <div className="flex flex-col gap-4 sm:flex-row">
               {/* Extension logo */}
               {extension.image && !imageError && (
-                <img
-                  src={getImageUrl(extension.image)}
-                  alt={extension.name}
-                  className="size-20 shrink-0 self-start rounded-lg object-cover shadow-md sm:size-24"
-                  onError={() => setImageError(true)}
-                />
+                <div className="size-20 shrink-0 self-start rounded-lg bg-grey-800 p-2 shadow-md sm:size-24">
+                  <img
+                    src={getImageUrl(extension.image)}
+                    alt={extension.name}
+                    className="size-full object-contain"
+                    onError={() => setImageError(true)}
+                  />
+                </div>
               )}
               <div className="flex-1">
                 <h1 className="mb-2 text-xl font-medium text-high sm:text-2xl">
                   {extension.name}
                 </h1>
-                <p className="text-base text-mid sm:text-lg">{extension.description}</p>
+                <p className="text-base text-mid sm:text-lg">
+                  {extension.description}
+                </p>
               </div>
             </div>
             <button

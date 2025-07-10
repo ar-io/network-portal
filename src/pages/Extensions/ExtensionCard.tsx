@@ -57,12 +57,14 @@ export default function ExtensionCard({
         </div>
         {/* Image only if available */}
         {extension.image && !imageError && (
-          <img
-            src={getImageUrl(extension.image)}
-            alt={extension.name}
-            className="size-16 shrink-0 rounded-lg object-cover shadow-sm sm:size-20"
-            onError={() => setImageError(true)}
-          />
+          <div className="size-16 shrink-0 rounded-lg bg-grey-800 p-2 shadow-sm sm:size-20">
+            <img
+              src={getImageUrl(extension.image)}
+              alt={extension.name}
+              className="size-full object-contain"
+              onError={() => setImageError(true)}
+            />
+          </div>
         )}
       </div>
 

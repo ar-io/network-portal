@@ -8,7 +8,8 @@ export type ExtensionCategory =
   | 'caching'
   | 'moderation'
   | 'analytics'
-  | 'developer-tools';
+  | 'developer-tools'
+  | 'compute';
 
 export type ExtensionTag =
   | 'featured'

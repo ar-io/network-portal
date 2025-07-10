@@ -41,4 +41,5 @@ export const CATEGORY_GRADIENTS: Record<string, string> = {
   moderation: 'from-pink-600 to-pink-800',
   analytics: 'from-indigo-600 to-indigo-800',
   'developer-tools': 'from-gray-600 to-gray-800',
+  compute: 'from-violet-600 to-violet-800',
 };

@@ -29,6 +29,7 @@ const Staking = React.lazy(() => import('./pages/Staking'));
 const Observers = React.lazy(() => import('./pages/Observers'));
 const BalancesMain = React.lazy(() => import('./pages/Balances'));
 const BalancesForAddress = React.lazy(() => import('./pages/Balances/BalancesForAddress'));
+const Atlas = React.lazy(() => import('./pages/Atlas'));
 
 // Sub-Pages
 const Reports = React.lazy(() => import('./pages/Reports'));
@@ -144,6 +145,15 @@ function App() {
           element={
             <Suspense fallback={<Loading />}>
               <BalancesMain />
+            </Suspense>
+          }
+        />
+        ,
+        <Route
+          path="atlas"
+          element={
+            <Suspense fallback={<Loading />}>
+              <Atlas />
             </Suspense>
           }
         />

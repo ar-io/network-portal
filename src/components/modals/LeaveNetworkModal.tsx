@@ -1,4 +1,6 @@
+import { mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
+import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
@@ -9,8 +11,6 @@ import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import { mARIOToken } from '@ar.io/sdk/web';
-import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 
 const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
   const queryClient = useQueryClient();
@@ -85,13 +85,13 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
             <ul className="mt-6 list-disc space-y-2 pl-8">
               <li>
                 Your gateway&apos;s primary stake (
-                {formatWithCommas(minOperatorStake)} {ticker}
-                ) will be vaulted and subject to a 90-day withdrawal period.
+                {formatWithCommas(minOperatorStake)} {ticker}) will be vaulted
+                and subject to a 90-day withdrawal period.
               </li>
               <li>
                 Any additional operator stake above the minimum (
-                {formatWithCommas(minOperatorStake)} {ticker}
-                ) will be vaulted and subject to a 90-day withdrawal period.
+                {formatWithCommas(minOperatorStake)} {ticker}) will be vaulted
+                and subject to a 90-day withdrawal period.
               </li>
               <li>
                 Any existing delegated stakes will be vaulted and subject to

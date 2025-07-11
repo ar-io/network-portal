@@ -6,9 +6,9 @@ import {
 import { AO_CU_URL, DEFAULT_ARWEAVE_GQL_ENDPOINT } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
+import CopyButton from '../CopyButton';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
-import CopyButton from '../CopyButton';
 
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   const arioProcessId = useGlobalState((state) => state.arioProcessId);
@@ -23,7 +23,6 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
 
   const [localCuUrl, setLocalCuUrl] = useState(aoCuUrl);
   const [localGqlUrl, setLocalGqlUrl] = useState(arweaveGqlUrl);
-
 
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
@@ -155,7 +154,6 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </BaseModal>

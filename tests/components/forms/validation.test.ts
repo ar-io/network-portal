@@ -1,11 +1,11 @@
 import {
-  validateDomainName,
   validateARIOAmount,
+  validateDomainName,
   validateNumberRange,
   validateString,
   validateTransactionId,
-  validateWithdrawAmount,
   validateWalletAddress,
+  validateWithdrawAmount,
 } from '@src/components/forms/validation';
 
 describe('Form Validation Functions', () => {
@@ -111,9 +111,7 @@ describe('Form Validation Functions', () => {
 
     it('should fail for invalid number string', () => {
       expect(validator('true')).toEqual(`tIO Amount must be a number.`);
-      expect(validator('10 IO')).toEqual(
-        `tIO Amount must be a number.`,
-      );
+      expect(validator('10 IO')).toEqual(`tIO Amount must be a number.`);
     });
   });
 
@@ -141,7 +139,7 @@ describe('Form Validation Functions', () => {
   });
 
   describe('validateUnstakeAmount', () => {
-    const validator = validateWithdrawAmount('Unstake Amount', "tIO", 100, 10);
+    const validator = validateWithdrawAmount('Unstake Amount', 'tIO', 100, 10);
 
     it('should fail for empty string', () => {
       expect(validator('')).toEqual('Unstake Amount must be a number.');

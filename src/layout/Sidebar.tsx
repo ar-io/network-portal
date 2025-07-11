@@ -8,7 +8,7 @@ import changeLog from '../../CHANGELOG.md?raw';
 
 import SettingsModal from '@src/components/modals/SettingsModal';
 import { useGlobalState } from '@src/store';
-import { HandCoins, Settings } from 'lucide-react';
+import { HandCoins, Puzzle, Settings } from 'lucide-react';
 import {
   ArioLogoIcon,
   BinocularsIcon,
@@ -47,6 +47,11 @@ const ROUTES_PRIMARY = [
     title: 'Balances',
     icon: <HandCoins className="size-4" />,
     path: '/balances',
+  },
+  {
+    title: 'Extensions',
+    icon: <Puzzle className="size-4" />,
+    path: '/extensions',
   },
 ];
 
@@ -156,8 +161,7 @@ const Sidebar = () => {
               className="grow pl-3 text-left text-xs text-low/50"
               onClick={() => setShowChangeLogModal(true)}
             >
-              v{APP_VERSION}-
-              {import.meta.env.VITE_GITHUB_HASH?.slice(0, 6)}
+              v{APP_VERSION}-{import.meta.env.VITE_GITHUB_HASH?.slice(0, 6)}
             </button>
           )}
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>

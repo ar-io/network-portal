@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2025-07-11
+
+### Added
+
+- New Extension Marketplace page allowing users to browse, search, and filter gateway extensions with detailed information pages.
+
 ## [1.13.1] - 2025-06-25
 
 ### Fixed
@@ -23,13 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated redelegation confirmation to require typing "CONFIRM" 
+- Updated redelegation confirmation to require typing "CONFIRM"
 
 ### Fixed
 
 - Fixed logout button styling to prevent visual bleed
 - Fixed issue handling arweaveWalletLoaded event triggering continously after page load
-
 
 ## [1.12.1] - 2025-05-28
 

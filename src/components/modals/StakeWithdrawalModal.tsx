@@ -6,6 +6,7 @@ import useGateway from '@src/hooks/useGateway';
 import { useGlobalState } from '@src/store';
 import { WithdrawalType } from '@src/types';
 import { formatAddress, formatWithCommas } from '@src/utils';
+import { Circle, CircleCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
@@ -13,7 +14,6 @@ import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import { validateWithdrawAmount } from '../forms/validation';
 import BaseModal from './BaseModal';
 import ReviewWithdrawalModal from './ReviewWithdrawalModal';
-import { Circle, CircleCheck } from 'lucide-react';
 
 const StakeWithdrawalModal = ({
   onClose,
@@ -64,10 +64,10 @@ const StakeWithdrawalModal = ({
   const returningAmount = isNaN(parseFloat(amountToWithdraw))
     ? '-'
     : +(
-      isNaN(withdrawalFee)
-        ? parseFloat(amountToWithdraw)
-        : parseFloat(amountToWithdraw) - withdrawalFee
-    ).toFixed(4);
+        isNaN(withdrawalFee)
+          ? parseFloat(amountToWithdraw)
+          : parseFloat(amountToWithdraw) - withdrawalFee
+      ).toFixed(4);
 
   const validators = {
     withdrawAmount: validateWithdrawAmount(
@@ -234,12 +234,13 @@ const StakeWithdrawalModal = ({
           <div className="flex flex-col gap-2">
             <LabelValueRow
               label="New Total Stake:"
-              value={`${isFormValid()
+              value={`${
+                isFormValid()
                   ? formatWithCommas(
-                    currentStake - parseFloat(amountToWithdraw),
-                  )
+                      currentStake - parseFloat(amountToWithdraw),
+                    )
                   : '-'
-                } ${ticker}`}
+              } ${ticker}`}
             />
           </div>
           <div

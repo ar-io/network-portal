@@ -181,7 +181,7 @@ const RewardsDistributionPanel = () => {
   return (
     <div className="min-w-[22rem] rounded-xl border border-grey-500">
       <div className="px-5 pb-3 pt-5 text-sm text-mid">
-        Eligible Rewards in {ticker} by Epoch vs. Rewards Distributed 
+        Eligible Rewards in {ticker} by Epoch vs. Rewards Distributed
       </div>
       <div className="relative h-80">
         {rewardsData ? (

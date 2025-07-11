@@ -30,6 +30,7 @@ import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { TriangleAlertIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ActiveDelegates from './ActiveDelegates';
@@ -40,7 +41,6 @@ import PropertyDisplayPanel from './PropertyDisplayPanel';
 import SnitchRow from './SnitchRow';
 import SoftwareDetails from './SoftwareDetails';
 import StatsPanel from './StatsPanel';
-import { TriangleAlertIcon } from 'lucide-react';
 
 const Gateway = () => {
   const queryClient = useQueryClient();
@@ -81,7 +81,8 @@ const Gateway = () => {
 
   const hasLowBalance =
     observerBalances &&
-    (observerBalances.ar < 0.01 && observerBalances.turboCredits < 0.01);
+    observerBalances.ar < 0.01 &&
+    observerBalances.turboCredits < 0.01;
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
 
@@ -345,10 +346,10 @@ const Gateway = () => {
             <div className="mt-1 text-sm">
               <ul>
                 <li>
-                  Observer AR and Turbo Credit balance is low. Please add more AR or Turbo Credits to the observer wallet.
+                  Observer AR and Turbo Credit balance is low. Please add more
+                  AR or Turbo Credits to the observer wallet.
                 </li>
               </ul>
-
             </div>
           </div>
         )}

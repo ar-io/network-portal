@@ -32,7 +32,8 @@ const Streak = ({
     <div
       className={`flex w-fit items-center gap-1 rounded-xl border py-0.5 pl-[.4375rem] pr-[.5625rem] ${colorClasses}`}
     >
-      {icon} {Math.abs(streak).toFixed(fixedDigits)}{rightLabel}
+      {icon} {Math.abs(streak).toFixed(fixedDigits)}
+      {rightLabel}
     </div>
   );
 };

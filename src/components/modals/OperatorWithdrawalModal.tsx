@@ -4,6 +4,7 @@ import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
 import { WithdrawalType } from '@src/types';
 import { formatAddress, formatWithCommas } from '@src/utils';
+import { Circle, CircleCheck } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import LabelValueRow from '../LabelValueRow';
@@ -11,7 +12,6 @@ import ErrorMessageIcon from '../forms/ErrorMessageIcon';
 import { validateOperatorWithdrawAmount } from '../forms/validation';
 import BaseModal from './BaseModal';
 import ReviewWithdrawalModal from './ReviewWithdrawalModal';
-import { Circle, CircleCheck } from 'lucide-react';
 
 const OperatorStakingModal = ({
   onClose,

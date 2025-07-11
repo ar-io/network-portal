@@ -23,14 +23,13 @@ const useArNSStats = () => {
 
       const demandFactor = await arioReadSDK.getDemandFactor();
 
-      const records = await arioReadSDK.getArNSRecords({ limit: 1});
-
+      const records = await arioReadSDK.getArNSRecords({ limit: 1 });
 
       return {
         demandFactor,
         namesPurchased: records.totalItems,
         activeAuctions: 0,
-        ...currentEpoch.arnsStats
+        ...currentEpoch.arnsStats,
       };
     },
     enabled: !!arioReadSDK && !!currentEpoch,

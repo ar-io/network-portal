@@ -1,7 +1,7 @@
 {
   "name": "@ar-io/network-portal",
   "private": true,
-  "version": "1.13.1",
+  "version": "1.14.0",
   "type": "module",
   "scripts": {
     "build": "yarn clean && tsc --build tsconfig.build.json && NODE_OPTIONS=--max-old-space-size=32768 vite build",
@@ -108,11 +108,11 @@
     "vitest": "^3.0.8"
   },
   "lint-staged": {
-    "{lib,packages}/**/src/**/*.{ts,tsx}": [
-      "eslint --fix ."
+    "*.{ts,tsx}": [
+      "eslint --fix"
     ],
-    "**/*.{ts,tsx,js,md,json}": [
-      "prettier --write ."
+    "*.{ts,tsx,js,md,json}": [
+      "prettier --write"
     ]
   }
 }

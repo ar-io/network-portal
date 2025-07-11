@@ -7,10 +7,10 @@ import {
   SortDesc,
 } from '@src/components/icons';
 import { ArNSAssessment, Assessment } from '@src/types';
+import { Timer } from 'lucide-react';
 import { useState } from 'react';
 import Bubble from './Bubble';
 import Placeholder from './Placeholder';
-import { Timer } from 'lucide-react';
 
 const extraTimingsLabels: Record<string, string> = {
   dns: 'DNS',

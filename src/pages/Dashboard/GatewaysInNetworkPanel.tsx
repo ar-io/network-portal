@@ -73,7 +73,8 @@ const GatewaysInNetworkPanel = () => {
         <div className="py-6 pl-6 text-[2.625rem] text-high">
           {gatewaysPerEpoch &&
             activeIndex !== undefined &&
-            gatewaysPerEpoch[activeIndex] && gatewaysPerEpoch[activeIndex].totalEligibleGateways}
+            gatewaysPerEpoch[activeIndex] &&
+            gatewaysPerEpoch[activeIndex].totalEligibleGateways}
         </div>
         {percentageChange && (
           <div className="flex h-full flex-col justify-end pb-4">

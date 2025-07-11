@@ -58,7 +58,7 @@ const ReportHeader = ({
           <Button
             className="absolute right-6"
             title={'Download Report'}
-            icon={<Download className="size-4" strokeWidth={2}/>}
+            icon={<Download className="size-4" strokeWidth={2} />}
             active={true}
             onClick={async () => {
               if (reportId && reportData) {

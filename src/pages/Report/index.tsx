@@ -13,7 +13,7 @@ const Report = () => {
     ownerWalletAddress: ownerId,
   });
 
-  const { isLoading, data:reportData } = useReport(reportId);
+  const { isLoading, data: reportData } = useReport(reportId);
 
   return (
     <div className="flex max-w-full flex-col gap-6 overflow-auto">

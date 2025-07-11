@@ -54,7 +54,8 @@ const ReviewRedelegateModal = ({
 
   const totalRedelegatedStake = amountToRedelegate.valueOf() - fee;
 
-  const isDisabled = showBlockingMessageModal || (hasFee && confirmationInput !== 'CONFIRM');
+  const isDisabled =
+    showBlockingMessageModal || (hasFee && confirmationInput !== 'CONFIRM');
 
   const submitForm = async () => {
     if (isDisabled) return;
@@ -196,20 +197,22 @@ const ReviewRedelegateModal = ({
                   htmlFor="confirmation-input"
                   className="mb-2 block text-sm font-medium text-mid"
                 >
-                  Please type CONFIRM to acknowledge there will be a fee of {fee} {ticker} for redelegating.
+                  Please type CONFIRM to acknowledge there will be a fee of{' '}
+                  {fee} {ticker} for redelegating.
                 </label>
                 <input
                   type="text"
                   id="confirmation-input"
                   value={confirmationInput}
                   onChange={(e) => setConfirmationInput(e.target.value)}
-                  className='h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'
+                  className="h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
                 />
               </div>
             )}
             <div
               className={
-                showBlockingMessageModal || (hasFee && confirmationInput !== 'CONFIRM')
+                showBlockingMessageModal ||
+                (hasFee && confirmationInput !== 'CONFIRM')
                   ? 'pointer-events-none opacity-30'
                   : ''
               }

@@ -3,7 +3,9 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ThreeDotsIcon } from '@src/components/icons';
 import OperatorStakingModal from '@src/components/modals/OperatorStakingModal';
 import OperatorWithdrawalModal from '@src/components/modals/OperatorWithdrawalModal';
-import RedelegateModal, { RedelegateModalProps } from '@src/components/modals/RedelegateModal';
+import RedelegateModal, {
+  RedelegateModalProps,
+} from '@src/components/modals/RedelegateModal';
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
 import { EAY_TOOLTIP_TEXT, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
@@ -106,9 +108,7 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
                         onClose: () => setShowRedelegateModal(undefined),
                         maxRedelegationStake: new mARIOToken(
                           gateway.operatorStake -
-                            new ARIOToken(minOperatorStake)
-                              .toMARIO()
-                              .valueOf(),
+                            new ARIOToken(minOperatorStake).toMARIO().valueOf(),
                         ).toARIO(),
                       });
                     }

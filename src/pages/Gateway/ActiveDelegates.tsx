@@ -18,7 +18,11 @@ interface TableData {
 
 const columnHelper = createColumnHelper<TableData>();
 
-const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
+const ActiveDelegates = ({
+  gateway,
+}: {
+  gateway?: AoGatewayWithAddress | null;
+}) => {
   const ticker = useGlobalState((state) => state.ticker);
   const { isLoading, data: gatewayDelegateStakes } = useGatewayDelegateStakes(
     gateway?.gatewayAddress,
@@ -30,7 +34,9 @@ const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress | null })
     if (gateway && gatewayDelegateStakes) {
       const totalDelegatedStake = gateway.totalDelegatedStake;
       const data = gatewayDelegateStakes.map((stake) => {
-        const totalStake = new mARIOToken(stake.delegatedStake).toARIO().valueOf();
+        const totalStake = new mARIOToken(stake.delegatedStake)
+          .toARIO()
+          .valueOf();
         const percentageOfTotalStake =
           totalDelegatedStake > 0
             ? stake.delegatedStake / totalDelegatedStake
@@ -84,7 +90,9 @@ const ActiveDelegates = ({ gateway }: { gateway?: AoGatewayWithAddress | null })
             {gateway ? (
               <div>
                 {formatWithCommas(
-                  new mARIOToken(gateway.totalDelegatedStake).toARIO().valueOf(),
+                  new mARIOToken(gateway.totalDelegatedStake)
+                    .toARIO()
+                    .valueOf(),
                 )}{' '}
                 {ticker}
               </div>

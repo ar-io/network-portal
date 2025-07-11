@@ -1,13 +1,13 @@
-import { WanderError, WalletNotInstalledError } from '@src/utils/errors';
+import { WalletNotInstalledError, WanderError } from '@src/utils/errors';
 import { PermissionType } from 'arconnect';
 import { ApiConfig } from 'arweave/web/lib/api';
 
+import { ContractSigner } from '@ar.io/sdk/web';
 import { log } from '@src/constants';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
 import { executeWithTimeout } from '@src/utils';
 import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { NetworkPortalWalletConnector, WALLET_TYPES } from '../../types';
-import { ContractSigner } from '@ar.io/sdk/web';
 
 export const WANDER_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',

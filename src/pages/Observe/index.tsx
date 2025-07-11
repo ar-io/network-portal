@@ -1,8 +1,8 @@
+import AssessmentDetailsPanel from '@src/components/AssessmentDetailsPanel';
 import useGateway from '@src/hooks/useGateway';
 import { Assessment } from '@src/types';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import AssessmentDetailsPanel from '@src/components/AssessmentDetailsPanel';
 import ObservationsTable from './ObservationsTable';
 import ObserveHeader from './ObserveHeader';
 

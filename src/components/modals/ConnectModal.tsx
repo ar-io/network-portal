@@ -1,4 +1,5 @@
 import { WanderWalletConnector } from '@src/services/wallets/ArConnectWalletConnector';
+import { BeaconWalletConnector } from '@src/services/wallets/BeaconWalletConnector';
 import { EthWalletConnector } from '@src/services/wallets/EthWalletConnector';
 import { useGlobalState } from '@src/store';
 import { NetworkPortalWalletConnector } from '@src/types';
@@ -7,7 +8,6 @@ import { useConfig } from 'wagmi';
 import Button from '../Button';
 import { BeaconIcon, ConnectIcon, MetamaskIcon, WanderIcon } from '../icons';
 import BaseModal from './BaseModal';
-import { BeaconWalletConnector } from '@src/services/wallets/BeaconWalletConnector';
 
 const ConnectModal = ({ onClose }: { onClose: () => void }) => {
   const config = useConfig();

@@ -142,9 +142,11 @@ const StakingModal = ({
             <div className="grow"></div>
             <div className="text-left text-xs text-low">
               {balances &&
-                `Available: ${remainingBalance >= 0
-                ? formatWithCommas(+remainingBalance)
-                : '-'} ${ticker}`}
+                `Available: ${
+                  remainingBalance >= 0
+                    ? formatWithCommas(+remainingBalance)
+                    : '-'
+                } ${ticker}`}
             </div>
           </div>
           <div className="mt-3 flex h-[3.25rem] items-center overflow-hidden rounded-md border border-grey-800">

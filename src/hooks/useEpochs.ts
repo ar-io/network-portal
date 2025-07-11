@@ -24,14 +24,16 @@ const useEpochs = () => {
           { length: HISTORICAL_EPOCHS_TO_FETCH },
           (_, index) => startEpoch.epochIndex - index - 1,
         ).map((epochIndex) =>
-          getEpoch(networkPortalDB, arIOReadSDK, epochIndex).then((epoch) => {
-            return epoch;
-          }).catch(() => {
-            showErrorToast(
-              `Unable to retrieve epoch data for epoch ${epochIndex}.`,
-            );
-            return undefined;
-          }),
+          getEpoch(networkPortalDB, arIOReadSDK, epochIndex)
+            .then((epoch) => {
+              return epoch;
+            })
+            .catch(() => {
+              showErrorToast(
+                `Unable to retrieve epoch data for epoch ${epochIndex}.`,
+              );
+              return undefined;
+            }),
         ),
       );
 

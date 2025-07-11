@@ -20,15 +20,15 @@ export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARIO_PROCESS_ID = new ArweaveTransactionID(
   import.meta.env.VITE_ARIO_PROCESS_ID ?? ARIO_DEVNET_PROCESS_ID,
 );
-export const AO_CU_URL = import.meta.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';
+export const AO_CU_URL =
+  import.meta.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';
 export const DEFAULT_ARWEAVE_PROTOCOL =
   import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
   import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net'; // TODO: likely should change to ar-io.net depending on how this is used throughout the app
 
 export const DEFAULT_ARWEAVE_GQL_ENDPOINT =
-  import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ??
-  'https://arweave.net/graphql';
+  import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ?? 'https://arweave.net/graphql';
 export const DEFAULT_ARWEAVE_PORT =
   Number(import.meta.env.VITE_GATEWAY_PORT) ?? 443;
 

@@ -54,7 +54,9 @@ const GatewaySelectorModal = ({
           gateway,
           label: gateway.settings.label,
           rewardShareRatio: gateway.settings.delegateRewardShareRatio,
-          totalStake: new mARIOToken(gateway.totalDelegatedStake).toARIO().valueOf(),
+          totalStake: new mARIOToken(gateway.totalDelegatedStake)
+            .toARIO()
+            .valueOf(),
           eay: calculateGatewayRewards(
             new mARIOToken(prototocolBalance).toARIO(),
             Object.values(totalGateways).filter((g) => g.status == 'joined')

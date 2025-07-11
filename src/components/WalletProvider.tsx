@@ -69,7 +69,7 @@ const WalletProvider = ({ children }: { children: ReactElement }) => {
 
   useEffect(() => {
     window.addEventListener('arweaveWalletLoaded', () => {
-      // remove listener to prevent to prevent multiple triggers since this should only fire once per session 
+      // remove listener to prevent to prevent multiple triggers since this should only fire once per session
       window.removeEventListener('arweaveWalletLoaded', updateIfConnected);
       updateIfConnected();
     });

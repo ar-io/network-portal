@@ -67,7 +67,7 @@ const ReportsTable = ({
               buttonType={ButtonType.SECONDARY}
               active={true}
               title="Download Report"
-              text={<Download className="size-4" strokeWidth={2}/>}
+              text={<Download className="size-4" strokeWidth={2} />}
               onClick={async (e) => {
                 e.stopPropagation();
                 const txid = row.original.txid;

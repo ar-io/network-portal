@@ -8,7 +8,10 @@ import { useEffect, useState } from 'react';
 import useGateways from './useGateways';
 import useProtocolBalance from './useProtocolBalance';
 
-const useRewardsInfo = (gateway: AoGateway | null | undefined, userStake: number) => {
+const useRewardsInfo = (
+  gateway: AoGateway | null | undefined,
+  userStake: number,
+) => {
   const { data: gateways } = useGateways();
   const { data: protocolBalance } = useProtocolBalance();
 

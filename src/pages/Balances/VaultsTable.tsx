@@ -33,7 +33,13 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   const { walletAddress: userWalletAddress } = useGlobalState();
 
   const [showRevokeVaultModal, setShowRevokeVaultModal] = useState<
-    { recipient: string; vaultId: string; balance: number; endTimestamp: number } | undefined
+    | {
+        recipient: string;
+        vaultId: string;
+        balance: number;
+        endTimestamp: number;
+      }
+    | undefined
   >();
 
   const userCanRevoke = useMemo(() => {
@@ -152,7 +158,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
                           recipient: walletAddress.toString(),
                           vaultId: row.original.vaultId,
                           balance: row.original.balance,
-                          endTimestamp: row.original.endTimestamp
+                          endTimestamp: row.original.endTimestamp,
                         });
                       }
                     }}

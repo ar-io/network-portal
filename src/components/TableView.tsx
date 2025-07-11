@@ -39,9 +39,7 @@ const TableView = <T, S>({
     onSortingChange: setSorting,
   });
 
-  const maxHeightRemClass = shortTable 
-    ? `max-h-[16rem]`
-    : undefined;
+  const maxHeightRemClass = shortTable ? `max-h-[16rem]` : undefined;
 
   return (
     <>

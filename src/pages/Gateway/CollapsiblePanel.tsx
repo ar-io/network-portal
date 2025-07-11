@@ -20,20 +20,20 @@ const CollapsiblePanel = ({
         className={`flex items-center gap-2 border-b border-grey-500 bg-containerL3 px-6 py-4 ${isOpen ? 'rounded-t-xl' : 'rounded-xl'}`}
       >
         <div className="grow">
-        {children ? (
-          <button className="flex gap-2" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? (
-              <Minus className="size-5" />
-            ) : (
-              <CirclePlus className="size-5" />
-            )}
-            <div>{title}</div>
-          </button>
-        ) : (
-          <div className="items-center whitespace-nowrap text-high">
-            {title}
-          </div>
-        )}
+          {children ? (
+            <button className="flex gap-2" onClick={() => setIsOpen(!isOpen)}>
+              {isOpen ? (
+                <Minus className="size-5" />
+              ) : (
+                <CirclePlus className="size-5" />
+              )}
+              <div>{title}</div>
+            </button>
+          ) : (
+            <div className="items-center whitespace-nowrap text-high">
+              {title}
+            </div>
+          )}
         </div>
         {titleRight}
       </div>

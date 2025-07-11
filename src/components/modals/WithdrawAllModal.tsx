@@ -2,13 +2,13 @@ import { AoGateway, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import BaseModal from './BaseModal';
-import WithdrawWarning from './WithdrawWarning';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
-import { useQueryClient } from '@tanstack/react-query';
+import WithdrawWarning from './WithdrawWarning';
 
 const WithdrawAllModal = ({
   onClose,

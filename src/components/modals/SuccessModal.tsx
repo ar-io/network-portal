@@ -19,7 +19,11 @@ const SuccessModal = ({
           <SuccessCheck className="size-8" />
         </div>
         <div className="pb-3 text-2xl text-high">{title}</div>
-        { typeof bodyText === 'string' ? <div className="pb-8 text-center  text-low">{bodyText}</div> : bodyText }
+        {typeof bodyText === 'string' ? (
+          <div className="pb-8 text-center  text-low">{bodyText}</div>
+        ) : (
+          bodyText
+        )}
         <div className="flex grow justify-center">
           <Button
             onClick={onClose}

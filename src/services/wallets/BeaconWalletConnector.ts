@@ -3,9 +3,9 @@ import WalletClient from '@vela-ventures/ao-sync-sdk';
 import { PermissionType } from 'arconnect';
 import { ApiConfig } from 'arweave/node/lib/api';
 
-import { NetworkPortalWalletConnector, WALLET_TYPES } from '../../types';
-import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
+import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
+import { NetworkPortalWalletConnector, WALLET_TYPES } from '../../types';
 
 export const BEACON_WALLET_PERMISSIONS: PermissionType[] = [
   'ACCESS_ADDRESS',

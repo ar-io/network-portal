@@ -152,12 +152,12 @@ const ObserversTable = () => {
       sortDescFirst: true,
       cell: ({ row }) => (
         <Tooltip
-            message={
-              <div>
-                <div>Observed Epochs: {row.original.observedEpochs}</div>
-                <div>Prescribed Epochs: {row.original.prescribedEpochs}</div>
-              </div>
-            }
+          message={
+            <div>
+              <div>Observed Epochs: {row.original.observedEpochs}</div>
+              <div>Prescribed Epochs: {row.original.prescribedEpochs}</div>
+            </div>
+          }
         >
           {`${(row.original.successRatio * 100).toFixed(2)}%`}
         </Tooltip>

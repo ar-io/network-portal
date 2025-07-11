@@ -28,9 +28,9 @@ export interface UserRewards {
  * @param protocolBalance - The total balance of the protocol.
  * @param totalGateways - The total number of active gateways.
  * @param gateway - The gateway to calculate rewards for.
- * @param operatorStake - The operator's stake in the gateway in mARIO. Note: not reading this 
- * from gateway object as the amount of operator stake for rewards can be different from 
- * the gateway object (e.g., when adding/reducing operator's stake and needing to show 
+ * @param operatorStake - The operator's stake in the gateway in mARIO. Note: not reading this
+ * from gateway object as the amount of operator stake for rewards can be different from
+ * the gateway object (e.g., when adding/reducing operator's stake and needing to show
  * user what the EAY will be.)
  */
 export const calculateOperatorRewards = (
@@ -77,7 +77,9 @@ export const calculateGatewayRewards = (
 
   const gatewayRewardShareRatio =
     gateway.settings.delegateRewardShareRatio / 100;
-  const totalDelegatedStake = new mARIOToken(gateway.totalDelegatedStake).toARIO();
+  const totalDelegatedStake = new mARIOToken(
+    gateway.totalDelegatedStake,
+  ).toARIO();
 
   const rewardsSharedPerEpoch = new ARIOToken(
     baseGatewayReward * gatewayRewardShareRatio,

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2025-07-11
+
+### Added
+
+- New Extension Marketplace page allowing users to browse, search, and filter gateway extensions with detailed information pages.
+
 ## [1.13.1] - 2025-06-25
 
 ### Fixed

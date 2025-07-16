@@ -1,9 +1,5 @@
 import Header from '@src/components/Header';
-import {
-  Extension,
-  ExtensionCategory,
-  ExtensionTag,
-} from '@src/types';
+import { Extension, ExtensionCategory, ExtensionTag } from '@src/types';
 import { getImageUrl } from '@src/utils/imageUtils';
 import {
   ArrowLeft,
@@ -50,7 +46,8 @@ const TAG_STYLES: Record<ExtensionTag, string> = {
     'bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end text-grey-1000 font-semibold',
   'grant-funded': 'bg-containerL3 text-streak-up border border-streak-up/20',
   community: 'bg-containerL3 text-high border border-grey-400',
-  official: 'bg-gradient-to-r from-gradient-primary-start/20 to-gradient-primary-end/20 text-high border border-gradient-primary-start/40',
+  official:
+    'bg-gradient-to-r from-gradient-primary-start/20 to-gradient-primary-end/20 text-high border border-gradient-primary-start/40',
   beta: 'bg-containerL3 text-mid border border-grey-500 italic',
   stable: 'bg-containerL3 text-high border border-grey-400',
 };
@@ -277,7 +274,7 @@ export default function ExtensionDetail({
                       Minimum Gateway Version
                     </dt>
                     <dd className="mt-1 text-sm text-mid">
-                      v{extension.minGatewayVersion}
+                      {extension.minGatewayVersion}
                     </dd>
                   </div>
                 )}

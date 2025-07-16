@@ -8,11 +8,13 @@
 export function getExtensionsDataUrl(): string {
   const hostname = window.location.hostname;
 
-  // For localhost or network-portal.app, use extensions_gateways.ar.io
+  // For localhost, network-portal.app, or Firebase preview URLs, use extensions_gateways.ar.io
   if (
     hostname === 'localhost' ||
     hostname === '127.0.0.1' ||
-    hostname.includes('network-portal.app')
+    hostname.includes('network-portal.app') ||
+    hostname.includes('.web.app') ||
+    hostname.includes('.firebaseapp.com')
   ) {
     return 'https://extensions_gateways.ar.io/';
   }

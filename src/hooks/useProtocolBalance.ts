@@ -1,9 +1,9 @@
-import { useGlobalState } from '@src/store';
+import { useGlobalState, useSettings } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 const useProtocolBalance = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const arioProcessId = useGlobalState((state) => state.arioProcessId);
+  const arioProcessId = useSettings((state) => state.arioProcessId);
 
   const queryResults = useQuery({
     queryKey: ['protocolBalance', arioProcessId, arIOReadSDK],

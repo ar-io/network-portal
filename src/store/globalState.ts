@@ -8,9 +8,6 @@ import {
 } from '@ar.io/sdk/web';
 import { connect } from '@permaweb/aoconnect';
 import {
-  AO_CU_URL,
-  ARIO_PROCESS_ID,
-  DEFAULT_ARWEAVE_GQL_ENDPOINT,
   DEFAULT_ARWEAVE_HOST,
   DEFAULT_ARWEAVE_PORT,
   DEFAULT_ARWEAVE_PROTOCOL,
@@ -20,6 +17,7 @@ import { AoAddress, NetworkPortalWalletConnector } from '@src/types';
 import Arweave from 'arweave/web';
 import { create } from 'zustand';
 import { createDb, NetworkPortalDB } from './db';
+import { useSettings } from './settings';
 
 type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];
 
@@ -35,11 +33,8 @@ type GlobalState = {
   walletStateInitialized: boolean;
   ticker: string;
   aoCongested: boolean;
-  arioProcessId: string;
   contractSigner?: ContractSigner;
   networkPortalDB: NetworkPortalDB;
-  aoCuUrl: string;
-  arweaveGqlUrl: string;
 };
 
 type GlobalStateActions = {
@@ -54,9 +49,6 @@ type GlobalStateActions = {
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
   setAoCongested: (congested: boolean) => void;
-  setArioProcessId: (processId: string) => void;
-  setAoCuUrl: (cuUrl: string) => void;
-  setArweaveGqlUrl: (url: string) => void;
 };
 
 const initialGlobalState: GlobalState = {
@@ -68,25 +60,93 @@ const initialGlobalState: GlobalState = {
   }),
   arIOReadSDK: ARIO.init({
     process: new AOProcess({
-      processId: ARIO_PROCESS_ID.toString(),
+      processId: useSettings.getState().arioProcessId,
       ao: connect({
-        CU_URL: AO_CU_URL,
+        CU_URL: useSettings.getState().aoCuUrl,
       }),
     }),
   }),
   walletStateInitialized: false,
   ticker: '',
   aoCongested: false,
-  arioProcessId: ARIO_PROCESS_ID.toString(),
-  networkPortalDB: createDb(ARIO_PROCESS_ID.toString()),
-  aoCuUrl: AO_CU_URL,
-  arweaveGqlUrl: DEFAULT_ARWEAVE_GQL_ENDPOINT,
+  networkPortalDB: createDb(useSettings.getState().arioProcessId),
 };
+
+const makeArIOReadSDK = ({
+  aoCuUrl,
+  arioProcessId,
+}: {
+  aoCuUrl: string;
+  arioProcessId: string;
+}) => {
+  return ARIO.init({
+    process: new AOProcess({
+      processId: arioProcessId,
+      ao: connect({
+        CU_URL: aoCuUrl,
+      }),
+    }),
+  });
+};
+
+const makeArIOWriteSDK = ({
+  aoCuUrl,
+  arioProcessId,
+  contractSigner,
+}: {
+  aoCuUrl: string;
+  arioProcessId: string;
+  contractSigner?: ContractSigner;
+}) => {
+  if (!contractSigner) return undefined;
+  return ARIO.init({
+    signer: contractSigner,
+    process: new AOProcess({
+      processId: arioProcessId,
+      ao: connect({
+        CU_URL: aoCuUrl,
+      }),
+    }),
+  });
+};
+
 class GlobalStateActionBase implements GlobalStateActions {
   constructor(
     private set: (props: Partial<GlobalState>, replace?: boolean) => void,
-    private get: () => GlobalStateInterface,
-  ) {}
+    get: () => GlobalStateInterface,
+  ) {
+    /* Subscribe to changes in the Settings store.
+     * If/When: The user changes the AO CU URL or the AR.IO Process in the SettingsModal,
+     * Then: Reinstantiate the AR.IO read and write SDKs.
+     */
+    useSettings.subscribe(
+      ({ aoCuUrl, arioProcessId }) => ({ aoCuUrl, arioProcessId }),
+      ({ aoCuUrl, arioProcessId }) => {
+        const { contractSigner } = get();
+        const arIOReadSDK = makeArIOReadSDK({ aoCuUrl, arioProcessId });
+        const arIOWriteableSDK = makeArIOWriteSDK({
+          aoCuUrl,
+          arioProcessId,
+          contractSigner,
+        });
+        set({ arIOReadSDK, arIOWriteableSDK });
+      },
+    );
+    /* Subscribe to changes in the Settings store.
+     * If/When: The user changes the AR.IO Process in the SettingsModal,
+     * Then: Close and re-open the Dexie (IndexedDB) database.
+     */
+    useSettings.subscribe(
+      ({ arioProcessId }) => arioProcessId,
+      (arioProcessId) => {
+        const currentEpoch = undefined;
+        let { networkPortalDB } = get();
+        networkPortalDB.close();
+        networkPortalDB = createDb(arioProcessId);
+        set({ currentEpoch, networkPortalDB });
+      },
+    );
+  }
 
   setTheme = (theme: ThemeType) => {
     this.set({ theme });
@@ -121,71 +181,14 @@ class GlobalStateActionBase implements GlobalStateActions {
     this.set({ aoCongested: congested });
   };
 
-  setArioProcessId = (processId: string) => {
-    this.get().networkPortalDB.close();
-
-    this.set({
-      arioProcessId: processId,
-      currentEpoch: undefined,
-      arIOReadSDK: ARIO.init({
-        process: new AOProcess({
-          processId: processId,
-          ao: connect({
-            CU_URL: this.get().aoCuUrl,
-          }),
-        }),
-      }),
-      networkPortalDB: createDb(processId),
+  setContractSigner = (contractSigner?: ContractSigner) => {
+    const { aoCuUrl, arioProcessId } = useSettings.getState();
+    const arIOWriteableSDK = makeArIOWriteSDK({
+      aoCuUrl,
+      arioProcessId,
+      contractSigner,
     });
-    this.setContractSigner(this.get().contractSigner);
-  };
-
-  setContractSigner = (signer?: ContractSigner) => {
-    this.set({
-      contractSigner: signer,
-      arIOWriteableSDK: signer
-        ? ARIO.init({
-            signer,
-            process: new AOProcess({
-              processId: this.get().arioProcessId,
-              ao: connect({
-                CU_URL: this.get().aoCuUrl,
-              }),
-            }),
-          })
-        : undefined,
-    });
-  };
-
-  setAoCuUrl = (aoCuUrl: string) => {
-    const signer = this.get().contractSigner;
-
-    this.set({
-      aoCuUrl: aoCuUrl,
-      arIOReadSDK: ARIO.init({
-        process: new AOProcess({
-          processId: this.get().arioProcessId,
-          ao: connect({
-            CU_URL: aoCuUrl,
-          }),
-        }),
-      }),
-      arIOWriteableSDK: signer
-        ? ARIO.init({
-            signer,
-            process: new AOProcess({
-              processId: this.get().arioProcessId,
-              ao: connect({
-                CU_URL: aoCuUrl,
-              }),
-            }),
-          })
-        : undefined,
-    });
-  };
-
-  setArweaveGqlUrl = (url: string) => {
-    this.set({ arweaveGqlUrl: url });
+    this.set({ contractSigner, arIOWriteableSDK });
   };
 }
 

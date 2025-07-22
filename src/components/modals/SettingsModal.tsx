@@ -4,22 +4,19 @@ import {
   ARIO_TESTNET_PROCESS_ID,
 } from '@ar.io/sdk/web';
 import { AO_CU_URL, DEFAULT_ARWEAVE_GQL_ENDPOINT } from '@src/constants';
-import { useGlobalState } from '@src/store';
+import { updateSettings, useSettings } from '@src/store';
 import { useState } from 'react';
 import CopyButton from '../CopyButton';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
-  const arioProcessId = useGlobalState((state) => state.arioProcessId);
-  const setArioProcessId = useGlobalState((state) => state.setArioProcessId);
+  const arioProcessId = useSettings((state) => state.arioProcessId);
   const isDevnet = arioProcessId == ARIO_DEVNET_PROCESS_ID;
   const isTestnet = arioProcessId == ARIO_TESTNET_PROCESS_ID;
   const isMainnet = arioProcessId == ARIO_MAINNET_PROCESS_ID;
-  const aoCuUrl = useGlobalState((state) => state.aoCuUrl);
-  const setAoCuUrl = useGlobalState((state) => state.setAoCuUrl);
-  const arweaveGqlUrl = useGlobalState((state) => state.arweaveGqlUrl);
-  const setArweaveGqlUrl = useGlobalState((state) => state.setArweaveGqlUrl);
+  const aoCuUrl = useSettings((state) => state.aoCuUrl);
+  const arweaveGqlUrl = useSettings((state) => state.arweaveGqlUrl);
 
   const [localCuUrl, setLocalCuUrl] = useState(aoCuUrl);
   const [localGqlUrl, setLocalGqlUrl] = useState(arweaveGqlUrl);
@@ -38,7 +35,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   className={`rounded-l border border-grey-500 px-4 py-2 ${isDevnet ? 'bg-streak-up text-containerL0' : undefined}`}
                   disabled={isDevnet}
                   onClick={() => {
-                    setArioProcessId(ARIO_DEVNET_PROCESS_ID);
+                    updateSettings({ arioProcessId: ARIO_DEVNET_PROCESS_ID });
                   }}
                 >
                   Devnet
@@ -47,7 +44,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   className={`border border-grey-500 px-4 py-2 ${isTestnet ? 'bg-streak-up text-containerL0' : undefined}`}
                   disabled={isTestnet}
                   onClick={() => {
-                    setArioProcessId(ARIO_TESTNET_PROCESS_ID);
+                    updateSettings({ arioProcessId: ARIO_TESTNET_PROCESS_ID });
                   }}
                 >
                   Testnet
@@ -57,7 +54,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   className={`rounded-r border border-grey-500 px-4 py-2 ${isMainnet ? 'bg-streak-up text-containerL0' : undefined}`}
                   disabled={isMainnet}
                   onClick={() => {
-                    setArioProcessId(ARIO_MAINNET_PROCESS_ID);
+                    updateSettings({ arioProcessId: ARIO_MAINNET_PROCESS_ID });
                   }}
                 >
                   Mainnet
@@ -71,7 +68,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                 className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
                 onChange={(e) => {
                   if (e.target.value.length !== 43) return;
-                  setArioProcessId(e.target.value);
+                  updateSettings({ arioProcessId: e.target.value });
                 }}
               />
               <CopyButton textToCopy={arioProcessId} />
@@ -111,7 +108,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
               <button
                 className={`rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low`}
                 onClick={() => {
-                  setAoCuUrl(localCuUrl);
+                  updateSettings({ aoCuUrl: localCuUrl });
                 }}
                 disabled={localCuUrl === aoCuUrl}
               >
@@ -146,7 +143,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
               <button
                 className={`rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low`}
                 onClick={() => {
-                  setArweaveGqlUrl(localGqlUrl);
+                  updateSettings({ arweaveGqlUrl: localGqlUrl });
                 }}
                 disabled={localGqlUrl === arweaveGqlUrl}
               >

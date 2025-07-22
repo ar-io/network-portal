@@ -7,7 +7,7 @@ import MarkdownModal from '@src/components/modals/MarkdownModal';
 import changeLog from '../../CHANGELOG.md?raw';
 
 import SettingsModal from '@src/components/modals/SettingsModal';
-import { useGlobalState } from '@src/store';
+import { useSettings } from '@src/store';
 import { HandCoins, Puzzle, Settings } from 'lucide-react';
 import {
   ArioLogoIcon,
@@ -67,7 +67,7 @@ const Sidebar = () => {
     const storedValue = localStorage.getItem('sidebarOpen');
     return storedValue == null ? true : JSON.parse(storedValue);
   });
-  const arioProcessId = useGlobalState((state) => state.arioProcessId);
+  const arioProcessId = useSettings((state) => state.arioProcessId);
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);

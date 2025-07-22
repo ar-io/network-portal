@@ -21,9 +21,9 @@ import Arweave from 'arweave/web';
 import { create } from 'zustand';
 import { createDb, NetworkPortalDB } from './db';
 
-export type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];
+type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];
 
-export type GlobalState = {
+type GlobalState = {
   theme: ThemeType;
   arweave: Arweave;
   arIOReadSDK: AoARIORead;
@@ -42,7 +42,7 @@ export type GlobalState = {
   arweaveGqlUrl: string;
 };
 
-export type GlobalStateActions = {
+type GlobalStateActions = {
   setTheme: (theme: ThemeType) => void;
   setBlockHeight: (blockHeight: number) => void;
   setCurrentEpoch: (currentEpoch: AoEpochData) => void;
@@ -59,7 +59,7 @@ export type GlobalStateActions = {
   setArweaveGqlUrl: (url: string) => void;
 };
 
-export const initialGlobalState: GlobalState = {
+const initialGlobalState: GlobalState = {
   theme: THEME_TYPES.DARK,
   arweave: Arweave.init({
     host: DEFAULT_ARWEAVE_HOST,
@@ -82,12 +82,12 @@ export const initialGlobalState: GlobalState = {
   aoCuUrl: AO_CU_URL,
   arweaveGqlUrl: DEFAULT_ARWEAVE_GQL_ENDPOINT,
 };
-export class GlobalStateActionBase implements GlobalStateActions {
+class GlobalStateActionBase implements GlobalStateActions {
   constructor(
-    private set: (props: any, replace?: boolean) => void,
+    private set: (props: Partial<GlobalState>, replace?: boolean) => void,
     private get: () => GlobalStateInterface,
-    private initialGlobalState: GlobalState,
   ) {}
+
   setTheme = (theme: ThemeType) => {
     this.set({ theme });
     // disabling as this should not be done in the store
@@ -162,7 +162,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
 
     this.set({
       aoCuUrl: aoCuUrl,
-      arIoReadSDK: ARIO.init({
+      arIOReadSDK: ARIO.init({
         process: new AOProcess({
           processId: this.get().arioProcessId,
           ao: connect({
@@ -170,7 +170,7 @@ export class GlobalStateActionBase implements GlobalStateActions {
           }),
         }),
       }),
-      arIoWriteableSDK: signer
+      arIOWriteableSDK: signer
         ? ARIO.init({
             signer,
             process: new AOProcess({
@@ -189,8 +189,8 @@ export class GlobalStateActionBase implements GlobalStateActions {
   };
 }
 
-export interface GlobalStateInterface extends GlobalState, GlobalStateActions {}
+interface GlobalStateInterface extends GlobalState, GlobalStateActions {}
 export const useGlobalState = create<GlobalStateInterface>()((set, get) => ({
   ...initialGlobalState,
-  ...new GlobalStateActionBase(set, get, initialGlobalState),
+  ...new GlobalStateActionBase(set, get),
 }));

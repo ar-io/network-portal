@@ -1,5 +1,5 @@
 import { APP_VERSION, ARIO_DOCS_URL } from '@src/constants';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Button from '@src/components/Button';
@@ -7,7 +7,7 @@ import MarkdownModal from '@src/components/modals/MarkdownModal';
 import changeLog from '../../CHANGELOG.md?raw';
 
 import SettingsModal from '@src/components/modals/SettingsModal';
-import { useSettings } from '@src/store';
+import { updateSettings, useSettings } from '@src/store';
 import { HandCoins, Puzzle, Settings } from 'lucide-react';
 import {
   ArioLogoIcon,
@@ -63,10 +63,7 @@ const FORMATTED_CHANGELOG = changeLog
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
-    const storedValue = localStorage.getItem('sidebarOpen');
-    return storedValue == null ? true : JSON.parse(storedValue);
-  });
+  const sidebarOpen = useSettings((state) => state.sidebarOpen);
   const arioProcessId = useSettings((state) => state.arioProcessId);
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
@@ -91,10 +88,6 @@ const Sidebar = () => {
       },
     },
   ];
-
-  useEffect(() => {
-    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
-  }, [sidebarOpen]);
 
   const sideBarClasses = `flex h-full w-fit flex-col p-6
   dark:bg-grey-1000 dark:text-mid`;
@@ -164,7 +157,7 @@ const Sidebar = () => {
               v{APP_VERSION}-{import.meta.env.VITE_GITHUB_HASH?.slice(0, 6)}
             </button>
           )}
-          <button onClick={() => setSidebarOpen(!sidebarOpen)}>
+          <button onClick={() => updateSettings({ sidebarOpen: !sidebarOpen })}>
             {sidebarOpen ? (
               <CloseDrawerIcon className="size-5" />
             ) : (

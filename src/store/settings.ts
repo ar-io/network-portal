@@ -10,6 +10,7 @@ type Settings = {
   aoCuUrl: string;
   arioProcessId: string;
   arweaveGqlUrl: string;
+  sidebarOpen: boolean;
 };
 
 export const useSettings = create<Settings>()(
@@ -19,6 +20,7 @@ export const useSettings = create<Settings>()(
         aoCuUrl: AO_CU_URL,
         arioProcessId: ARIO_PROCESS_ID.toString(),
         arweaveGqlUrl: DEFAULT_ARWEAVE_GQL_ENDPOINT,
+        sidebarOpen: true as boolean,
       }),
       { name: 'settings' },
     ),

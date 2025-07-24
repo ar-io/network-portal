@@ -16,6 +16,7 @@ import {
 import { AoAddress, NetworkPortalWalletConnector } from '@src/types';
 import Arweave from 'arweave/web';
 import { create } from 'zustand';
+import { shallow } from 'zustand/shallow';
 import { createDb, NetworkPortalDB } from './db';
 import { useSettings } from './settings';
 
@@ -131,6 +132,7 @@ class GlobalStateActionBase implements GlobalStateActions {
         });
         set({ arIOReadSDK, arIOWriteableSDK });
       },
+      { equalityFn: shallow },
     );
     /* Subscribe to changes in the Settings store.
      * If/When: The user changes the AR.IO Process in the SettingsModal,

@@ -120,8 +120,8 @@ class GlobalStateActionBase implements GlobalStateActions {
      * Then: Reinstantiate the AR.IO read and write SDKs.
      */
     useSettings.subscribe(
-      ({ aoCuUrl, arioProcessId }) => ({ aoCuUrl, arioProcessId }),
-      ({ aoCuUrl, arioProcessId }) => {
+      (state) => [state.aoCuUrl, state.arioProcessId],
+      ([aoCuUrl, arioProcessId]) => {
         const { contractSigner } = get();
         const arIOReadSDK = makeArIOReadSDK({ aoCuUrl, arioProcessId });
         const arIOWriteableSDK = makeArIOWriteSDK({
@@ -137,7 +137,7 @@ class GlobalStateActionBase implements GlobalStateActions {
      * Then: Close and re-open the Dexie (IndexedDB) database.
      */
     useSettings.subscribe(
-      ({ arioProcessId }) => arioProcessId,
+      (state) => state.arioProcessId,
       (arioProcessId) => {
         const currentEpoch = undefined;
         let { networkPortalDB } = get();

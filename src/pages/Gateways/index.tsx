@@ -199,23 +199,31 @@ const Gateways = () => {
   ); // Only recalculate when ticker changes
 
   return (
-    <div className="flex max-w-full flex-col gap-6">
-      <Header />
-      <Banner />
-      <div className="mb-8">
-        <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
-          <div className="grow text-sm text-mid">Gateways</div>
+    <div className="flex h-full max-w-full flex-col">
+      <div className="mb-6 flex shrink-0 flex-col gap-6">
+        <Header />
+        <Banner />
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto">
+          <div className="pt-0">
+            <div className="mb-8">
+              <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
+                <div className="grow text-sm text-mid">Gateways</div>
+              </div>
+              <TableView
+                columns={columns}
+                data={tableData}
+                defaultSortingState={{ id: 'totalStake', desc: true }}
+                isLoading={isLoading}
+                noDataFoundText="Unable to fetch gateways."
+                onRowClick={(row) => {
+                  navigate(`/gateways/${row.owner}`);
+                }}
+              />
+            </div>
+          </div>
         </div>
-        <TableView
-          columns={columns}
-          data={tableData}
-          defaultSortingState={{ id: 'totalStake', desc: true }}
-          isLoading={isLoading}
-          noDataFoundText="Unable to fetch gateways."
-          onRowClick={(row) => {
-            navigate(`/gateways/${row.owner}`);
-          }}
-        />
       </div>
     </div>
   );

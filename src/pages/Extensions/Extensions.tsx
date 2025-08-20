@@ -1,9 +1,5 @@
 import Header from '@src/components/Header';
-import {
-  Extension,
-  ExtensionCategory,
-  ExtensionTag,
-} from '@src/types';
+import { Extension, ExtensionCategory, ExtensionTag } from '@src/types';
 import { fetchExtensionsData } from '@src/utils/extensionsLoader';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, ExternalLink, Search } from 'lucide-react';
@@ -40,7 +36,8 @@ const TAG_STYLES: Record<ExtensionTag, string> = {
     'bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end text-grey-1000 font-semibold',
   'grant-funded': 'bg-containerL3 text-streak-up border border-streak-up/20',
   community: 'bg-containerL3 text-high border border-grey-400',
-  official: 'bg-gradient-to-r from-gradient-primary-start/20 to-gradient-primary-end/20 text-high border border-gradient-primary-start/40',
+  official:
+    'bg-gradient-to-r from-gradient-primary-start/20 to-gradient-primary-end/20 text-high border border-gradient-primary-start/40',
   beta: 'bg-containerL3 text-mid border border-grey-500 italic',
   stable: 'bg-containerL3 text-high border border-grey-400',
 };
@@ -54,7 +51,11 @@ export default function Extensions() {
   const selectedExtensionId = searchParams.get('id');
 
   // Use React Query for caching extensions data
-  const { data: extensionsData, isLoading, error } = useQuery({
+  const {
+    data: extensionsData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['extensions'],
     queryFn: fetchExtensionsData,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
@@ -74,8 +75,7 @@ export default function Extensions() {
     if (ext.category && !CATEGORY_LABELS[ext.category as ExtensionCategory]) {
       const category = ext.category.trim();
       dynamicCategories[category] =
-        category.charAt(0).toUpperCase() +
-        category.slice(1).replace(/-/g, ' ');
+        category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, ' ');
     }
 
     // Validate and add tags if not in predefined list
@@ -131,10 +131,12 @@ export default function Extensions() {
   }
 
   return (
-    <div className="flex max-w-full flex-col gap-6">
-      <Header />
+    <div className="flex max-h-full max-w-full flex-col gap-6">
+      <div className="shrink-0">
+        <Header />
+      </div>
 
-      <div className="mb-8">
+      <div className="mb-8 flex flex-1 flex-col overflow-hidden">
         <div className="flex w-full items-center justify-between rounded-t-xl border border-grey-600 bg-containerL3 px-6 py-[0.9375rem]">
           <div className="grow">
             <div className="text-sm text-high">Gateway Extensions</div>
@@ -158,7 +160,7 @@ export default function Extensions() {
           </button>
         </div>
 
-        <div className="rounded-b-xl border-x border-b border-grey-600 bg-containerL0 p-6">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-b-xl border-x border-b border-grey-600 bg-containerL0 p-6">
           <div className="mb-6 flex flex-col gap-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="relative w-full lg:max-w-md">
@@ -215,8 +217,12 @@ export default function Extensions() {
           ) : error ? (
             <div className="flex h-64 items-center justify-center">
               <div className="text-center">
-                <div className="text-lg text-mid">Failed to load extensions</div>
-                <div className="mt-2 text-sm text-low">Unable to load extensions. Please try again later.</div>
+                <div className="text-lg text-mid">
+                  Failed to load extensions
+                </div>
+                <div className="mt-2 text-sm text-low">
+                  Unable to load extensions. Please try again later.
+                </div>
               </div>
             </div>
           ) : filteredExtensions.length === 0 ? (
@@ -229,25 +235,27 @@ export default function Extensions() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-              {filteredExtensions.map((extension) => (
-                <ExtensionCard
-                  key={extension.id}
-                  extension={extension}
-                  onClick={() => handleExtensionClick(extension.id)}
-                  tagStyles={{
-                    ...TAG_STYLES,
-                    ...Object.fromEntries(
-                      Object.keys(dynamicTags).map((tag) => [
-                        tag,
-                        'bg-containerL3 text-mid border border-grey-500',
-                      ]),
-                    ),
-                  }}
-                  tagLabels={allTags}
-                  categoryLabels={allCategories}
-                />
-              ))}
+            <div className="grow overflow-y-auto scrollbar">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                {filteredExtensions.map((extension) => (
+                  <ExtensionCard
+                    key={extension.id}
+                    extension={extension}
+                    onClick={() => handleExtensionClick(extension.id)}
+                    tagStyles={{
+                      ...TAG_STYLES,
+                      ...Object.fromEntries(
+                        Object.keys(dynamicTags).map((tag) => [
+                          tag,
+                          'bg-containerL3 text-mid border border-grey-500',
+                        ]),
+                      ),
+                    }}
+                    tagLabels={allTags}
+                    categoryLabels={allCategories}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>

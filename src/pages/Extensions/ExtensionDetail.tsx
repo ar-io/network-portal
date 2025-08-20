@@ -73,10 +73,12 @@ export default function ExtensionDetail({
   const isGithubUrl = extension.url.includes('github.com');
 
   return (
-    <div className="flex max-w-full flex-col gap-6">
-      <Header />
+    <div className="flex h-full max-w-full flex-col gap-6">
+      <div className="shrink-0">
+        <Header />
+      </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex shrink-0 items-center gap-4">
         <button
           onClick={onClose}
           className="flex items-center gap-2 text-sm text-mid transition-colors hover:text-high"
@@ -86,7 +88,7 @@ export default function ExtensionDetail({
         </button>
       </div>
 
-      <div className="mb-8 rounded-xl border border-grey-500 bg-containerL0 p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 flex-1 overflow-y-auto rounded-xl border border-grey-500 bg-containerL0 p-4 scrollbar sm:p-6 lg:p-8">
         <div className="mb-6">
           <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row">

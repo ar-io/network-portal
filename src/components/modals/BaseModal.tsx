@@ -31,7 +31,10 @@ const BaseModal = ({
           className={`relative flex max-h-full flex-col items-stretch rounded-xl bg-[#111112] ${useDefaultPadding ? 'p-8' : ''} border border-stroke-low text-center text-grey-100`}
         >
           {showCloseButton && (
-            <button className="absolute -right-7 top-0" onClick={onClose}>
+            <button
+              className="absolute -top-7 right-0 lg:-right-7 lg:top-0"
+              onClick={onClose}
+            >
               <CloseIcon className="size-5" />
             </button>
           )}

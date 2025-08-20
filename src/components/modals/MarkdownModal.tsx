@@ -12,7 +12,7 @@ const MarkdownModal = ({
 }) => {
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
-      <div className="h-[32rem] w-[28.4375rem] text-left">
+      <div className="h-[32rem] w-full text-left lg:w-[28.4375rem]">
         <div className="flex  size-full flex-col px-8 pb-4 pt-6">
           <div className="text-lg text-high">{title}</div>
 

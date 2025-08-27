@@ -91,7 +91,11 @@ const GatewayAssessmentsTable = ({
       id: 'overallResult',
       header: 'Overall Result',
       sortDescFirst: false,
-      cell: ({ row }) => <Bubble value={row.original.overallResult} />,
+      cell: ({ row }) => (
+        <div className="pr-6">
+          <Bubble value={row.original.overallResult} />
+        </div>
+      ),
     }),
   ];
 

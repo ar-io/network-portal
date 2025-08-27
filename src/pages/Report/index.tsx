@@ -16,13 +16,20 @@ const Report = () => {
   const { isLoading, data: reportData } = useReport(reportId);
 
   return (
-    <div className="flex max-w-full flex-col gap-6 overflow-auto">
+    <div className="flex h-full max-w-full flex-col gap-6">
       <ReportHeader gateway={gateway} reportData={reportData} />
-      {isLoading || !reportData ? undefined : reportData ? (
-        <GatewayAssessmentsTable gateway={gateway} reportData={reportData} />
-      ) : (
-        <div>Unable to find report with ID {reportId}.</div>
-      )}
+      <div className="flex-1 overflow-hidden">
+        {isLoading || !reportData ? undefined : reportData ? (
+          <div className="h-full overflow-y-auto scrollbar">
+            <GatewayAssessmentsTable
+              gateway={gateway}
+              reportData={reportData}
+            />
+          </div>
+        ) : (
+          <div>Unable to find report with ID {reportId}.</div>
+        )}
+      </div>
     </div>
   );
 };

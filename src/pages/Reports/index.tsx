@@ -15,13 +15,17 @@ const Reports = () => {
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
 
   return (
-    <div className="flex max-w-full flex-col gap-6 overflow-auto pb-6">
+    <div className="flex h-full max-w-full flex-col gap-6 pb-6">
       <ReportsHeader gateway={gateway} />
-      {isLoading || !currentEpoch ? undefined : ownerId && gateway ? (
-        <ReportsTable ownerId={ownerId} gateway={gateway} />
-      ) : (
-        <div>Unable to find gateway with owner ID {ownerId}.</div>
-      )}
+      <div className="flex-1 overflow-hidden">
+        {isLoading || !currentEpoch ? undefined : ownerId && gateway ? (
+          <div className="h-full overflow-y-auto scrollbar">
+            <ReportsTable ownerId={ownerId} gateway={gateway} />
+          </div>
+        ) : (
+          <div>Unable to find gateway with owner ID {ownerId}.</div>
+        )}
+      </div>
     </div>
   );
 };

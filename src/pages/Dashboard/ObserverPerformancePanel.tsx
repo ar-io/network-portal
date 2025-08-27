@@ -15,7 +15,7 @@ const ObserverPerformancePanel = () => {
     : undefined;
 
   return (
-    <div className="flex min-w-[22rem] flex-col rounded-xl border border-grey-500 px-6 py-5">
+    <div className="flex flex-col rounded-xl border border-grey-500 px-6 py-5 lg:min-w-[22rem]">
       <div className="flex w-full items-center">
         <div className="grow text-sm text-mid">Observer Performance</div>
         <Button

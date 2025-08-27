@@ -227,7 +227,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <BaseModal onClose={closeDialog}>
-      <div className="w-[42.5rem] text-left">
+      <div className="w-[calc(100vw-2rem)] text-left lg:w-[42.5rem]">
         <div className="pb-3 text-2xl text-high">Start Gateway</div>
         <div className="flex text-sm text-low">
           Owner ID:&nbsp;

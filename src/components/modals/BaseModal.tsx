@@ -19,7 +19,7 @@ const BaseModal = ({
     <Dialog
       open={true}
       onClose={closeOnClickOutside ? onClose : () => {}}
-      className="relative z-10"
+      className="relative z-50"
     >
       <div
         className="fixed inset-0 w-screen bg-neutrals-1100/80"

@@ -68,7 +68,7 @@ const CancelWithdrawalModal = ({
   return (
     <>
       <BaseModal onClose={onClose} useDefaultPadding={false}>
-        <div className="w-[28.4375rem] text-left">
+        <div className="w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
           <div className="px-8  pb-4 pt-6">
             <div className="text-lg text-high">Cancel Pending Withdrawal</div>
           </div>
@@ -130,7 +130,7 @@ const CancelWithdrawalModal = ({
               <div className="my-2 flex flex-col justify-center gap-2">
                 <div>Transaction ID:</div>
                 <button
-                  className="flex items-center justify-center"
+                  className="flex items-center justify-center break-all"
                   title="View transaction on ao.link"
                   onClick={async () => {
                     window.open(`https://ao.link/#/message/${txid}`, '_blank');

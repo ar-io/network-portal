@@ -23,7 +23,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
-      <div className="h-[32rem] w-[28.4375rem] text-left">
+      <div className="h-[32rem] w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
         <div className="flex w-full flex-col px-8 pb-4 pt-6">
           <div className="text-lg text-high">Settings</div>
 

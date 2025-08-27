@@ -11,7 +11,7 @@ const BlockingMessageModal = ({
 }) => {
   return (
     <BaseModal onClose={onClose} showCloseButton={false}>
-      <div className="flex w-[24.5rem] flex-col items-center justify-center">
+      <div className="flex max-w-[calc(100vw-2rem)] flex-col items-center justify-center lg:w-[24.5rem]">
         <div className="flex size-[4.5rem] items-center pb-4">
           <Lottie
             animationData={arioLoading}

@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 
 const InfoSection = ({ label, value }: { label: string; value?: string }) => {
   return (
-    <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r px-12 text-left dark:border-transparent-100-8">
+    <div className="inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 px-12 text-left lg:border-r dark:border-transparent-100-8">
       <div className="pt-1 text-xs leading-none text-low">{label}</div>
       <div className="text-nowrap text-xs text-mid">
         {value !== undefined ? value : <Placeholder className="w-12" />}
@@ -163,8 +163,8 @@ const Banner = ({
           </button>
         </div>
       ) : (
-        <div className="relative h-[7.5rem] w-full overflow-hidden rounded-xl border border-grey-800">
-          <div className="absolute top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle">
+        <div className="relative min-h-fit w-full overflow-hidden rounded-xl border border-grey-800 lg:h-[7.5rem]">
+          <div className="top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle">
             {showActions && (
               <div className="absolute right-4">
                 <DropdownMenu.Root>
@@ -204,7 +204,7 @@ const Banner = ({
                 ${ticker} Balances
               </div>
             </div>
-            <div className="mt-3 flex pl-1.5">
+            <div className="mt-3 grid grid-cols-2 pl-1.5 lg:flex lg:flex-row">
               {myBalances.map((balance, i) => (
                 <InfoSection
                   key={i}

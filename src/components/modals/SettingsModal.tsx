@@ -28,7 +28,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
           <div className="text-lg text-high">Settings</div>
 
           <div className="my-2 grow overflow-y-auto text-sm text-mid scrollbar">
-            <div className="flex items-center">
+            <div className="flex flex-col items-center gap-2 lg:flex-row">
               <div className="grow">AR.IO Process</div>
               <div className="grid grid-cols-3">
                 <button

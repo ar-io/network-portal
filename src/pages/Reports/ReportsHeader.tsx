@@ -10,7 +10,7 @@ const ReportsHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
   const ownerId = params?.ownerId;
 
   return (
-    <header className="mt-6 flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
+    <header className="mt-6 flex-col text-clip rounded-xl leading-[1.4] lg:border dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
       <div className="flex items-center gap-3 py-5 pl-6 pr-4 text-sm">
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
@@ -23,14 +23,17 @@ const ReportsHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
         ) : (
           <Placeholder />
         )}
-        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
-        <div>Reports</div>
+        <ChevronRightIcon
+          className="hidden size-4 text-mid md:block"
+          strokeWidth={1.5}
+        />
+        <div className="hidden md:block">Reports</div>
         <div className="grow" />
         <div className="items-center">
           <Profile />
         </div>
       </div>
-      <div className="flex items-center gap-3 rounded-b-xl bg-grey-900 py-5 pl-6">
+      <div className="flex items-center gap-3 rounded-xl bg-grey-900 py-5 pl-6 lg:rounded-t-none">
         <NotebookText className="size-4 text-mid" strokeWidth={1.5} />
         {gateway ? (
           <div className="text-high">{gateway.settings.label}</div>

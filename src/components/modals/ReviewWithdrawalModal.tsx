@@ -127,7 +127,7 @@ const ReviewWithdrawalModal = ({
         useDefaultPadding={false}
         showCloseButton={false}
       >
-        <div className="w-[28.5rem]">
+        <div className="w-[calc(100vw-2rem)] lg:w-[28.5rem]">
           <div className="text-gradient rounded-t-xl border-b border-b-stroke-low bg-containerL3 p-4">
             Review
           </div>
@@ -234,7 +234,7 @@ const ReviewWithdrawalModal = ({
               <div className="my-2 flex flex-col justify-center gap-2">
                 <div>Transaction ID:</div>
                 <button
-                  className="flex items-center justify-center"
+                  className="flex items-center justify-center break-all"
                   title="View transaction on ao.link"
                   onClick={async () => {
                     window.open(`https://ao.link/#/message/${txid}`, '_blank');

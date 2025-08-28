@@ -65,7 +65,7 @@ const GatewaysInNetworkPanel = () => {
   }, [activeIndex, gatewaysPerEpoch]);
 
   return (
-    <div className="flex h-72 min-w-[22rem] flex-col rounded-xl border border-grey-500 text-sm text-mid">
+    <div className="flex h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid lg:min-w-[22rem]">
       <div className=" px-6 pt-5 text-mid">
         Gateways in the Network by Epoch
       </div>

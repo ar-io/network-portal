@@ -60,7 +60,7 @@ const Banner = () => {
                 <PinkArrowIcon className="size-3" />
               </div>
 
-              <div className="pt-2 text-sm text-low">
+              <div className="px-6 pt-2 text-sm text-low">
                 By running a gateway, you become a contributor to the ecosystem
                 and can earn rewards.
               </div>
@@ -70,7 +70,7 @@ const Banner = () => {
       ) : gatewayStatus == GatewayStatus.FOUND ? (
         <div>
           <button
-            className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
+            className="group relative h-fit w-full overflow-hidden rounded-xl bg-grey-800 lg:h-[7.5rem]"
             onClick={() => {
               if (walletAddress) {
                 navigate(`/gateways/${walletAddress.toString()}`);
@@ -87,7 +87,7 @@ const Banner = () => {
             </div>
             <StartGatewayCubes className="visible absolute right-[-.625rem] top-[-.3125rem] z-0  group-hover:invisible" />
             <BannerRightChevron className="invisible absolute right-4 top-4 group-hover:visible" />
-            <div className="absolute top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle">
+            <div className="top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle lg:absolute">
               <div className="flex items-center gap-3 pl-6">
                 <GatewayIcon className="block h-3 w-4 group-hover:hidden" />
                 <GatewayHoverIcon className="hidden h-3 w-4 group-hover:block" />
@@ -95,7 +95,7 @@ const Banner = () => {
                   My Gateway
                 </div>
               </div>
-              <div className="mt-3 flex pl-1.5">
+              <div className="mt-3 flex flex-col pl-1.5 lg:flex-row">
                 {gatewayInfo.map(([label, value], index) => (
                   <InfoSection key={index} label={label} value={`${value}`} />
                 ))}

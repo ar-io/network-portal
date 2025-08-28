@@ -108,7 +108,7 @@ const StakeWithdrawalModal = ({
 
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
-      <div className="w-[28.5rem]">
+      <div className="w-[calc(100vw-2rem)] lg:w-[28.5rem]">
         <div className="border-b border-b-stroke-low">
           <div className="rounded-tr-xl border-b border-red-400 bg-grey-700 py-3 text-center">
             <span className={'text-gradient'}>Withdraw</span>

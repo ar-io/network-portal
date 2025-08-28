@@ -142,7 +142,7 @@ const GatewaySelectorModal = ({
 
   return (
     <BaseModal onClose={onClose} showCloseButton={false} closeOnClickOutside>
-      <div className="w-[48rem] overflow-hidden rounded-xl border border-grey-500 text-left">
+      <div className="w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-grey-500 text-left lg:w-[48rem]">
         <div className="flex items-center rounded-t-xl border border-grey-500 px-6 py-2">
           <SearchIcon className="size-4 text-mid" />
           <input

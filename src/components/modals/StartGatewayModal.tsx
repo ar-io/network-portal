@@ -83,7 +83,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
         formPropertyName: 'address',
         label: '*Address:',
         leftComponent: <div className="pl-6 text-xs text-low">https://</div>,
-        rightComponent: <div className="pr-6 text-xs text-low">:443</div>,
+        rightComponent: (
+          <div className="hidden pr-6 text-xs text-low lg:block">:443</div>
+        ),
 
         validateProperty: validateDomainName('Address'),
       },
@@ -227,9 +229,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <BaseModal onClose={closeDialog}>
-      <div className="w-[42.5rem] text-left">
+      <div className="w-[calc(100vw-2rem)] text-left lg:w-[42.5rem]">
         <div className="pb-3 text-2xl text-high">Start Gateway</div>
-        <div className="flex text-sm text-low">
+        <div className="flex flex-col gap-2 text-sm text-low lg:flex-row">
           Owner ID:&nbsp;
           <span className="text-link">{walletAddress?.toString()}</span>
         </div>

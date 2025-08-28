@@ -59,48 +59,58 @@ const ReportedOnByCard = ({
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="flex border-b border-grey-500 bg-containerL3">
+      <div className="flex flex-col border-b border-grey-500 bg-containerL3 lg:flex-row">
         {epochs ? (
           <>
-            <div className="grow whitespace-nowrap px-6 py-4">
-              {failureObservers.length == 0 ? (
-                <div className="text-mid">No Failures Reported</div>
-              ) : (
-                <div className="text-mid">
-                  Failed by{' '}
-                  <span className="text-red-500">
-                    {failureObservers.length}/{totalReportsForEpoch}
-                  </span>{' '}
-                  observers
-                </div>
-              )}
+            <div className="flex">
+              <div className="grow whitespace-nowrap px-6 py-4">
+                {failureObservers.length == 0 ? (
+                  <div className="text-mid">No Failures Reported</div>
+                ) : (
+                  <div className="text-mid">
+                    Failed by{' '}
+                    <span className="text-red-500">
+                      {failureObservers.length}/{totalReportsForEpoch}
+                    </span>{' '}
+                    observers
+                  </div>
+                )}
+              </div>
+              <div className="mr-4 flex items-center">
+                {failureObservers.length <= totalReportsForEpoch / 2 ? (
+                  <div className="flex items-center text-green-500">
+                    <CheckCircleIcon className="mr-1 size-4" />
+                    <span>
+                      {selectedEpochIndex === 0 ? 'Passing' : 'Passed'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-red-500">
+                    <XCircleIcon className="mr-1 size-4" />
+                    <span>
+                      {selectedEpochIndex === 0 ? 'Failing' : 'Failed'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="mr-4 flex items-center">
-              {failureObservers.length <= totalReportsForEpoch / 2 ? (
-                <div className="flex items-center text-green-500">
-                  <CheckCircleIcon className="mr-1 size-4" />
-                  <span>{selectedEpochIndex === 0 ? 'Passing' : 'Passed'}</span>
-                </div>
-              ) : (
-                <div className="flex items-center text-red-500">
-                  <XCircleIcon className="mr-1 size-4" />
-                  <span>{selectedEpochIndex === 0 ? 'Failing' : 'Failed'}</span>
-                </div>
-              )}
+            <div className="grow place-items-end">
+              <Dropdown
+                options={
+                  epochs?.map((epoch, index) => ({
+                    label:
+                      index == 0
+                        ? 'Current Epoch'
+                        : `Epoch ${epoch?.epochIndex}`,
+                    value: index.toString(),
+                  })) || []
+                }
+                onChange={(e) => {
+                  setSelectedEpochIndex(Number(e.target.value));
+                }}
+                value={selectedEpochIndex.toString()}
+              />
             </div>
-            <Dropdown
-              options={
-                epochs?.map((epoch, index) => ({
-                  label:
-                    index == 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
-                  value: index.toString(),
-                })) || []
-              }
-              onChange={(e) => {
-                setSelectedEpochIndex(Number(e.target.value));
-              }}
-              value={selectedEpochIndex.toString()}
-            />
           </>
         ) : (
           <Placeholder className="m-4 h-4" />
@@ -205,26 +215,26 @@ const ReportedOnCard = ({
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="flex items-center border-b border-grey-500 bg-containerL3 ">
+      <div className="flex flex-col border-b border-grey-500 bg-containerL3 lg:flex-row">
         {epochs ? (
           <>
-            <div className="items-center whitespace-nowrap py-4 pl-6">
-              {selectedForObservation ? (
-                <>
-                  <div className="text-mid">
-                    Reported on{' '}
-                    <span className="text-red-500">{snitchedOn.length}</span>{' '}
-                    gateways
-                  </div>
-                </>
-              ) : (
-                <div className="text-low">Not Selected for Observation</div>
-              )}
-            </div>
-            <div className="grow">
+            <div className="flex items-center">
+              <div className="grow items-center whitespace-nowrap py-4 pl-6">
+                {selectedForObservation ? (
+                  <>
+                    <div className="text-mid">
+                      Reported on{' '}
+                      <span className="text-red-500">{snitchedOn.length}</span>{' '}
+                      gateways
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-low">Not Selected for Observation</div>
+                )}
+              </div>
               {reportId && (
                 <Button
-                  className="ml-3 h-fit last:p-2"
+                  className="ml-3 mr-2 h-fit last:p-2"
                   active={true}
                   text={
                     <NotebookText
@@ -243,17 +253,21 @@ const ReportedOnCard = ({
                 ></Button>
               )}
             </div>
-            <Dropdown
-              options={
-                epochs?.map((epoch, index) => ({
-                  label:
-                    index == 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
-                  value: index.toString(),
-                })) || []
-              }
-              onChange={(e) => setSelectedEpochIndex(Number(e.target.value))}
-              value={selectedEpochIndex.toString()}
-            />
+            <div className="grow place-items-end">
+              <Dropdown
+                options={
+                  epochs?.map((epoch, index) => ({
+                    label:
+                      index == 0
+                        ? 'Current Epoch'
+                        : `Epoch ${epoch?.epochIndex}`,
+                    value: index.toString(),
+                  })) || []
+                }
+                onChange={(e) => setSelectedEpochIndex(Number(e.target.value))}
+                value={selectedEpochIndex.toString()}
+              />
+            </div>
           </>
         ) : (
           <Placeholder className="m-4 h-4" />
@@ -279,7 +293,7 @@ const ReportedOnCard = ({
 
 const SnitchRow = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
   return (
-    <div className="grid min-w-[50rem] grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <ReportedOnByCard gateway={gateway} />
       <ReportedOnCard gateway={gateway} />
     </div>

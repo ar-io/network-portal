@@ -13,7 +13,7 @@ const ArNSStatsPanel = () => {
   const { data: hostGatewayDomain } = useHostGatewayDomain();
 
   return (
-    <div className="flex min-w-[22rem] flex-col rounded-xl border border-grey-500 px-6 py-5">
+    <div className="flex flex-col rounded-xl border border-grey-500 px-6 py-5 lg:min-w-[22rem]">
       <div className="flex items-center">
         <div className="flex grow items-center gap-2 text-sm text-mid">
           ArNS Names Purchased
@@ -38,7 +38,7 @@ const ArNSStatsPanel = () => {
         </div>
 
         <Button
-          className="max-h-6 text-xs"
+          className="ml-6 max-h-6 whitespace-nowrap text-xs"
           // icon={<BinocularsIcon className="size-3" />}
           title={'ArNS.app'}
           text={'Open ArNS app'}

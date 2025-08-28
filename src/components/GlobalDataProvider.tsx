@@ -1,5 +1,5 @@
 import { log } from '@src/constants';
-import { useGlobalState } from '@src/store';
+import { useGlobalState, useSettings } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,8 +18,9 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const arweave = useGlobalState((state) => state.arweave);
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const setAoCongested = useGlobalState((state) => state.setAoCongested);
-  const arioProcessId = useGlobalState((state) => state.arioProcessId);
-  const aoCuUrl = useGlobalState((state) => state.aoCuUrl);
+  const setIsMobile = useGlobalState((state) => state.setIsMobile);
+  const arioProcessId = useSettings((state) => state.arioProcessId);
+  const aoCuUrl = useSettings((state) => state.aoCuUrl);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
   const queryClient = useQueryClient();
 
@@ -103,6 +104,16 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       setAoCongested(false);
     };
   }, [aoCuUrl, arioProcessId, arweave.blocks, setAoCongested, setBlockHeight]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setIsMobile]);
 
   return <>{children}</>;
 };

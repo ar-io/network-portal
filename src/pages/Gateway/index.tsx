@@ -332,13 +332,15 @@ const Gateway = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-6">
-      <div className="min-w-[68rem]">
+    <div className="flex h-full flex-col gap-6">
+      <div className="shrink-0">
         <GatewayHeader gateway={gateway} />
+      </div>
 
+      <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 scrollbar">
         {/* Low Balance Warning Banner */}
         {isOwnGateway && hasLowBalance && (
-          <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4 text-warning">
+          <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-warning">
             <div className="flex items-center gap-2 font-medium">
               <TriangleAlertIcon className="size-5" />
               Low Balance Warning
@@ -353,137 +355,142 @@ const Gateway = () => {
             </div>
           </div>
         )}
-      </div>
-      <OperatorStake
-        gateway={gateway}
-        walletAddress={walletAddress?.toString()}
-      />
-      <PendingWithdrawals
-        gateway={gateway}
-        walletAddress={walletAddress?.toString()}
-      />
-      <ActiveDelegates gateway={gateway} />
+        <div className="flex flex-col gap-6">
+          <OperatorStake
+            gateway={gateway}
+            walletAddress={walletAddress?.toString()}
+          />
+          <PendingWithdrawals
+            gateway={gateway}
+            walletAddress={walletAddress?.toString()}
+          />
+          <ActiveDelegates gateway={gateway} />
 
-      <div className="flex gap-6">
-        <div className="flex min-w-72 flex-col gap-6">
-          <StatsPanel gateway={gateway} />
-          {gateway?.weights && gateway?.status === 'joined' && (
-            <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-              <div className="bg-containerL3 px-6 py-4">
-                <div className="text-high">Weights</div>
-              </div>
+          <div className="flex flex-col gap-6 lg:flex-row">
+            <div className="flex min-w-72 flex-col gap-6">
+              <StatsPanel gateway={gateway} />
+              {gateway?.weights && gateway?.status === 'joined' && (
+                <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
+                  <div className="bg-containerL3 px-6 py-4">
+                    <div className="text-high">Weights</div>
+                  </div>
 
-              {weightFields.map(([title, value], index) => (
-                <div
-                  key={`weights${index}`}
-                  className="flex items-center gap-4 border-t border-transparent-100-16 px-6 py-4"
-                >
-                  <div className="grow text-nowrap text-xs text-low">
-                    {title}:
-                  </div>
-                  <div className="text-right text-sm">
-                    {value !== undefined ? (
-                      value.toFixed(3)
-                    ) : (
-                      <Placeholder className="w-10" />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {gateway?.status === 'joined' && (
-            <SoftwareDetails gateway={gateway} />
-          )}
-        </div>
-        <div className="flex w-full grow flex-col gap-6">
-          <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">
-            <div className="flex items-center bg-containerL3 py-4 pl-6 pr-3">
-              <div className="text-sm text-high">General Information</div>
-              <div className="flex grow gap-6" />
-              {isOwnGateway &&
-                (editing ? (
-                  <>
-                    <div className="flex">
-                      <Button
-                        className="h-[1.875rem]"
-                        title="Cancel"
-                        text="Cancel"
-                        buttonType={ButtonType.SECONDARY}
-                        onClick={() => setEditing(false)}
-                      />
-                    </div>
-                    {!isFormValid({ formRowDefs, formValues: formState }) ? (
-                      <div className="pl-6 text-sm text-red-600">
-                        Invalid Entry
+                  {weightFields.map(([title, value], index) => (
+                    <div
+                      key={`weights${index}`}
+                      className="flex items-center gap-4 border-t border-transparent-100-16 px-6 py-4"
+                    >
+                      <div className="grow text-nowrap text-xs text-low">
+                        {title}:
                       </div>
-                    ) : numFormChanges > 0 ? (
-                      <Button
-                        className="last:text-gradient h-[1.875rem]"
-                        title={`Save ${numFormChanges} changes`}
-                        text={`Save ${numFormChanges} changes`}
-                        buttonType={ButtonType.SECONDARY}
-                        onClick={submitForm}
-                      />
-                    ) : (
-                      <></>
-                    )}
-                  </>
-                ) : (
-                  gateway?.status == 'joined' && (
-                    <Button
-                      className="h-[1.875rem]"
-                      title="Edit"
-                      text="Edit"
-                      icon={<EditIcon className="size-3" />}
-                      active={true}
-                      onClick={startEditing}
-                    />
-                  )
-                ))}
+                      <div className="text-right text-sm">
+                        {value !== undefined ? (
+                          value.toFixed(3)
+                        ) : (
+                          <Placeholder className="w-10" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {gateway?.status === 'joined' && (
+                <SoftwareDetails gateway={gateway} />
+              )}
             </div>
-            {editing ? (
-              <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
-                {formRowDefs.map((rowDef, index) => {
-                  return (
-                    <FormRow
-                      key={index}
-                      initialState={initialState}
-                      formState={formState}
-                      setFormState={setFormState}
-                      errorMessages={formErrors}
-                      setErrorMessages={setFormErrors}
-                      {...rowDef}
-                    />
-                  );
-                })}
+            <div className="flex w-full grow flex-col gap-6">
+              <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">
+                <div className="flex items-center bg-containerL3 py-4 pl-6 pr-3">
+                  <div className="text-sm text-high">General Information</div>
+                  <div className="flex grow gap-6" />
+                  {isOwnGateway &&
+                    (editing ? (
+                      <>
+                        <div className="flex">
+                          <Button
+                            className="h-[1.875rem]"
+                            title="Cancel"
+                            text="Cancel"
+                            buttonType={ButtonType.SECONDARY}
+                            onClick={() => setEditing(false)}
+                          />
+                        </div>
+                        {!isFormValid({
+                          formRowDefs,
+                          formValues: formState,
+                        }) ? (
+                          <div className="pl-6 text-sm text-red-600">
+                            Invalid Entry
+                          </div>
+                        ) : numFormChanges > 0 ? (
+                          <Button
+                            className="last:text-gradient h-[1.875rem]"
+                            title={`Save ${numFormChanges} changes`}
+                            text={`Save ${numFormChanges} changes`}
+                            buttonType={ButtonType.SECONDARY}
+                            onClick={submitForm}
+                          />
+                        ) : (
+                          <></>
+                        )}
+                      </>
+                    ) : (
+                      gateway?.status == 'joined' && (
+                        <Button
+                          className="h-[1.875rem]"
+                          title="Edit"
+                          text="Edit"
+                          icon={<EditIcon className="size-3" />}
+                          active={true}
+                          onClick={startEditing}
+                        />
+                      )
+                    ))}
+                </div>
+                {editing ? (
+                  <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
+                    {formRowDefs.map((rowDef, index) => {
+                      return (
+                        <FormRow
+                          key={index}
+                          initialState={initialState}
+                          formState={formState}
+                          setFormState={setFormState}
+                          errorMessages={formErrors}
+                          setErrorMessages={setFormErrors}
+                          {...rowDef}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <PropertyDisplayPanel ownerId={ownerId} gateway={gateway} />
+                )}
               </div>
-            ) : (
-              <PropertyDisplayPanel ownerId={ownerId} gateway={gateway} />
-            )}
-          </div>
 
-          {epochSettings?.hasEpochZeroStarted && (
-            <SnitchRow gateway={gateway} />
+              {epochSettings?.hasEpochZeroStarted && (
+                <SnitchRow gateway={gateway} />
+              )}
+            </div>
+          </div>
+          {showBlockingMessageModal && (
+            <BlockingMessageModal
+              onClose={() => setShowBlockingMessageModal(false)}
+              message="Sign the following data with your wallet to proceed."
+            ></BlockingMessageModal>
+          )}
+          {showSuccessModal && (
+            <SuccessModal
+              onClose={() => {
+                setShowSuccessModal(false);
+                setEditing(false);
+              }}
+              title="Congratulations"
+              bodyText="You have successfully updated your gateway."
+            />
           )}
         </div>
       </div>
-      {showBlockingMessageModal && (
-        <BlockingMessageModal
-          onClose={() => setShowBlockingMessageModal(false)}
-          message="Sign the following data with your wallet to proceed."
-        ></BlockingMessageModal>
-      )}
-      {showSuccessModal && (
-        <SuccessModal
-          onClose={() => {
-            setShowSuccessModal(false);
-            setEditing(false);
-          }}
-          title="Congratulations"
-          bodyText="You have successfully updated your gateway."
-        />
-      )}
     </div>
   );
 };

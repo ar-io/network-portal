@@ -26,7 +26,7 @@ const HeaderItem = ({
 }: HeaderItemProps) => {
   return (
     <div
-      className={`inline-flex h-[2.375rem] flex-col items-start justify-start gap-1 border-r ${leftPadding ? 'px-6' : 'pr-6'} dark:border-transparent-100-8`}
+      className={`inline-flex  h-[2.375rem] flex-col items-start justify-start gap-1 border-r lg:block ${leftPadding ? 'px-6' : 'pr-6'} dark:border-transparent-100-8`}
     >
       <div className="text-xs text-high">
         {loading ? (
@@ -68,49 +68,51 @@ const Header = () => {
   }, [currentEpoch, epochSettings]);
 
   return (
-    <header className="mt-6 flex h-[4.5rem] rounded-xl border py-4 pl-6 pr-4 leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
-      <HeaderItem
-        value={currentEpochLabel}
-        label="AR.IO EPOCH"
-        loading={currentEpochLabel == undefined}
-        leftPadding={false}
-      />
-      <HeaderItem
-        value={epochCountdown}
-        label="NEXT EPOCH"
-        loading={epochCountdown == undefined}
-      />
-      <HeaderItem
-        value={blockHeight?.toLocaleString('en-US')}
-        label="ARWEAVE BLOCK"
-        loading={!blockHeight}
-      />
-      <HeaderItem
-        value={
-          gateways
-            ? Object.entries(gateways).filter(
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                ([_address, gateway]) => gateway.status === 'joined',
-              ).length
-            : undefined
-        }
-        label="GATEWAYS"
-        loading={gatewaysLoading}
-      />
-      <HeaderItem
-        value={
-          protocolBalance ? (
-            <div>
-              {formatWithCommas(
-                new mARIOToken(protocolBalance).toARIO().valueOf(),
-              )}{' '}
-              {ticker}
-            </div>
-          ) : undefined
-        }
-        label="PROTOCOL BALANCE"
-        loading={!protocolBalance}
-      />
+    <header className="z-30 mt-5 flex pl-6 leading-[1.4] lg:mt-6 lg:h-[4.5rem] lg:rounded-xl lg:border lg:py-4 lg:pr-4 dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
+      <div className="hidden lg:flex">
+        <HeaderItem
+          value={currentEpochLabel}
+          label="AR.IO EPOCH"
+          loading={currentEpochLabel == undefined}
+          leftPadding={false}
+        />
+        <HeaderItem
+          value={epochCountdown}
+          label="NEXT EPOCH"
+          loading={epochCountdown == undefined}
+        />
+        <HeaderItem
+          value={blockHeight?.toLocaleString('en-US')}
+          label="ARWEAVE BLOCK"
+          loading={!blockHeight}
+        />
+        <HeaderItem
+          value={
+            gateways
+              ? Object.entries(gateways).filter(
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  ([_address, gateway]) => gateway.status === 'joined',
+                ).length
+              : undefined
+          }
+          label="GATEWAYS"
+          loading={gatewaysLoading}
+        />
+        <HeaderItem
+          value={
+            protocolBalance ? (
+              <div>
+                {formatWithCommas(
+                  new mARIOToken(protocolBalance).toARIO().valueOf(),
+                )}{' '}
+                {ticker}
+              </div>
+            ) : undefined
+          }
+          label="PROTOCOL BALANCE"
+          loading={!protocolBalance}
+        />
+      </div>
       <div className="grow" />
       <div className="content-center">
         <Profile />

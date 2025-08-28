@@ -8,15 +8,15 @@ function AppRouterLayout() {
   const aoCongested = useGlobalState((state) => state.aoCongested);
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-x-auto overflow-y-hidden scrollbar dark:bg-grey-1000 dark:text-grey-100">
+    <div className="flex h-screen w-screen flex-col overflow-hidden dark:bg-grey-1000 dark:text-grey-100">
       <NetworkStatusBanner />
       <div
-        className={`flex ${aoCongested ? 'h-[calc(100vh-2rem)]' : 'h-full'}`}
+        className={`flex h-full ${aoCongested ? 'h-[calc(100vh-2rem)]' : ''}`}
       >
         <Sidebar />
-        <div className="size-full grow overflow-y-auto pr-6 scrollbar">
+        <main className="flex-1 overflow-hidden px-6 lg:pl-0">
           <Outlet />
-        </div>
+        </main>
       </div>
       <Toaster
         containerStyle={{ position: 'fixed', zIndex: 99999 }}

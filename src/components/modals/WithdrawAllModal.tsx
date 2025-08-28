@@ -82,7 +82,7 @@ const WithdrawAllModal = ({
   return (
     <>
       <BaseModal onClose={onClose} useDefaultPadding={false}>
-        <div className="w-[28.4375rem] text-left">
+        <div className="w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
           <div className="px-8  pb-4 pt-6">
             <div className="text-lg text-high">Withdraw All</div>
             <div className="flex pt-2 text-xs text-low">

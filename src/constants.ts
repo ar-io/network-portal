@@ -1,4 +1,4 @@
-import { ARIO_DEVNET_PROCESS_ID } from '@ar.io/sdk/web';
+import { ARIO_TESTNET_PROCESS_ID } from '@ar.io/sdk/web';
 import * as loglevel from 'loglevel';
 
 import Ar from 'arweave/web/ar';
@@ -18,7 +18,7 @@ export const WRITE_OPTIONS = {
 };
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARIO_PROCESS_ID = new ArweaveTransactionID(
-  import.meta.env.VITE_ARIO_PROCESS_ID ?? ARIO_DEVNET_PROCESS_ID,
+  import.meta.env.VITE_ARIO_PROCESS_ID ?? ARIO_TESTNET_PROCESS_ID,
 );
 export const AO_CU_URL =
   import.meta.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';

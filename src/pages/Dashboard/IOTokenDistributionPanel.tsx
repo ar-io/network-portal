@@ -78,7 +78,7 @@ const IOTokenDistributionPanel = () => {
   );
 
   return (
-    <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500 lg:w-[22rem]">
+    <div className="flex w-full flex-col rounded-xl border border-grey-500 lg:w-[22rem]">
       <div className="text-gradient px-5 pt-5 text-sm">
         {data && activeIndex !== undefined
           ? data[activeIndex].name
@@ -86,7 +86,7 @@ const IOTokenDistributionPanel = () => {
             ? `${ticker} Token`
             : ''}
       </div>
-      <div className="relative w-full grow lg:w-[352px]">
+      <div className="relative h-48 w-full grow lg:w-[352px]">
         {data ? (
           <>
             <ResponsiveContainer width="100%" height="100%">

@@ -65,6 +65,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const sidebarOpen = useSettings((state) => state.sidebarOpen);
   const arioProcessId = useSettings((state) => state.arioProcessId);
+  const aoCongested = useGlobalState((state) => state.aoCongested);
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -116,7 +117,7 @@ const Sidebar = () => {
     <button
       onClick={toggleMobileMenu}
       onKeyDown={(e) => e.key === 'Enter' && toggleMobileMenu()}
-      className="fixed left-4 top-4 z-50 rounded-md p-2 text-grey-100 focus:outline-none focus:ring-2 focus:ring-grey-100 lg:hidden"
+      className={`fixed left-4 ${aoCongested ? 'top-[4.5rem]' : 'top-4'} z-50 rounded-md p-2 text-grey-100 focus:outline-none focus:ring-2 focus:ring-grey-100 lg:hidden`}
       aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
       aria-expanded={isMobileOpen}
       aria-controls="sidebar-navigation"

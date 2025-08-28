@@ -18,6 +18,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const arweave = useGlobalState((state) => state.arweave);
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const setAoCongested = useGlobalState((state) => state.setAoCongested);
+  const setIsMobile = useGlobalState((state) => state.setIsMobile);
   const arioProcessId = useSettings((state) => state.arioProcessId);
   const aoCuUrl = useSettings((state) => state.aoCuUrl);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
@@ -103,6 +104,16 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       setAoCongested(false);
     };
   }, [aoCuUrl, arioProcessId, arweave.blocks, setAoCongested, setBlockHeight]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setIsMobile]);
 
   return <>{children}</>;
 };

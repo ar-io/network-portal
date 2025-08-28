@@ -1,5 +1,5 @@
 import { APP_VERSION, ARIO_DOCS_URL } from '@src/constants';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Button from '@src/components/Button';
@@ -7,7 +7,7 @@ import MarkdownModal from '@src/components/modals/MarkdownModal';
 import changeLog from '../../CHANGELOG.md?raw';
 
 import SettingsModal from '@src/components/modals/SettingsModal';
-import { updateSettings, useSettings } from '@src/store';
+import { updateSettings, useGlobalState, useSettings } from '@src/store';
 import { HandCoins, Menu, Puzzle, Settings } from 'lucide-react';
 import {
   ArioLogoIcon,
@@ -89,23 +89,8 @@ const Sidebar = () => {
     },
   ];
 
+  const isMobile = useGlobalState((state) => state.isMobile);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 1024;
-      setIsMobile(mobile);
-      // Auto-close sidebar when resizing to desktop
-      if (!mobile) {
-        setIsMobileOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const toggleMobileMenu = () => {
     setIsMobileOpen(!isMobileOpen);

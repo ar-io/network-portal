@@ -36,6 +36,7 @@ type GlobalState = {
   aoCongested: boolean;
   contractSigner?: ContractSigner;
   networkPortalDB: NetworkPortalDB;
+  isMobile: boolean;
 };
 
 type GlobalStateActions = {
@@ -50,6 +51,7 @@ type GlobalStateActions = {
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
   setAoCongested: (congested: boolean) => void;
+  setIsMobile: (isMobile: boolean) => void;
 };
 
 const initialGlobalState: GlobalState = {
@@ -71,6 +73,7 @@ const initialGlobalState: GlobalState = {
   ticker: '',
   aoCongested: false,
   networkPortalDB: createDb(useSettings.getState().arioProcessId),
+  isMobile: window.innerWidth < 1024,
 };
 
 const makeArIOReadSDK = ({
@@ -191,6 +194,10 @@ class GlobalStateActionBase implements GlobalStateActions {
       contractSigner,
     });
     this.set({ contractSigner, arIOWriteableSDK });
+  };
+
+  setIsMobile = (isMobile: boolean) => {
+    this.set({ isMobile });
   };
 }
 

@@ -14,7 +14,7 @@ const SuccessModal = ({
 }) => {
   return (
     <BaseModal onClose={onClose}>
-      <div className="w-[24.5rem]">
+      <div className="max-w-[calc(100vw-2rem)] lg:w-[24.5rem]">
         <div className="flex grow justify-center pb-3">
           <SuccessCheck className="size-8" />
         </div>

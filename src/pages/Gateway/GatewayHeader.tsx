@@ -23,8 +23,8 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
   }, [gateway, currentEpoch]);
 
   return (
-    <header className="mt-6 flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
-      <div className="flex items-center gap-3 py-5 pl-6 pr-4 text-sm">
+    <header className="flex-col text-clip rounded-xl leading-[1.4] lg:mt-6 lg:border dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
+      <div className="flex items-center gap-3 py-5 pl-8 text-sm lg:pl-6 lg:pr-4">
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
@@ -39,17 +39,18 @@ const GatewayHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
           <Profile />
         </div>
       </div>
-      <div className="flex items-center gap-3 rounded-b-xl bg-grey-900 py-5 pl-6">
-        <GatewayIcon className="h-3 w-4" />
+      <div className="flex flex-col items-center gap-3 rounded-xl bg-grey-900 py-5 pl-6 lg:flex-row lg:rounded-t-none">
         {gateway ? (
           <>
-            <div className="text-high">{gateway.settings.label}</div>
-            {isObserverThisEpoch && (
-              <div className="rounded-3xl border px-2 text-sm text-gradient-primary-end">
-                Observer
-              </div>
-            )}
-            <div className="grow"></div>
+            <div className="flex grow flex-row items-center gap-2">
+              <GatewayIcon className="h-3 w-4" />
+              <div className="text-high">{gateway.settings.label}</div>
+              {isObserverThisEpoch && (
+                <div className="rounded-3xl border px-2 text-sm text-gradient-primary-end">
+                  Observer
+                </div>
+              )}
+            </div>
             <div className="flex">
               <div className="pr-6 text-sm text-mid">
                 <Link

@@ -7,20 +7,26 @@ import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
   return (
-    <div className="flex flex-col">
-      <Header />
-      <div className="flex w-full gap-6 py-6">
-        <div className="flex flex-col gap-6">
-          <IOTokenDistributionPanel />
-        </div>
+    <div className="flex h-full max-w-full flex-col pb-6">
+      <div className="mb-6 shrink-0">
+        <Header />
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto">
+          <div className="flex w-full flex-col gap-6 pt-0 lg:flex-row">
+            <div className="flex flex-col gap-6">
+              <IOTokenDistributionPanel />
+            </div>
 
-        <div className="flex min-w-[50rem] grow flex-col gap-6">
-          <GatewaysInNetworkPanel />
-          <div className="grid h-fit grid-cols-2 gap-6">
-            <ObserverPerformancePanel />
-            <ArNSStatsPanel />
+            <div className="flex grow flex-col gap-6 lg:min-w-[50rem]">
+              <GatewaysInNetworkPanel />
+              <div className="grid h-fit gap-6 lg:grid-cols-2">
+                <ObserverPerformancePanel />
+                <ArNSStatsPanel />
+              </div>
+              <RewardsDistributionPanel />
+            </div>
           </div>
-          <RewardsDistributionPanel />
         </div>
       </div>
     </div>

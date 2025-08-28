@@ -120,8 +120,8 @@ const Banner = () => {
           </button>
         </div>
       ) : gateway ? (
-        <div className="relative h-[7.5rem] w-full overflow-hidden rounded-xl border border-grey-800">
-          <div className="absolute top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle">
+        <div className="relative min-h-fit w-full overflow-hidden rounded-xl border border-grey-800 lg:h-[7.5rem]">
+          <div className="top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle lg:absolute">
             <div className="flex items-center gap-3 pl-6">
               <GatewayIcon className="block h-3 w-4 group-hover:hidden" />
               <GatewayHoverIcon className="hidden h-3 w-4 group-hover:block" />
@@ -129,7 +129,7 @@ const Banner = () => {
                 My Gateway Observer Status
               </div>
             </div>
-            <div className="mt-3 flex pl-1.5">
+            <div className="relative mt-3 flex flex-col pl-1.5 lg:flex-row">
               <InfoSection
                 label="Observer Address"
                 value={formatAddress(gateway.observerAddress)}

@@ -24,7 +24,7 @@ const WalletAddressModal = ({
       showCloseButton={true}
       useDefaultPadding={false}
     >
-      <div className="w-[28.4375rem] text-left">
+      <div className="w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
         <div className="px-8  pb-4 pt-6">
           <div className="text-lg text-high">Enter Wallet Address</div>
         </div>

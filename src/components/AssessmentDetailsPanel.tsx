@@ -176,7 +176,7 @@ const AssessmentDetailsPanel = ({
         aria-hidden="true"
       />
 
-      <div className="fixed right-0 top-0 h-screen w-[36rem]">
+      <div className="fixed right-0 top-0 h-screen w-screen pt-16 lg:w-[36rem] lg:pt-0">
         <DialogPanel
           className={
             'relative flex h-full flex-col bg-grey-800 text-sm text-mid'
@@ -244,7 +244,10 @@ const AssessmentDetailsPanel = ({
                 {Object.entries(assessment.arnsAssessments.chosenNames).map(
                   ([arnsName, arnsAssessment]) => (
                     <>
-                      <div className="mx-4 h-2 border-x border-grey-500" />
+                      <div
+                        key={`spacer-${arnsName}`}
+                        className="mx-4 h-2 border-x border-grey-500"
+                      />
                       <ArNSAssessmentPanel
                         key={arnsName}
                         arnsName={arnsName}
@@ -257,7 +260,10 @@ const AssessmentDetailsPanel = ({
                 {Object.entries(assessment.arnsAssessments.prescribedNames).map(
                   ([arnsName, arnsAssessment]) => (
                     <>
-                      <div className="mx-4 h-2 border-x border-grey-500" />
+                      <div
+                        key={`spacer-${arnsName}`}
+                        className="mx-4 h-2 border-x border-grey-500"
+                      />
                       <ArNSAssessmentPanel
                         key={arnsName}
                         arnsName={arnsName}

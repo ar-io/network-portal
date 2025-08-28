@@ -149,8 +149,8 @@ const ConnectedLandingPage = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-6 py-6">
-      <div className="grid grid-cols-3 gap-6">
+    <div className="flex flex-col gap-6 pb-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {topPanels.map((panel, index) => (
           <TopPanel
             key={index}

@@ -4,7 +4,7 @@ import useEpochs from '@src/hooks/useEpochs';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -147,39 +147,39 @@ const RewardsDistributionPanel = () => {
 
   const [focusBar, setFocusBar] = useState<number>();
   const [mouseLeave, setMouseLeave] = useState(true);
-  const [rewardsData, setRewardsData] = useState<Array<RewardsData>>();
   const { data: epochs } = useEpochs();
   const { data: epochSettings } = useEpochSettings();
+  const isMobile = useGlobalState((state) => state.isMobile);
 
-  useEffect(() => {
-    setRewardsData(
-      epochs
-        ?.filter((epoch) => epoch !== undefined)
-        .sort((a, b) => a!.epochIndex - b!.epochIndex)
-        .map((epoch) => {
-          const eligible = new mARIOToken(
-            epoch!.distributions.totalEligibleRewards,
-          )
-            .toARIO()
-            .valueOf();
+  const rewardsData: Array<RewardsData> | undefined = useMemo(() => {
+    const data = epochs
+      ?.filter((epoch) => epoch !== undefined)
+      .sort((a, b) => a!.epochIndex - b!.epochIndex)
+      .map((epoch) => {
+        const eligible = new mARIOToken(
+          epoch!.distributions.totalEligibleRewards,
+        )
+          .toARIO()
+          .valueOf();
 
-          const distributed = isDistributedEpochData(epoch!.distributions)
-            ? epoch!.distributions.totalDistributedRewards
-            : 0;
+        const distributed = isDistributedEpochData(epoch!.distributions)
+          ? epoch!.distributions.totalDistributedRewards
+          : 0;
 
-          const claimed = new mARIOToken(distributed).toARIO().valueOf();
-          return {
-            epoch: epoch!.epochIndex,
-            eligible,
-            claimed,
-            unclaimed: eligible - claimed,
-          };
-        }),
-    );
-  }, [epochs]);
+        const claimed = new mARIOToken(distributed).toARIO().valueOf();
+        return {
+          epoch: epoch!.epochIndex,
+          eligible,
+          claimed,
+          unclaimed: eligible - claimed,
+        };
+      });
+
+    return isMobile && data && data.length > 7 ? data.slice(-7) : data;
+  }, [epochs, isMobile]);
 
   return (
-    <div className="min-w-[22rem] rounded-xl border border-grey-500">
+    <div className="rounded-xl border border-grey-500 lg:min-w-[22rem]">
       <div className="px-5 pb-3 pt-5 text-sm text-mid">
         Eligible Rewards in {ticker} by Epoch vs. Rewards Distributed
       </div>

@@ -46,7 +46,7 @@ const ConnectModal = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <BaseModal onClose={onClose}>
-      <div className="w-[24.5rem]">
+      <div className="max-w-[calc(100vw)] lg:w-[24.5rem]">
         <div className="flex grow justify-center pb-4">
           <ConnectIcon className="size-6" />
         </div>

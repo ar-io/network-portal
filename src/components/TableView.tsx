@@ -22,7 +22,6 @@ const TableView = <T, S>({
   onRowClick,
   shortTable = false,
   tableId,
-  showColumnSelector = false,
 }: {
   columns: ColumnDef<T, S>[];
   data: T[];
@@ -32,16 +31,17 @@ const TableView = <T, S>({
   onRowClick?: (row: T) => void;
   shortTable?: boolean;
   tableId?: string;
-  showColumnSelector?: boolean;
 }) => {
   const [sorting, setSorting] = useState<SortingState>([defaultSortingState]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   const { getTableColumnVisibility } = useColumnPreferences();
 
-  // Initialize column visibility from store
+  // Initialize and subscribe to column visibility changes from store
   useEffect(() => {
-    if (tableId && showColumnSelector) {
+    if (!tableId) return;
+
+    const updateColumnVisibility = () => {
       const storedVisibility = getTableColumnVisibility(tableId);
       // Convert stored visibility to react-table format
       const reactTableVisibility: VisibilityState = {};
@@ -53,8 +53,20 @@ const TableView = <T, S>({
         }
       });
       setColumnVisibility(reactTableVisibility);
-    }
-  }, [tableId, showColumnSelector, columns, getTableColumnVisibility]);
+    };
+
+    // Initial load
+    updateColumnVisibility();
+
+    // Subscribe to changes for this specific table
+    const unsubscribe = useColumnPreferences.subscribe(
+      (state) => state.preferences[tableId],
+      () => updateColumnVisibility(),
+      { equalityFn: (a, b) => JSON.stringify(a) === JSON.stringify(b) },
+    );
+
+    return unsubscribe;
+  }, [tableId, columns, getTableColumnVisibility]);
 
   const table = useReactTable({
     columns,
@@ -63,7 +75,7 @@ const TableView = <T, S>({
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
-      ...(showColumnSelector && tableId ? { columnVisibility } : {}),
+      ...(tableId ? { columnVisibility } : {}),
     },
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,

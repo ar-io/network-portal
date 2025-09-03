@@ -2,6 +2,7 @@ import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import AssessmentDetailsPanel from '@src/components/AssessmentDetailsPanel';
 import Bubble from '@src/components/Bubble';
+import ColumnSelector from '@src/components/ColumnSelector';
 import TableView from '@src/components/TableView';
 import { Assessment, ReportData } from '@src/types';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
@@ -103,17 +104,19 @@ const GatewayAssessmentsTable = ({
     <div className="mb-6">
       <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
         <div className="grow text-sm text-mid">Reports</div>
+        <ColumnSelector tableId="gateway-assessments" columns={columns} />
       </div>
       <TableView
         columns={columns}
         data={tableData || []}
         isLoading={false}
         noDataFoundText="No reports found."
-        defaultSortingState={{ id: 'timestamp', desc: true }}
+        defaultSortingState={{ id: 'observedHost', desc: false }}
         onRowClick={(row) => {
           setObservedHost(row.observedHost);
           setSelectedAssessment(row.assessment);
         }}
+        tableId="gateway-assessments"
       />
       {selectedAssessment && gateway && (
         <AssessmentDetailsPanel

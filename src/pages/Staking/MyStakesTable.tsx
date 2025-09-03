@@ -2,6 +2,7 @@ import { AoGatewayWithAddress, AoVaultData, mARIOToken } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
+import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
 import Dropdown from '@src/components/Dropdown';
 import Streak from '@src/components/Streak';
@@ -188,6 +189,9 @@ const MyStakesTable = () => {
       }),
       columnHelper.accessor('eay', {
         id: 'eay',
+        meta: {
+          displayName: 'Delegate EAY',
+        },
         header: () => (
           <div className="flex gap-1">
             Delegate EAY
@@ -432,7 +436,7 @@ const MyStakesTable = () => {
   return (
     <div>
       <div
-        className={`flex w-full items-center gap-4 rounded-t-xl border border-grey-600 bg-containerL3 px-6 ${tableMode == 'activeStakes' ? 'py-2' : 'py-[0.9375rem]'} `}
+        className={`flex w-full items-center gap-4 rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-3 ${tableMode == 'activeStakes' ? 'py-2' : 'py-[0.9375rem]'} `}
       >
         <div className="grow text-sm text-mid">
           <Dropdown
@@ -448,16 +452,31 @@ const MyStakesTable = () => {
           />
         </div>
 
-        {tableMode == 'activeStakes' && hasDelegatedStake && (
-          <Button
-            buttonType={ButtonType.SECONDARY}
-            className="*:text-gradient-red h-[1.875rem]"
-            active={true}
-            title="Withdraw All"
-            text="Withdraw All"
-            onClick={() => setShowWithdrawAllModal(true)}
+        <div className="flex items-center gap-3">
+          {tableMode == 'activeStakes' && hasDelegatedStake && (
+            <Button
+              buttonType={ButtonType.SECONDARY}
+              className="*:text-gradient-red h-[1.875rem]"
+              active={true}
+              title="Withdraw All"
+              text="Withdraw All"
+              onClick={() => setShowWithdrawAllModal(true)}
+            />
+          )}
+
+          <ColumnSelector
+            tableId={
+              tableMode === 'activeStakes'
+                ? 'my-stakes-active'
+                : 'my-stakes-withdrawals'
+            }
+            columns={
+              tableMode === 'activeStakes'
+                ? activeStakesColumns
+                : (pendingWithdrawalsColumns as any)
+            }
           />
-        )}
+        </div>
       </div>
       {tableMode === 'activeStakes' ? (
         <TableView
@@ -473,6 +492,7 @@ const MyStakesTable = () => {
           onRowClick={(row) => {
             navigate(`/gateways/${row.owner}`);
           }}
+          tableId="my-stakes-active"
         />
       ) : (
         <TableView
@@ -488,6 +508,7 @@ const MyStakesTable = () => {
           onRowClick={(row) => {
             navigate(`/gateways/${row.owner}`);
           }}
+          tableId="my-stakes-withdrawals"
         />
       )}
       {showWithdrawAllModal && activeStakes !== undefined && (

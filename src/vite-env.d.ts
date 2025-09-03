@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+declare const __NPM_PACKAGE_VERSION__: string;
+
 // useful for intellisense to auto detect available env vars
 interface ImportMetaEnv {
   readonly VITE_APP_TITLE: string;

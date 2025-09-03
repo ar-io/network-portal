@@ -5,6 +5,7 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import svgr from 'vite-plugin-svgr';
+import packageJson from './package.json';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -38,7 +39,7 @@ export default defineConfig({
   ],
   base: '',
   define: {
-    __NPM_PACKAGE_VERSION__: JSON.stringify(process.env.npm_package_version),
+    __NPM_PACKAGE_VERSION__: JSON.stringify(packageJson.version),
     'process.env': {
       // DO NOT EXPOSE THE ENTIRE process.env HERE - sensitive information on CI/CD could be exposed.
       // defining here as an empty object as there are errors otherwise

@@ -1,6 +1,7 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
+import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
@@ -288,8 +289,9 @@ const DelegateStake = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-3">
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-3">
         <div className="grow text-sm text-mid">Delegate Stake</div>
+        <ColumnSelector tableId="delegate-stake" columns={columns} />
       </div>
       <TableView
         columns={columns}
@@ -300,6 +302,7 @@ const DelegateStake = () => {
         onRowClick={(row) => {
           navigate(`/gateways/${row.owner}`);
         }}
+        tableId="delegate-stake"
       />
       {stakingModalWalletAddress && (
         <StakingModal

@@ -1,6 +1,7 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
+import ColumnSelector from '@src/components/ColumnSelector';
 import RevokeVaultModal from '@src/components/modals/RevokeVaultModal';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
@@ -172,8 +173,9 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
+      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
         <div className="grow text-sm text-mid">Locked Token Vaults</div>
+        <ColumnSelector tableId="vaults" columns={columns} />
       </div>
       <TableView
         columns={columns}
@@ -181,6 +183,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
         isLoading={isLoading}
         noDataFoundText="No locked token vaults found."
         defaultSortingState={{ id: 'endTimestamp', desc: false }}
+        tableId="vaults"
       />
       {showRevokeVaultModal && (
         <RevokeVaultModal

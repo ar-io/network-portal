@@ -1,4 +1,9 @@
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import AddressCell from '@src/components/AddressCell';
+import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
 import Dropdown from '@src/components/Dropdown';
 import TableView from '@src/components/TableView';
@@ -8,9 +13,6 @@ import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
 import useObservers from '@src/hooks/useObservers';
 import { formatPercentage } from '@src/utils';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 interface TableData {
   label: string;
@@ -184,19 +186,22 @@ const ObserversTable = () => {
     <div>
       <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-[0.8125rem] text-sm ">
         <div className="grow text-mid">Observers</div>
-        <Dropdown
-          options={
-            epochs?.map((epoch, index) => ({
-              label:
-                index == 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
-              value: index.toString(),
-            })) || []
-          }
-          onChange={(e) => {
-            setSelectedEpochIndex(Number(e.target.value));
-          }}
-          value={selectedEpochIndex.toString()}
-        />
+        <div className="flex items-center gap-3">
+          <Dropdown
+            options={
+              epochs?.map((epoch, index) => ({
+                label:
+                  index == 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
+                value: index.toString(),
+              })) || []
+            }
+            onChange={(e) => {
+              setSelectedEpochIndex(Number(e.target.value));
+            }}
+            value={selectedEpochIndex.toString()}
+          />
+          <ColumnSelector tableId="observers" columns={columns} />
+        </div>
       </div>
       <TableView
         columns={columns}
@@ -207,6 +212,8 @@ const ObserversTable = () => {
         onRowClick={(row) => {
           navigate(`/gateways/${row.gatewayAddress}`);
         }}
+        tableId="observers"
+        showColumnSelector={true}
       />
     </div>
   );

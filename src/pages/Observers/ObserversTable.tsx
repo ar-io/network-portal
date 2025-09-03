@@ -213,7 +213,6 @@ const ObserversTable = () => {
           navigate(`/gateways/${row.gatewayAddress}`);
         }}
         tableId="observers"
-        showColumnSelector={true}
       />
     </div>
   );

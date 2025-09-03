@@ -185,6 +185,9 @@ const DelegateStake = () => {
 
       columnHelper.accessor('eay', {
         id: 'eay',
+        meta: {
+          displayName: 'Delegate EAY',
+        },
         header: () => (
           <div className="flex gap-1">
             Delegate EAY

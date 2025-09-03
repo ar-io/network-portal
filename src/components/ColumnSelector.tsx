@@ -28,6 +28,15 @@ const ColumnSelector = <T,>({
     return columns
       .filter((col) => col.id && col.id !== 'action' && col.id !== 'actions') // Exclude action columns
       .map((col) => {
+        // Use meta.displayName if available
+        if (col.meta?.displayName) {
+          return {
+            id: col.id!,
+            label: col.meta.displayName,
+            visible: currentVisibility[col.id!] ?? true,
+          };
+        }
+
         const header = col.header;
         let label = col.id || 'Unknown';
 

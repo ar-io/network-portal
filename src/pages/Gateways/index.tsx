@@ -5,13 +5,16 @@ import Header from '@src/components/Header';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import useGateways from '@src/hooks/useGateways';
-import { useGlobalState } from '@src/store';
-import { formatDate, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import useGateways from '../../hooks/useGateways';
+import { useGlobalState } from '../../store/globalState';
 import Banner from './Banner';
+// import ColumnSelector from '../../components/ColumnSelector';
+import ColumnSelector from '@src/components/ColumnSelector';
+import { formatDate, formatWithCommas } from '@src/utils';
 
 interface TableData {
   label: string;
@@ -192,7 +195,11 @@ const Gateways = () => {
         id: 'streak',
         header: 'Streak',
         sortDescFirst: true,
-        cell: ({ row }) => <Streak streak={row.original.streak} />,
+        cell: ({ row }) => (
+          <div className="pr-6">
+            <Streak streak={row.original.streak} />
+          </div>
+        ),
       }),
     ],
     [ticker],
@@ -208,8 +215,9 @@ const Gateways = () => {
         <div className="h-full overflow-y-auto">
           <div className="pt-0">
             <div className="mb-8">
-              <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
+              <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
                 <div className="grow text-sm text-mid">Gateways</div>
+                <ColumnSelector tableId="gateways" columns={columns} />
               </div>
               <TableView
                 columns={columns}
@@ -220,6 +228,7 @@ const Gateways = () => {
                 onRowClick={(row) => {
                   navigate(`/gateways/${row.owner}`);
                 }}
+                tableId="gateways"
               />
             </div>
           </div>

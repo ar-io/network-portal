@@ -1,4 +1,5 @@
 import Bubble from '@src/components/Bubble';
+import ColumnSelector from '@src/components/ColumnSelector';
 import TableView from '@src/components/TableView';
 import { useGlobalState } from '@src/store';
 import { Assessment } from '@src/types';
@@ -96,6 +97,7 @@ const ObservationsTable = ({
     <div>
       <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
         <div className="grow text-sm text-mid">Reports</div>
+        <ColumnSelector tableId="observations" columns={columns} />
       </div>
       <TableView
         columns={columns}
@@ -106,6 +108,7 @@ const ObservationsTable = ({
         onRowClick={(row) => {
           setSelectedAssessment(row.assessment);
         }}
+        tableId="observations"
       />
     </div>
   );

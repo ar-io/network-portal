@@ -22,7 +22,7 @@ const ReportsTable = ({
 }) => {
   const navigate = useNavigate();
 
-  const { isLoading, data: reports } = useReports(ownerId, gateway);
+  const { isLoading, isError, data: reports } = useReports(ownerId, gateway);
 
   // Define columns for the table
   const columns: ColumnDef<ReportTransactionData, any>[] = [
@@ -99,7 +99,10 @@ const ReportsTable = ({
         columns={columns}
         data={reports || []}
         isLoading={isLoading}
+        isError={isError}
         noDataFoundText="No reports found."
+        errorText="Unable to load reports."
+        loadingRows={10}
         defaultSortingState={{ id: 'generatedAt', desc: true }}
         onRowClick={(row) => {
           navigate(`/gateways/${ownerId}/reports/${row.txid}`);

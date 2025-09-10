@@ -10,27 +10,33 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-import Placeholder from './Placeholder';
 import { SortAsc, SortDesc } from './icons';
+import TableSkeletonRow from './TableSkeletonRow';
 
 const TableView = <T, S>({
   columns,
   data,
   defaultSortingState,
   isLoading,
+  isError = false,
   noDataFoundText = 'No data found.',
+  errorText = 'Something went wrong. Please try again.',
   onRowClick,
   shortTable = false,
   tableId,
+  loadingRows = 5,
 }: {
   columns: ColumnDef<T, S>[];
   data: T[];
   defaultSortingState: ColumnSort;
   isLoading: boolean;
+  isError?: boolean;
   noDataFoundText?: string;
+  errorText?: string;
   onRowClick?: (row: T) => void;
   shortTable?: boolean;
   tableId?: string;
+  loadingRows?: number;
 }) => {
   const [sorting, setSorting] = useState<SortingState>([defaultSortingState]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -128,39 +134,49 @@ const TableView = <T, S>({
             </tr>
           ))}
         </thead>
-        {!isLoading && (
-          <tbody className="overflow-y-auto text-sm">
-            {table.getRowModel().rows.map((row) => {
-              return (
-                <tr
-                  key={row.id}
-                  className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
-                  onClick={
-                    onRowClick ? () => onRowClick(row.original) : undefined
+        <tbody className="overflow-y-auto text-sm">
+          {isLoading
+            ? // Show skeleton rows when loading
+              Array.from({ length: loadingRows }, (_, index) => (
+                <TableSkeletonRow
+                  key={index}
+                  columns={
+                    table.getAllColumns().filter((col) => col.getIsVisible())
+                      .length
                   }
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-        )}
+                />
+              ))
+            : // Show actual data rows when not loading
+              table.getRowModel().rows.map((row) => {
+                return (
+                  <tr
+                    key={row.id}
+                    className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
+                    onClick={
+                      onRowClick ? () => onRowClick(row.original) : undefined
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+        </tbody>
       </table>
-      {isLoading && (
-        <div className="flex items-center justify-center border-x border-b border-grey-500 px-6 py-4 text-low">
-          <Placeholder className="w-full" />
-        </div>
-      )}
-      {!isLoading && table.getRowCount() === 0 && (
+      {!isLoading && !isError && table.getRowCount() === 0 && (
         <div className="flex h-[6.25rem] items-center justify-center border-x border-b border-grey-500 text-low">
           {noDataFoundText}
+        </div>
+      )}
+      {!isLoading && isError && (
+        <div className="flex h-[6.25rem] items-center justify-center border-x border-b border-grey-500 text-low">
+          {errorText}
         </div>
       )}
     </div>

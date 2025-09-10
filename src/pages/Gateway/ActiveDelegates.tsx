@@ -24,9 +24,11 @@ const ActiveDelegates = ({
   gateway?: AoGatewayWithAddress | null;
 }) => {
   const ticker = useGlobalState((state) => state.ticker);
-  const { isLoading, data: gatewayDelegateStakes } = useGatewayDelegateStakes(
-    gateway?.gatewayAddress,
-  );
+  const {
+    isLoading,
+    isError,
+    data: gatewayDelegateStakes,
+  } = useGatewayDelegateStakes(gateway?.gatewayAddress);
 
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
@@ -103,13 +105,16 @@ const ActiveDelegates = ({
         </div>
       }
     >
-      {gatewayDelegateStakes && gatewayDelegateStakes.length > 0 && (
+      {(isLoading || gatewayDelegateStakes) && (
         <TableView
           columns={columns}
           data={tableData}
           defaultSortingState={{ id: 'totalStake', desc: true }}
           isLoading={isLoading}
-          noDataFoundText="Unable to fetch delegates."
+          isError={isError}
+          noDataFoundText="No delegates found."
+          errorText="Unable to load delegates."
+          loadingRows={10}
           shortTable={true}
         />
       )}

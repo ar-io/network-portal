@@ -6,7 +6,9 @@
       "Bash(yarn tsc:*)",
       "Bash(yarn lint:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }

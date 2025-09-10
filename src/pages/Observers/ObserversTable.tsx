@@ -37,10 +37,17 @@ const ObserversTable = () => {
 
   const selectedEpoch = epochs?.[selectedEpochIndex];
 
-  const { isLoading, data: observers } = useObservers(selectedEpoch);
-  const { isLoading: observationsLoading, data: observations } =
-    useObservations(selectedEpoch);
-  const { isLoading: gatewaysLoading, data: gateways } = useGateways();
+  const { isLoading, isError, data: observers } = useObservers(selectedEpoch);
+  const {
+    isLoading: observationsLoading,
+    isError: observationsError,
+    data: observations,
+  } = useObservations(selectedEpoch);
+  const {
+    isLoading: gatewaysLoading,
+    isError: gatewaysError,
+    data: gateways,
+  } = useGateways();
 
   const [observersTableData, setObserversTableData] = useState<
     Array<TableData>
@@ -207,7 +214,10 @@ const ObserversTable = () => {
         columns={columns}
         data={observersTableData}
         isLoading={isLoading || gatewaysLoading || observationsLoading}
+        isError={isError || gatewaysError || observationsError}
         noDataFoundText="No prescribed observers found."
+        errorText="Unable to load observers."
+        loadingRows={10}
         defaultSortingState={{ id: 'ncw', desc: true }}
         onRowClick={(row) => {
           navigate(`/gateways/${row.gatewayAddress}`);

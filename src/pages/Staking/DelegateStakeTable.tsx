@@ -41,7 +41,7 @@ const DelegateStake = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
 
-  const { isLoading, data: gateways } = useGateways();
+  const { isLoading, isError, data: gateways } = useGateways();
   const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
     [],
   );
@@ -300,7 +300,10 @@ const DelegateStake = () => {
         columns={columns}
         data={stakeableGateways}
         isLoading={isLoading}
-        noDataFoundText="No stakeable gateways found."
+        isError={isError}
+        noDataFoundText="No gateways with delegate staking enabled found."
+        errorText="Unable to load delegate stakes."
+        loadingRows={10}
         defaultSortingState={{ id: 'totalStake', desc: true }}
         onRowClick={(row) => {
           navigate(`/gateways/${row.owner}`);

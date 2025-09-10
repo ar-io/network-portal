@@ -32,9 +32,11 @@ const PendingWithdrawals = ({
   walletAddress,
 }: PendingWithdrawalProps) => {
   const ticker = useGlobalState((state) => state.ticker);
-  const { isLoading, data: gatewayVaults } = useGatewayVaults(
-    gateway?.gatewayAddress,
-  );
+  const {
+    isLoading,
+    isError,
+    data: gatewayVaults,
+  } = useGatewayVaults(gateway?.gatewayAddress);
 
   const [confirmCancelWithdrawal, setConfirmCancelWithdrawal] = useState<{
     gatewayAddress: string;
@@ -143,7 +145,8 @@ const PendingWithdrawals = ({
     }),
   ];
 
-  return walletAddress == gateway?.gatewayAddress && gatewayVaults?.length ? (
+  return walletAddress == gateway?.gatewayAddress &&
+    (gatewayVaults?.length || isLoading) ? (
     <CollapsiblePanel
       title="Pending Withdrawals"
       titleRight={
@@ -152,7 +155,9 @@ const PendingWithdrawals = ({
           <div className="text-gradient-red">
             <div>
               {formatWithCommas(
-                new mARIOToken(gatewayVaults.reduce((a, b) => a + b.balance, 0))
+                new mARIOToken(
+                  gatewayVaults?.reduce((a, b) => a + b.balance, 0) || 0,
+                )
                   .toARIO()
                   .valueOf(),
               )}{' '}
@@ -162,13 +167,16 @@ const PendingWithdrawals = ({
         </div>
       }
     >
-      {gatewayVaults && gatewayVaults.length > 0 && (
+      {(isLoading || gatewayVaults) && (
         <TableView
           columns={columns}
           data={gatewayVaults || []}
           defaultSortingState={{ id: 'endTimestamp', desc: false }}
           isLoading={isLoading}
-          noDataFoundText="Unable to fetch pending withdrawals."
+          isError={isError}
+          noDataFoundText="No pending withdrawals found."
+          errorText="Unable to load pending withdrawals."
+          loadingRows={10}
           shortTable={true}
         />
       )}

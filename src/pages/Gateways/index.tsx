@@ -37,7 +37,7 @@ const columnHelper = createColumnHelper<TableData>();
 const Gateways = () => {
   const ticker = useGlobalState((state) => state.ticker);
 
-  const { isLoading, data: gateways } = useGateways();
+  const { isLoading, isError, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   const navigate = useNavigate();
@@ -224,7 +224,10 @@ const Gateways = () => {
                 data={tableData}
                 defaultSortingState={{ id: 'totalStake', desc: true }}
                 isLoading={isLoading}
-                noDataFoundText="Unable to fetch gateways."
+                isError={isError}
+                noDataFoundText="No gateways found."
+                errorText="Unable to load gateways."
+                loadingRows={10}
                 onRowClick={(row) => {
                   navigate(`/gateways/${row.owner}`);
                 }}

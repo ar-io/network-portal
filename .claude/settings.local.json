@@ -1,6 +1,13 @@
 {
   "permissions": {
-    "allow": ["Bash(find:*)", "Bash(ls:*)"],
+    "allow": [
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(yarn tsc:*)",
+      "Bash(yarn lint:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
+    ],
     "deny": []
   }
 }

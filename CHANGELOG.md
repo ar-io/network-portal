@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.1] - 2025-09-25
+
+### Fixed
+
+- Fix observer balance warning using incorrect value for Turbo credits
+
 ## [1.16.0] - 2025-09-03
 
 ### Added

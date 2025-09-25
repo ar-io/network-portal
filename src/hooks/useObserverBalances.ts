@@ -25,9 +25,12 @@ const useObserverBalances = (observerAddress?: string) => {
 
       // Get Turbo credits balance
       try {
-        const response = await fetch(`${TURBO_API_URL}/account/balance`, {
-          method: 'GET',
-        });
+        const response = await fetch(
+          `${TURBO_API_URL}/v1/account/balance?address=${observerAddress}`,
+          {
+            method: 'GET',
+          },
+        );
 
         if (!response.ok) {
           throw new Error(

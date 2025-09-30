@@ -29,7 +29,7 @@ const columnHelper = createColumnHelper<TableData>();
 
 const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   const ticker = useGlobalState((state) => state.ticker);
-  const { isLoading, data: vaults } = useVaults();
+  const { isLoading, isError, data: vaults } = useVaults();
 
   const { walletAddress: userWalletAddress } = useGlobalState();
 
@@ -181,7 +181,10 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
         columns={columns}
         data={vaultsTableData}
         isLoading={isLoading}
-        noDataFoundText="No locked token vaults found."
+        isError={isError}
+        noDataFoundText="No vaults found."
+        errorText="Unable to load vaults."
+        loadingRows={10}
         defaultSortingState={{ id: 'endTimestamp', desc: false }}
         tableId="vaults"
       />

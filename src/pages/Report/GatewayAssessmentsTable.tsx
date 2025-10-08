@@ -7,7 +7,7 @@ import TableView from '@src/components/TableView';
 import { CheckSquareIcon } from '@src/components/icons';
 import { Assessment, ReportData } from '@src/types';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface TableData {
   observedHost: string;
@@ -31,91 +31,89 @@ const GatewayAssessmentsTable = ({
   gateway?: AoGatewayWithAddress | null;
   reportData: ReportData;
 }) => {
-  const [tableData, setTableData] = useState<Array<TableData>>([]);
-
   const [observedHost, setObservedHost] = useState<string>();
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
-  useEffect(() => {
-    const tableData: Array<TableData> = Object.entries(
-      reportData.gatewayAssessments,
-    ).map(([observedHost, assessment]) => {
-      return {
-        observedHost: observedHost,
-        expectedOwner: assessment.ownershipAssessment.expectedWallets.join(),
+  const tableData = useMemo<Array<TableData>>(() => {
+    return Object.entries(reportData.gatewayAssessments).map(
+      ([observedHost, assessment]) => ({
+        observedHost,
+        expectedOwner:
+          assessment.ownershipAssessment.expectedWallets.join(', '),
         observedOwner: assessment.ownershipAssessment.observedWallet,
         ownershipResult: assessment.ownershipAssessment.pass,
         arnsResult: assessment.arnsAssessments.pass,
         overallResult: assessment.pass,
         hasOffsetAssessments: assessment.offsetAssessments != null,
-        assessment: assessment,
-      };
-    });
-    setTableData(tableData);
+        assessment,
+      }),
+    );
   }, [reportData]);
 
-  // Define columns for the table
-  const columns: ColumnDef<TableData, any>[] = [
-    columnHelper.accessor('observedHost', {
-      id: 'observedHost',
-      header: 'Observed Host',
-      sortDescFirst: false,
-    }),
-    columnHelper.accessor('expectedOwner', {
-      id: 'expectedOwner',
-      header: 'Expected Owner',
-      sortDescFirst: false,
-      cell: ({ row }) => {
-        const expectedWallet = row.original.expectedOwner;
-        return expectedWallet ? <AddressCell address={expectedWallet} /> : '';
-      },
-    }),
-    columnHelper.accessor('observedOwner', {
-      id: 'observedOwner',
-      header: 'Observed Owner',
-      sortDescFirst: false,
-      cell: ({ row }) => {
-        const observedWallet = row.original.observedOwner;
-        return observedWallet ? <AddressCell address={observedWallet} /> : '';
-      },
-    }),
-    columnHelper.accessor('ownershipResult', {
-      id: 'ownershipResult',
-      header: 'Ownership Result',
-      sortDescFirst: false,
-      cell: ({ row }) => <Bubble value={row.original.ownershipResult} />,
-    }),
-    columnHelper.accessor('arnsResult', {
-      id: 'arnsResult',
-      header: 'ArNS Result',
-      sortDescFirst: false,
-      cell: ({ row }) => <Bubble value={row.original.arnsResult} />,
-    }),
-    columnHelper.accessor('overallResult', {
-      id: 'overallResult',
-      header: 'Overall Result',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="pr-6">
-          <Bubble value={row.original.overallResult} />
-        </div>
-      ),
-    }),
-    columnHelper.accessor('hasOffsetAssessments', {
-      id: 'offsetAssessments',
-      header: 'Offset Assessments',
-      sortDescFirst: true,
-      enableSorting: true,
-      cell: ({ getValue }) =>
-        getValue() ? (
-          <div className="flex justify-center">
-            <CheckSquareIcon className="size-5" />
+  const columns = useMemo<ColumnDef<TableData, any>[]>(
+    () => [
+      columnHelper.accessor('observedHost', {
+        id: 'observedHost',
+        header: 'Observed Host',
+        sortDescFirst: false,
+      }),
+      columnHelper.accessor('expectedOwner', {
+        id: 'expectedOwner',
+        header: 'Expected Owner',
+        sortDescFirst: false,
+        cell: ({ row }) => {
+          const expectedWallet = row.original.expectedOwner;
+          return expectedWallet ? <AddressCell address={expectedWallet} /> : '';
+        },
+      }),
+      columnHelper.accessor('observedOwner', {
+        id: 'observedOwner',
+        header: 'Observed Owner',
+        sortDescFirst: false,
+        cell: ({ row }) => {
+          const observedWallet = row.original.observedOwner;
+          return observedWallet ? <AddressCell address={observedWallet} /> : '';
+        },
+      }),
+      columnHelper.accessor('ownershipResult', {
+        id: 'ownershipResult',
+        header: 'Ownership Result',
+        sortDescFirst: false,
+        cell: ({ row }) => <Bubble value={row.original.ownershipResult} />,
+      }),
+      columnHelper.accessor('arnsResult', {
+        id: 'arnsResult',
+        header: 'ArNS Result',
+        sortDescFirst: false,
+        cell: ({ row }) => <Bubble value={row.original.arnsResult} />,
+      }),
+      columnHelper.accessor('overallResult', {
+        id: 'overallResult',
+        header: 'Overall Result',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <div className="pr-6">
+            <Bubble value={row.original.overallResult} />
           </div>
-        ) : (
-          <div className="h-5" />
         ),
-    }),
-  ];
+      }),
+      columnHelper.accessor('hasOffsetAssessments', {
+        id: 'offsetAssessments',
+        header: 'Offset Assessments',
+        sortDescFirst: true,
+        enableSorting: true,
+        cell: ({ getValue }) =>
+          getValue() ? (
+            <div className="flex justify-center">
+              <CheckSquareIcon className="size-5" />
+            </div>
+          ) : (
+            <div className="h-5" />
+          ),
+      }),
+    ],
+    [],
+  );
 
   return (
     <div className="mb-6">

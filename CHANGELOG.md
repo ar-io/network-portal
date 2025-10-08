@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2025-10-08
+
+### Added
+
+- Reports: Added Offset Assessments column with pass/fail/skip status, and show offset assement results in observation details
+
 ## [1.16.1] - 2025-09-25
 
 ### Fixed

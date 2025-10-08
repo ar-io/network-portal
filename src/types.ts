@@ -36,6 +36,21 @@ export interface ReportData {
   observerAddress: string;
 }
 
+export interface OffsetAssessments {
+  plannedOffsets: number[];
+  assessments: OffsetAssessmentResult[];
+  validatedOffset?: number;
+  pass: boolean;
+}
+
+export interface OffsetAssessmentResult {
+  assessedAt: number;
+  offset: number;
+  pass: boolean;
+  failureReason?: string;
+  referenceGatewayAvailable?: boolean;
+}
+
 export interface Assessment {
   arnsAssessments: {
     chosenNames: Record<string, ArNSAssessment>;
@@ -43,6 +58,7 @@ export interface Assessment {
     prescribedNames: Record<string, ArNSAssessment>;
   };
   ownershipAssessment: OwnershipAssessment;
+  offsetAssessments?: OffsetAssessments;
   pass: boolean;
 }
 

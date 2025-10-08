@@ -6,7 +6,7 @@ import ColumnSelector from '@src/components/ColumnSelector';
 import TableView from '@src/components/TableView';
 import { Assessment, ReportData } from '@src/types';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface TableData {
   observedHost: string;
@@ -17,10 +17,17 @@ interface TableData {
   arnsResult: boolean;
 
   overallResult: boolean;
+  offsetAssessmentStatus: 'passed' | 'failed' | 'skipped';
   assessment: Assessment;
 }
 
 const columnHelper = createColumnHelper<TableData>();
+
+const offsetStatusRank: Record<TableData['offsetAssessmentStatus'], number> = {
+  passed: 0,
+  failed: 1,
+  skipped: 2,
+};
 
 const GatewayAssessmentsTable = ({
   gateway,
@@ -29,76 +36,116 @@ const GatewayAssessmentsTable = ({
   gateway?: AoGatewayWithAddress | null;
   reportData: ReportData;
 }) => {
-  const [tableData, setTableData] = useState<Array<TableData>>([]);
-
   const [observedHost, setObservedHost] = useState<string>();
+
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
-  useEffect(() => {
-    const tableData: Array<TableData> = Object.entries(
-      reportData.gatewayAssessments,
-    ).map(([observedHost, assessment]) => {
-      return {
-        observedHost: observedHost,
-        expectedOwner: assessment.ownershipAssessment.expectedWallets.join(),
+  const tableData = useMemo<Array<TableData>>(() => {
+    return Object.entries(reportData.gatewayAssessments).map(
+      ([observedHost, assessment]) => ({
+        observedHost,
+        expectedOwner:
+          assessment.ownershipAssessment.expectedWallets.join(', '),
         observedOwner: assessment.ownershipAssessment.observedWallet,
         ownershipResult: assessment.ownershipAssessment.pass,
         arnsResult: assessment.arnsAssessments.pass,
         overallResult: assessment.pass,
-        assessment: assessment,
-      };
-    });
-    setTableData(tableData);
+        offsetAssessmentStatus: assessment.offsetAssessments
+          ? assessment.offsetAssessments.pass
+            ? 'passed'
+            : 'failed'
+          : 'skipped',
+        assessment,
+      }),
+    );
   }, [reportData]);
 
-  // Define columns for the table
-  const columns: ColumnDef<TableData, any>[] = [
-    columnHelper.accessor('observedHost', {
-      id: 'observedHost',
-      header: 'Observed Host',
-      sortDescFirst: false,
-    }),
-    columnHelper.accessor('expectedOwner', {
-      id: 'expectedOwner',
-      header: 'Expected Owner',
-      sortDescFirst: false,
-      cell: ({ row }) => {
-        const expectedWallet = row.original.expectedOwner;
-        return expectedWallet ? <AddressCell address={expectedWallet} /> : '';
-      },
-    }),
-    columnHelper.accessor('observedOwner', {
-      id: 'observedOwner',
-      header: 'Observed Owner',
-      sortDescFirst: false,
-      cell: ({ row }) => {
-        const observedWallet = row.original.observedOwner;
-        return observedWallet ? <AddressCell address={observedWallet} /> : '';
-      },
-    }),
-    columnHelper.accessor('ownershipResult', {
-      id: 'ownershipResult',
-      header: 'Ownership Result',
-      sortDescFirst: false,
-      cell: ({ row }) => <Bubble value={row.original.ownershipResult} />,
-    }),
-    columnHelper.accessor('arnsResult', {
-      id: 'arnsResult',
-      header: 'ArNS Result',
-      sortDescFirst: false,
-      cell: ({ row }) => <Bubble value={row.original.arnsResult} />,
-    }),
-    columnHelper.accessor('overallResult', {
-      id: 'overallResult',
-      header: 'Overall Result',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="pr-6">
-          <Bubble value={row.original.overallResult} />
-        </div>
-      ),
-    }),
-  ];
+  const columns = useMemo<ColumnDef<TableData, any>[]>(
+    () => [
+      columnHelper.accessor('observedHost', {
+        id: 'observedHost',
+        header: 'Observed Host',
+        sortDescFirst: false,
+      }),
+      columnHelper.accessor('expectedOwner', {
+        id: 'expectedOwner',
+        header: 'Expected Owner',
+        sortDescFirst: false,
+        cell: ({ row }) => {
+          const expectedWallet = row.original.expectedOwner;
+          return expectedWallet ? <AddressCell address={expectedWallet} /> : '';
+        },
+      }),
+      columnHelper.accessor('observedOwner', {
+        id: 'observedOwner',
+        header: 'Observed Owner',
+        sortDescFirst: false,
+        cell: ({ row }) => {
+          const observedWallet = row.original.observedOwner;
+          return observedWallet ? <AddressCell address={observedWallet} /> : '';
+        },
+      }),
+      columnHelper.accessor('ownershipResult', {
+        id: 'ownershipResult',
+        header: 'Ownership Result',
+        sortDescFirst: false,
+        cell: ({ row }) => <Bubble value={row.original.ownershipResult} />,
+      }),
+      columnHelper.accessor('arnsResult', {
+        id: 'arnsResult',
+        header: 'ArNS Result',
+        sortDescFirst: false,
+        cell: ({ row }) => <Bubble value={row.original.arnsResult} />,
+      }),
+      columnHelper.accessor('offsetAssessmentStatus', {
+        id: 'offsetAssessments',
+        header: 'Offset Assessments',
+        sortDescFirst: false,
+        enableSorting: true,
+        sortingFn: (rowA, rowB, columnId) =>
+          offsetStatusRank[
+            rowA.getValue(columnId) as TableData['offsetAssessmentStatus']
+          ] -
+          offsetStatusRank[
+            rowB.getValue(columnId) as TableData['offsetAssessmentStatus']
+          ],
+        cell: ({ getValue }) => {
+          const status = getValue();
+
+          if (status === 'skipped') {
+            return (
+              <div className="pr-6">
+                <div className="flex w-fit items-center rounded-xl border border-grey-500 bg-grey-700/40 px-2 py-0.5 text-xs text-low">
+                  Skipped
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="pr-6">
+              <Bubble
+                value={status === 'passed'}
+                additionalClasses="text-xs"
+                customText={status === 'passed' ? 'Passed' : 'Failed'}
+              />
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('overallResult', {
+        id: 'overallResult',
+        header: 'Overall Result',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <div className="pr-6">
+            <Bubble value={row.original.overallResult} />
+          </div>
+        ),
+      }),
+    ],
+    [],
+  );
 
   return (
     <div className="mb-6">

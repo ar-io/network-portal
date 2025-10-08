@@ -6,7 +6,7 @@ import {
   SortAsc,
   SortDesc,
 } from '@src/components/icons';
-import { ArNSAssessment, Assessment } from '@src/types';
+import { ArNSAssessment, Assessment, OffsetAssessmentResult } from '@src/types';
 import { Timer } from 'lucide-react';
 import { useState } from 'react';
 import Bubble from './Bubble';
@@ -20,6 +20,57 @@ const extraTimingsLabels: Record<string, string> = {
   tcp: 'TCP',
   tls: 'TLS',
   wait: 'Wait',
+};
+
+const formatTimestamp = (epochSeconds: number) => {
+  if (!Number.isFinite(epochSeconds)) {
+    return 'Unknown';
+  }
+
+  return new Date(epochSeconds * 1000).toLocaleString();
+};
+
+const OffsetBadge = ({ offset }: { offset: number }) => (
+  <div className="rounded border border-grey-500 bg-grey-700 px-2 py-1 font-mono text-xs text-high">
+    {offset}
+  </div>
+);
+
+const OffsetObservationPanel = ({
+  observation,
+}: {
+  observation: OffsetAssessmentResult;
+}) => {
+  return (
+    <div className="rounded border border-grey-500">
+      <div className="flex items-center gap-2 p-3">
+        <div className="font-mono text-sm text-high">{observation.offset}</div>
+        <Bubble value={observation.pass} additionalClasses="text-xs" />
+        <div className="ml-auto text-xs text-mid">
+          Assessed: {formatTimestamp(observation.assessedAt)}
+        </div>
+      </div>
+
+      {(observation.failureReason !== undefined ||
+        observation.referenceGatewayAvailable !== undefined) && (
+        <div className="border-t border-grey-500 bg-grey-700/40 px-3 py-2 text-xs text-mid">
+          {observation.failureReason && (
+            <div className="text-text-red">{observation.failureReason}</div>
+          )}
+          {observation.referenceGatewayAvailable !== undefined && (
+            <div>
+              Reference Gateway:{' '}
+              <span className="text-high">
+                {observation.referenceGatewayAvailable
+                  ? 'Available'
+                  : 'Unavailable'}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
 const ArNSAssessmentPanel = ({
@@ -272,6 +323,67 @@ const AssessmentDetailsPanel = ({
                       />
                     </>
                   ),
+                )}
+              </div>
+            )}
+
+            {assessment.offsetAssessments && (
+              <div className="flex flex-col gap-3">
+                <div className="flex rounded bg-grey-500 p-3">
+                  <div className="text-high">Offset Assessments</div>
+                  <div className="flex grow justify-end">
+                    <Bubble
+                      value={assessment.offsetAssessments.pass}
+                      additionalClasses="text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded border border-grey-500 text-xs">
+                  <div className="flex flex-col gap-2 p-3">
+                    <div className="text-high">Planned Offsets</div>
+                    <div className="flex flex-wrap gap-2">
+                      {assessment.offsetAssessments.plannedOffsets.map(
+                        (offset) => (
+                          <OffsetBadge key={offset} offset={offset} />
+                        ),
+                      )}
+                    </div>
+                    {assessment.offsetAssessments.validatedOffset != null && (
+                      <div className="text-mid">
+                        Validated Offset:{' '}
+                        <span className="text-high">
+                          {assessment.offsetAssessments.validatedOffset}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {assessment.offsetAssessments.assessments.length > 0 && (
+                  <div className="rounded border border-grey-500 text-xs">
+                    <div className="p-3">
+                      <div className="flex items-center">
+                        <div className="text-high">Observations</div>
+                        <div className="flex grow justify-end">
+                          <div className="text-xs text-mid">
+                            {assessment.offsetAssessments.assessments.length}{' '}
+                            total
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex flex-col gap-2">
+                        {assessment.offsetAssessments.assessments.map(
+                          (observation, index) => (
+                            <OffsetObservationPanel
+                              key={`${observation.offset}-${observation.assessedAt}-${index}`}
+                              observation={observation}
+                            />
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             )}

@@ -4,7 +4,6 @@ import AssessmentDetailsPanel from '@src/components/AssessmentDetailsPanel';
 import Bubble from '@src/components/Bubble';
 import ColumnSelector from '@src/components/ColumnSelector';
 import TableView from '@src/components/TableView';
-import { CheckSquareIcon } from '@src/components/icons';
 import { Assessment, ReportData } from '@src/types';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
@@ -18,11 +17,17 @@ interface TableData {
   arnsResult: boolean;
 
   overallResult: boolean;
-  hasOffsetAssessments: boolean;
+  offsetAssessmentStatus: 'passed' | 'failed' | 'skipped';
   assessment: Assessment;
 }
 
 const columnHelper = createColumnHelper<TableData>();
+
+const offsetStatusRank: Record<TableData['offsetAssessmentStatus'], number> = {
+  passed: 0,
+  failed: 1,
+  skipped: 2,
+};
 
 const GatewayAssessmentsTable = ({
   gateway,
@@ -32,6 +37,7 @@ const GatewayAssessmentsTable = ({
   reportData: ReportData;
 }) => {
   const [observedHost, setObservedHost] = useState<string>();
+
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
   const tableData = useMemo<Array<TableData>>(() => {
@@ -44,7 +50,11 @@ const GatewayAssessmentsTable = ({
         ownershipResult: assessment.ownershipAssessment.pass,
         arnsResult: assessment.arnsAssessments.pass,
         overallResult: assessment.pass,
-        hasOffsetAssessments: assessment.offsetAssessments != null,
+        offsetAssessmentStatus: assessment.offsetAssessments
+          ? assessment.offsetAssessments.pass
+            ? 'passed'
+            : 'failed'
+          : 'skipped',
         assessment,
       }),
     );
@@ -87,6 +97,42 @@ const GatewayAssessmentsTable = ({
         sortDescFirst: false,
         cell: ({ row }) => <Bubble value={row.original.arnsResult} />,
       }),
+      columnHelper.accessor('offsetAssessmentStatus', {
+        id: 'offsetAssessments',
+        header: 'Offset Assessments',
+        sortDescFirst: false,
+        enableSorting: true,
+        sortingFn: (rowA, rowB, columnId) =>
+          offsetStatusRank[
+            rowA.getValue(columnId) as TableData['offsetAssessmentStatus']
+          ] -
+          offsetStatusRank[
+            rowB.getValue(columnId) as TableData['offsetAssessmentStatus']
+          ],
+        cell: ({ getValue }) => {
+          const status = getValue();
+
+          if (status === 'skipped') {
+            return (
+              <div className="pr-6">
+                <div className="flex w-fit items-center rounded-xl border border-grey-500 bg-grey-700/40 px-2 py-0.5 text-xs text-low">
+                  Skipped
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="pr-6">
+              <Bubble
+                value={status === 'passed'}
+                additionalClasses="text-xs"
+                customText={status === 'passed' ? 'Passed' : 'Failed'}
+              />
+            </div>
+          );
+        },
+      }),
       columnHelper.accessor('overallResult', {
         id: 'overallResult',
         header: 'Overall Result',
@@ -96,20 +142,6 @@ const GatewayAssessmentsTable = ({
             <Bubble value={row.original.overallResult} />
           </div>
         ),
-      }),
-      columnHelper.accessor('hasOffsetAssessments', {
-        id: 'offsetAssessments',
-        header: 'Offset Assessments',
-        sortDescFirst: true,
-        enableSorting: true,
-        cell: ({ getValue }) =>
-          getValue() ? (
-            <div className="flex justify-center">
-              <CheckSquareIcon className="size-5" />
-            </div>
-          ) : (
-            <div className="h-5" />
-          ),
       }),
     ],
     [],

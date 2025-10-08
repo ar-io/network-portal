@@ -4,6 +4,7 @@ import AssessmentDetailsPanel from '@src/components/AssessmentDetailsPanel';
 import Bubble from '@src/components/Bubble';
 import ColumnSelector from '@src/components/ColumnSelector';
 import TableView from '@src/components/TableView';
+import { CheckSquareIcon } from '@src/components/icons';
 import { Assessment, ReportData } from '@src/types';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
@@ -17,6 +18,7 @@ interface TableData {
   arnsResult: boolean;
 
   overallResult: boolean;
+  hasOffsetAssessments: boolean;
   assessment: Assessment;
 }
 
@@ -45,6 +47,7 @@ const GatewayAssessmentsTable = ({
         ownershipResult: assessment.ownershipAssessment.pass,
         arnsResult: assessment.arnsAssessments.pass,
         overallResult: assessment.pass,
+        hasOffsetAssessments: assessment.offsetAssessments != null,
         assessment: assessment,
       };
     });
@@ -97,6 +100,20 @@ const GatewayAssessmentsTable = ({
           <Bubble value={row.original.overallResult} />
         </div>
       ),
+    }),
+    columnHelper.accessor('hasOffsetAssessments', {
+      id: 'offsetAssessments',
+      header: 'Offset Assessments',
+      sortDescFirst: true,
+      enableSorting: true,
+      cell: ({ getValue }) =>
+        getValue() ? (
+          <div className="flex justify-center">
+            <CheckSquareIcon className="size-5" />
+          </div>
+        ) : (
+          <div className="h-5" />
+        ),
     }),
   ];
 

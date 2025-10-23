@@ -1,8 +1,7 @@
 import { useQueries } from '@tanstack/react-query';
-import { useMemo } from 'react';
 
 const useGatewaysArioInfo = ({ domains }: { domains?: string[] }) => {
-  const queries = useQueries({
+  return useQueries({
     queries: (domains ?? []).map((domain) => ({
       queryKey: ['ario-info', `https://${domain}`],
       queryFn: async () => {
@@ -16,27 +15,23 @@ const useGatewaysArioInfo = ({ domains }: { domains?: string[] }) => {
       },
       staleTime: 10 * 60 * 1000,
       retry: 1,
-      enabled: !!domains,
+      enabled: domains !== undefined,
     })),
+    combine: (results) => {
+      // Return undefined if any query is still loading
+      const isLoading = results.some((result) => result.isLoading);
+      if (isLoading || !domains) {
+        return undefined;
+      }
+
+      // Build the result map
+      const data: Record<string, any> = {};
+      domains.forEach((domain, index) => {
+        data[domain] = results[index].data;
+      });
+      return data;
+    },
   });
-
-  const result = useMemo(() => {
-    if (!domains) {
-      return undefined;
-    }
-    const isLoading = queries.some((q) => q.isLoading);
-    if (isLoading) {
-      return undefined;
-    }
-
-    const result: Record<string, any> = {};
-    domains?.forEach((domain, index) => {
-      result[domain] = queries[index].data;
-    });
-    return result;
-  }, [domains, queries]);
-
-  return result;
 };
 
 export default useGatewaysArioInfo;

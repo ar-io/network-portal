@@ -58,7 +58,10 @@ const Gateways = () => {
   const { isLoading, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
   const gatewayDomains = useMemo(
-    () => Object.values(gateways ?? {}).map((g) => g.settings.fqdn),
+    () =>
+      !gateways
+        ? undefined
+        : Object.values(gateways).map((g) => g.settings.fqdn),
     [gateways],
   );
   const arioInfoMap = useGatewaysArioInfo({ domains: gatewayDomains });
@@ -101,7 +104,9 @@ const Gateways = () => {
                 : gateway.stats.failedConsecutiveEpochs > 0
                   ? -gateway.stats.failedConsecutiveEpochs
                   : gateway.stats.passedConsecutiveEpochs,
-            pricePerMiB: calculatePricePerMiB(arioInfoMap?.[domain]),
+            pricePerMiB: arioInfoMap
+              ? calculatePricePerMiB(arioInfoMap?.[domain])
+              : undefined,
           },
         ];
       },

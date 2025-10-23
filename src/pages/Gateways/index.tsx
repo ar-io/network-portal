@@ -271,12 +271,12 @@ const Gateways = () => {
           const priceA = rowA.original.pricePerMiB;
           const priceB = rowB.original.pricePerMiB;
 
-          // undefined (loading) always at end
+          // Treat undefined (loading) as lower priority than numeric values
           if (priceA === undefined && priceB === undefined) return 0;
           if (priceA === undefined) return -1;
           if (priceB === undefined) return 1;
 
-          // null (error) always at end (before undefined)
+          // Treat null (error) just below numeric values and above undefined
           if (priceA === null && priceB === null) return 0;
           if (priceA === null) return -1;
           if (priceB === null) return 1;

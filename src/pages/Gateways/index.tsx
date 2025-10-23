@@ -6,15 +6,32 @@ import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import useGateways from '../../hooks/useGateways';
+import useGatewaysArioInfo from '../../hooks/useGatewaysArioInfo';
 import { useGlobalState } from '../../store/globalState';
 import Banner from './Banner';
 // import ColumnSelector from '../../components/ColumnSelector';
 import ColumnSelector from '@src/components/ColumnSelector';
 import { formatDate, formatWithCommas } from '@src/utils';
+
+const BYTES_PER_MIB = 1024 * 1024;
+
+const calculatePricePerMiB = (arioInfo?: any): number | undefined => {
+  if (arioInfo === undefined) {
+    return -1;
+  }
+  if (
+    arioInfo.x402?.enabled &&
+    arioInfo.x402.dataEgress?.pricing?.perBytePrice
+  ) {
+    return arioInfo.x402.dataEgress.pricing.perBytePrice * BYTES_PER_MIB;
+  }
+  return 0;
+};
 
 interface TableData {
   label: string;
@@ -30,6 +47,7 @@ interface TableData {
   passedEpochCount: number;
   totalEpochCount: number;
   streak: number;
+  pricePerMiB?: number;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -39,6 +57,11 @@ const Gateways = () => {
 
   const { isLoading, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
+  const gatewayDomains = useMemo(
+    () => Object.values(gateways ?? {}).map((g) => g.settings.fqdn),
+    [gateways],
+  );
+  const arioInfoMap = useGatewaysArioInfo({ domains: gatewayDomains });
 
   const navigate = useNavigate();
 
@@ -47,11 +70,12 @@ const Gateways = () => {
       (acc: Array<TableData>, [owner, gateway]) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
         const totalEpochCount = gateway.stats.totalEpochCount;
+        const domain = gateway.settings.fqdn;
         return [
           ...acc,
           {
             label: gateway.settings.label,
-            domain: gateway.settings.fqdn,
+            domain,
             owner: owner,
             start: new Date(gateway.startTimestamp),
             totalDelegatedStake: new mARIOToken(gateway.totalDelegatedStake)
@@ -77,13 +101,14 @@ const Gateways = () => {
                 : gateway.stats.failedConsecutiveEpochs > 0
                   ? -gateway.stats.failedConsecutiveEpochs
                   : gateway.stats.passedConsecutiveEpochs,
+            pricePerMiB: calculatePricePerMiB(arioInfoMap?.[domain]),
           },
         ];
       },
       [],
     );
     setTableData(tableData);
-  }, [gateways]);
+  }, [gateways, arioInfoMap]);
 
   // Define columns for the table
   const columns = useMemo<ColumnDef<TableData, any>[]>(
@@ -200,6 +225,36 @@ const Gateways = () => {
             <Streak streak={row.original.streak} />
           </div>
         ),
+      }),
+      columnHelper.accessor('pricePerMiB', {
+        id: 'pricePerMiB',
+        header: 'Price Per MiB',
+        sortDescFirst: true,
+        cell: ({ row }) => {
+          const price = row.original.pricePerMiB;
+          if (price === undefined) {
+            return (
+              <div className="flex items-center gap-2">
+                <Loader2 className="size-4 animate-spin" />
+              </div>
+            );
+          }
+          if (price < 0) {
+            return '-';
+          }
+          return `${price.toFixed(6)} USDC`;
+        },
+        enableSorting: true,
+        sortingFn: (rowA, rowB, isAsc) => {
+          const priceA = rowA.original.pricePerMiB;
+          const priceB = rowB.original.pricePerMiB;
+
+          if (priceA === undefined && priceB === undefined) return 0;
+          if (priceA === undefined) return 1;
+          if (priceB === undefined) return -1;
+
+          return isAsc ? priceA - priceB : priceB - priceA;
+        },
       }),
     ],
     [ticker],

@@ -267,7 +267,7 @@ const Gateways = () => {
           return `${price.toFixed(6)} USDC`;
         },
         enableSorting: true,
-        sortingFn: (rowA, rowB, isAsc) => {
+        sortingFn: (rowA, rowB) => {
           const priceA = rowA.original.pricePerMiB;
           const priceB = rowB.original.pricePerMiB;
 
@@ -282,7 +282,7 @@ const Gateways = () => {
           if (priceB === null) return -1;
 
           // numeric sort for valid prices (including 0)
-          return isAsc ? priceA - priceB : priceB - priceA;
+          return priceA - priceB;
         },
       }),
     ],

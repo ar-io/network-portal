@@ -16,12 +16,13 @@ import { useGlobalState } from '../../store/globalState';
 import Banner from './Banner';
 // import ColumnSelector from '../../components/ColumnSelector';
 import ColumnSelector from '@src/components/ColumnSelector';
+import { ArioInfoResponse } from '@src/hooks/useGatewayArioInfo';
 import { formatDate, formatWithCommas } from '@src/utils';
 
 const BYTES_PER_MIB = 1024 * 1024;
 
 const calculatePricePerMiB = (
-  arioInfo: any | null | undefined,
+  arioInfo: ArioInfoResponse | null | undefined,
 ): number | null | undefined => {
   // undefined = gateway data not loaded yet (show spinner)
   if (arioInfo === undefined) {

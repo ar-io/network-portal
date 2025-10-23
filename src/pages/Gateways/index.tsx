@@ -273,13 +273,13 @@ const Gateways = () => {
 
           // undefined (loading) always at end
           if (priceA === undefined && priceB === undefined) return 0;
-          if (priceA === undefined) return 1;
-          if (priceB === undefined) return -1;
+          if (priceA === undefined) return -1;
+          if (priceB === undefined) return 1;
 
           // null (error) always at end (before undefined)
           if (priceA === null && priceB === null) return 0;
-          if (priceA === null) return 1;
-          if (priceB === null) return -1;
+          if (priceA === null) return -1;
+          if (priceB === null) return 1;
 
           // numeric sort for valid prices (including 0)
           return priceA - priceB;

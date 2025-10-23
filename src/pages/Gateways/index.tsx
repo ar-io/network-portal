@@ -20,16 +20,25 @@ import { formatDate, formatWithCommas } from '@src/utils';
 
 const BYTES_PER_MIB = 1024 * 1024;
 
-const calculatePricePerMiB = (arioInfo?: any): number | undefined => {
+const calculatePricePerMiB = (
+  arioInfo: any | null | undefined,
+): number | null | undefined => {
+  // undefined = gateway data not loaded yet (show spinner)
   if (arioInfo === undefined) {
-    return -1;
+    return undefined;
   }
+  // null = gateway failed to load or error (show "-")
+  if (arioInfo === null) {
+    return null;
+  }
+  // Check if x402 is enabled and has pricing
   if (
     arioInfo.x402?.enabled &&
     arioInfo.x402.dataEgress?.pricing?.perBytePrice
   ) {
     return arioInfo.x402.dataEgress.pricing.perBytePrice * BYTES_PER_MIB;
   }
+  // x402 disabled or no pricing = free/not available (show "0" or "-")
   return 0;
 };
 
@@ -47,7 +56,7 @@ interface TableData {
   passedEpochCount: number;
   totalEpochCount: number;
   streak: number;
-  pricePerMiB?: number;
+  pricePerMiB?: number | null;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -105,7 +114,7 @@ const Gateways = () => {
                   ? -gateway.stats.failedConsecutiveEpochs
                   : gateway.stats.passedConsecutiveEpochs,
             pricePerMiB: arioInfoMap
-              ? calculatePricePerMiB(arioInfoMap?.[domain])
+              ? calculatePricePerMiB(arioInfoMap[domain])
               : undefined,
           },
         ];
@@ -237,6 +246,7 @@ const Gateways = () => {
         sortDescFirst: true,
         cell: ({ row }) => {
           const price = row.original.pricePerMiB;
+          // undefined = still loading (show spinner)
           if (price === undefined) {
             return (
               <div className="flex items-center gap-2">
@@ -244,9 +254,15 @@ const Gateways = () => {
               </div>
             );
           }
-          if (price < 0) {
+          // null = failed to load or error (show dash)
+          if (price === null) {
             return '-';
           }
+          // 0 = x402 disabled or free (show 0)
+          if (price === 0) {
+            return '0.000000 USDC';
+          }
+          // positive number = actual price
           return `${price.toFixed(6)} USDC`;
         },
         enableSorting: true,
@@ -254,10 +270,17 @@ const Gateways = () => {
           const priceA = rowA.original.pricePerMiB;
           const priceB = rowB.original.pricePerMiB;
 
+          // undefined (loading) always at end
           if (priceA === undefined && priceB === undefined) return 0;
           if (priceA === undefined) return 1;
           if (priceB === undefined) return -1;
 
+          // null (error) always at end (before undefined)
+          if (priceA === null && priceB === null) return 0;
+          if (priceA === null) return 1;
+          if (priceB === null) return -1;
+
+          // numeric sort for valid prices (including 0)
           return isAsc ? priceA - priceB : priceB - priceA;
         },
       }),

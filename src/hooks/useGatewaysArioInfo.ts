@@ -18,16 +18,22 @@ const useGatewaysArioInfo = ({ domains }: { domains?: string[] }) => {
       enabled: domains !== undefined,
     })),
     combine: (results) => {
-      // Return undefined if any query is still loading
-      const isLoading = results.some((result) => result.isLoading);
-      if (isLoading || !domains) {
+      if (!domains) {
         return undefined;
       }
 
-      // Build the result map
+      // Build the result map with per-gateway state
+      // undefined = still loading, null = error/failed, data = successfully loaded
       const data: Record<string, any> = {};
       domains.forEach((domain, index) => {
-        data[domain] = results[index].data;
+        const query = results[index];
+        if (query.isLoading) {
+          data[domain] = undefined;
+        } else if (query.isError || !query.data) {
+          data[domain] = null;
+        } else {
+          data[domain] = query.data;
+        }
       });
       return data;
     },

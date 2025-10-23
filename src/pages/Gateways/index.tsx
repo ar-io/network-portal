@@ -56,7 +56,7 @@ interface TableData {
   passedEpochCount: number;
   totalEpochCount: number;
   streak: number;
-  pricePerMiB?: number | null;
+  pricePerMiB?: number | undefined | null;
 }
 
 const columnHelper = createColumnHelper<TableData>();

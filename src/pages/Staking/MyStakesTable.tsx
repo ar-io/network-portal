@@ -56,7 +56,7 @@ const MyStakesTable = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
 
-  const { isFetching, data: gateways } = useGateways();
+  const { isFetching, isError: gatewaysError, data: gateways } = useGateways();
   const [activeStakes, setActiveStakes] =
     useState<Array<ActiveStakesTableData>>();
   const [pendingWithdrawals, setPendingWithdrawals] =
@@ -86,7 +86,8 @@ const MyStakesTable = () => {
 
   const navigate = useNavigate();
 
-  const { data: delegateStakes } = useDelegateStakes(walletAddress?.toString());
+  const { isError: delegateStakesError, data: delegateStakes } =
+    useDelegateStakes(walletAddress?.toString());
 
   const { data: protocolBalance } = useProtocolBalance();
 
@@ -484,7 +485,10 @@ const MyStakesTable = () => {
           columns={activeStakesColumns}
           data={activeStakes || []}
           isLoading={isFetching || activeStakes === undefined}
-          noDataFoundText="No active stakes found."
+          isError={gatewaysError || delegateStakesError}
+          noDataFoundText="No stakes found."
+          errorText="Unable to load stakes."
+          loadingRows={10}
           defaultSortingState={{
             id: 'delegatedStake',
             desc: true,
@@ -500,7 +504,10 @@ const MyStakesTable = () => {
           columns={pendingWithdrawalsColumns}
           data={pendingWithdrawals || []}
           isLoading={isFetching || pendingWithdrawals === undefined}
-          noDataFoundText="No pending withdrawals found."
+          isError={gatewaysError || delegateStakesError}
+          noDataFoundText="No withdrawals found."
+          errorText="Unable to load withdrawals."
+          loadingRows={10}
           defaultSortingState={{
             id: 'label',
             desc: true,

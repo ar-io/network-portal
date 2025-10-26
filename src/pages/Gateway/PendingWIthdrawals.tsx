@@ -145,8 +145,8 @@ const PendingWithdrawals = ({
     }),
   ];
 
-  return walletAddress == gateway?.gatewayAddress &&
-    (gatewayVaults?.length || isLoading) ? (
+  return walletAddress === gateway?.gatewayAddress &&
+    ((gatewayVaults && gatewayVaults.length > 0) || isLoading) ? (
     <CollapsiblePanel
       title="Pending Withdrawals"
       titleRight={
@@ -167,7 +167,7 @@ const PendingWithdrawals = ({
         </div>
       }
     >
-      {(isLoading || gatewayVaults) && (
+      {(isLoading || (gatewayVaults && gatewayVaults.length > 0)) && (
         <TableView
           columns={columns}
           data={gatewayVaults || []}

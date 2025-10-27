@@ -43,6 +43,7 @@ const useEpochs = () => {
       ];
     },
     enabled: !!arIOReadSDK && startEpoch !== undefined,
+    staleTime: 60 * 60 * 1000, // 1 hour
   });
 
   return queryResults;

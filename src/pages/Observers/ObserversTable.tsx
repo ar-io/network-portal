@@ -37,64 +37,67 @@ const ObserversTable = () => {
 
   const selectedEpoch = epochs?.[selectedEpochIndex];
 
-  const { isLoading, data: observers } = useObservers(selectedEpoch);
-  const { isLoading: observationsLoading, data: observations } =
-    useObservations(selectedEpoch);
-  const { isLoading: gatewaysLoading, data: gateways } = useGateways();
+  const { isLoading, isError, data: observers } = useObservers(selectedEpoch);
+  const {
+    isLoading: observationsLoading,
+    isError: observationsError,
+    data: observations,
+  } = useObservations(selectedEpoch);
+  const {
+    isLoading: gatewaysLoading,
+    isError: gatewaysError,
+    data: gateways,
+  } = useGateways();
 
   const [observersTableData, setObserversTableData] = useState<
     Array<TableData>
   >([]);
+  const [isProcessingData, setIsProcessingData] = useState(true);
 
   useEffect(() => {
     if (!observers || !gateways || !observations) {
       return;
     }
 
-    const observersTableData: Array<TableData> = observers.reduce(
-      (acc, observer) => {
-        const gateway = gateways[observer.gatewayAddress];
+    // Pre-calculate failure summaries for efficiency
+    const failureSummaryEntries = Object.values(observations.failureSummaries);
 
-        const submitted = observations.reports[observer.observerAddress];
-        const status = submitted
-          ? 'Submitted'
-          : selectedEpochIndex == 0
-            ? 'Pending'
-            : 'Did not report';
-        const numFailedGatewaysFound = submitted
-          ? Object.values(observations.failureSummaries).reduce(
-              (acc, summary) => {
-                return (
-                  acc + (summary.includes(observer.observerAddress) ? 1 : 0)
-                );
-              },
-              0,
-            )
-          : undefined;
+    const observersTableData: Array<TableData> = observers.map((observer) => {
+      const gateway = gateways[observer.gatewayAddress];
+      const submitted = observations.reports[observer.observerAddress];
 
-        return [
-          ...acc,
-          {
-            label: gateway.settings.label,
-            domain: gateway.settings.fqdn,
+      const status = submitted
+        ? 'Submitted'
+        : selectedEpochIndex == 0
+          ? 'Pending'
+          : 'Did not report';
 
-            gatewayAddress: observer.gatewayAddress,
-            observerAddress: observer.observerAddress,
-            ncw: observer.normalizedCompositeWeight,
-            observedEpochs: gateway.stats.observedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
-            prescribedEpochs: gateway.stats.prescribedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
-            successRatio:
-              // there will be a period where old epoch notices have the old field, and new epoch notices have the new field, so check both
-              observer.observerPerformanceRatio ||
-              observer.observerRewardRatioWeight,
-            reportStatus: status,
-            failedGateways: numFailedGatewaysFound,
-          },
-        ];
-      },
-      [] as Array<TableData>,
-    );
+      const numFailedGatewaysFound = submitted
+        ? failureSummaryEntries.reduce(
+            (count, summary) =>
+              count + (summary.includes(observer.observerAddress) ? 1 : 0),
+            0,
+          )
+        : undefined;
+
+      return {
+        label: gateway.settings.label,
+        domain: gateway.settings.fqdn,
+        gatewayAddress: observer.gatewayAddress,
+        observerAddress: observer.observerAddress,
+        ncw: observer.normalizedCompositeWeight,
+        observedEpochs: gateway.stats.observedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
+        prescribedEpochs: gateway.stats.prescribedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
+        successRatio:
+          // there will be a period where old epoch notices have the old field, and new epoch notices have the new field, so check both
+          observer.observerPerformanceRatio ||
+          observer.observerRewardRatioWeight,
+        reportStatus: status,
+        failedGateways: numFailedGatewaysFound,
+      };
+    });
     setObserversTableData(observersTableData);
+    setIsProcessingData(false);
   }, [observers, gateways, observations, selectedEpochIndex]);
 
   // Define columns for the table
@@ -206,8 +209,16 @@ const ObserversTable = () => {
       <TableView
         columns={columns}
         data={observersTableData}
-        isLoading={isLoading || gatewaysLoading || observationsLoading}
+        isLoading={
+          isLoading ||
+          gatewaysLoading ||
+          observationsLoading ||
+          isProcessingData
+        }
+        isError={isError || gatewaysError || observationsError}
         noDataFoundText="No prescribed observers found."
+        errorText="Unable to load observers."
+        loadingRows={10}
         defaultSortingState={{ id: 'ncw', desc: true }}
         onRowClick={(row) => {
           navigate(`/gateways/${row.gatewayAddress}`);

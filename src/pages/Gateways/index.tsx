@@ -19,9 +19,9 @@ import ColumnSelector from '@src/components/ColumnSelector';
 import { ArioInfoResponse } from '@src/hooks/useGatewayArioInfo';
 import { formatDate, formatWithCommas } from '@src/utils';
 
-const BYTES_PER_MIB = 1024 * 1024;
+const BYTES_PER_GIB = 1024 * 1024 * 1024;
 
-const calculatePricePerMiB = (
+const calculatePricePerGiB = (
   arioInfo: ArioInfoResponse | null | undefined,
 ): number | null | undefined => {
   // undefined = gateway data not loaded yet (show spinner)
@@ -37,7 +37,7 @@ const calculatePricePerMiB = (
     arioInfo.x402?.enabled &&
     arioInfo.x402.dataEgress?.pricing?.perBytePrice
   ) {
-    return arioInfo.x402.dataEgress.pricing.perBytePrice * BYTES_PER_MIB;
+    return arioInfo.x402.dataEgress.pricing.perBytePrice * BYTES_PER_GIB;
   }
   // x402 disabled or no pricing = free/not available (show "0" or "-")
   return 0;
@@ -56,8 +56,8 @@ interface TableData {
   performance: number;
   passedEpochCount: number;
   totalEpochCount: number;
+  egressPricePerGiB?: number | undefined | null;
   streak: number;
-  pricePerMiB?: number | undefined | null;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -65,7 +65,7 @@ const columnHelper = createColumnHelper<TableData>();
 const Gateways = () => {
   const ticker = useGlobalState((state) => state.ticker);
 
-  const { isLoading, data: gateways } = useGateways();
+  const { isLoading, isError, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
   const gatewayDomains = useMemo(
     () =>
@@ -75,54 +75,58 @@ const Gateways = () => {
     [gateways],
   );
   const arioInfoMap = useGatewaysArioInfo({ domains: gatewayDomains });
+  const [isProcessingData, setIsProcessingData] = useState(true);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
-      (acc: Array<TableData>, [owner, gateway]) => {
+    if (!gateways) {
+      return;
+    }
+
+    const tableData: Array<TableData> = Object.entries(gateways).map(
+      ([owner, gateway]) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
         const totalEpochCount = gateway.stats.totalEpochCount;
-        const domain = gateway.settings.fqdn;
-        return [
-          ...acc,
-          {
-            label: gateway.settings.label,
-            domain,
-            owner: owner,
-            start: new Date(gateway.startTimestamp),
-            totalDelegatedStake: new mARIOToken(gateway.totalDelegatedStake)
-              .toARIO()
-              .valueOf(),
-            operatorStake: new mARIOToken(gateway.operatorStake)
-              .toARIO()
-              .valueOf(),
-            totalStake: new mARIOToken(
-              gateway.totalDelegatedStake + gateway.operatorStake,
-            )
-              .toARIO()
-              .valueOf(),
-            status: gateway.status,
-            endTimeStamp: gateway.endTimestamp,
-            performance:
-              totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
-            passedEpochCount,
-            totalEpochCount,
-            streak:
-              gateway.status == 'leaving'
-                ? Number.NEGATIVE_INFINITY
-                : gateway.stats.failedConsecutiveEpochs > 0
-                  ? -gateway.stats.failedConsecutiveEpochs
-                  : gateway.stats.passedConsecutiveEpochs,
-            pricePerMiB: arioInfoMap
-              ? calculatePricePerMiB(arioInfoMap[domain])
-              : undefined,
-          },
-        ];
+
+        // Pre-calculate token conversions
+        const totalDelegatedStakeARIO = new mARIOToken(
+          gateway.totalDelegatedStake,
+        )
+          .toARIO()
+          .valueOf();
+        const operatorStakeARIO = new mARIOToken(gateway.operatorStake)
+          .toARIO()
+          .valueOf();
+
+        return {
+          label: gateway.settings.label,
+          domain: gateway.settings.fqdn,
+          owner: owner,
+          start: new Date(gateway.startTimestamp),
+          totalDelegatedStake: totalDelegatedStakeARIO,
+          operatorStake: operatorStakeARIO,
+          totalStake: totalDelegatedStakeARIO + operatorStakeARIO,
+          status: gateway.status,
+          endTimeStamp: gateway.endTimestamp,
+          performance:
+            totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
+          passedEpochCount,
+          totalEpochCount,
+          egressPricePerGiB: calculatePricePerGiB(
+            arioInfoMap ? arioInfoMap[gateway.settings.fqdn] : undefined,
+          ),
+          streak:
+            gateway.status == 'leaving'
+              ? Number.NEGATIVE_INFINITY
+              : gateway.stats.failedConsecutiveEpochs > 0
+                ? -gateway.stats.failedConsecutiveEpochs
+                : gateway.stats.passedConsecutiveEpochs,
+        };
       },
-      [],
     );
     setTableData(tableData);
+    setIsProcessingData(false);
   }, [gateways, arioInfoMap]);
 
   // Define columns for the table
@@ -231,22 +235,12 @@ const Gateways = () => {
             </Tooltip>
           ),
       }),
-      columnHelper.accessor('streak', {
-        id: 'streak',
-        header: 'Streak',
-        sortDescFirst: true,
-        cell: ({ row }) => (
-          <div className="pr-6">
-            <Streak streak={row.original.streak} />
-          </div>
-        ),
-      }),
-      columnHelper.accessor('pricePerMiB', {
-        id: 'pricePerMiB',
-        header: 'Price Per MiB',
+      columnHelper.accessor('egressPricePerGiB', {
+        id: 'egressPricePerGiB',
+        header: '$/GiB egress',
         sortDescFirst: true,
         cell: ({ row }) => {
-          const price = row.original.pricePerMiB;
+          const price = row.original.egressPricePerGiB;
           // undefined = still loading (show spinner)
           if (price === undefined) {
             return (
@@ -268,8 +262,8 @@ const Gateways = () => {
         },
         enableSorting: true,
         sortingFn: (rowA, rowB) => {
-          const priceA = rowA.original.pricePerMiB;
-          const priceB = rowB.original.pricePerMiB;
+          const priceA = rowA.original.egressPricePerGiB;
+          const priceB = rowB.original.egressPricePerGiB;
 
           // Treat undefined (loading) as lower priority than numeric values
           if (priceA === undefined && priceB === undefined) return 0;
@@ -284,6 +278,16 @@ const Gateways = () => {
           // numeric sort for valid prices (including 0)
           return priceA - priceB;
         },
+      }),
+      columnHelper.accessor('streak', {
+        id: 'streak',
+        header: 'Streak',
+        sortDescFirst: true,
+        cell: ({ row }) => (
+          <div className="pr-6">
+            <Streak streak={row.original.streak} />
+          </div>
+        ),
       }),
     ],
     [ticker],
@@ -307,8 +311,11 @@ const Gateways = () => {
                 columns={columns}
                 data={tableData}
                 defaultSortingState={{ id: 'totalStake', desc: true }}
-                isLoading={isLoading}
-                noDataFoundText="Unable to fetch gateways."
+                isLoading={isLoading || isProcessingData}
+                isError={isError}
+                noDataFoundText="No gateways found."
+                errorText="Unable to load gateways."
+                loadingRows={10}
                 onRowClick={(row) => {
                   navigate(`/gateways/${row.owner}`);
                 }}

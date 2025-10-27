@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2025-10-27
+
+### Added
+
+- Improved table loading states with skeleton rows for better user experience
+
+### Changed
+
+- Extended cache times from 5 minutes to 1 hour for better performance
+- Optimized data processing in Gateways, Staking, and Observers tables
+
+### Fixed
+
+- Eliminated "no data found" flash when switching between tabs
+- Fixed table loading states to maintain skeleton rows during data processing
+- Improved consistent loading behavior across all tables
+
 ## [1.17.1] - 2025-10-17
 
 ### Fixed

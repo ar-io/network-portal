@@ -39,50 +39,55 @@ const Gateways = () => {
 
   const { isLoading, isError, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
+  const [isProcessingData, setIsProcessingData] = useState(true);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const tableData: Array<TableData> = Object.entries(gateways ?? {}).reduce(
-      (acc: Array<TableData>, [owner, gateway]) => {
+    if (!gateways) {
+      return;
+    }
+
+    const tableData: Array<TableData> = Object.entries(gateways).map(
+      ([owner, gateway]) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
         const totalEpochCount = gateway.stats.totalEpochCount;
-        return [
-          ...acc,
-          {
-            label: gateway.settings.label,
-            domain: gateway.settings.fqdn,
-            owner: owner,
-            start: new Date(gateway.startTimestamp),
-            totalDelegatedStake: new mARIOToken(gateway.totalDelegatedStake)
-              .toARIO()
-              .valueOf(),
-            operatorStake: new mARIOToken(gateway.operatorStake)
-              .toARIO()
-              .valueOf(),
-            totalStake: new mARIOToken(
-              gateway.totalDelegatedStake + gateway.operatorStake,
-            )
-              .toARIO()
-              .valueOf(),
-            status: gateway.status,
-            endTimeStamp: gateway.endTimestamp,
-            performance:
-              totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
-            passedEpochCount,
-            totalEpochCount,
-            streak:
-              gateway.status == 'leaving'
-                ? Number.NEGATIVE_INFINITY
-                : gateway.stats.failedConsecutiveEpochs > 0
-                  ? -gateway.stats.failedConsecutiveEpochs
-                  : gateway.stats.passedConsecutiveEpochs,
-          },
-        ];
+
+        // Pre-calculate token conversions
+        const totalDelegatedStakeARIO = new mARIOToken(
+          gateway.totalDelegatedStake,
+        )
+          .toARIO()
+          .valueOf();
+        const operatorStakeARIO = new mARIOToken(gateway.operatorStake)
+          .toARIO()
+          .valueOf();
+
+        return {
+          label: gateway.settings.label,
+          domain: gateway.settings.fqdn,
+          owner: owner,
+          start: new Date(gateway.startTimestamp),
+          totalDelegatedStake: totalDelegatedStakeARIO,
+          operatorStake: operatorStakeARIO,
+          totalStake: totalDelegatedStakeARIO + operatorStakeARIO,
+          status: gateway.status,
+          endTimeStamp: gateway.endTimestamp,
+          performance:
+            totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
+          passedEpochCount,
+          totalEpochCount,
+          streak:
+            gateway.status == 'leaving'
+              ? Number.NEGATIVE_INFINITY
+              : gateway.stats.failedConsecutiveEpochs > 0
+                ? -gateway.stats.failedConsecutiveEpochs
+                : gateway.stats.passedConsecutiveEpochs,
+        };
       },
-      [],
     );
     setTableData(tableData);
+    setIsProcessingData(false);
   }, [gateways]);
 
   // Define columns for the table
@@ -223,7 +228,7 @@ const Gateways = () => {
                 columns={columns}
                 data={tableData}
                 defaultSortingState={{ id: 'totalStake', desc: true }}
-                isLoading={isLoading}
+                isLoading={isLoading || isProcessingData}
                 isError={isError}
                 noDataFoundText="No gateways found."
                 errorText="Unable to load gateways."

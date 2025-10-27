@@ -16,7 +16,7 @@ const useProtocolBalance = () => {
       throw new Error('Error: ArIO Read SDK is not initialized');
     },
     enabled: !!arioProcessId && !!arIOReadSDK,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60 * 60 * 1000, // 1 hour
   });
 
   return queryResults;

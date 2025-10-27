@@ -14,6 +14,7 @@ const useObservers = (epoch?: AoEpochData) => {
       throw new Error('arIOReadSDK or epoch not available');
     },
     enabled: !!arIOReadSDK && epoch?.epochIndex !== undefined,
+    staleTime: 60 * 60 * 1000, // 1 hour
   });
 
   return queryResults;

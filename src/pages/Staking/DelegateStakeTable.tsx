@@ -42,78 +42,76 @@ const DelegateStake = () => {
   const ticker = useGlobalState((state) => state.ticker);
 
   const { isLoading, isError, data: gateways } = useGateways();
+  const { isLoading: protocolBalanceLoading, data: protocolBalance } =
+    useProtocolBalance();
   const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
     [],
   );
+  const [isProcessingData, setIsProcessingData] = useState(true);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
 
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
 
-  const { data: protocolBalance } = useProtocolBalance();
-
   const navigate = useNavigate();
 
   useEffect(() => {
-    const stakeableGateways: Array<TableData> =
-      !gateways || !protocolBalance
-        ? []
-        : Object.entries(gateways)
-            .filter((g) => g[1].status === 'joined')
-            .reduce((acc, [owner, gateway]) => {
-              if (gateway.settings.allowDelegatedStaking) {
-                const passedEpochCount = gateway.stats.passedEpochCount;
-                const totalEpochCount = (gateway.stats as any).totalEpochCount;
+    if (!gateways || !protocolBalance) {
+      return;
+    }
 
-                return [
-                  ...acc,
-                  {
-                    label: gateway.settings.label,
-                    domain: gateway.settings.fqdn,
-                    owner,
-                    streak:
-                      gateway.stats.failedConsecutiveEpochs > 0
-                        ? -gateway.stats.failedConsecutiveEpochs
-                        : gateway.stats.passedConsecutiveEpochs,
+    // Pre-calculate expensive values
+    const protocolBalanceARIO = new mARIOToken(protocolBalance).toARIO();
+    const joinedGatewayCount = Object.values(gateways).filter(
+      (g) => g.status === 'joined',
+    ).length;
 
-                    rewardShareRatio: gateway.settings.allowDelegatedStaking
-                      ? gateway.settings.delegateRewardShareRatio
-                      : -1,
-                    performance:
-                      totalEpochCount > 0
-                        ? gateway.stats.passedEpochCount / totalEpochCount
-                        : -1,
-                    passedEpochCount,
-                    totalEpochCount,
-                    totalDelegatedStake: new mARIOToken(
-                      gateway.totalDelegatedStake,
-                    )
-                      .toARIO()
-                      .valueOf(),
-                    operatorStake: new mARIOToken(gateway.operatorStake)
-                      .toARIO()
-                      .valueOf(),
-                    totalStake: new mARIOToken(
-                      gateway.totalDelegatedStake + gateway.operatorStake,
-                    )
-                      .toARIO()
-                      .valueOf(),
+    const stakeableGateways: Array<TableData> = Object.entries(gateways)
+      .filter(
+        ([, gateway]) =>
+          gateway.status === 'joined' && gateway.settings.allowDelegatedStaking,
+      )
+      .map(([owner, gateway]) => {
+        const passedEpochCount = gateway.stats.passedEpochCount;
+        const totalEpochCount = (gateway.stats as any).totalEpochCount;
 
-                    eay: calculateGatewayRewards(
-                      new mARIOToken(protocolBalance).toARIO(),
-                      Object.values(gateways).filter(
-                        (g) => g.status == 'joined',
-                      ).length,
-                      gateway,
-                    ).EAY,
-                  },
-                ];
-              }
-              return acc;
-            }, [] as Array<TableData>);
+        // Pre-calculate token conversions
+        const totalDelegatedStakeARIO = new mARIOToken(
+          gateway.totalDelegatedStake,
+        )
+          .toARIO()
+          .valueOf();
+        const operatorStakeARIO = new mARIOToken(gateway.operatorStake)
+          .toARIO()
+          .valueOf();
+
+        return {
+          label: gateway.settings.label,
+          domain: gateway.settings.fqdn,
+          owner,
+          streak:
+            gateway.stats.failedConsecutiveEpochs > 0
+              ? -gateway.stats.failedConsecutiveEpochs
+              : gateway.stats.passedConsecutiveEpochs,
+          rewardShareRatio: gateway.settings.delegateRewardShareRatio,
+          performance:
+            totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
+          passedEpochCount,
+          totalEpochCount,
+          totalDelegatedStake: totalDelegatedStakeARIO,
+          operatorStake: operatorStakeARIO,
+          totalStake: totalDelegatedStakeARIO + operatorStakeARIO,
+          eay: calculateGatewayRewards(
+            protocolBalanceARIO,
+            joinedGatewayCount,
+            gateway,
+          ).EAY,
+        };
+      });
     setStakeableGateways(stakeableGateways);
-  }, [gateways, protocolBalance, walletAddress]);
+    setIsProcessingData(false);
+  }, [gateways, protocolBalance]);
 
   // Define columns for the table
   const columns = useMemo<ColumnDef<TableData, any>[]>(
@@ -299,7 +297,7 @@ const DelegateStake = () => {
       <TableView
         columns={columns}
         data={stakeableGateways}
-        isLoading={isLoading}
+        isLoading={isLoading || protocolBalanceLoading || isProcessingData}
         isError={isError}
         noDataFoundText="No gateways with delegate staking enabled found."
         errorText="Unable to load delegate stakes."

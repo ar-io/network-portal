@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.0] - 2025-10-28
+
+### Added
+
+- X-402 pricing information display on individual gateway pages
+
 ## [1.18.0] - 2025-10-27
 
 ### Added

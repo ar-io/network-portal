@@ -6,42 +6,15 @@ import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import useGateways from '../../hooks/useGateways';
-import useGatewaysArioInfo from '../../hooks/useGatewaysArioInfo';
 import { useGlobalState } from '../../store/globalState';
 import Banner from './Banner';
 // import ColumnSelector from '../../components/ColumnSelector';
 import ColumnSelector from '@src/components/ColumnSelector';
-import { ArioInfoResponse } from '@src/hooks/useGatewayArioInfo';
 import { formatDate, formatWithCommas } from '@src/utils';
-
-const BYTES_PER_GIB = 1024 * 1024 * 1024;
-
-const calculatePricePerGiB = (
-  arioInfo: ArioInfoResponse | null | undefined,
-): number | null | undefined => {
-  // undefined = gateway data not loaded yet (show spinner)
-  if (arioInfo === undefined) {
-    return undefined;
-  }
-  // null = gateway failed to load or error (show "-")
-  if (arioInfo === null) {
-    return null;
-  }
-  // Check if x402 is enabled and has pricing
-  if (
-    arioInfo.x402?.enabled &&
-    arioInfo.x402.dataEgress?.pricing?.perBytePrice
-  ) {
-    return arioInfo.x402.dataEgress.pricing.perBytePrice * BYTES_PER_GIB;
-  }
-  // x402 disabled or no pricing = free/not available (show "0" or "-")
-  return 0;
-};
 
 interface TableData {
   label: string;
@@ -56,7 +29,6 @@ interface TableData {
   performance: number;
   passedEpochCount: number;
   totalEpochCount: number;
-  egressPricePerGiB?: number | undefined | null;
   streak: number;
 }
 
@@ -67,14 +39,6 @@ const Gateways = () => {
 
   const { isLoading, isError, data: gateways } = useGateways();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
-  const gatewayDomains = useMemo(
-    () =>
-      !gateways
-        ? undefined
-        : Object.values(gateways).map((g) => g.settings.fqdn),
-    [gateways],
-  );
-  const arioInfoMap = useGatewaysArioInfo({ domains: gatewayDomains });
   const [isProcessingData, setIsProcessingData] = useState(true);
 
   const navigate = useNavigate();
@@ -113,9 +77,6 @@ const Gateways = () => {
             totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
           passedEpochCount,
           totalEpochCount,
-          egressPricePerGiB: calculatePricePerGiB(
-            arioInfoMap ? arioInfoMap[gateway.settings.fqdn] : undefined,
-          ),
           streak:
             gateway.status == 'leaving'
               ? Number.NEGATIVE_INFINITY
@@ -127,7 +88,7 @@ const Gateways = () => {
     );
     setTableData(tableData);
     setIsProcessingData(false);
-  }, [gateways, arioInfoMap]);
+  }, [gateways]);
 
   // Define columns for the table
   const columns = useMemo<ColumnDef<TableData, any>[]>(
@@ -234,50 +195,6 @@ const Gateways = () => {
               {`${(row.original.performance * 100).toFixed(2)}%`}
             </Tooltip>
           ),
-      }),
-      columnHelper.accessor('egressPricePerGiB', {
-        id: 'egressPricePerGiB',
-        header: '$/GiB egress',
-        sortDescFirst: true,
-        cell: ({ row }) => {
-          const price = row.original.egressPricePerGiB;
-          // undefined = still loading (show spinner)
-          if (price === undefined) {
-            return (
-              <div className="flex items-center gap-2">
-                <Loader2 className="size-4 animate-spin" />
-              </div>
-            );
-          }
-          // null = failed to load or error (show dash)
-          if (price === null) {
-            return '-';
-          }
-          // 0 = x402 disabled or free (show 0)
-          if (price === 0) {
-            return '0.000000 USDC';
-          }
-          // positive number = actual price
-          return `${price.toFixed(6)} USDC`;
-        },
-        enableSorting: true,
-        sortingFn: (rowA, rowB) => {
-          const priceA = rowA.original.egressPricePerGiB;
-          const priceB = rowB.original.egressPricePerGiB;
-
-          // Treat undefined (loading) as lower priority than numeric values
-          if (priceA === undefined && priceB === undefined) return 0;
-          if (priceA === undefined) return -1;
-          if (priceB === undefined) return 1;
-
-          // Treat null (error) just below numeric values and above undefined
-          if (priceA === null && priceB === null) return 0;
-          if (priceA === null) return -1;
-          if (priceB === null) return 1;
-
-          // numeric sort for valid prices (including 0)
-          return priceA - priceB;
-        },
       }),
       columnHelper.accessor('streak', {
         id: 'streak',

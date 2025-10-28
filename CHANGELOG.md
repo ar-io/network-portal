@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1] - 2025-10-28
+
+### Added
+
+- X-402 pricing information display on individual gateway pages
+
+### Changed
+
+- Moved X-402 pricing display from gateways table to individual gateway detail pages
+- Removed bulk pricing information from gateways list for improved performance
+
 ## [1.18.0] - 2025-10-27
 
 ### Added

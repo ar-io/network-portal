@@ -26,6 +26,7 @@ import SuccessModal from '@src/components/modals/SuccessModal';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGateway from '@src/hooks/useGateway';
+import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
 import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -56,6 +57,12 @@ const Gateway = () => {
 
   const { data: gateway } = useGateway({
     ownerWalletAddress: ownerId || undefined,
+  });
+
+  const { data: arioInfo, isLoading: isLoadingArioInfo } = useGatewayArioInfo({
+    url: gateway?.settings?.fqdn
+      ? `https://${gateway.settings.fqdn}`
+      : undefined,
   });
 
   const { data: epochSettings } = useEpochSettings();
@@ -103,6 +110,11 @@ const Gateway = () => {
     ['Composite', gateway?.weights?.compositeWeight],
     ['Normalized', gateway?.weights?.normalizedCompositeWeight],
   ];
+
+  const egressPricePerGB =
+    arioInfo?.x402?.dataEgress?.pricing?.perBytePrice !== undefined
+      ? arioInfo.x402.dataEgress?.pricing?.perBytePrice * 1e9
+      : 0;
 
   useEffect(() => {
     setInitialState((currentState) => {
@@ -397,6 +409,25 @@ const Gateway = () => {
               {gateway?.status === 'joined' && (
                 <SoftwareDetails gateway={gateway} />
               )}
+              <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
+                <div className="bg-containerL3 px-6 py-4">
+                  <div className="text-high">Pricing</div>
+                </div>
+                <div className="flex items-center gap-4 border-t border-transparent-100-16 px-6 py-4">
+                  <div className="grow text-nowrap text-xs text-low">
+                    Egress:
+                  </div>
+                  <div className="text-right text-sm">
+                    {isLoadingArioInfo ? (
+                      <Placeholder className="w-16" />
+                    ) : egressPricePerGB !== undefined ? (
+                      `$${egressPricePerGB.toFixed(3)}/GB`
+                    ) : (
+                      'N/A'
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="flex w-full grow flex-col gap-6">
               <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">

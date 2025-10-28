@@ -8,6 +8,20 @@ export interface ArioInfoResponse {
   // ans104IndexFilter:...
   supportedManifestVersions: string[];
   release: string;
+  x402?: {
+    enabled: boolean;
+    network: string;
+    walletAddress: string;
+    facilitatorUrl: string;
+    dataEgress: {
+      pricing: {
+        perBytePrice: number;
+        minPrice: number;
+        maxPrice: number;
+        currency: string;
+      };
+    };
+  };
 }
 
 const useGatewayArioInfo = ({ url }: { url?: string }) => {

@@ -1,5 +1,5 @@
-import { AoGatewayWithAddress, ARIOToken } from '@ar.io/sdk/web';
-import { log, WRITE_OPTIONS } from '@src/constants';
+import { ARIOToken, AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { AoAddress, WithdrawalType } from '@src/types';
 import { formatAddress, formatDateTime, formatWithCommas } from '@src/utils';
@@ -8,8 +8,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
-import { LinkArrowIcon } from '../icons';
 import LabelValueRow from '../LabelValueRow';
+import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';

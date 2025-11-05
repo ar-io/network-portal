@@ -33,7 +33,7 @@ const Banner = () => {
 
   return (
     <div>
-      {!walletAddress || gatewayStatus == GatewayStatus.NOT_FOUND ? (
+      {!walletAddress || gatewayStatus === GatewayStatus.NOT_FOUND ? (
         <div>
           <button
             className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
@@ -67,7 +67,7 @@ const Banner = () => {
             </div>
           </button>
         </div>
-      ) : gatewayStatus == GatewayStatus.FOUND ? (
+      ) : gatewayStatus === GatewayStatus.FOUND ? (
         <div>
           <button
             className="group relative h-fit w-full overflow-hidden rounded-xl bg-grey-800 lg:h-[7.5rem]"

@@ -1,5 +1,6 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import Placeholder from '@src/components/Placeholder';
 import {
   ArioCoinIcon,
   ObserversBgIcon,
@@ -8,7 +9,6 @@ import {
 } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import WalletAddressModal from '@src/components/modals/WalletAddressModal';
-import Placeholder from '@src/components/Placeholder';
 import useBalances from '@src/hooks/useBalances';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateway from '@src/hooks/useGateway';
@@ -199,7 +199,7 @@ const Banner = ({
             <div className="flex items-center gap-3 pl-6">
               <ArioCoinIcon className="size-6" />
               <div className="group-hover:text-gradient text-sm text-high">
-                {walletAddress.toString() ==
+                {walletAddress.toString() ===
                   loggedinWalletAddress?.toString() && 'My '}
                 ${ticker} Balances
               </div>

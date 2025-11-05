@@ -81,7 +81,7 @@ export const validateNumberRange = (
   return (v: string) => {
     const value = +v;
 
-    return v.length == 0 || value < min || value > max || isNaN(value)
+    return v.length === 0 || value < min || value > max || isNaN(value)
       ? `${propertyName} must be a number from ${min} to ${max}.`
       : undefined;
   };
@@ -134,8 +134,8 @@ export const validateWithdrawAmount = (
 
     if (
       currentStake - value < minDelegatedStake &&
-      value != minDelegatedStake &&
-      value != currentStake
+      value !== minDelegatedStake &&
+      value !== currentStake
     ) {
       return `Withdrawing this amount will put you below the gateway's minimum stake of ${minDelegatedStake} ${ticker}. You can either: withdraw a smaller amount so your remaining stake is above the minimum - or - withdraw your full delegated stake.`;
     }

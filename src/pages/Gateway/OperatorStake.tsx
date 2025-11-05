@@ -1,13 +1,13 @@
-import { AoGatewayWithAddress, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import Placeholder from '@src/components/Placeholder';
+import Tooltip from '@src/components/Tooltip';
 import { ThreeDotsIcon } from '@src/components/icons';
 import OperatorStakingModal from '@src/components/modals/OperatorStakingModal';
 import OperatorWithdrawalModal from '@src/components/modals/OperatorWithdrawalModal';
 import RedelegateModal, {
   RedelegateModalProps,
 } from '@src/components/modals/RedelegateModal';
-import Placeholder from '@src/components/Placeholder';
-import Tooltip from '@src/components/Tooltip';
 import { EAY_TOOLTIP_TEXT, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import useGateways from '@src/hooks/useGateways';
@@ -50,7 +50,7 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
     if (gateways && gateway && protocolBalance) {
       const rewards = calculateOperatorRewards(
         new mARIOToken(protocolBalance).toARIO(),
-        Object.values(gateways).filter((g) => g.status == 'joined').length,
+        Object.values(gateways).filter((g) => g.status === 'joined').length,
         gateway,
         new mARIOToken(gateway.operatorStake).toARIO(),
       );
@@ -66,7 +66,7 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
         </div>
 
         {gateway?.gatewayAddress === walletAddress &&
-          gateway?.status != 'leaving' && (
+          gateway?.status !== 'leaving' && (
             <DropdownMenu.Root>
               <DropdownMenu.Trigger
                 asChild

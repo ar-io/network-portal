@@ -104,7 +104,7 @@ const IOTokenDistributionPanel = () => {
                   onMouseEnter={onPieEnter}
                   onMouseLeave={onPieLeave}
                 >
-                  {data.map((entry, index) => (
+                  {data.map((_entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={index === activeIndex ? '#E19EE580' : '#E19EE520'}
@@ -146,7 +146,7 @@ const IOTokenDistributionPanel = () => {
               onMouseLeave={() => setActiveIndex(undefined)}
             >
               <div
-                className={`mt-1 size-2 min-w-2 rounded-full ${index == activeIndex ? 'bg-[#E19EE5f0]' : 'bg-[#E19EE520]'}`}
+                className={`mt-1 size-2 min-w-2 rounded-full ${index === activeIndex ? 'bg-[#E19EE5f0]' : 'bg-[#E19EE520]'}`}
               />
               <div className="grow text-[.675rem] text-low">{entry.name}</div>
             </div>

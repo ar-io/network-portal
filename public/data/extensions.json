@@ -13,7 +13,7 @@
       "version": "0.2.3",
       "imageUri": "ghcr.io/permaweb/ao-cu:latest",
       "lastUpdated": "2025-01-09",
-      "minGatewayVersion": "N/A", 
+      "minGatewayVersion": "N/A",
       "documentation": "https://docs.ar.io/gateways/cu",
       "logo": "https://github.com/permaweb/ao/raw/main/logos/ao_pictograph_darkmode.svg"
     },

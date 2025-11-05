@@ -76,7 +76,7 @@ const CancelWithdrawalModal = ({
           <div className="border-y border-grey-800 p-8 text-sm text-mid">
             <div>
               This action will cancel your withdrawal and return its stake to{' '}
-              {gatewayAddress.toString() == walletAddress?.toString()
+              {gatewayAddress.toString() === walletAddress?.toString()
                 ? 'your'
                 : 'the original'}{' '}
               gateway. This action cannot be undone.

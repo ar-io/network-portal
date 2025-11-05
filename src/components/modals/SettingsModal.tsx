@@ -12,9 +12,9 @@ import BaseModal from './BaseModal';
 
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   const arioProcessId = useSettings((state) => state.arioProcessId);
-  const isDevnet = arioProcessId == ARIO_DEVNET_PROCESS_ID;
-  const isTestnet = arioProcessId == ARIO_TESTNET_PROCESS_ID;
-  const isMainnet = arioProcessId == ARIO_MAINNET_PROCESS_ID;
+  const isDevnet = arioProcessId === ARIO_DEVNET_PROCESS_ID;
+  const isTestnet = arioProcessId === ARIO_TESTNET_PROCESS_ID;
+  const isMainnet = arioProcessId === ARIO_MAINNET_PROCESS_ID;
   const aoCuUrl = useSettings((state) => state.aoCuUrl);
   const arweaveGqlUrl = useSettings((state) => state.arweaveGqlUrl);
 

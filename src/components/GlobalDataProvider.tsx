@@ -47,7 +47,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           return;
         }
         setCurrentEpoch(currentEpoch);
-      } catch (error) {
+      } catch (_error) {
         log.error('Error fetching current epoch');
         showErrorToast(
           'Error fetching current epoch. Application may not function as expected.',

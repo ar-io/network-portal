@@ -1,8 +1,8 @@
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import Button from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
-import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
+import { StatsArrowIcon } from '@src/components/icons';
 import useEpochs from '@src/hooks/useEpochs';
 import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
 import { CheckCircleIcon, NotebookText, XCircleIcon } from 'lucide-react';
@@ -64,7 +64,7 @@ const ReportedOnByCard = ({
           <>
             <div className="flex">
               <div className="grow whitespace-nowrap px-6 py-4">
-                {failureObservers.length == 0 ? (
+                {failureObservers.length === 0 ? (
                   <div className="text-mid">No Failures Reported</div>
                 ) : (
                   <div className="text-mid">
@@ -99,7 +99,7 @@ const ReportedOnByCard = ({
                 options={
                   epochs?.map((epoch, index) => ({
                     label:
-                      index == 0
+                      index === 0
                         ? 'Current Epoch'
                         : `Epoch ${epoch?.epochIndex}`,
                     value: index.toString(),
@@ -190,7 +190,7 @@ const ReportedOnCard = ({
 
         setSelectedForObservation(
           selectedEpoch.prescribedObservers?.find(
-            (obs) => obs.observerAddress == address,
+            (obs) => obs.observerAddress === address,
           ) !== undefined,
         );
 
@@ -258,7 +258,7 @@ const ReportedOnCard = ({
                 options={
                   epochs?.map((epoch, index) => ({
                     label:
-                      index == 0
+                      index === 0
                         ? 'Current Epoch'
                         : `Epoch ${epoch?.epochIndex}`,
                     value: index.toString(),

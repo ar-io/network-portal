@@ -1,13 +1,13 @@
 import { AoSigner, ContractSigner } from '@ar.io/sdk/web';
-import { createData, InjectedEthereumSigner } from '@dha-team/arbundles';
+import { InjectedEthereumSigner, createData } from '@dha-team/arbundles';
 import { MetamaskError } from '@src/utils/errors';
 import { ApiConfig } from 'arweave/node/lib/api';
 import {
+  SwitchChainError,
+  UserRejectedRequestError,
   hashMessage,
   recoverPublicKey,
-  SwitchChainError,
   toBytes,
-  UserRejectedRequestError,
 } from 'viem';
 import { Config, Connector } from 'wagmi';
 import { connect, disconnect, getAccount, signMessage } from 'wagmi/actions';
@@ -121,7 +121,7 @@ export class EthWalletConnector implements NetworkPortalWalletConnector {
       localStorage.setItem('walletType', WALLET_TYPES.ETHEREUM);
 
       await connect(this.config, { connector: this.connector });
-    } catch (error) {
+    } catch (_error) {
       localStorage.removeItem('walletType');
       throw new MetamaskError('User cancelled authentication.');
     }

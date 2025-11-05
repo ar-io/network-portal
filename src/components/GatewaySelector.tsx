@@ -10,9 +10,9 @@ import { MathJax } from 'better-react-mathjax';
 import { InfoIcon, SearchIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from './Button';
-import BaseModal from './modals/BaseModal';
 import TableView from './TableView';
 import Tooltip from './Tooltip';
+import BaseModal from './modals/BaseModal';
 
 export type GatewaySelectorProps = {
   selectedGateway?: AoGatewayWithAddress;
@@ -59,7 +59,7 @@ const GatewaySelectorModal = ({
             .valueOf(),
           eay: calculateGatewayRewards(
             new mARIOToken(prototocolBalance).toARIO(),
-            Object.values(totalGateways).filter((g) => g.status == 'joined')
+            Object.values(totalGateways).filter((g) => g.status === 'joined')
               .length,
             gateway,
           ).EAY,

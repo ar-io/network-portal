@@ -64,7 +64,11 @@
       "lastUpdated": "2025-01-06",
       "minGatewayVersion": "2.1.0",
       "logo": "DyZb_g2sOBAwYIfn-Z2W-tAoe5-ewJ1OpfrwfGRnx78",
-      "screenshots": ["https://arweave.net/dn14WTW5-nI9X3iotjZBIhSWe4iHjGjv-VGsqTusAME", "iyKi3KHq1nqeP7xfXDSufs6ZEiws9JgkJ7Wx6DsyQSA", "wR3_MRdozOKLdIsrqQODHlAZrYQLWrK9aVuzK488Q6Y"]
+      "screenshots": [
+        "https://arweave.net/dn14WTW5-nI9X3iotjZBIhSWe4iHjGjv-VGsqTusAME",
+        "iyKi3KHq1nqeP7xfXDSufs6ZEiws9JgkJ7Wx6DsyQSA",
+        "wR3_MRdozOKLdIsrqQODHlAZrYQLWrK9aVuzK488Q6Y"
+      ]
     },
     {
       "id": "dev-tools",
@@ -110,7 +114,7 @@
       "imageUri": "ghcr.io/securegate/ddos-shield:2.3.1",
       "lastUpdated": "2025-01-09",
       "minGatewayVersion": "2.0.0",
-      "logo": "nUrIIrELeQEzIoO_b5Doevg8BE8Bd3fTNSjCsr9fLWs"    
+      "logo": "nUrIIrELeQEzIoO_b5Doevg8BE8Bd3fTNSjCsr9fLWs"
     },
     {
       "id": "backup-sync",

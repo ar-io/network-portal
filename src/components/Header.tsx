@@ -73,13 +73,13 @@ const Header = () => {
         <HeaderItem
           value={currentEpochLabel}
           label="AR.IO EPOCH"
-          loading={currentEpochLabel == undefined}
+          loading={currentEpochLabel === undefined}
           leftPadding={false}
         />
         <HeaderItem
           value={epochCountdown}
           label="NEXT EPOCH"
-          loading={epochCountdown == undefined}
+          loading={epochCountdown === undefined}
         />
         <HeaderItem
           value={blockHeight?.toLocaleString('en-US')}

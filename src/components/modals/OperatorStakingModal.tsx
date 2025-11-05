@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import useGateways from '@src/hooks/useGateways';
@@ -65,7 +65,7 @@ const OperatorStakingModal = ({
   );
 
   const isFormValid = useCallback(() => {
-    return validators.stakeAmount(amountToStake) == undefined;
+    return validators.stakeAmount(amountToStake) === undefined;
   }, [amountToStake, validators]);
 
   useEffect(() => {
@@ -73,7 +73,7 @@ const OperatorStakingModal = ({
       const newTotalStake = currentStake + parseFloat(amountToStake);
       const { EAY } = calculateOperatorRewards(
         new mARIOToken(protocolBalance).toARIO(),
-        Object.values(gateways).filter((g) => g.status == 'joined').length,
+        Object.values(gateways).filter((g) => g.status === 'joined').length,
         gateway,
         new ARIOToken(newTotalStake),
       );

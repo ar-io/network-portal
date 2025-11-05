@@ -91,7 +91,7 @@ const Gateway = () => {
     observerBalances.ar < 0.01 &&
     observerBalances.turboCredits < 0.01;
 
-  const delegatedStakingEnabled = formState.allowDelegatedStaking == true;
+  const delegatedStakingEnabled = formState.allowDelegatedStaking === true;
 
   const weightFields: Array<[string, number | undefined]> = [
     ['Stake', gateway?.weights?.stakeWeight],
@@ -134,7 +134,7 @@ const Gateway = () => {
   // This updates the form when the user toggles the delegated staking switch to false to reset the
   // form values and error messages back to the initial state.
   useEffect(() => {
-    if (formState.allowDelegatedStaking == false) {
+    if (formState.allowDelegatedStaking === false) {
       const updatedState: Record<string, string | boolean> = {};
 
       if (
@@ -466,7 +466,7 @@ const Gateway = () => {
                         )}
                       </>
                     ) : (
-                      gateway?.status == 'joined' && (
+                      gateway?.status === 'joined' && (
                         <Button
                           className="h-[1.875rem]"
                           title="Edit"

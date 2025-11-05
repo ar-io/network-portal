@@ -82,7 +82,7 @@ const StakeWithdrawalModal = ({
     if (!gateway) {
       return false;
     }
-    return validators.withdrawAmount(amountToWithdraw) == undefined;
+    return validators.withdrawAmount(amountToWithdraw) === undefined;
   };
 
   const parsedWithdrawing = parseFloat(
@@ -216,7 +216,7 @@ const StakeWithdrawalModal = ({
           </div>
         </div>
         <div className="flex size-full flex-col gap-2 bg-containerL0 px-8 pb-8 pt-4">
-          {withdrawalType == 'expedited' && (
+          {withdrawalType === 'expedited' && (
             <>
               <LabelValueRow
                 className="first:text-mid last:text-mid"

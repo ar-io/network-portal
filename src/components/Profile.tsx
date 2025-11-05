@@ -12,7 +12,7 @@ import {
   isEthAddress,
 } from '@src/utils';
 import { SendHorizonal, WalletMinimal } from 'lucide-react';
-import { forwardRef, ReactElement, useState } from 'react';
+import { ReactElement, forwardRef, useState } from 'react';
 import Button, { ButtonType } from './Button';
 import CopyButton from './CopyButton';
 import Placeholder from './Placeholder';

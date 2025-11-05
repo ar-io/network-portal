@@ -43,7 +43,7 @@ export const isFormValid = ({
     // enabled value can be true, false, or undefined. We shortcircuit and accept the row
     // as valid here only if the row definition is explicity set to false.
     if (
-      rowDef.enabled == false ||
+      rowDef.enabled === false ||
       rowDef.readOnly ||
       typeof value === 'boolean'
     ) {

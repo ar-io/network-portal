@@ -82,7 +82,7 @@ const StakingModal = ({
     if (!gateway || !allowDelegatedStaking) {
       return false;
     }
-    return validators.stakeAmount(amountToStake) == undefined;
+    return validators.stakeAmount(amountToStake) === undefined;
   };
 
   const parsedStake = parseFloat(

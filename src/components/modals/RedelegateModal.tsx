@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { REDELEGATION_FEE_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
@@ -124,7 +124,7 @@ const RedelegateModal = ({
     if (
       // checking if redelegation source is from a stake rather than a vault
       vaultId === undefined &&
-      amount != maxStake &&
+      amount !== maxStake &&
       maxStake - amount < sourceMinStakeARIO
     ) {
       setErrorMessage(

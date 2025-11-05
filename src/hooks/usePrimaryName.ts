@@ -16,7 +16,7 @@ const usePrimaryName = (walletAddress?: string) => {
           address: walletAddress.toString(),
         });
         return primaryName;
-      } catch (e) {
+      } catch (_e) {
         // getPrimaryName throws exception if a name is not set for a wallet
         // catch and return null to prevent retrying
         return null;

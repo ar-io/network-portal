@@ -1,9 +1,9 @@
 import {
+  AOProcess,
+  ARIO,
   AoARIORead,
   AoARIOWrite,
   AoEpochData,
-  AOProcess,
-  ARIO,
   ContractSigner,
 } from '@ar.io/sdk/web';
 import { connect } from '@permaweb/aoconnect';
@@ -17,7 +17,7 @@ import { AoAddress, NetworkPortalWalletConnector } from '@src/types';
 import Arweave from 'arweave/web';
 import { create } from 'zustand';
 import { shallow } from 'zustand/shallow';
-import { createDb, NetworkPortalDB } from './db';
+import { NetworkPortalDB, createDb } from './db';
 import { useSettings } from './settings';
 
 type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];

@@ -1,6 +1,6 @@
 import Button from '@src/components/Button';
-import { BinocularsIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
+import { BinocularsIcon } from '@src/components/icons';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import { useGlobalState } from '@src/store';
 import { useNavigate } from 'react-router-dom';

@@ -1,8 +1,8 @@
-import { AoGateway, ARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, AoGateway } from '@ar.io/sdk/web';
 import {
+  GatewayRewards,
   calculateGatewayRewards,
   calculateUserRewards,
-  GatewayRewards,
 } from '@src/utils/rewards';
 
 describe('rewards.ts', () => {

@@ -36,11 +36,11 @@ const DisplayRow = ({
             </span>
             {rightComponent}
           </div>
-        ) : type == 'address' || type == 'tx' ? (
+        ) : type === 'address' || type === 'tx' ? (
           <a
             className="text-high"
             href={
-              type == 'tx'
+              type === 'tx'
                 ? `https://viewblock.io/arweave/tx/${value}`
                 : getBlockExplorerUrlForAddress((value || '').toString())
             }
@@ -49,7 +49,7 @@ const DisplayRow = ({
           >
             {value}
           </a>
-        ) : type == 'link' ? (
+        ) : type === 'link' ? (
           <a
             className="text-gradient"
             href={value + ''}
@@ -92,7 +92,7 @@ const PropertyDisplayPanel = ({
     ? `${gateway.settings.protocol}://${gateway.settings.fqdn}:${gateway.settings.port}`
     : undefined;
 
-  const gatewayLeaving = gateway?.status == 'leaving';
+  const gatewayLeaving = gateway?.status === 'leaving';
 
   const conditionalRows = gateway?.settings.allowDelegatedStaking
     ? [
@@ -130,13 +130,13 @@ const PropertyDisplayPanel = ({
     {
       label: 'Status:',
       value:
-        gateway?.status == 'leaving' ? (
+        gateway?.status === 'leaving' ? (
           <div className="text-[#f00]">leaving</div>
         ) : (
           gateway?.status
         ),
       rightComponent:
-        isOwnGateway && gateway?.status == 'joined' ? (
+        isOwnGateway && gateway?.status === 'joined' ? (
           <Button
             className="*:*:text-gradient-red mr-2"
             buttonType={ButtonType.PRIMARY}
@@ -160,7 +160,7 @@ const PropertyDisplayPanel = ({
       rightComponent:
         !isOwnGateway &&
         gateway?.settings.allowDelegatedStaking &&
-        gateway?.status == 'joined' ? (
+        gateway?.status === 'joined' ? (
           <Button
             className="mr-2"
             buttonType={ButtonType.PRIMARY}

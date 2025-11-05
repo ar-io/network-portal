@@ -25,7 +25,7 @@ const useRewardsEarned = (walletAddress?: string) => {
         // rewards are not available on current epoch
         const previousEpochDistributed =
           previousDistribution && isDistributedEpochData(previousDistribution)
-            ? previousDistribution.rewards.distributed ?? {}
+            ? (previousDistribution.rewards.distributed ?? {})
             : undefined;
 
         const previousEpochRewards =
@@ -35,7 +35,7 @@ const useRewardsEarned = (walletAddress?: string) => {
           const distribution = epoch?.distributions;
           const distributed =
             distribution && isDistributedEpochData(distribution)
-              ? distribution.rewards.distributed ?? {}
+              ? (distribution.rewards.distributed ?? {})
               : {};
           return acc + (distributed[walletAddress] || 0);
         }, 0);

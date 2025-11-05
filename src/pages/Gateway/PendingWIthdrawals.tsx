@@ -6,13 +6,13 @@ import {
   mARIOToken,
 } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import TableView from '@src/components/TableView';
 import { ThreeDotsIcon } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
 import RedelegateModal, {
   RedelegateModalProps,
 } from '@src/components/modals/RedelegateModal';
-import TableView from '@src/components/TableView';
 import useGatewayVaults from '@src/hooks/useGatewayVaults';
 import { useGlobalState } from '@src/store';
 import { formatDateTime, formatWithCommas } from '@src/utils';

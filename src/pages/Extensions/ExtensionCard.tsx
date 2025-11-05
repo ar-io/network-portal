@@ -1,8 +1,4 @@
-import {
-  Extension,
-  ExtensionCategory,
-  ExtensionTag,
-} from '@src/types';
+import { Extension, ExtensionCategory, ExtensionTag } from '@src/types';
 import { getImageUrl } from '@src/utils/imageUtils';
 import { Calendar, Tag, User } from 'lucide-react';
 import { useState } from 'react';

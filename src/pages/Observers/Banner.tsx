@@ -37,9 +37,9 @@ const Banner = () => {
   const { gateway, gatewayStatus } = useGatewayInfo();
 
   const myObserver = observers?.find(
-    (obs) => obs.gatewayAddress == walletAddress?.toString(),
+    (obs) => obs.gatewayAddress === walletAddress?.toString(),
   );
-  const prescribed = myObserver != undefined;
+  const prescribed = myObserver !== undefined;
 
   const prescribedStatus = prescribed
     ? observations?.reports[walletAddress?.toString() || '']
@@ -90,7 +90,7 @@ const Banner = () => {
             </div>
           </button>
         </div>
-      ) : gatewayStatus == GatewayStatus.NOT_FOUND ? (
+      ) : gatewayStatus === GatewayStatus.NOT_FOUND ? (
         <div>
           <button
             className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"

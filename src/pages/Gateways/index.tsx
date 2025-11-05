@@ -9,12 +9,12 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import useGateways from '../../hooks/useGateways';
-import { useGlobalState } from '../../store/globalState';
-import Banner from './Banner';
 // import ColumnSelector from '../../components/ColumnSelector';
 import ColumnSelector from '@src/components/ColumnSelector';
 import { formatDate, formatWithCommas } from '@src/utils';
+import useGateways from '../../hooks/useGateways';
+import { useGlobalState } from '../../store/globalState';
+import Banner from './Banner';
 
 interface TableData {
   label: string;
@@ -78,7 +78,7 @@ const Gateways = () => {
           passedEpochCount,
           totalEpochCount,
           streak:
-            gateway.status == 'leaving'
+            gateway.status === 'leaving'
               ? Number.NEGATIVE_INFINITY
               : gateway.stats.failedConsecutiveEpochs > 0
                 ? -gateway.stats.failedConsecutiveEpochs
@@ -159,7 +159,7 @@ const Gateways = () => {
         header: 'Status',
         sortDescFirst: false,
         cell: ({ row }) =>
-          row.original.status == 'leaving' ? (
+          row.original.status === 'leaving' ? (
             <Tooltip
               message={
                 <div>

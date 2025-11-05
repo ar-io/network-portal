@@ -58,7 +58,7 @@ const ROUTES_PRIMARY = [
 const FORMATTED_CHANGELOG = changeLog
   .substring(changeLog.indexOf('## [Unreleased]') + 16)
   .trim()
-  .replace(/\[([\w.]+)\]/g, (match, text) => `v${text}`);
+  .replace(/\[([\w.]+)\]/g, (_match, text) => `v${text}`);
 
 const Sidebar = () => {
   const location = useLocation();

@@ -78,7 +78,7 @@ const ReportsTable = ({
                     type: 'application/json',
                   });
                   saveAs(blob, `report-${txid}.json`);
-                } catch (e) {
+                } catch (_e) {
                   showErrorToast(`Error: Unable to download report ${txid}`);
                 }
               }}

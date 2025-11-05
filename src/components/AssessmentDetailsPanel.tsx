@@ -109,7 +109,7 @@ const ArNSAssessmentPanel = ({
             <div>
               Status Code:{' '}
               <span className="text-mid">
-                {arnsAssessment.resolvedStatusCode == 404
+                {arnsAssessment.resolvedStatusCode === 404
                   ? '404 (Unregistered ArNS Name)'
                   : arnsAssessment.resolvedStatusCode}
               </span>

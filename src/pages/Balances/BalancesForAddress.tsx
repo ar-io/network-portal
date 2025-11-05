@@ -11,7 +11,7 @@ const BalancesForAddress = () => {
   const walletAddress = params?.walletAddress;
 
   const walletAddressData = useMemo(() => {
-    return walletAddress == undefined
+    return walletAddress === undefined
       ? undefined
       : isEthAddress(walletAddress)
         ? walletAddress

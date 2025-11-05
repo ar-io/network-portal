@@ -68,7 +68,7 @@ const ObserversTable = () => {
 
       const status = submitted
         ? 'Submitted'
-        : selectedEpochIndex == 0
+        : selectedEpochIndex === 0
           ? 'Pending'
           : 'Did not report';
 
@@ -171,7 +171,7 @@ const ObserversTable = () => {
     columnHelper.accessor('reportStatus', {
       id: 'reportStatus',
       header:
-        selectedEpochIndex == 0 ? 'Current Report Status' : 'Report Status',
+        selectedEpochIndex === 0 ? 'Current Report Status' : 'Report Status',
       sortDescFirst: true,
     }),
 
@@ -181,7 +181,7 @@ const ObserversTable = () => {
       sortDescFirst: true,
       cell: ({ row }) =>
         row.original.failedGateways ||
-        (selectedEpochIndex == 0 ? 'Pending' : 'N/A'),
+        (selectedEpochIndex === 0 ? 'Pending' : 'N/A'),
     }),
   ];
 
@@ -194,7 +194,7 @@ const ObserversTable = () => {
             options={
               epochs?.map((epoch, index) => ({
                 label:
-                  index == 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
+                  index === 0 ? 'Current Epoch' : `Epoch ${epoch?.epochIndex}`,
                 value: index.toString(),
               })) || []
             }

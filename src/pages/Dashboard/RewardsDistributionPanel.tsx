@@ -1,7 +1,7 @@
 import { isDistributedEpochData, mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
-import useEpochs from '@src/hooks/useEpochs';
 import useEpochSettings from '@src/hooks/useEpochSettings';
+import useEpochs from '@src/hooks/useEpochs';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useMemo, useState } from 'react';
@@ -230,7 +230,7 @@ const RewardsDistributionPanel = () => {
                   stroke="rgba(202, 202, 214, 0.32)"
                   shape={CustomBar(1, 'white')}
                 >
-                  {rewardsData.map((entry, index) => (
+                  {rewardsData.map((_entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={
@@ -248,7 +248,7 @@ const RewardsDistributionPanel = () => {
                   stroke="rgba(202, 202, 214, 0.32)"
                   shape={CustomUnclaimedBar}
                 >
-                  {rewardsData.map((entry, index) => (
+                  {rewardsData.map((_entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       strokeDasharray={

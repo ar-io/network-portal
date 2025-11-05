@@ -2,9 +2,9 @@
 
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import {
-  log,
   NAME_PASS_THRESHOLD,
   REFERENCE_GATEWAY_FQDN,
+  log,
 } from '@src/constants';
 import { ArNSAssessment, Assessment, OwnershipAssessment } from '@src/types';
 import ky, { TimeoutError } from 'ky';
@@ -47,7 +47,7 @@ export const assessOwnership = async (
     };
 
     return assessment;
-  } catch (error) {
+  } catch (_error) {
     return {
       expectedWallets: [gateway.gatewayAddress],
       observedWallet: '',
@@ -130,8 +130,8 @@ const assessArNSName = async (
     pass:
       referenceRes.resolvedId === gatewayRes?.resolvedId &&
       referenceRes.resolvedId !== null &&
-      referenceRes.dataHashDigest == gatewayRes?.dataHashDigest &&
-      referenceRes.statusCode == gatewayRes?.statusCode,
+      referenceRes.dataHashDigest === gatewayRes?.dataHashDigest &&
+      referenceRes.statusCode === gatewayRes?.statusCode,
     resolvedDataHash: gatewayRes?.dataHashDigest ?? '',
     resolvedId: gatewayRes?.resolvedId ?? '',
     resolvedStatusCode: gatewayRes?.statusCode ?? 0,

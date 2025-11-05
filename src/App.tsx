@@ -3,15 +3,15 @@ import { wrapCreateBrowserRouter } from '@sentry/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { Suspense } from 'react';
 import {
-  createHashRouter,
-  createRoutesFromElements,
   Navigate,
   Route,
   RouterProvider,
+  createHashRouter,
+  createRoutesFromElements,
 } from 'react-router-dom';
 
 import { MathJaxContext } from 'better-react-mathjax';
-import { createConfig, http, WagmiProvider } from 'wagmi';
+import { http, WagmiProvider, createConfig } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { metaMask } from 'wagmi/connectors';
 import GlobalDataProvider from './components/GlobalDataProvider';

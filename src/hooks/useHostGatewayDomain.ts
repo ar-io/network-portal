@@ -23,7 +23,7 @@ const useHostGatewayDomain = () => {
         } else {
           return null;
         }
-      } catch (error) {
+      } catch (_error) {
         return null;
       }
     },

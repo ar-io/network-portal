@@ -1,8 +1,8 @@
-import { AoGateway, ARIOToken, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, AoGateway, mARIOToken } from '@ar.io/sdk/web';
 import {
+  UserRewards,
   calculateGatewayRewards,
   calculateUserRewards,
-  UserRewards,
 } from '@src/utils/rewards';
 import { useEffect, useState } from 'react';
 import useGateways from './useGateways';
@@ -26,7 +26,7 @@ const useRewardsInfo = (
       !isNaN(userStake)
     ) {
       const numGateways = gateways
-        ? Object.values(gateways).filter((g) => g.status == 'joined').length
+        ? Object.values(gateways).filter((g) => g.status === 'joined').length
         : 0;
       const gatewayRewards = calculateGatewayRewards(
         new mARIOToken(protocolBalance).toARIO(),

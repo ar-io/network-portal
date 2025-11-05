@@ -35,7 +35,7 @@ const ConnectModal = ({ onClose }: { onClose: () => void }) => {
       updateWallet(address, walletConnector);
 
       onClose();
-    } catch (error: any) {
+    } catch (_error: any) {
       //   if (walletConnector) {
       //     eventEmitter.emit('error', error);
       //   }

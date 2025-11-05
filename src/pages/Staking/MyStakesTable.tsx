@@ -105,17 +105,17 @@ const MyStakesTable = () => {
                 delegatedStake: stake.balance,
                 gateway: { ...gateway, gatewayAddress: stake.gatewayAddress },
                 pendingWithdrawals: delegateStakes.withdrawals.filter(
-                  (w) => w.gatewayAddress == stake.gatewayAddress,
+                  (w) => w.gatewayAddress === stake.gatewayAddress,
                 ).length,
                 streak:
-                  gateway.status == 'leaving'
+                  gateway.status === 'leaving'
                     ? Number.NEGATIVE_INFINITY
                     : gateway.stats.failedConsecutiveEpochs > 0
                       ? -gateway.stats.failedConsecutiveEpochs
                       : gateway.stats.passedConsecutiveEpochs,
                 eay: calculateGatewayRewards(
                   new mARIOToken(protocolBalance).toARIO(),
-                  Object.values(gateways).filter((g) => g.status == 'joined')
+                  Object.values(gateways).filter((g) => g.status === 'joined')
                     .length,
                   gateway,
                 ).EAY,
@@ -437,7 +437,7 @@ const MyStakesTable = () => {
   return (
     <div>
       <div
-        className={`flex w-full items-center gap-4 rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-3 ${tableMode == 'activeStakes' ? 'py-2' : 'py-[0.9375rem]'} `}
+        className={`flex w-full items-center gap-4 rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-3 ${tableMode === 'activeStakes' ? 'py-2' : 'py-[0.9375rem]'} `}
       >
         <div className="grow text-sm text-mid">
           <Dropdown
@@ -454,7 +454,7 @@ const MyStakesTable = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {tableMode == 'activeStakes' && hasDelegatedStake && (
+          {tableMode === 'activeStakes' && hasDelegatedStake && (
             <Button
               buttonType={ButtonType.SECONDARY}
               className="*:text-gradient-red h-[1.875rem]"

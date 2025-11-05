@@ -10,8 +10,8 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-import { SortAsc, SortDesc } from './icons';
 import TableSkeletonRow from './TableSkeletonRow';
+import { SortAsc, SortDesc } from './icons';
 
 const TableView = <T, S>({
   columns,
@@ -109,7 +109,7 @@ const TableView = <T, S>({
                               ? sortState === 'desc'
                                 ? false
                                 : true
-                              : header.column.columnDef.sortDescFirst ?? true,
+                              : (header.column.columnDef.sortDescFirst ?? true),
                           },
                         ]);
                       }}
@@ -147,26 +147,28 @@ const TableView = <T, S>({
                 />
               ))
             : // Show actual data rows when not loading
-              table.getRowModel().rows.map((row) => {
-                return (
-                  <tr
-                    key={row.id}
-                    className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
-                    onClick={
-                      onRowClick ? () => onRowClick(row.original) : undefined
-                    }
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
+              table
+                .getRowModel()
+                .rows.map((row) => {
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
+                      onClick={
+                        onRowClick ? () => onRowClick(row.original) : undefined
+                      }
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
         </tbody>
       </table>
       {!isLoading && !isError && table.getRowCount() === 0 && (

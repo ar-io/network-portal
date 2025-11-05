@@ -1,5 +1,5 @@
-import { StatsArrowIcon } from '@src/components/icons';
 import Placeholder from '@src/components/Placeholder';
+import { StatsArrowIcon } from '@src/components/icons';
 import { ReactNode } from 'react';
 
 const ValueRow = ({ value }: { value?: ReactNode }) => {

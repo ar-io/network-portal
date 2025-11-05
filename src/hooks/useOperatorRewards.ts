@@ -13,7 +13,7 @@ const useOperatorRewards = (gateway: AoGateway | undefined) => {
   useEffect(() => {
     if (gateways && gateway && protocolBalance) {
       const numGateways = Object.values(gateways).filter(
-        (g) => g.status == 'joined',
+        (g) => g.status === 'joined',
       ).length;
       const operatorRewards = calculateOperatorRewards(
         new mARIOToken(protocolBalance).toARIO(),

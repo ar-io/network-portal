@@ -13,9 +13,7 @@ interface TableData {
   expectedOwner: string;
   observedOwner?: string;
   ownershipResult: boolean;
-
   arnsResult: boolean;
-
   overallResult: boolean;
   offsetAssessmentStatus: 'passed' | 'failed' | 'skipped';
   assessment: Assessment;
@@ -41,22 +39,24 @@ const GatewayAssessmentsTable = ({
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
   const tableData = useMemo<Array<TableData>>(() => {
-    return Object.entries(reportData.gatewayAssessments).map(
-      ([observedHost, assessment]) => ({
-        observedHost,
-        expectedOwner:
-          assessment.ownershipAssessment.expectedWallets.join(', '),
-        observedOwner: assessment.ownershipAssessment.observedWallet,
-        ownershipResult: assessment.ownershipAssessment.pass,
-        arnsResult: assessment.arnsAssessments.pass,
-        overallResult: assessment.pass,
-        offsetAssessmentStatus: assessment.offsetAssessments
-          ? assessment.offsetAssessments.pass
-            ? 'passed'
-            : 'failed'
-          : 'skipped',
-        assessment,
-      }),
+    return Object.entries(reportData.gatewayAssessments).flatMap(
+      ([observedHost, assessment]) =>
+        assessment.ownershipAssessment.expectedWallets.map(
+          (expectedWallet) => ({
+            observedHost,
+            expectedOwner: expectedWallet,
+            observedOwner: assessment.ownershipAssessment.observedWallet,
+            ownershipResult: assessment.ownershipAssessment.pass,
+            arnsResult: assessment.arnsAssessments.pass,
+            overallResult: assessment.pass,
+            offsetAssessmentStatus: assessment.offsetAssessments
+              ? assessment.offsetAssessments.pass
+                ? 'passed'
+                : 'failed'
+              : 'skipped',
+            assessment,
+          }),
+        ),
     );
   }, [reportData]);
 

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.1] - 2025-11-13
+
+### Fixed
+
+- Gateway Assessments Table: Show separate row for each expected wallet when multiple wallets use the same observed host
+
 ## [1.19.0] - 2025-10-28
 
 ### Added

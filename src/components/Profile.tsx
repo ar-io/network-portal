@@ -9,7 +9,6 @@ import {
   formatPrimaryName,
   formatWalletAddress,
   getBlockExplorerUrlForAddress,
-  isEthAddress,
 } from '@src/utils';
 import { SendHorizonal, WalletMinimal } from 'lucide-react';
 import { ReactElement, forwardRef, useState } from 'react';
@@ -127,24 +126,22 @@ const Profile = () => {
                 {balances ? formatBalance(balances.ar) : <Placeholder />}
               </div>
             </div>
-            {!isEthAddress(walletAddress.toString()) && (
-              <div className="flex flex-col gap-3 text-nowrap px-6 pt-3 text-mid">
-                <button
-                  className="flex items-center"
-                  title="Transaction History"
-                  onClick={async () => {
-                    window.open(
-                      `https://scan.ar.io/#/entity/${walletAddress.toString()}`,
-                      '_blank',
-                    );
-                  }}
-                >
-                  <ClockRewindIcon className="mr-2 h-4 w-[.9375rem]" />{' '}
-                  Transaction History
-                  <LinkArrowIcon className="ml-1 size-3" />
-                </button>
-              </div>
-            )}
+            <div className="flex flex-col gap-3 text-nowrap px-6 pt-3 text-mid">
+              <button
+                className="flex items-center"
+                title="Transaction History"
+                onClick={async () => {
+                  window.open(
+                    `https://scan.ar.io/#/wallet/${walletAddress.toString()}`,
+                    '_blank',
+                  );
+                }}
+              >
+                <ClockRewindIcon className="mr-2 h-4 w-[.9375rem]" />{' '}
+                Transaction History
+                <LinkArrowIcon className="ml-1 size-3" />
+              </button>
+            </div>
             <div className="mt-3 flex flex-col gap-3 rounded-b-xl bg-btn-secondary-default px-6 py-3 text-mid">
               <button
                 className="flex items-center gap-2"

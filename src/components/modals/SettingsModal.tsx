@@ -73,7 +73,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
               />
               <CopyButton textToCopy={arioProcessId} />
               <a
-                href={`https://scan.ar.io/#/process/${arioProcessId}`}
+                href={`https://scan.ar.io/#/entity/${arioProcessId}`}
                 target="_blank"
                 rel="noreferrer"
               >

@@ -116,7 +116,7 @@ const ReportedOnByCard = ({
           <Placeholder className="m-4 h-4" />
         )}
       </div>
-      <div className="h-80 overflow-hidden overflow-y-auto scrollbar">
+      <div className="h-80 overflow-hidden overflow-y-auto scrollbar scrollbar-thin">
         {failureObservers?.map((entry) => (
           <div
             key={entry.observerId}
@@ -274,7 +274,7 @@ const ReportedOnCard = ({
         )}
       </div>
 
-      <div className="h-80 overflow-hidden overflow-y-auto scrollbar">
+      <div className="h-80 overflow-hidden overflow-y-auto scrollbar scrollbar-thin">
         {snitchedOn?.map((observer) => (
           <div
             key={observer}

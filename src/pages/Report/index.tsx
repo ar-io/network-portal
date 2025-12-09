@@ -20,7 +20,7 @@ const Report = () => {
       <ReportHeader gateway={gateway} reportData={reportData} />
       <div className="flex-1 overflow-hidden">
         {isLoading || !reportData ? undefined : reportData ? (
-          <div className="h-full overflow-y-auto scrollbar">
+          <div className="h-full overflow-y-auto scrollbar scrollbar-thin">
             <GatewayAssessmentsTable
               gateway={gateway}
               reportData={reportData}

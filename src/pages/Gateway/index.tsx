@@ -349,7 +349,7 @@ const Gateway = () => {
         <GatewayHeader gateway={gateway} />
       </div>
 
-      <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 scrollbar">
+      <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 scrollbar scrollbar-thin">
         {/* Low Balance Warning Banner */}
         {isOwnGateway && hasLowBalance && (
           <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-warning">

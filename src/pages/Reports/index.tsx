@@ -19,7 +19,7 @@ const Reports = () => {
       <ReportsHeader gateway={gateway} />
       <div className="flex-1 overflow-hidden">
         {isLoading || !currentEpoch ? undefined : ownerId && gateway ? (
-          <div className="h-full overflow-y-auto scrollbar">
+          <div className="h-full overflow-y-auto scrollbar scrollbar-thin">
             <ReportsTable ownerId={ownerId} gateway={gateway} />
           </div>
         ) : (

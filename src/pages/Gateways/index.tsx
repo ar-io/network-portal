@@ -217,7 +217,7 @@ const Gateways = () => {
         <Banner />
       </div>
       <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto scrollbar scrollbar-thin">
           <div className="pt-0">
             <div className="mb-8">
               <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">

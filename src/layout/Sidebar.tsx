@@ -64,7 +64,6 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const sidebarOpen = useSettings((state) => state.sidebarOpen);
-  const _arioProcessId = useSettings((state) => state.arioProcessId);
   const aoCongested = useGlobalState((state) => state.aoCongested);
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);

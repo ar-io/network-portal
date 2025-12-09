@@ -88,7 +88,7 @@ export default function ExtensionDetail({
         </button>
       </div>
 
-      <div className="mb-6 flex-1 overflow-y-auto rounded-xl border border-grey-500 bg-containerL0 p-4 scrollbar sm:p-6 lg:p-8">
+      <div className="mb-6 flex-1 overflow-y-auto rounded-xl border border-grey-500 bg-containerL0 p-4 scrollbar scrollbar-thin sm:p-6 lg:p-8">
         <div className="mb-6">
           <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row">

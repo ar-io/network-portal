@@ -4,15 +4,15 @@
   "version": "1.19.1",
   "type": "module",
   "scripts": {
-    "build": "yarn clean && tsc --build tsconfig.build.json && NODE_OPTIONS=--max-old-space-size=32768 vite build",
-    "clean": "rimraf dist && rm -f dist-*",
-    "dev": "NODE_ENV=prod VITE_GITHUB_HASH=local vite",
+    "build": "yarn clean && tsc --build tsconfig.build.json && cross-env NODE_OPTIONS=--max-old-space-size=32768 vite build",
+    "clean": "rimraf dist",
+    "dev": "cross-env NODE_ENV=prod VITE_GITHUB_HASH=local vite",
     "lint:fix": "biome check --write --unsafe",
     "lint:check": "biome check --unsafe",
     "format:fix": "biome format --write",
     "format:check": "biome format",
     "preview": "vite preview",
-    "test": "NODE_ENV=test vitest run",
+    "test": "cross-env NODE_ENV=test vitest run",
     "prepare": "husky || true",
     "pre-commit": "lint-staged",
     "vis": "yarn vite-bundle-visualizer",
@@ -74,6 +74,7 @@
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.17",
     "core-js": "^3.36.0",
+    "cross-env": "^10.1.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
     "lodash": "^4.17.21",
@@ -97,5 +98,6 @@
       "biome check --write --unsafe .",
       "biome format --write ."
     ]
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

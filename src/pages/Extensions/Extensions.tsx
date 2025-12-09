@@ -137,7 +137,7 @@ export default function Extensions() {
       </div>
 
       <div className="mb-8 flex flex-1 flex-col overflow-hidden">
-        <div className="grow overflow-y-auto scrollbar">
+        <div className="grow overflow-y-auto scrollbar scrollbar-thin">
           <div className="flex w-full items-center justify-between rounded-t-xl border border-grey-600 bg-containerL3 px-6 py-[0.9375rem]">
             <div className="grow">
               <div className="text-sm text-high">Gateway Extensions</div>

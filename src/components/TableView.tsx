@@ -90,7 +90,9 @@ const TableView = <T, S>({
   const maxHeightRemClass = shortTable ? `max-h-[16rem]` : undefined;
 
   return (
-    <div className={`overflow-x-auto scrollbar ${maxHeightRemClass}`}>
+    <div
+      className={`overflow-x-auto scrollbar scrollbar-thin ${maxHeightRemClass}`}
+    >
       <table className="w-full table-auto border-x border-b border-grey-500">
         <thead className="sticky top-0 z-10 bg-containerL0 text-xs text-low">
           {table.getHeaderGroups().map((headerGroup) => (

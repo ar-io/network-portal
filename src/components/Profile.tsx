@@ -134,7 +134,7 @@ const Profile = () => {
                   title="Transaction History"
                   onClick={async () => {
                     window.open(
-                      `https://ao.link/#/entity/${walletAddress.toString()}`,
+                      `https://scan.ar.io/#/wallet/${walletAddress.toString()}`,
                       '_blank',
                     );
                   }}

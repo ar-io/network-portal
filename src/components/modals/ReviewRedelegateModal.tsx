@@ -263,9 +263,12 @@ const ReviewRedelegateModal = ({
                 <div>Transaction ID:</div>
                 <button
                   className="flex items-center justify-center break-all"
-                  title="View transaction on ao.link"
+                  title="View transaction on AR.IO Scan"
                   onClick={async () => {
-                    window.open(`https://ao.link/#/message/${txid}`, '_blank');
+                    window.open(
+                      `https://scan.ar.io/#/message/${txid}`,
+                      '_blank',
+                    );
                   }}
                 >
                   {txid}

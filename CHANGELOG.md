@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.20.0] - 2025-12-09
+
+### Added
+
+- Added styled scrollbars across all pages for consistent appearance
+
+### Changed
+
+- Replaced ao.link transaction explorer links with AR.IO Scan (scan.ar.io)
+- Added cross-env for Windows development compatibility
+
+### Fixed
+
+- Fixed missing scrollbars on Balances, Dashboard, Gateways, Staking, and Observers pages
+- Fixed BalancesForAddress page layout to match standard page structure
+
 ## [1.19.1] - 2025-11-13
 
 ### Fixed

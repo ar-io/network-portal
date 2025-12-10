@@ -64,7 +64,6 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const sidebarOpen = useSettings((state) => state.sidebarOpen);
-  const arioProcessId = useSettings((state) => state.arioProcessId);
   const aoCongested = useGlobalState((state) => state.aoCongested);
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
@@ -79,7 +78,7 @@ const Sidebar = () => {
     {
       title: 'Process',
       icon: <ContractIcon className="size-4" />,
-      path: `https://www.ao.link/#/entity/${arioProcessId}`,
+      path: `https://scan.ar.io`,
     },
     {
       title: 'Settings',

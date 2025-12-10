@@ -16,10 +16,11 @@ yarn test                          # Run all tests once
 yarn vitest                        # Run tests in watch mode
 yarn vitest path/to/test.test.ts   # Run a single test file
 
-# Code quality checks
+# Code quality (uses Biome for linting and formatting)
 yarn lint:check    # Check for linting issues
-yarn lint:fix      # Fix linting issues automatically
-yarn format        # Format code with Prettier
+yarn lint:fix      # Fix linting and formatting issues automatically
+yarn format:check  # Check formatting only
+yarn format:fix    # Fix formatting only
 yarn tsc --noEmit  # Type check without building
 
 # Build and deploy
@@ -87,6 +88,6 @@ const useDataHook = (params) => {
 
 - Node.js 20.12.2 required (see `.nvmrc`)
 - Environment variables use `VITE_` prefix
-- Pre-commit hooks run ESLint and Prettier via Husky
+- Pre-commit hooks run Biome via Husky
 - CI/CD deploys to GitHub Pages (staging) and Arweave (production)
 - Uses Tailwind CSS with custom design tokens in `/tokens/`

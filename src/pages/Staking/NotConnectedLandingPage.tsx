@@ -3,7 +3,7 @@ import DelegateStake from './DelegateStakeTable';
 
 const NotConnectedLandingPage = () => {
   return (
-    <div className="flex max-w-full flex-col gap-6 overflow-y-auto py-6 scrollbar">
+    <div className="flex max-w-full flex-col gap-6 overflow-y-auto py-6 scrollbar scrollbar-thin">
       <Banner />
       <DelegateStake />
     </div>

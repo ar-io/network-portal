@@ -1,19 +1,22 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
+import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
 import Header from '@src/components/Header';
+import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import Streak from '@src/components/Streak';
-import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
+import usePaginatedGateways from '@src/hooks/usePaginatedGateways';
+import { useGlobalState } from '@src/store';
+import { formatDate, formatWithCommas } from '@src/utils';
+import {
+  ColumnDef,
+  SortingState,
+  createColumnHelper,
+} from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// import ColumnSelector from '../../components/ColumnSelector';
-import ColumnSelector from '@src/components/ColumnSelector';
-import { formatDate, formatWithCommas } from '@src/utils';
-import useGateways from '../../hooks/useGateways';
-import { useGlobalState } from '../../store/globalState';
 import Banner from './Banner';
 
 interface TableData {
@@ -33,62 +36,106 @@ interface TableData {
 }
 
 const columnHelper = createColumnHelper<TableData>();
+const ITEMS_PER_PAGE = 25;
 
 const Gateways = () => {
   const ticker = useGlobalState((state) => state.ticker);
-
-  const { isLoading, isError, data: gateways } = useGateways();
-  const [tableData, setTableData] = useState<Array<TableData>>([]);
-  const [isProcessingData, setIsProcessingData] = useState(true);
-
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<
+    | 'gatewayAddress'
+    | 'settings.label'
+    | 'settings.fqdn'
+    | 'totalDelegatedStake'
+    | 'operatorStake'
+    | 'startTimestamp'
+    | 'status'
+    | 'stats.passedEpochCount'
+    | 'stats.passedConsecutiveEpochs'
+    | 'settings.delegateRewardShareRatio'
+  >('totalDelegatedStake');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const {
+    isLoading,
+    isError,
+    data: gatewaysData,
+  } = usePaginatedGateways({
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+    sortBy,
+    sortOrder,
+  });
+
+  const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   useEffect(() => {
-    if (!gateways) {
+    if (!gatewaysData?.items) {
+      setTableData([]);
       return;
     }
 
-    const tableData: Array<TableData> = Object.entries(gateways).map(
-      ([owner, gateway]) => {
-        const passedEpochCount = gateway.stats.passedEpochCount;
-        const totalEpochCount = gateway.stats.totalEpochCount;
+    const tableData: Array<TableData> = gatewaysData.items.map((gateway) => {
+      const passedEpochCount = gateway.stats.passedEpochCount;
+      const totalEpochCount = gateway.stats.totalEpochCount;
 
-        // Pre-calculate token conversions
-        const totalDelegatedStakeARIO = new mARIOToken(
-          gateway.totalDelegatedStake,
-        )
-          .toARIO()
-          .valueOf();
-        const operatorStakeARIO = new mARIOToken(gateway.operatorStake)
-          .toARIO()
-          .valueOf();
+      // Pre-calculate token conversions
+      const totalDelegatedStakeARIO = new mARIOToken(
+        gateway.totalDelegatedStake,
+      )
+        .toARIO()
+        .valueOf();
+      const operatorStakeARIO = new mARIOToken(gateway.operatorStake)
+        .toARIO()
+        .valueOf();
 
-        return {
-          label: gateway.settings.label,
-          domain: gateway.settings.fqdn,
-          owner: owner,
-          start: new Date(gateway.startTimestamp),
-          totalDelegatedStake: totalDelegatedStakeARIO,
-          operatorStake: operatorStakeARIO,
-          totalStake: totalDelegatedStakeARIO + operatorStakeARIO,
-          status: gateway.status,
-          endTimeStamp: gateway.endTimestamp,
-          performance:
-            totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
-          passedEpochCount,
-          totalEpochCount,
-          streak:
-            gateway.status === 'leaving'
-              ? Number.NEGATIVE_INFINITY
-              : gateway.stats.failedConsecutiveEpochs > 0
-                ? -gateway.stats.failedConsecutiveEpochs
-                : gateway.stats.passedConsecutiveEpochs,
-        };
-      },
-    );
+      return {
+        label: gateway.settings.label,
+        domain: gateway.settings.fqdn,
+        owner: gateway.gatewayAddress,
+        start: new Date(gateway.startTimestamp),
+        totalDelegatedStake: totalDelegatedStakeARIO,
+        operatorStake: operatorStakeARIO,
+        totalStake: totalDelegatedStakeARIO + operatorStakeARIO,
+        status: gateway.status,
+        endTimeStamp: gateway.endTimestamp,
+        performance:
+          totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
+        passedEpochCount,
+        totalEpochCount,
+        streak:
+          gateway.status === 'leaving'
+            ? Number.NEGATIVE_INFINITY
+            : gateway.stats.failedConsecutiveEpochs > 0
+              ? -gateway.stats.failedConsecutiveEpochs
+              : gateway.stats.passedConsecutiveEpochs,
+      };
+    });
     setTableData(tableData);
-    setIsProcessingData(false);
-  }, [gateways]);
+  }, [gatewaysData]);
+
+  const handleSortingChange = (sorting: SortingState) => {
+    if (sorting.length > 0) {
+      const { id, desc } = sorting[0];
+      const sortMapping: Record<string, string> = {
+        label: 'settings.label',
+        domain: 'settings.fqdn',
+        owner: 'gatewayAddress',
+        start: 'startTimestamp',
+        totalStake: 'totalDelegatedStake',
+        status: 'status',
+        performance: 'stats.passedEpochCount',
+        streak: 'stats.passedConsecutiveEpochs',
+      };
+
+      const newSortBy = sortMapping[id];
+      if (newSortBy) {
+        setSortBy(newSortBy as any);
+        setSortOrder(desc ? 'desc' : 'asc');
+        setCurrentPage(1); // Reset to first page when sorting changes
+      }
+    }
+  };
 
   // Define columns for the table
   const columns = useMemo<ColumnDef<TableData, any>[]>(
@@ -97,6 +144,7 @@ const Gateways = () => {
         id: 'label',
         header: 'Label',
         sortDescFirst: false,
+        cell: ({ row }) => row.getValue('label'),
       }),
       columnHelper.accessor('domain', {
         id: 'domain',
@@ -208,7 +256,7 @@ const Gateways = () => {
       }),
     ],
     [ticker],
-  ); // Only recalculate when ticker changes
+  );
 
   return (
     <div className="flex h-full max-w-full flex-col">
@@ -220,22 +268,81 @@ const Gateways = () => {
         <div className="h-full overflow-y-auto">
           <div className="pt-0">
             <div className="mb-8">
-              <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
-                <div className="grow text-sm text-mid">Gateways</div>
-                <ColumnSelector tableId="gateways" columns={columns} />
+              <div className="flex w-full items-center justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
+                <div className="flex items-center gap-4">
+                  <div className="text-sm text-mid">
+                    Gateways{' '}
+                    {gatewaysData?.totalItems
+                      ? `(${gatewaysData.totalItems})`
+                      : ''}
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                      aria-label="First page"
+                    >
+                      <CaretDoubleRightIcon className="h-4 w-4 rotate-180" />
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
+                      disabled={currentPage === 1}
+                      className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                      aria-label="Previous page"
+                    >
+                      <CaretRightIcon className="h-4 w-4 rotate-180" />
+                    </button>
+
+                    <span className="text-xs text-mid">
+                      Page {currentPage} of {gatewaysData?.totalPages || 1}
+                    </span>
+
+                    <button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={!gatewaysData?.hasNextPage}
+                      className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                      aria-label="Next page"
+                    >
+                      <CaretRightIcon className="h-4 w-4" />
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage(gatewaysData?.totalPages || 1)
+                      }
+                      disabled={currentPage === (gatewaysData?.totalPages || 1)}
+                      className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                      aria-label="Last page"
+                    >
+                      <CaretDoubleRightIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <ColumnSelector tableId="gateways" columns={columns} />
+                </div>
               </div>
-              <TableView
+              <ServerSortableTableView
                 columns={columns}
                 data={tableData}
                 defaultSortingState={{ id: 'totalStake', desc: true }}
-                isLoading={isLoading || isProcessingData}
+                isLoading={isLoading}
                 isError={isError}
                 noDataFoundText="No gateways found."
                 errorText="Unable to load gateways."
-                loadingRows={10}
+                loadingRows={ITEMS_PER_PAGE}
                 onRowClick={(row) => {
                   navigate(`/gateways/${row.owner}`);
                 }}
+                onSortingChange={handleSortingChange}
+                currentSorting={[
+                  { id: 'totalStake', desc: sortOrder === 'desc' },
+                ]}
                 tableId="gateways"
               />
             </div>

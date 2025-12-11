@@ -2,6 +2,7 @@ import {
   BannerRightChevron,
   GatewayHoverIcon,
   GatewayIcon,
+  LinkArrowIcon,
   PinkArrowIcon,
   StartGatewayCubes,
 } from '@src/components/icons';
@@ -32,42 +33,14 @@ const Banner = () => {
   const { gatewayInfo, gatewayStatus } = useGatewayInfo();
 
   return (
-    <div>
-      {!walletAddress || gatewayStatus === GatewayStatus.NOT_FOUND ? (
-        <div>
-          <button
-            className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
-            onClick={() => {
-              if (!walletAddress) {
-                setLoginOpen(true);
-              } else {
-                setStartGatewayOpen(true);
-              }
-            }}
-          >
-            <div
-              className="invisible size-full rounded-xl
-       bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
-            >
-              <div className="size-full overflow-hidden rounded-xl bg-grey-800">
-                <StartGatewayCubes className="relative -top-px left-[calc(4rem-1px)] z-0" />
-              </div>
-            </div>
-            <StartGatewayCubes className="visible absolute left-16 top-0 z-0 group-hover:invisible" />
-            <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
-              <div className="flex items-center gap-2">
-                <div className="text-gradient">Start your own gateway</div>{' '}
-                <PinkArrowIcon className="size-3" />
-              </div>
-
-              <div className="px-6 pt-2 text-sm text-low">
-                By running a gateway, you become a contributor to the ecosystem
-                and can earn rewards.
-              </div>
-            </div>
-          </button>
-        </div>
-      ) : gatewayStatus === GatewayStatus.FOUND ? (
+    <div
+      className={
+        walletAddress && gatewayStatus === GatewayStatus.FOUND
+          ? 'sticky top-4 z-10'
+          : ''
+      }
+    >
+      {walletAddress && gatewayStatus === GatewayStatus.FOUND ? (
         <div>
           <button
             className="group relative h-fit w-full overflow-hidden rounded-xl bg-grey-800 lg:h-[7.5rem]"
@@ -104,9 +77,55 @@ const Banner = () => {
           </button>
         </div>
       ) : (
-        <div className="relative h-[7.5rem] w-full justify-center overflow-hidden rounded-xl bg-grey-800 ">
-          <div className="h-full content-center text-center text-sm text-low">
-            Loading gateway information...
+        <div className="relative h-auto w-full overflow-hidden rounded-xl bg-grey-800 p-6">
+          <StartGatewayCubes className="absolute right-[-0.5rem] top-[-0.5rem] z-0" />
+
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="text-gradient text-lg font-medium">
+                Start Earning Rewards
+              </div>
+              <PinkArrowIcon className="size-3" />
+            </div>
+
+            <div className="text-xs text-mid mb-4">
+              Join 750+ gateways earning ARIO tokens
+            </div>
+
+            <div className="text-sm text-low mb-6 space-y-2">
+              <div>1. Set up your gateway (10 mins)</div>
+              <div>2. Buy and configure a DNS name</div>
+              <div>3. Join the network and start earning</div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href="https://docs.ar.io/build/run-a-gateway"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-grey-600 bg-grey-700 text-sm text-high hover:bg-grey-600 transition-colors"
+              >
+                View Setup Guide
+                <LinkArrowIcon className="h-3 w-3" />
+              </a>
+
+              <button
+                onClick={() => {
+                  if (!walletAddress) {
+                    setLoginOpen(true);
+                  } else {
+                    setStartGatewayOpen(true);
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end text-sm text-grey-900 font-medium hover:opacity-90 transition-opacity"
+              >
+                {!walletAddress ? 'Connect Wallet to Join' : 'Join Network'}
+                <PinkArrowIcon
+                  className="size-3 text-grey-900"
+                  style={{ filter: 'brightness(0)' }}
+                />
+              </button>
+            </div>
           </div>
         </div>
       )}

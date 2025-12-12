@@ -34,10 +34,9 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
   const fetchPaginatedGateways = async (
     arIOReadSDK: AoARIORead,
   ): Promise<PaginationResult<AoGatewayWithAddress>> => {
-    // For pagination, we need to calculate the cursor position
-    // Since SDK uses cursor-based pagination, we'll need to fetch pages sequentially
-    let currentCursor: string | undefined;
-    let currentPage = 1;
+    const safeLimit =
+      Number.isFinite(limit) && limit > 0 && limit <= 1000 ? limit : 1000;
+    const safePage = Number.isFinite(page) && page > 0 ? page : 1;
     let currentCursor: string | undefined;
     let currentPage = 1;
 
@@ -45,7 +44,7 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
     while (currentPage < page) {
       const pageResult = await arIOReadSDK.getGateways({
         cursor: currentCursor,
-        limit,
+        limit: safeLimit,
         sortBy: sortBy as any, // Type assertion needed for SDK
         sortOrder,
         filters,
@@ -59,10 +58,10 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
         return {
           items: [],
           hasNextPage: false,
-          currentPage: page,
-          itemsPerPage: limit,
-          totalItems: 0,
-          totalPages: 0,
+          currentPage: safePage,
+          itemsPerPage: safeLimit,
+          totalItems: pageResult.totalItems,
+          totalPages: Math.ceil(pageResult.totalItems / safeLimit),
         };
       }
     }
@@ -70,7 +69,7 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
     // Fetch the target page
     const pageResult = await arIOReadSDK.getGateways({
       cursor: currentCursor,
-      limit,
+      limit: safeLimit,
       sortBy: sortBy as any, // Type assertion needed for SDK
       sortOrder,
       filters,
@@ -104,7 +103,7 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
         return fetchPaginatedGateways(arIOReadSDK);
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 60 * 60 * 1000, // 1 hour
     enabled: !!arIOReadSDK,
   });
 

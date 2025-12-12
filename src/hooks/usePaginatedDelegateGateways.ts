@@ -36,7 +36,6 @@ const usePaginatedDelegateGateways = (options: PaginationOptions = {}) => {
   };
 
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const { data: protocolBalance } = useProtocolBalance();
 
   const fetchPaginatedDelegateGateways = async (
     arIOReadSDK: AoARIORead,
@@ -101,15 +100,14 @@ const usePaginatedDelegateGateways = (options: PaginationOptions = {}) => {
       sortBy,
       sortOrder,
       arIOReadSDK,
-      protocolBalance,
     ],
     queryFn: () => {
-      if (arIOReadSDK && protocolBalance) {
+      if (arIOReadSDK) {
         return fetchPaginatedDelegateGateways(arIOReadSDK);
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!arIOReadSDK && !!protocolBalance,
+    staleTime: 4 * 60 * 60 * 1000, // 4 hours
+    enabled: !!arIOReadSDK,
   });
 
   return queryResults;

@@ -123,7 +123,7 @@ const BalanceFragmentationChart = () => {
 
       setData(balanceData);
     }
-  }, [allBalances]);
+  }, [allBalances, arioProcessId]);
 
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);

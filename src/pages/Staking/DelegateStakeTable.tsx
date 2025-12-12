@@ -14,7 +14,6 @@ import {
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
-import useGateways from '@src/hooks/useGateways';
 import usePaginatedGateways from '@src/hooks/usePaginatedGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -93,9 +92,7 @@ const DelegateStake = () => {
     }
 
     const protocolBalanceARIO = new mARIOToken(protocolBalance).toARIO();
-    const joinedGatewayCount = gatewaysData.items.filter(
-      (g) => g.status === 'joined',
-    ).length;
+    const joinedGatewayCount = gatewaysData.totalItems;
 
     const delegateGateways: Array<TableData> = gatewaysData.items.map(
       (gateway) => {

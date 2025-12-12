@@ -14,6 +14,7 @@ import {
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
+import useGateways from '@src/hooks/useGateways';
 import usePaginatedDelegateGateways from '@src/hooks/usePaginatedDelegateGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
@@ -87,10 +88,10 @@ const DelegateStake = () => {
       return;
     }
 
-    // Pre-calculate expensive values
     const protocolBalanceARIO = new mARIOToken(protocolBalance).toARIO();
-    // Use a fixed count for now since we're using paginated data
-    const joinedGatewayCount = 100; // This would ideally come from total count in API
+    const joinedGatewayCount = gatewaysData.items.filter(
+      (g) => g.status === 'joined',
+    ).length;
 
     const stakeableGateways: Array<TableData> = gatewaysData.items.map(
       (gateway) => {

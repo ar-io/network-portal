@@ -89,7 +89,7 @@ const usePaginatedGateways = (options: PageBasedOptions = {}) => {
     };
   };
 
-  const queryResults = useQuery({
+  return useQuery({
     queryKey: [
       'paginatedGateways',
       page,
@@ -106,9 +106,8 @@ const usePaginatedGateways = (options: PageBasedOptions = {}) => {
     },
     staleTime: 60 * 60 * 1000, // 1 hour
     enabled: !!arIOReadSDK,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching new page
   });
-
-  return queryResults;
 };
 
 export default usePaginatedGateways;

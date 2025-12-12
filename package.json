@@ -19,7 +19,7 @@
     "deploy": "yarn build && permaweb-deploy --arns-name ${VITE_ARNS_NAME}"
   },
   "dependencies": {
-    "@ar.io/sdk": "^3.21.1-alpha.1",
+    "@ar.io/sdk": "^3.22.1",
     "@dha-team/arbundles": "^1.0.3",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^2.2.0",

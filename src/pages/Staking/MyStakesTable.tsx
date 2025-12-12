@@ -1,6 +1,6 @@
 import { AoGatewayWithAddress, AoVaultData, mARIOToken } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import AddressCell from '@src/components/AddressCell';
+import AddressCellWithName from '@src/components/AddressCellWithName';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
@@ -20,6 +20,7 @@ import WithdrawAllModal from '@src/components/modals/WithdrawAllModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
+import { usePrimaryNames } from '@src/hooks/usePrimaryNames';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
@@ -61,6 +62,14 @@ const MyStakesTable = () => {
     useState<Array<ActiveStakesTableData>>();
   const [pendingWithdrawals, setPendingWithdrawals] =
     useState<Array<PendingWithdrawalsTableData>>();
+
+  // Extract all gateway addresses for batch fetching
+  const gatewayAddresses = useMemo(() => {
+    if (!gateways) return [];
+    return Object.keys(gateways);
+  }, [gateways]);
+
+  const primaryNamesMap = usePrimaryNames(gatewayAddresses);
 
   const [tableMode, setTableMode] = useState<TableMode>('activeStakes');
 
@@ -178,7 +187,13 @@ const MyStakesTable = () => {
         id: 'owner',
         header: 'Address',
         sortDescFirst: false,
-        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+        cell: ({ row }) => (
+          <AddressCellWithName
+            address={row.getValue('owner')}
+            useBatchedNames={true}
+            primaryNameOverride={primaryNamesMap.get(row.getValue('owner'))}
+          />
+        ),
       }),
       columnHelper.accessor('delegatedStake', {
         id: 'delegatedStake',
@@ -302,6 +317,7 @@ const MyStakesTable = () => {
       setStakingModalWalletAddress,
       setWithdrawalModalWalletAddress,
       setShowRedelegateModal,
+      primaryNamesMap,
     ],
   );
 
@@ -340,7 +356,13 @@ const MyStakesTable = () => {
         id: 'owner',
         header: 'Address',
         sortDescFirst: false,
-        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+        cell: ({ row }) => (
+          <AddressCellWithName
+            address={row.getValue('owner')}
+            useBatchedNames={true}
+            primaryNameOverride={primaryNamesMap.get(row.getValue('owner'))}
+          />
+        ),
       }),
       columnHelperWithdrawals.accessor('withdrawal.balance', {
         id: 'withdrawal',
@@ -431,6 +453,7 @@ const MyStakesTable = () => {
       setConfirmInstantWithdrawal,
       setConfirmCancelWithdrawal,
       setShowRedelegateModal,
+      primaryNamesMap,
     ],
   );
 

@@ -1,5 +1,5 @@
 import { mARIOToken } from '@ar.io/sdk/web';
-import AddressCell from '@src/components/AddressCell';
+import AddressCellWithName from '@src/components/AddressCellWithName';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
@@ -11,6 +11,7 @@ import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
+import { usePrimaryNames } from '@src/hooks/usePrimaryNames';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
@@ -48,6 +49,14 @@ const DelegateStake = () => {
     [],
   );
   const [isProcessingData, setIsProcessingData] = useState(true);
+
+  // Extract all gateway addresses for batch fetching
+  const gatewayAddresses = useMemo(() => {
+    if (!gateways) return [];
+    return Object.keys(gateways);
+  }, [gateways]);
+
+  const primaryNamesMap = usePrimaryNames(gatewayAddresses);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
@@ -146,7 +155,13 @@ const DelegateStake = () => {
         id: 'owner',
         header: 'Address',
         sortDescFirst: false,
-        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+        cell: ({ row }) => (
+          <AddressCellWithName
+            address={row.getValue('owner')}
+            useBatchedNames={true}
+            primaryNameOverride={primaryNamesMap.get(row.getValue('owner'))}
+          />
+        ),
       }),
       columnHelper.accessor('totalStake', {
         id: 'totalStake',
@@ -285,6 +300,7 @@ const DelegateStake = () => {
       walletAddress,
       setStakingModalWalletAddress,
       setIsConnectModalOpen,
+      primaryNamesMap,
     ],
   );
 

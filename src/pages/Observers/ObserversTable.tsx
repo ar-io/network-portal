@@ -1,8 +1,8 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import AddressCell from '@src/components/AddressCell';
+import AddressCellWithName from '@src/components/AddressCellWithName';
 import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
 import Dropdown from '@src/components/Dropdown';
@@ -12,6 +12,7 @@ import useEpochs from '@src/hooks/useEpochs';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
 import useObservers from '@src/hooks/useObservers';
+import { usePrimaryNames } from '@src/hooks/usePrimaryNames';
 import { formatPercentage } from '@src/utils';
 
 interface TableData {
@@ -53,6 +54,18 @@ const ObserversTable = () => {
     Array<TableData>
   >([]);
   const [isProcessingData, setIsProcessingData] = useState(true);
+
+  // Extract all addresses for batch fetching
+  const allAddresses = useMemo(() => {
+    const addresses: string[] = [];
+    observersTableData.forEach((row) => {
+      addresses.push(row.gatewayAddress);
+      addresses.push(row.observerAddress);
+    });
+    return addresses;
+  }, [observersTableData]);
+
+  const primaryNamesMap = usePrimaryNames(allAddresses);
 
   useEffect(() => {
     if (!observers || !gateways || !observations) {
@@ -101,89 +114,104 @@ const ObserversTable = () => {
   }, [observers, gateways, observations, selectedEpochIndex]);
 
   // Define columns for the table
-  const columns: ColumnDef<TableData, any>[] = [
-    columnHelper.accessor('label', {
-      id: 'label',
-      header: 'Label',
-      sortDescFirst: false,
-    }),
-    columnHelper.accessor('domain', {
-      id: 'domain',
-      header: 'Domain',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <a
-            href={`https://${row.getValue('domain')}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-            className="text-gradient"
+  const columns: ColumnDef<TableData, any>[] = useMemo(
+    () => [
+      columnHelper.accessor('label', {
+        id: 'label',
+        header: 'Label',
+        sortDescFirst: false,
+      }),
+      columnHelper.accessor('domain', {
+        id: 'domain',
+        header: 'Domain',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <a
+              href={`https://${row.getValue('domain')}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              className="text-gradient"
+            >
+              {row.getValue('domain')}
+            </a>
+            <CopyButton textToCopy={row.getValue('domain')} />
+          </div>
+        ),
+      }),
+      columnHelper.accessor('gatewayAddress', {
+        id: 'gatewayAddress',
+        header: 'Gateway Address',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <AddressCellWithName
+            address={row.getValue('gatewayAddress')}
+            useBatchedNames={true}
+            primaryNameOverride={primaryNamesMap.get(
+              row.getValue('gatewayAddress'),
+            )}
+          />
+        ),
+      }),
+
+      columnHelper.accessor('observerAddress', {
+        id: 'observerAddress',
+        header: 'Observer Address',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <AddressCellWithName
+            address={row.getValue('observerAddress')}
+            useBatchedNames={true}
+            primaryNameOverride={primaryNamesMap.get(
+              row.getValue('observerAddress'),
+            )}
+          />
+        ),
+      }),
+      columnHelper.accessor('ncw', {
+        id: 'ncw',
+        header: 'Observation Chance',
+        sortDescFirst: true,
+        cell: ({ row }) => formatPercentage(row.original.ncw),
+      }),
+      columnHelper.accessor('successRatio', {
+        id: 'successRatio',
+        header: 'Observer Performance',
+        sortDescFirst: true,
+        cell: ({ row }) => (
+          <Tooltip
+            message={
+              <div>
+                <div>Observed Epochs: {row.original.observedEpochs}</div>
+                <div>Prescribed Epochs: {row.original.prescribedEpochs}</div>
+              </div>
+            }
           >
-            {row.getValue('domain')}
-          </a>
-          <CopyButton textToCopy={row.getValue('domain')} />
-        </div>
-      ),
-    }),
-    columnHelper.accessor('gatewayAddress', {
-      id: 'gatewayAddress',
-      header: 'Gateway Address',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <AddressCell address={row.getValue('gatewayAddress')} />
-      ),
-    }),
+            {`${(row.original.successRatio * 100).toFixed(2)}%`}
+          </Tooltip>
+        ),
+      }),
+      columnHelper.accessor('reportStatus', {
+        id: 'reportStatus',
+        header:
+          selectedEpochIndex === 0 ? 'Current Report Status' : 'Report Status',
+        sortDescFirst: true,
+      }),
 
-    columnHelper.accessor('observerAddress', {
-      id: 'observerAddress',
-      header: 'Observer Address',
-      sortDescFirst: false,
-      cell: ({ row }) => (
-        <AddressCell address={row.getValue('observerAddress')} />
-      ),
-    }),
-    columnHelper.accessor('ncw', {
-      id: 'ncw',
-      header: 'Observation Chance',
-      sortDescFirst: true,
-      cell: ({ row }) => formatPercentage(row.original.ncw),
-    }),
-    columnHelper.accessor('successRatio', {
-      id: 'successRatio',
-      header: 'Observer Performance',
-      sortDescFirst: true,
-      cell: ({ row }) => (
-        <Tooltip
-          message={
-            <div>
-              <div>Observed Epochs: {row.original.observedEpochs}</div>
-              <div>Prescribed Epochs: {row.original.prescribedEpochs}</div>
-            </div>
-          }
-        >
-          {`${(row.original.successRatio * 100).toFixed(2)}%`}
-        </Tooltip>
-      ),
-    }),
-    columnHelper.accessor('reportStatus', {
-      id: 'reportStatus',
-      header:
-        selectedEpochIndex === 0 ? 'Current Report Status' : 'Report Status',
-      sortDescFirst: true,
-    }),
-
-    columnHelper.accessor('failedGateways', {
-      id: 'failedGateways',
-      header: 'Failed Gateways',
-      sortDescFirst: true,
-      cell: ({ row }) =>
-        row.original.failedGateways ||
-        (selectedEpochIndex === 0 ? 'Pending' : 'N/A'),
-    }),
-  ];
+      columnHelper.accessor('failedGateways', {
+        id: 'failedGateways',
+        header: 'Failed Gateways',
+        sortDescFirst: true,
+        cell: ({ row }) =>
+          row.original.failedGateways ||
+          (selectedEpochIndex === 0 ? 'Pending' : 'N/A'),
+      }),
+    ],
+    [primaryNamesMap, selectedEpochIndex],
+  );
 
   return (
     <div>

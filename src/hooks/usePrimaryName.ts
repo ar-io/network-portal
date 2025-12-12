@@ -23,7 +23,7 @@ const usePrimaryName = (walletAddress?: string) => {
       }
     },
     enabled: !!walletAddress && !!arIOReadSDK,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 4 * 60 * 60 * 1000, // 4 hours
   });
 
   return res;

@@ -1,12 +1,13 @@
 import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
-import AddressCell from '@src/components/AddressCell';
+import AddressCellWithName from '@src/components/AddressCellWithName';
 import Placeholder from '@src/components/Placeholder';
 import TableView from '@src/components/TableView';
 import useGatewayDelegateStakes from '@src/hooks/useGatewayDelegates';
+import { usePrimaryNames } from '@src/hooks/usePrimaryNames';
 import { useGlobalState } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CollapsiblePanel from './CollapsiblePanel';
 
 interface TableData {
@@ -32,6 +33,10 @@ const ActiveDelegates = ({
 
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
+  // Extract all delegate addresses for batch fetching
+  const delegateAddresses = tableData.map((row) => row.walletAddress);
+  const primaryNamesMap = usePrimaryNames(delegateAddresses);
+
   useEffect(() => {
     if (gateway && gatewayDelegateStakes) {
       const totalDelegatedStake = gateway.totalDelegatedStake;
@@ -54,27 +59,39 @@ const ActiveDelegates = ({
   }, [gatewayDelegateStakes, gateway]);
 
   // Define columns for the table
-  const columns: ColumnDef<TableData, any>[] = [
-    columnHelper.accessor('walletAddress', {
-      id: 'walletAddress',
-      header: 'Wallet Address',
-      sortDescFirst: false,
-      cell: ({ row }) => <AddressCell address={row.original.walletAddress} />,
-    }),
-    columnHelper.accessor('totalStake', {
-      id: 'totalStake',
-      header: 'Total Stake',
-      sortDescFirst: false,
-      cell: ({ row }) =>
-        `${formatWithCommas(row.original.totalStake)} ${ticker}`,
-    }),
-    columnHelper.accessor('percentageOfTotalStake', {
-      id: 'percentageOfTotalStake',
-      header: 'Percentage of Total Delegated Stake',
-      sortDescFirst: false,
-      cell: ({ row }) => formatPercentage(row.original.percentageOfTotalStake),
-    }),
-  ];
+  const columns: ColumnDef<TableData, any>[] = useMemo(
+    () => [
+      columnHelper.accessor('walletAddress', {
+        id: 'walletAddress',
+        header: 'Wallet Address',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <AddressCellWithName
+            address={row.original.walletAddress}
+            useBatchedNames={true}
+            primaryNameOverride={primaryNamesMap.get(
+              row.original.walletAddress,
+            )}
+          />
+        ),
+      }),
+      columnHelper.accessor('totalStake', {
+        id: 'totalStake',
+        header: 'Total Stake',
+        sortDescFirst: false,
+        cell: ({ row }) =>
+          `${formatWithCommas(row.original.totalStake)} ${ticker}`,
+      }),
+      columnHelper.accessor('percentageOfTotalStake', {
+        id: 'percentageOfTotalStake',
+        header: 'Percentage of Total Delegated Stake',
+        sortDescFirst: false,
+        cell: ({ row }) =>
+          formatPercentage(row.original.percentageOfTotalStake),
+      }),
+    ],
+    [primaryNamesMap, ticker],
+  );
 
   return (
     <CollapsiblePanel

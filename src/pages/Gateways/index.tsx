@@ -1,10 +1,11 @@
 import { mARIOToken } from '@ar.io/sdk/web';
-import AddressCell from '@src/components/AddressCell';
+import AddressCellWithName from '@src/components/AddressCellWithName';
 import CopyButton from '@src/components/CopyButton';
 import Header from '@src/components/Header';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
+import { usePrimaryNames } from '@src/hooks/usePrimaryNames';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -42,6 +43,14 @@ const Gateways = () => {
   const [isProcessingData, setIsProcessingData] = useState(true);
 
   const navigate = useNavigate();
+
+  // Extract all addresses for batch fetching
+  const addresses = useMemo(() => {
+    if (!gateways) return [];
+    return Object.keys(gateways);
+  }, [gateways]);
+
+  const primaryNamesMap = usePrimaryNames(addresses);
 
   useEffect(() => {
     if (!gateways) {
@@ -123,7 +132,13 @@ const Gateways = () => {
         id: 'owner',
         header: 'Address',
         sortDescFirst: false,
-        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
+        cell: ({ row }) => (
+          <AddressCellWithName
+            address={row.getValue('owner')}
+            useBatchedNames={true}
+            primaryNameOverride={primaryNamesMap.get(row.getValue('owner'))}
+          />
+        ),
       }),
       columnHelper.accessor('start', {
         id: 'start',
@@ -207,8 +222,8 @@ const Gateways = () => {
         ),
       }),
     ],
-    [ticker],
-  ); // Only recalculate when ticker changes
+    [ticker, primaryNamesMap],
+  ); // Recalculate when ticker or primaryNamesMap changes
 
   return (
     <div className="flex h-full max-w-full flex-col">

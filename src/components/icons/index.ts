@@ -7,6 +7,7 @@ import BinocularsIcon from './binoculars.svg?react';
 import BinocularsGradientIcon from './binoculars_gradient.svg?react';
 import CancelButtonXIcon from './cancel_button_x.svg?react';
 import CaretDoubleRightIcon from './caret_double_right.svg?react';
+import CaretRightIcon from './caret_right.svg?react';
 import CheckSquareIcon from './check_square.svg?react';
 import ClockRewindIcon from './clock_rewind.svg?react';
 import CloseIcon from './close.svg?react';
@@ -57,6 +58,7 @@ export {
   BinocularsIcon,
   CancelButtonXIcon,
   CaretDoubleRightIcon,
+  CaretRightIcon,
   CheckSquareIcon,
   ClockRewindIcon,
   CloseDrawerIcon,

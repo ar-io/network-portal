@@ -56,6 +56,17 @@ const Gateways = () => {
   >('totalDelegatedStake');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  const sortMapping: Record<string, string> = {
+    label: 'settings.label',
+    domain: 'settings.fqdn',
+    owner: 'gatewayAddress',
+    start: 'startTimestamp',
+    totalStake: 'totalDelegatedStake',
+    status: 'status',
+    performance: 'stats.passedEpochCount',
+    streak: 'stats.passedConsecutiveEpochs',
+  };
+
   const {
     isLoading,
     isError,
@@ -117,16 +128,6 @@ const Gateways = () => {
   const handleSortingChange = (sorting: SortingState) => {
     if (sorting.length > 0) {
       const { id, desc } = sorting[0];
-      const sortMapping: Record<string, string> = {
-        label: 'settings.label',
-        domain: 'settings.fqdn',
-        owner: 'gatewayAddress',
-        start: 'startTimestamp',
-        totalStake: 'totalDelegatedStake',
-        status: 'status',
-        performance: 'stats.passedEpochCount',
-        streak: 'stats.passedConsecutiveEpochs',
-      };
 
       const newSortBy = sortMapping[id];
       if (newSortBy) {
@@ -341,7 +342,13 @@ const Gateways = () => {
                 }}
                 onSortingChange={handleSortingChange}
                 currentSorting={[
-                  { id: 'totalStake', desc: sortOrder === 'desc' },
+                  {
+                    id:
+                      Object.keys(sortMapping).find(
+                        (key) => sortMapping[key] === sortBy,
+                      ) || 'totalStake',
+                    desc: sortOrder === 'desc',
+                  },
                 ]}
                 tableId="gateways"
               />

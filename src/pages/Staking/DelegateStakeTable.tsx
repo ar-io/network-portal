@@ -139,15 +139,16 @@ const DelegateStake = () => {
     setDelegateGateways(delegateGateways);
   }, [gatewaysData, protocolBalance]);
 
+  const sortMapping: Record<string, string> = {
+    label: 'settings.label',
+    domain: 'settings.fqdn',
+    owner: 'gatewayAddress',
+    totalStake: 'totalDelegatedStake',
+  };
+
   const handleSortingChange = (sorting: SortingState) => {
     if (sorting.length > 0) {
       const { id, desc } = sorting[0];
-      const sortMapping: Record<string, string> = {
-        label: 'settings.label',
-        domain: 'settings.fqdn',
-        owner: 'gatewayAddress',
-        totalStake: 'totalDelegatedStake',
-      };
 
       const newSortBy = sortMapping[id];
       if (newSortBy) {
@@ -399,7 +400,15 @@ const DelegateStake = () => {
           navigate(`/gateways/${row.owner}`);
         }}
         onSortingChange={handleSortingChange}
-        currentSorting={[{ id: 'totalStake', desc: sortOrder === 'desc' }]}
+        currentSorting={[
+          {
+            id:
+              Object.keys(sortMapping).find(
+                (key) => sortMapping[key] === sortBy,
+              ) || 'totalStake',
+            desc: sortOrder === 'desc',
+          },
+        ]}
         tableId="delegate-stake"
       />
       {stakingModalWalletAddress && (

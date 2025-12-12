@@ -38,7 +38,8 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
     // Since SDK uses cursor-based pagination, we'll need to fetch pages sequentially
     let currentCursor: string | undefined;
     let currentPage = 1;
-    const _allItems: AoGatewayWithAddress[] = [];
+    let currentCursor: string | undefined;
+    let currentPage = 1;
 
     // If not on page 1, we need to skip to the correct page
     while (currentPage < page) {

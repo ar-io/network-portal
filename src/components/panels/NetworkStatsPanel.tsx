@@ -43,7 +43,7 @@ const NetworkStatsPanel = () => {
       isLoading: delegatesLoading,
     },
     {
-      label: `Bridge ${ticker} (Base)`,
+      label: `Bridged ${ticker} (Base)`,
       value: bridgeBalance ? formatWithCommas(bridgeBalance.arioBalance) : '-',
       isLoading: balancesLoading,
       tooltip: (
@@ -90,11 +90,17 @@ const NetworkStatsPanel = () => {
             )}
             {stat.isLoading ? (
               <Placeholder className="mt-1 h-6 w-20" />
-            ) : stat.label.includes('Bridge') ? (
+            ) : stat.label.includes('Bridged') ? (
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-semibold text-high">
+                <a
+                  href="https://basescan.org/token/0x138746adfa52909e5920def027f5a8dc1c7effb6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-2xl font-semibold text-high underline hover:text-primary transition-colors"
+                  title="View on BaseScan"
+                >
                   {stat.value}
-                </span>
+                </a>
                 <a
                   href="https://basescan.org/token/0x138746adfa52909e5920def027f5a8dc1c7effb6"
                   target="_blank"

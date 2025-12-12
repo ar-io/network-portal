@@ -1,8 +1,13 @@
-import { AoARIORead, AoGatewayWithAddress } from '@ar.io/sdk/web';
+import {
+  AoARIORead,
+  AoGatewayWithAddress,
+  PaginationParams,
+  PaginationResult,
+} from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
-interface PaginationOptions {
+interface PageBasedOptions {
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -10,17 +15,14 @@ interface PaginationOptions {
   filters?: Record<string, any>;
 }
 
-interface PaginationResult<T> {
-  items: T[];
-  hasNextPage: boolean;
+// Extend SDK PaginationResult with page-based properties for UI convenience
+type PageBasedPaginationResult<T> = PaginationResult<T> & {
   currentPage: number;
-  itemsPerPage: number;
-  totalItems: number;
   totalPages: number;
-  nextCursor?: string;
-}
+  hasNextPage: boolean;
+};
 
-const usePaginatedGateways = (options: PaginationOptions = {}) => {
+const usePaginatedGateways = (options: PageBasedOptions = {}) => {
   const {
     page = 1,
     limit = 50,
@@ -33,7 +35,7 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
 
   const fetchPaginatedGateways = async (
     arIOReadSDK: AoARIORead,
-  ): Promise<PaginationResult<AoGatewayWithAddress>> => {
+  ): Promise<PageBasedPaginationResult<AoGatewayWithAddress>> => {
     const safeLimit =
       Number.isFinite(limit) && limit > 0 && limit <= 1000 ? limit : 1000;
     const safePage = Number.isFinite(page) && page > 0 ? page : 1;
@@ -57,11 +59,13 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
         // No more pages available
         return {
           items: [],
-          hasNextPage: false,
-          currentPage: safePage,
-          itemsPerPage: safeLimit,
+          limit: safeLimit,
           totalItems: pageResult.totalItems,
+          sortOrder: sortOrder as 'asc' | 'desc',
+          hasMore: false,
+          currentPage: safePage,
           totalPages: Math.ceil(pageResult.totalItems / safeLimit),
+          hasNextPage: false,
         };
       }
     }
@@ -78,13 +82,10 @@ const usePaginatedGateways = (options: PaginationOptions = {}) => {
     const totalPages = Math.ceil(pageResult.totalItems / limit);
 
     return {
-      items: pageResult.items,
-      hasNextPage: !!pageResult.nextCursor,
+      ...pageResult,
       currentPage: page,
-      itemsPerPage: limit,
-      totalItems: pageResult.totalItems,
       totalPages,
-      nextCursor: pageResult.nextCursor,
+      hasNextPage: !!pageResult.nextCursor,
     };
   };
 

@@ -15,7 +15,7 @@ import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
-import usePaginatedDelegateGateways from '@src/hooks/usePaginatedDelegateGateways';
+import usePaginatedGateways from '@src/hooks/usePaginatedGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
@@ -66,14 +66,18 @@ const DelegateStake = () => {
     isLoading,
     isError,
     data: gatewaysData,
-  } = usePaginatedDelegateGateways({
+  } = usePaginatedGateways({
     page: currentPage,
     limit: ITEMS_PER_PAGE,
     sortBy,
     sortOrder,
+    filters: {
+      status: 'joined',
+      'settings.allowDelegatedStaking': true,
+    },
   });
   const { data: protocolBalance } = useProtocolBalance();
-  const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
+  const [delegateGateways, setDelegateGateways] = useState<Array<TableData>>(
     [],
   );
 
@@ -84,7 +88,7 @@ const DelegateStake = () => {
 
   useEffect(() => {
     if (!gatewaysData?.items || !protocolBalance) {
-      setStakeableGateways([]);
+      setDelegateGateways([]);
       return;
     }
 
@@ -93,7 +97,7 @@ const DelegateStake = () => {
       (g) => g.status === 'joined',
     ).length;
 
-    const stakeableGateways: Array<TableData> = gatewaysData.items.map(
+    const delegateGateways: Array<TableData> = gatewaysData.items.map(
       (gateway) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
         const totalEpochCount = gateway.stats.totalEpochCount;
@@ -132,7 +136,7 @@ const DelegateStake = () => {
         };
       },
     );
-    setStakeableGateways(stakeableGateways);
+    setDelegateGateways(delegateGateways);
   }, [gatewaysData, protocolBalance]);
 
   const handleSortingChange = (sorting: SortingState) => {
@@ -384,7 +388,7 @@ const DelegateStake = () => {
       </div>
       <ServerSortableTableView
         columns={columns}
-        data={stakeableGateways}
+        data={delegateGateways}
         isLoading={isLoading}
         isError={isError}
         noDataFoundText="No gateways with delegate staking enabled found."

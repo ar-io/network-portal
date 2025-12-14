@@ -106,34 +106,6 @@ const BalancesTable = () => {
         sortDescFirst: true,
         cell: ({ row }) => formatWithCommas(row.getValue('liquidBalance')),
       }),
-      columnHelper.accessor('percentageOfSupply', {
-        id: 'percentageOfSupply',
-        header: '% of Supply',
-        enableSorting: false,
-        cell: ({ row }) => {
-          const percentage = row.getValue('percentageOfSupply') as number;
-          const percentValue = percentage * 100;
-          const isLessThanOne = percentValue < 1;
-
-          return (
-            <div className="flex items-center gap-2">
-              <div className="relative h-2 w-20 rounded-full border border-grey-600 bg-containerL2 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#E19EE5] to-[#A19EE5] transition-all duration-300 ease-out"
-                  style={{
-                    width: isLessThanOne
-                      ? '0%'
-                      : `${Math.min(percentValue, 100)}%`,
-                  }}
-                />
-              </div>
-              <span className="text-xs text-mid min-w-fit">
-                {formatPercentage(percentage)}
-              </span>
-            </div>
-          );
-        },
-      }),
       columnHelper.accessor('vaultCount', {
         id: 'vaultCount',
         header: 'Vaults',
@@ -161,6 +133,34 @@ const BalancesTable = () => {
             {formatWithCommas(row.getValue('totalBalance'))}
           </span>
         ),
+      }),
+      columnHelper.accessor('percentageOfSupply', {
+        id: 'percentageOfSupply',
+        header: '% of Supply',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const percentage = row.getValue('percentageOfSupply') as number;
+          const percentValue = percentage * 100;
+          const isLessThanOne = percentValue < 1;
+
+          return (
+            <div className="flex items-center gap-2">
+              <div className="relative h-2 w-20 rounded-full border border-grey-600 bg-containerL2 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#E19EE5] to-[#A19EE5] transition-all duration-300 ease-out"
+                  style={{
+                    width: isLessThanOne
+                      ? '0%'
+                      : `${Math.min(percentValue, 100)}%`,
+                  }}
+                />
+              </div>
+              <span className="text-xs text-mid min-w-fit">
+                {formatPercentage(percentage)}
+              </span>
+            </div>
+          );
+        },
       }),
     ],
     [ticker],

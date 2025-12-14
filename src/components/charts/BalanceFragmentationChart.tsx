@@ -152,7 +152,6 @@ const BalanceFragmentationChart = () => {
           Token Balance Distribution
         </h3>
         <p className="mt-1 text-xs text-low">
-          Showing protocol, bridge, and top 18 individual holders of{' '}
           {formatWithCommas(TOTAL_SUPPLY)} {ticker} total supply
         </p>
       </div>

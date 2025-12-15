@@ -14,6 +14,7 @@ import {
   SortingState,
   createColumnHelper,
 } from '@tanstack/react-table';
+import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,6 +35,8 @@ const ITEMS_PER_PAGE = 10;
 const BalancesTable = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'liquidBalance', desc: true },
   ]);
@@ -41,6 +44,15 @@ const BalancesTable = () => {
     (state) => state.arIOReadSDK?.process?.processId ?? '',
   );
   const navigate = useNavigate();
+
+  // Debounce search term to avoid excessive API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Determine API sort parameters based on current sorting state
   const sortColumn = sorting[0]?.id;
@@ -112,13 +124,21 @@ const BalancesTable = () => {
     }
   }, [allBalances?.length, apiSortBy, apiSortOrder, prefetchNextSort]);
 
-  const totalPages = Math.ceil(tableData.length / ITEMS_PER_PAGE);
+  const filteredData = useMemo(() => {
+    if (!debouncedSearchTerm) return tableData;
+    const lowerSearch = debouncedSearchTerm.toLowerCase();
+    return tableData.filter((item) =>
+      item.address.toLowerCase().includes(lowerSearch),
+    );
+  }, [tableData, debouncedSearchTerm]);
+
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return tableData.slice(startIndex, endIndex);
-  }, [tableData, currentPage]);
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage]);
 
   const columns = useMemo<ColumnDef<TableData, any>[]>(
     () => [
@@ -235,7 +255,18 @@ const BalancesTable = () => {
         <div className="flex items-center gap-4">
           <div className="text-sm text-mid">
             All Token Holders{' '}
-            {!isLoading && `(${formatWithCommas(tableData.length)})`}
+            {!isLoading &&
+              `(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(tableData.length)}` : ''})`}
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
+            <input
+              type="text"
+              placeholder="Search address..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
+            />
           </div>
         </div>
         <div className="flex items-center gap-4">

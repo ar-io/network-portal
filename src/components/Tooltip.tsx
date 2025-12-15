@@ -1,12 +1,13 @@
 import * as ReactTooltip from '@radix-ui/react-tooltip';
+import { ReactNode } from 'react';
 
 const Tooltip = ({
   message,
   children,
   useMaxWidth = true,
 }: {
-  message: React.ReactNode;
-  children: React.ReactNode;
+  message: ReactNode;
+  children: ReactNode;
   useMaxWidth?: boolean;
 }) => {
   return (

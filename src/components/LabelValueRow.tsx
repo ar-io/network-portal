@@ -11,7 +11,7 @@ const LabelValueRow = ({
   value: ReactNode;
   isLink?: boolean;
   className?: string;
-  rightIcon?: React.ReactNode;
+  rightIcon?: ReactNode;
 }) => {
   return (
     <div className={`flex items-center text-[0.8125rem] ${className}`}>

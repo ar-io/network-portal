@@ -1,10 +1,11 @@
 import { CirclePlus, Minus } from 'lucide-react';
 import { useState } from 'react';
+import { ReactNode } from 'react';
 
 type CollapsiblePanelProps = {
-  title: React.ReactNode;
-  titleRight?: React.ReactNode;
-  children?: React.ReactNode;
+  title: ReactNode;
+  titleRight?: ReactNode;
+  children?: ReactNode;
 };
 
 const CollapsiblePanel = ({

@@ -6,6 +6,7 @@ import useAllDelegates from '@src/hooks/useAllDelegates';
 import useAllVaults from '@src/hooks/useAllVaults';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
+import { ReactNode } from 'react';
 
 const BRIDGE_BALANCE_ADDRESS = 'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
 
@@ -13,7 +14,7 @@ interface StatItem {
   label: string;
   value: string | number;
   isLoading?: boolean;
-  tooltip?: React.ReactNode;
+  tooltip?: ReactNode;
 }
 
 const NetworkStatsPanel = () => {

@@ -1,4 +1,5 @@
 import Placeholder from '@src/components/Placeholder';
+import { BRIDGE_BALANCE_ADDRESS } from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
 import { useGlobalState } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
@@ -6,7 +7,6 @@ import { useEffect, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 const TOTAL_SUPPLY = 1_000_000_000;
-const BRIDGE_BALANCE_ADDRESS = 'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
 
 interface BalanceData {
   name: string;

@@ -1,14 +1,16 @@
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
 import { LinkArrowIcon } from '@src/components/icons';
+import {
+  BASE_TOKEN_CONTRACT_URL,
+  BRIDGE_BALANCE_ADDRESS,
+} from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllDelegates from '@src/hooks/useAllDelegates';
 import useAllVaults from '@src/hooks/useAllVaults';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { ReactNode } from 'react';
-
-const BRIDGE_BALANCE_ADDRESS = 'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
 
 interface StatItem {
   label: string;
@@ -71,7 +73,7 @@ const NetworkStatsPanel = () => {
           </div>
           <div className="mt-2">
             <a
-              href="https://basescan.org/token/0x138746adfa52909e5920def027f5a8dc1c7effb6"
+              href={BASE_TOKEN_CONTRACT_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="text-gradient hover:underline"
@@ -110,7 +112,7 @@ const NetworkStatsPanel = () => {
             ) : stat.label.includes('Bridged') ? (
               <div className="flex items-center gap-2">
                 <a
-                  href="https://basescan.org/token/0x138746adfa52909e5920def027f5a8dc1c7effb6"
+                  href={BASE_TOKEN_CONTRACT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-2xl font-semibold text-high underline hover:text-primary transition-colors"
@@ -119,7 +121,7 @@ const NetworkStatsPanel = () => {
                   {stat.value}
                 </a>
                 <a
-                  href="https://basescan.org/token/0x138746adfa52909e5920def027f5a8dc1c7effb6"
+                  href={BASE_TOKEN_CONTRACT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-mid hover:text-primary transition-colors"

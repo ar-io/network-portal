@@ -3,7 +3,7 @@ import ColumnSelector from '@src/components/ColumnSelector';
 import Placeholder from '@src/components/Placeholder';
 import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
-import { ARIO_PROCESS_ID } from '@src/constants';
+import { ARIO_PROCESS_ID, BRIDGE_BALANCE_ADDRESS } from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllVaults from '@src/hooks/useAllVaults';
 import usePrefetchBalances from '@src/hooks/usePrefetchBalances';
@@ -30,7 +30,6 @@ interface TableData {
 
 const columnHelper = createColumnHelper<TableData>();
 const ITEMS_PER_PAGE = 10;
-const BRIDGE_BALANCE_ADDRESS = 'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
 
 const BalancesTable = () => {
   const ticker = useGlobalState((state) => state.ticker);

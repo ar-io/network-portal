@@ -169,10 +169,12 @@ const ServerSortableTableView = <T, S>({
                         )}
                       </button>
                     ) : (
-                      flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )
+                      <div className="text-left">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </div>
                     )}
                   </th>
                 );

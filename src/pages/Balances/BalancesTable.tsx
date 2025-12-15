@@ -144,7 +144,7 @@ const BalancesTable = () => {
       }),
       columnHelper.accessor('vaultBalance', {
         id: 'vaultBalance',
-        header: `Vault ${ticker}`,
+        header: `Total Vaulted ${ticker}`,
         enableSorting: false,
         cell: ({ row }) => {
           if (vaultsLoading) {

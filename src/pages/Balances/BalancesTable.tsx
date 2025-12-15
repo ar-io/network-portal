@@ -1,5 +1,6 @@
 import AddressCell from '@src/components/AddressCell';
 import ColumnSelector from '@src/components/ColumnSelector';
+import Placeholder from '@src/components/Placeholder';
 import TableView from '@src/components/TableView';
 import { CaretDoubleRightIcon } from '@src/components/icons';
 import { ARIO_PROCESS_ID } from '@src/constants';
@@ -29,9 +30,13 @@ const BRIDGE_BALANCE_ADDRESS = 'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
 const BalancesTable = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const [currentPage, setCurrentPage] = useState(1);
+  const arioProcessId = useGlobalState(
+    (state) => state.arIOReadSDK.process.processId,
+  );
   const navigate = useNavigate();
 
-  // Use default sorting by balance descending
+  // Always fetch balances sorted by balance descending from API
+  // Additional sorting of other columns will be done client-side
   const { data: allBalances, isLoading: balancesLoading } = useAllBalances({
     sortBy: 'balance',
     sortOrder: 'desc',
@@ -41,18 +46,18 @@ const BalancesTable = () => {
   const [isProcessingData, setIsProcessingData] = useState(true);
 
   useEffect(() => {
-    if (!allBalances || !vaultsByAddress) {
+    if (!allBalances) {
       return;
     }
 
     const enrichedData: TableData[] = allBalances
       .filter(
         (balance) =>
-          balance.address !== ARIO_PROCESS_ID.toString() &&
+          balance.address !== arioProcessId.toString() &&
           balance.address !== BRIDGE_BALANCE_ADDRESS,
       )
       .map((balance, index) => {
-        const vaultData = vaultsByAddress.get(balance.address) || {
+        const vaultData = vaultsByAddress?.get(balance.address) || {
           vaultCount: 0,
           totalVaultBalance: 0,
         };
@@ -74,7 +79,7 @@ const BalancesTable = () => {
 
     setTableData(enrichedData);
     setIsProcessingData(false);
-  }, [allBalances, vaultsByAddress]);
+  }, [allBalances, vaultsByAddress, arioProcessId]);
 
   const totalPages = Math.ceil(tableData.length / ITEMS_PER_PAGE);
 
@@ -111,6 +116,9 @@ const BalancesTable = () => {
         header: 'Vaults',
         enableSorting: false,
         cell: ({ row }) => {
+          if (vaultsLoading) {
+            return <Placeholder className="h-4 w-8" />;
+          }
           const count = row.getValue('vaultCount') as number;
           return count > 0 ? formatWithCommas(count) : '-';
         },
@@ -120,6 +128,9 @@ const BalancesTable = () => {
         header: `Vault ${ticker}`,
         enableSorting: false,
         cell: ({ row }) => {
+          if (vaultsLoading) {
+            return <Placeholder className="h-4 w-12" />;
+          }
           const balance = row.getValue('vaultBalance') as number;
           return balance > 0 ? formatWithCommas(balance) : '-';
         },
@@ -128,17 +139,30 @@ const BalancesTable = () => {
         id: 'totalBalance',
         header: `Total ${ticker}`,
         enableSorting: false,
-        cell: ({ row }) => (
-          <span className="font-semibold text-primary">
-            {formatWithCommas(row.getValue('totalBalance'))}
-          </span>
-        ),
+        cell: ({ row }) => {
+          if (vaultsLoading) {
+            return <Placeholder className="h-4 w-16" />;
+          }
+          return (
+            <span className="font-semibold text-primary">
+              {formatWithCommas(row.getValue('totalBalance'))}
+            </span>
+          );
+        },
       }),
       columnHelper.accessor('percentageOfSupply', {
         id: 'percentageOfSupply',
         header: '% of Supply',
         enableSorting: false,
         cell: ({ row }) => {
+          if (vaultsLoading) {
+            return (
+              <div className="flex items-center gap-2">
+                <Placeholder className="h-2 w-20 rounded-full" />
+                <Placeholder className="h-3 w-8" />
+              </div>
+            );
+          }
           const percentage = row.getValue('percentageOfSupply') as number;
           const percentValue = percentage * 100;
           const isLessThanOne = percentValue < 1;
@@ -163,10 +187,10 @@ const BalancesTable = () => {
         },
       }),
     ],
-    [ticker],
+    [ticker, vaultsLoading],
   );
 
-  const isLoading = balancesLoading || vaultsLoading || isProcessingData;
+  const isLoading = balancesLoading || isProcessingData;
 
   return (
     <div className="mb-8">
@@ -217,7 +241,7 @@ const BalancesTable = () => {
         noDataFoundText="No balances found."
         errorText="Unable to load balances."
         loadingRows={10}
-        onRowClick={(row) => {
+        onRowClick={(row: TableData) => {
           navigate(`/balances/${row.address}`);
         }}
         tableId="balances"

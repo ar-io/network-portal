@@ -1,5 +1,6 @@
 import Header from '@src/components/Header';
 import BalanceFragmentationChart from '@src/components/charts/BalanceFragmentationChart';
+import MyBalancesPanel from '@src/components/panels/MyBalancesPanel';
 import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useGlobalState } from '@src/store';
 import BalancesTable from './BalancesTable';
@@ -20,6 +21,7 @@ const Balances = () => {
             <div className="flex gap-6">
               <BalanceFragmentationChart />
               <NetworkStatsPanel />
+              {walletAddress && <MyBalancesPanel />}
             </div>
             {walletAddress && (
               <>

@@ -38,7 +38,7 @@ const BalancesTable = () => {
     { id: 'liquidBalance', desc: true },
   ]);
   const arioProcessId = useGlobalState(
-    (state) => state.arIOReadSDK.process.processId,
+    (state) => state.arIOReadSDK?.process?.processId ?? '',
   );
   const navigate = useNavigate();
 

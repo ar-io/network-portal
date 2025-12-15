@@ -220,7 +220,7 @@ const ServerSortableTableView = <T, S>({
                 return (
                   <tr
                     key={row.id}
-                    className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
+                    className={`border-t border-grey-500 text-low *:py-4 *:pl-6 transition-all duration-200 ${onRowClick ? 'cursor-pointer hover:bg-gradient-to-r hover:from-transparent hover:via-[#E19EE505] hover:to-transparent' : ''}`}
                     onClick={
                       onRowClick ? () => onRowClick(row.original) : undefined
                     }

@@ -12,7 +12,9 @@
       "Bash(yarn biome check:*)",
       "Bash(yarn eslint:*)",
       "Bash(grep:*)",
-      "Bash(jira issue create:*)"
+      "Bash(jira issue create:*)",
+      "Bash(jira issue view:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }

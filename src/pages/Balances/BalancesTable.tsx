@@ -1,14 +1,18 @@
 import AddressCell from '@src/components/AddressCell';
 import ColumnSelector from '@src/components/ColumnSelector';
 import Placeholder from '@src/components/Placeholder';
-import TableView from '@src/components/TableView';
+import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import { CaretDoubleRightIcon } from '@src/components/icons';
 import { ARIO_PROCESS_ID } from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllVaults from '@src/hooks/useAllVaults';
 import { useGlobalState } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import {
+  ColumnDef,
+  SortingState,
+  createColumnHelper,
+} from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,16 +34,31 @@ const BRIDGE_BALANCE_ADDRESS = 'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
 const BalancesTable = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'liquidBalance', desc: true },
+  ]);
   const arioProcessId = useGlobalState(
     (state) => state.arIOReadSDK.process.processId,
   );
   const navigate = useNavigate();
 
-  // Always fetch balances sorted by balance descending from API
-  // Additional sorting of other columns will be done client-side
+  // Determine API sort parameters based on current sorting state
+  const sortColumn = sorting[0]?.id;
+  const sortDesc = sorting[0]?.desc;
+
+  // Map table columns to API sort fields
+  const apiSortByMap = {
+    address: 'address',
+    liquidBalance: 'balance',
+  } as const;
+  const apiSortBy =
+    (sortColumn && apiSortByMap[sortColumn as keyof typeof apiSortByMap]) ||
+    'balance';
+  const apiSortOrder = sortDesc ? 'desc' : 'asc';
+
   const { data: allBalances, isLoading: balancesLoading } = useAllBalances({
-    sortBy: 'balance',
-    sortOrder: 'desc',
+    sortBy: apiSortBy,
+    sortOrder: apiSortOrder,
   });
   const { data: vaultsByAddress, isLoading: vaultsLoading } = useAllVaults();
   const [tableData, setTableData] = useState<TableData[]>([]);
@@ -192,6 +211,12 @@ const BalancesTable = () => {
 
   const isLoading = balancesLoading || isProcessingData;
 
+  // Handle sorting changes
+  const handleSortingChange = (newSorting: SortingState) => {
+    setSorting(newSorting);
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
   return (
     <div className="mb-8">
       <div className="flex w-full items-center justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
@@ -232,10 +257,12 @@ const BalancesTable = () => {
           <ColumnSelector tableId="balances" columns={columns} />
         </div>
       </div>
-      <TableView
+      <ServerSortableTableView
         columns={columns}
         data={paginatedData}
         defaultSortingState={{ id: 'liquidBalance', desc: true }}
+        currentSorting={sorting}
+        onSortingChange={handleSortingChange}
         isLoading={isLoading}
         isError={false}
         noDataFoundText="No balances found."

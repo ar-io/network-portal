@@ -7,8 +7,7 @@ import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import Streak from '@src/components/Streak';
 import Tooltip from '@src/components/Tooltip';
 import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
-import usePaginatedGateways from '@src/hooks/usePaginatedGateways';
-import usePrefetchGateways from '@src/hooks/usePrefetchGateways';
+import useAllGateways from '@src/hooks/useAllGateways';
 import { useGlobalState } from '@src/store';
 import { formatDate, formatWithCommas } from '@src/utils';
 import {
@@ -16,6 +15,7 @@ import {
   SortingState,
   createColumnHelper,
 } from '@tanstack/react-table';
+import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Banner from './Banner';
@@ -43,20 +43,22 @@ const Gateways = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<
-    | 'gatewayAddress'
-    | 'settings.label'
-    | 'settings.fqdn'
-    | 'totalDelegatedStake'
-    | 'operatorStake'
-    | 'startTimestamp'
-    | 'status'
-    | 'stats.passedEpochCount'
-    | 'stats.passedConsecutiveEpochs'
-    | 'settings.delegateRewardShareRatio'
-  >('totalDelegatedStake');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'totalStake', desc: true },
+  ]);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Map table columns to API sort fields
   const sortMapping: Record<string, string> = {
     label: 'settings.label',
     domain: 'settings.fqdn',
@@ -68,34 +70,31 @@ const Gateways = () => {
     streak: 'stats.passedConsecutiveEpochs',
   };
 
+  const sortColumn = sorting[0]?.id;
+  const sortDesc = sorting[0]?.desc;
+  const apiSortBy =
+    (sortColumn && sortMapping[sortColumn]) || 'totalDelegatedStake';
+  const apiSortOrder = sortDesc ? 'desc' : 'asc';
+
   const {
     isLoading,
     isFetching,
     isError,
-    data: gatewaysData,
-  } = usePaginatedGateways({
-    page: currentPage,
-    limit: ITEMS_PER_PAGE,
-    sortBy,
-    sortOrder,
+    data: allGateways,
+  } = useAllGateways({
+    sortBy: apiSortBy,
+    sortOrder: apiSortOrder,
   });
-
-  const { prefetchNextPage, prefetchPreviousPage, prefetchAdjacentPages } =
-    usePrefetchGateways({
-      limit: ITEMS_PER_PAGE,
-      sortBy,
-      sortOrder,
-    });
 
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   useEffect(() => {
-    if (!gatewaysData?.items) {
+    if (!allGateways) {
       setTableData([]);
       return;
     }
 
-    const tableData: Array<TableData> = gatewaysData.items.map((gateway) => {
+    const processedData: Array<TableData> = allGateways.map((gateway) => {
       const passedEpochCount = gateway.stats.passedEpochCount;
       const totalEpochCount = gateway.stats.totalEpochCount;
 
@@ -131,27 +130,30 @@ const Gateways = () => {
               : gateway.stats.passedConsecutiveEpochs,
       };
     });
-    setTableData(tableData);
-  }, [gatewaysData]);
+    setTableData(processedData);
+  }, [allGateways]);
 
-  // Prefetch adjacent pages when data loads
-  useEffect(() => {
-    if (gatewaysData?.totalPages) {
-      prefetchAdjacentPages(currentPage, gatewaysData.totalPages);
-    }
-  }, [currentPage, gatewaysData?.totalPages, prefetchAdjacentPages]);
+  // Filter data by search term
+  const filteredData = useMemo(() => {
+    if (!debouncedSearchTerm) return tableData;
+    const lowerSearch = debouncedSearchTerm.toLowerCase();
+    return tableData.filter((item) =>
+      item.domain.toLowerCase().includes(lowerSearch),
+    );
+  }, [tableData, debouncedSearchTerm]);
 
-  const handleSortingChange = (sorting: SortingState) => {
-    if (sorting.length > 0) {
-      const { id, desc } = sorting[0];
+  // Client-side pagination
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
 
-      const newSortBy = sortMapping[id];
-      if (newSortBy) {
-        setSortBy(newSortBy as any);
-        setSortOrder(desc ? 'desc' : 'asc');
-        setCurrentPage(1); // Reset to first page when sorting changes
-      }
-    }
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage]);
+
+  const handleSortingChange = (newSorting: SortingState) => {
+    setSorting(newSorting);
+    setCurrentPage(1);
   };
 
   // Define columns for the table
@@ -289,78 +291,77 @@ const Gateways = () => {
                 <div className="flex items-center gap-4">
                   <div className="text-sm text-mid">
                     Gateways{' '}
-                    {gatewaysData?.totalItems
-                      ? `(${gatewaysData.totalItems})`
-                      : ''}
+                    {!isLoading &&
+                      `(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(tableData.length)}` : ''})`}
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
+                    <input
+                      type="text"
+                      placeholder="Search domain..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(1)}
-                      disabled={currentPage === 1}
-                      className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
-                      aria-label="First page"
-                    >
-                      <CaretDoubleRightIcon className="h-4 w-4 rotate-180" />
-                    </button>
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                        aria-label="First page"
+                      >
+                        <CaretDoubleRightIcon className="h-4 w-4 rotate-180" />
+                      </button>
 
-                    <button
-                      onClick={() =>
-                        setCurrentPage(Math.max(1, currentPage - 1))
-                      }
-                      onMouseEnter={() => {
-                        if (currentPage > 1) {
-                          prefetchPreviousPage(currentPage);
+                      <button
+                        onClick={() =>
+                          setCurrentPage(Math.max(1, currentPage - 1))
                         }
-                      }}
-                      disabled={currentPage === 1}
-                      className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
-                      aria-label="Previous page"
-                    >
-                      <CaretRightIcon className="h-4 w-4 rotate-180" />
-                    </button>
+                        disabled={currentPage === 1}
+                        className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                        aria-label="Previous page"
+                      >
+                        <CaretRightIcon className="h-4 w-4 rotate-180" />
+                      </button>
 
-                    <span className="text-xs text-mid">
-                      Page {currentPage} of {gatewaysData?.totalPages || 1}
-                    </span>
+                      <span className="text-xs text-mid">
+                        Page {currentPage} of {totalPages}
+                      </span>
 
-                    <button
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      onMouseEnter={() => {
-                        if (gatewaysData?.hasNextPage) {
-                          prefetchNextPage(
-                            currentPage,
-                            gatewaysData.totalPages,
-                          );
+                      <button
+                        onClick={() =>
+                          setCurrentPage(Math.min(totalPages, currentPage + 1))
                         }
-                      }}
-                      disabled={!gatewaysData?.hasNextPage}
-                      className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
-                      aria-label="Next page"
-                    >
-                      <CaretRightIcon className="h-4 w-4" />
-                    </button>
+                        disabled={currentPage === totalPages}
+                        className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                        aria-label="Next page"
+                      >
+                        <CaretRightIcon className="h-4 w-4" />
+                      </button>
 
-                    <button
-                      onClick={() =>
-                        setCurrentPage(gatewaysData?.totalPages || 1)
-                      }
-                      disabled={currentPage === (gatewaysData?.totalPages || 1)}
-                      className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
-                      aria-label="Last page"
-                    >
-                      <CaretDoubleRightIcon className="h-4 w-4" />
-                    </button>
-                  </div>
-
+                      <button
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                        aria-label="Last page"
+                      >
+                        <CaretDoubleRightIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                   <ColumnSelector tableId="gateways" columns={columns} />
                 </div>
               </div>
               <ServerSortableTableView
                 columns={columns}
-                data={tableData}
+                data={paginatedData}
                 defaultSortingState={{ id: 'totalStake', desc: true }}
+                currentSorting={sorting}
+                onSortingChange={handleSortingChange}
                 isLoading={isLoading}
                 isFetching={isFetching}
                 isError={isError}
@@ -370,16 +371,6 @@ const Gateways = () => {
                 onRowClick={(row) => {
                   navigate(`/gateways/${row.owner}`);
                 }}
-                onSortingChange={handleSortingChange}
-                currentSorting={[
-                  {
-                    id:
-                      Object.keys(sortMapping).find(
-                        (key) => sortMapping[key] === sortBy,
-                      ) || 'totalStake',
-                    desc: sortOrder === 'desc',
-                  },
-                ]}
                 tableId="gateways"
               />
             </div>

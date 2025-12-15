@@ -28,7 +28,7 @@ interface TableData {
 }
 
 const columnHelper = createColumnHelper<TableData>();
-const ITEMS_PER_PAGE = 25;
+const ITEMS_PER_PAGE = 10;
 const BRIDGE_BALANCE_ADDRESS = 'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
 
 const BalancesTable = () => {

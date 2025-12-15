@@ -2,7 +2,7 @@ import AddressCell from '@src/components/AddressCell';
 import ColumnSelector from '@src/components/ColumnSelector';
 import Placeholder from '@src/components/Placeholder';
 import ServerSortableTableView from '@src/components/ServerSortableTableView';
-import { CaretDoubleRightIcon } from '@src/components/icons';
+import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
 import { ARIO_PROCESS_ID } from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllVaults from '@src/hooks/useAllVaults';
@@ -230,12 +230,21 @@ const BalancesTable = () => {
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                aria-label="First page"
+              >
+                <CaretDoubleRightIcon className="h-4 w-4 rotate-180" />
+              </button>
+
+              <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
                 className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
                 aria-label="Previous page"
               >
-                <CaretDoubleRightIcon className="h-4 w-4 rotate-180" />
+                <CaretRightIcon className="h-4 w-4 rotate-180" />
               </button>
 
               <span className="text-xs text-mid">
@@ -249,6 +258,15 @@ const BalancesTable = () => {
                 disabled={currentPage === totalPages}
                 className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
                 aria-label="Next page"
+              >
+                <CaretRightIcon className="h-4 w-4" />
+              </button>
+
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                aria-label="Last page"
               >
                 <CaretDoubleRightIcon className="h-4 w-4" />
               </button>

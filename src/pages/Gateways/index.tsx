@@ -8,6 +8,7 @@ import Streak from '@src/components/Streak';
 import Tooltip from '@src/components/Tooltip';
 import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
 import usePaginatedGateways from '@src/hooks/usePaginatedGateways';
+import usePrefetchGateways from '@src/hooks/usePrefetchGateways';
 import { useGlobalState } from '@src/store';
 import { formatDate, formatWithCommas } from '@src/utils';
 import {
@@ -79,6 +80,13 @@ const Gateways = () => {
     sortOrder,
   });
 
+  const { prefetchNextPage, prefetchPreviousPage, prefetchAdjacentPages } =
+    usePrefetchGateways({
+      limit: ITEMS_PER_PAGE,
+      sortBy,
+      sortOrder,
+    });
+
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   useEffect(() => {
@@ -125,6 +133,13 @@ const Gateways = () => {
     });
     setTableData(tableData);
   }, [gatewaysData]);
+
+  // Prefetch adjacent pages when data loads
+  useEffect(() => {
+    if (gatewaysData?.totalPages) {
+      prefetchAdjacentPages(currentPage, gatewaysData.totalPages);
+    }
+  }, [currentPage, gatewaysData?.totalPages, prefetchAdjacentPages]);
 
   const handleSortingChange = (sorting: SortingState) => {
     if (sorting.length > 0) {
@@ -294,6 +309,11 @@ const Gateways = () => {
                       onClick={() =>
                         setCurrentPage(Math.max(1, currentPage - 1))
                       }
+                      onMouseEnter={() => {
+                        if (currentPage > 1) {
+                          prefetchPreviousPage(currentPage);
+                        }
+                      }}
                       disabled={currentPage === 1}
                       className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
                       aria-label="Previous page"
@@ -307,6 +327,14 @@ const Gateways = () => {
 
                     <button
                       onClick={() => setCurrentPage(currentPage + 1)}
+                      onMouseEnter={() => {
+                        if (gatewaysData?.hasNextPage) {
+                          prefetchNextPage(
+                            currentPage,
+                            gatewaysData.totalPages,
+                          );
+                        }
+                      }}
                       disabled={!gatewaysData?.hasNextPage}
                       className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
                       aria-label="Next page"

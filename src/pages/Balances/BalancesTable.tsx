@@ -6,6 +6,7 @@ import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
 import { ARIO_PROCESS_ID } from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllVaults from '@src/hooks/useAllVaults';
+import usePrefetchBalances from '@src/hooks/usePrefetchBalances';
 import { useGlobalState } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 import {
@@ -65,6 +66,7 @@ const BalancesTable = () => {
     sortOrder: apiSortOrder,
   });
   const { data: vaultsByAddress, isLoading: vaultsLoading } = useAllVaults();
+  const { prefetchNextSort } = usePrefetchBalances();
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [isProcessingData, setIsProcessingData] = useState(true);
 
@@ -103,6 +105,13 @@ const BalancesTable = () => {
     setTableData(enrichedData);
     setIsProcessingData(false);
   }, [allBalances, vaultsByAddress, arioProcessId]);
+
+  // Prefetch other sort combinations when data loads
+  useEffect(() => {
+    if (allBalances?.length) {
+      prefetchNextSort(apiSortBy, apiSortOrder);
+    }
+  }, [allBalances?.length, apiSortBy, apiSortOrder, prefetchNextSort]);
 
   const totalPages = Math.ceil(tableData.length / ITEMS_PER_PAGE);
 

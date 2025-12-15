@@ -3,7 +3,7 @@ import ColumnSelector from '@src/components/ColumnSelector';
 import Placeholder from '@src/components/Placeholder';
 import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
-import { ARIO_PROCESS_ID, BRIDGE_BALANCE_ADDRESS } from '@src/constants';
+import { BRIDGE_BALANCE_ADDRESS } from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllVaults from '@src/hooks/useAllVaults';
 import usePrefetchBalances from '@src/hooks/usePrefetchBalances';

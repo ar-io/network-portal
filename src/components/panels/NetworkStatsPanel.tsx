@@ -3,6 +3,7 @@ import Tooltip from '@src/components/Tooltip';
 import { LinkArrowIcon } from '@src/components/icons';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllDelegates from '@src/hooks/useAllDelegates';
+import useAllVaults from '@src/hooks/useAllVaults';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 
@@ -18,11 +19,20 @@ interface StatItem {
 const NetworkStatsPanel = () => {
   const { data: allBalances, isLoading: balancesLoading } = useAllBalances();
   const { data: allDelegates, isLoading: delegatesLoading } = useAllDelegates();
+  const { data: vaultsByAddress, isLoading: vaultsLoading } = useAllVaults();
   const ticker = useGlobalState((state) => state.ticker);
 
   const bridgeBalance = allBalances?.find(
     (balance) => balance.address === BRIDGE_BALANCE_ADDRESS,
   );
+
+  // Calculate total vaults
+  const totalVaults = vaultsByAddress
+    ? Array.from(vaultsByAddress.values()).reduce(
+        (acc, summary) => acc + summary.vaultCount,
+        0,
+      )
+    : 0;
 
   const stats: StatItem[] = [
     {
@@ -32,15 +42,21 @@ const NetworkStatsPanel = () => {
     },
     {
       label: 'Unique Delegates',
-      value: allDelegates ? formatWithCommas(allDelegates.length) : '-',
-      isLoading: delegatesLoading,
-    },
-    {
-      label: 'Active Delegators',
       value: allDelegates
         ? formatWithCommas(new Set(allDelegates.map((d) => d.address)).size)
         : '-',
       isLoading: delegatesLoading,
+      tooltip: (
+        <div>
+          Number of unique addresses that are delegating stake. Many addresses
+          delegate to multiple gateways.
+        </div>
+      ),
+    },
+    {
+      label: 'Total Vaults',
+      value: totalVaults ? formatWithCommas(totalVaults) : '-',
+      isLoading: vaultsLoading,
     },
     {
       label: `Bridged ${ticker} (Base)`,

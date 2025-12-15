@@ -218,7 +218,7 @@ const ObserversTable = () => {
         isError={isError || gatewaysError || observationsError}
         noDataFoundText="No prescribed observers found."
         errorText="Unable to load observers."
-        loadingRows={10}
+        loadingRows={50}
         defaultSortingState={{ id: 'ncw', desc: true }}
         onRowClick={(row) => {
           navigate(`/gateways/${row.gatewayAddress}`);

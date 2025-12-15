@@ -1,5 +1,6 @@
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import AddressCell from '@src/components/AddressCell';
@@ -12,7 +13,7 @@ import useEpochs from '@src/hooks/useEpochs';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
 import useObservers from '@src/hooks/useObservers';
-import { formatPercentage } from '@src/utils';
+import { formatPercentage, formatWithCommas } from '@src/utils';
 
 interface TableData {
   label: string;
@@ -34,6 +35,16 @@ const ObserversTable = () => {
 
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const selectedEpoch = epochs?.[selectedEpochIndex];
 
@@ -99,6 +110,15 @@ const ObserversTable = () => {
     setObserversTableData(observersTableData);
     setIsProcessingData(false);
   }, [observers, gateways, observations, selectedEpochIndex]);
+
+  // Filter data by search term
+  const filteredData = useMemo(() => {
+    if (!debouncedSearchTerm) return observersTableData;
+    const lowerSearch = debouncedSearchTerm.toLowerCase();
+    return observersTableData.filter((item) =>
+      item.domain.toLowerCase().includes(lowerSearch),
+    );
+  }, [observersTableData, debouncedSearchTerm]);
 
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = [
@@ -185,10 +205,29 @@ const ObserversTable = () => {
     }),
   ];
 
+  const tableIsLoading =
+    isLoading || gatewaysLoading || observationsLoading || isProcessingData;
+
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-[0.8125rem] text-sm ">
-        <div className="grow text-mid">Observers</div>
+      <div className="flex w-full items-center justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem] text-sm">
+        <div className="flex items-center gap-4">
+          <div className="text-mid">
+            Observers{' '}
+            {!tableIsLoading &&
+              `(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(observersTableData.length)}` : ''})`}
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
+            <input
+              type="text"
+              placeholder="Search domain..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
+            />
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <Dropdown
             options={
@@ -208,13 +247,8 @@ const ObserversTable = () => {
       </div>
       <TableView
         columns={columns}
-        data={observersTableData}
-        isLoading={
-          isLoading ||
-          gatewaysLoading ||
-          observationsLoading ||
-          isProcessingData
-        }
+        data={filteredData}
+        isLoading={tableIsLoading}
         isError={isError || gatewaysError || observationsError}
         noDataFoundText="No prescribed observers found."
         errorText="Unable to load observers."

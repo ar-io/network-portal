@@ -3,19 +3,27 @@ import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
+import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import Streak from '@src/components/Streak';
-import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import { InfoIcon } from '@src/components/icons';
+import {
+  CaretDoubleRightIcon,
+  CaretRightIcon,
+  InfoIcon,
+} from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
-import useGateways from '@src/hooks/useGateways';
+import usePaginatedGateways from '@src/hooks/usePaginatedGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import {
+  ColumnDef,
+  SortingState,
+  createColumnHelper,
+} from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -36,45 +44,60 @@ interface TableData {
 }
 
 const columnHelper = createColumnHelper<TableData>();
+const ITEMS_PER_PAGE = 25;
 
 const DelegateStake = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
+  const navigate = useNavigate();
 
-  const { isLoading, isError, data: gateways } = useGateways();
-  const { isLoading: protocolBalanceLoading, data: protocolBalance } =
-    useProtocolBalance();
-  const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<
+    | 'settings.label'
+    | 'settings.fqdn'
+    | 'gatewayAddress'
+    | 'totalDelegatedStake'
+    | 'operatorStake'
+  >('totalDelegatedStake');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const {
+    isLoading,
+    isError,
+    data: gatewaysData,
+  } = usePaginatedGateways({
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+    sortBy,
+    sortOrder,
+    filters: {
+      status: 'joined',
+      'settings.allowDelegatedStaking': true,
+    },
+  });
+  const { data: protocolBalance } = useProtocolBalance();
+  const [delegateGateways, setDelegateGateways] = useState<Array<TableData>>(
     [],
   );
-  const [isProcessingData, setIsProcessingData] = useState(true);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
 
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    if (!gateways || !protocolBalance) {
+    if (!gatewaysData?.items || !protocolBalance) {
+      setDelegateGateways([]);
       return;
     }
 
-    // Pre-calculate expensive values
     const protocolBalanceARIO = new mARIOToken(protocolBalance).toARIO();
-    const joinedGatewayCount = Object.values(gateways).filter(
-      (g) => g.status === 'joined',
-    ).length;
+    const joinedGatewayCount = gatewaysData.totalItems;
 
-    const stakeableGateways: Array<TableData> = Object.entries(gateways)
-      .filter(
-        ([, gateway]) =>
-          gateway.status === 'joined' && gateway.settings.allowDelegatedStaking,
-      )
-      .map(([owner, gateway]) => {
+    const delegateGateways: Array<TableData> = gatewaysData.items.map(
+      (gateway) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
-        const totalEpochCount = (gateway.stats as any).totalEpochCount;
+        const totalEpochCount = gateway.stats.totalEpochCount;
 
         // Pre-calculate token conversions
         const totalDelegatedStakeARIO = new mARIOToken(
@@ -89,7 +112,7 @@ const DelegateStake = () => {
         return {
           label: gateway.settings.label,
           domain: gateway.settings.fqdn,
-          owner,
+          owner: gateway.gatewayAddress,
           streak:
             gateway.stats.failedConsecutiveEpochs > 0
               ? -gateway.stats.failedConsecutiveEpochs
@@ -108,10 +131,30 @@ const DelegateStake = () => {
             gateway,
           ).EAY,
         };
-      });
-    setStakeableGateways(stakeableGateways);
-    setIsProcessingData(false);
-  }, [gateways, protocolBalance]);
+      },
+    );
+    setDelegateGateways(delegateGateways);
+  }, [gatewaysData, protocolBalance]);
+
+  const sortMapping: Record<string, string> = {
+    label: 'settings.label',
+    domain: 'settings.fqdn',
+    owner: 'gatewayAddress',
+    totalStake: 'totalDelegatedStake',
+  };
+
+  const handleSortingChange = (sorting: SortingState) => {
+    if (sorting.length > 0) {
+      const { id, desc } = sorting[0];
+
+      const newSortBy = sortMapping[id];
+      if (newSortBy) {
+        setSortBy(newSortBy as any);
+        setSortOrder(desc ? 'desc' : 'asc');
+        setCurrentPage(1); // Reset to first page when sorting changes
+      }
+    }
+  };
 
   // Define columns for the table
   const columns = useMemo<ColumnDef<TableData, any>[]>(
@@ -174,7 +217,7 @@ const DelegateStake = () => {
       columnHelper.accessor('rewardShareRatio', {
         id: 'rewardShareRatio',
         header: 'Reward Share Ratio',
-        sortDescFirst: true,
+        enableSorting: false,
         cell: ({ row }) =>
           row.original.rewardShareRatio >= 0
             ? `${row.original.rewardShareRatio}%`
@@ -201,7 +244,7 @@ const DelegateStake = () => {
             </Tooltip>
           </div>
         ),
-        sortDescFirst: true,
+        enableSorting: false,
         cell: ({ row }) => (
           <div>
             {row.original.eay < 0
@@ -213,7 +256,7 @@ const DelegateStake = () => {
       columnHelper.accessor('performance', {
         id: 'performance',
         header: 'Performance',
-        sortDescFirst: true,
+        enableSorting: false,
         cell: ({ row }) =>
           row.original.performance < 0 ? (
             'N/A'
@@ -237,7 +280,7 @@ const DelegateStake = () => {
       columnHelper.accessor('streak', {
         id: 'streak',
         header: 'Streak',
-        sortDescFirst: true,
+        enableSorting: false,
         cell: ({ row }) => <Streak streak={row.original.streak} />,
       }),
 
@@ -290,22 +333,79 @@ const DelegateStake = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-3">
-        <div className="grow text-sm text-mid">Delegate Stake</div>
-        <ColumnSelector tableId="delegate-stake" columns={columns} />
+      <div className="flex w-full items-center justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-3">
+        <div className="text-sm text-mid">
+          Delegate Stake{' '}
+          {gatewaysData?.totalItems ? `(${gatewaysData.totalItems})` : ''}
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+              aria-label="First page"
+            >
+              <CaretDoubleRightIcon className="h-4 w-4 rotate-180" />
+            </button>
+
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+              aria-label="Previous page"
+            >
+              <CaretRightIcon className="h-4 w-4 rotate-180" />
+            </button>
+
+            <span className="text-xs text-mid">
+              Page {currentPage} of {gatewaysData?.totalPages || 1}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={!gatewaysData?.hasNextPage}
+              className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+              aria-label="Next page"
+            >
+              <CaretRightIcon className="h-4 w-4" />
+            </button>
+
+            <button
+              onClick={() => setCurrentPage(gatewaysData?.totalPages || 1)}
+              disabled={currentPage === (gatewaysData?.totalPages || 1)}
+              className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+              aria-label="Last page"
+            >
+              <CaretDoubleRightIcon className="h-4 w-4" />
+            </button>
+          </div>
+
+          <ColumnSelector tableId="delegate-stake" columns={columns} />
+        </div>
       </div>
-      <TableView
+      <ServerSortableTableView
         columns={columns}
-        data={stakeableGateways}
-        isLoading={isLoading || protocolBalanceLoading || isProcessingData}
+        data={delegateGateways}
+        isLoading={isLoading}
         isError={isError}
         noDataFoundText="No gateways with delegate staking enabled found."
         errorText="Unable to load delegate stakes."
-        loadingRows={10}
+        loadingRows={ITEMS_PER_PAGE}
         defaultSortingState={{ id: 'totalStake', desc: true }}
         onRowClick={(row) => {
           navigate(`/gateways/${row.owner}`);
         }}
+        onSortingChange={handleSortingChange}
+        currentSorting={[
+          {
+            id:
+              Object.keys(sortMapping).find(
+                (key) => sortMapping[key] === sortBy,
+              ) || 'totalStake',
+            desc: sortOrder === 'desc',
+          },
+        ]}
         tableId="delegate-stake"
       />
       {stakingModalWalletAddress && (

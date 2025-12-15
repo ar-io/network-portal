@@ -69,6 +69,7 @@ const Gateways = () => {
 
   const {
     isLoading,
+    isFetching,
     isError,
     data: gatewaysData,
   } = usePaginatedGateways({
@@ -333,6 +334,7 @@ const Gateways = () => {
                 data={tableData}
                 defaultSortingState={{ id: 'totalStake', desc: true }}
                 isLoading={isLoading}
+                isFetching={isFetching}
                 isError={isError}
                 noDataFoundText="No gateways found."
                 errorText="Unable to load gateways."

@@ -149,7 +149,7 @@ const BalanceFragmentationChart = () => {
     <div className="flex w-full flex-col rounded-xl border border-grey-500">
       <div className="px-5 pt-5 pb-2">
         <h3 className="text-gradient text-sm font-semibold">
-          Token Balance Distribution
+          Balance Distribution
         </h3>
         <p className="mt-1 text-xs text-low">
           {formatWithCommas(TOTAL_SUPPLY)} {ticker} total supply

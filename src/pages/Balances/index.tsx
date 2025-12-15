@@ -4,7 +4,6 @@ import MyBalancesPanel from '@src/components/panels/MyBalancesPanel';
 import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useGlobalState } from '@src/store';
 import BalancesTable from './BalancesTable';
-import VaultsTable from './VaultsTable';
 
 const Balances = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
@@ -22,7 +21,6 @@ const Balances = () => {
               <NetworkStatsPanel />
               {walletAddress && <MyBalancesPanel />}
             </div>
-            {walletAddress && <VaultsTable walletAddress={walletAddress} />}
             <BalancesTable />
           </div>
         </div>

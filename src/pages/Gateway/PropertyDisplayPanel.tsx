@@ -7,12 +7,13 @@ import StakingModal from '@src/components/modals/StakingModal';
 import { useGlobalState } from '@src/store';
 import { getBlockExplorerUrlForAddress } from '@src/utils';
 import { useState } from 'react';
+import { ReactNode } from 'react';
 
 type DisplayRowProps = {
   label: string;
-  value?: string | number | boolean | React.ReactNode;
+  value?: string | number | boolean | ReactNode;
   type?: string;
-  rightComponent?: React.ReactNode;
+  rightComponent?: ReactNode;
 };
 
 const DisplayRow = ({

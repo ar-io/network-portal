@@ -17,6 +17,7 @@ const ServerSortableTableView = <T, S>({
   data,
   defaultSortingState,
   isLoading,
+  isFetching = false,
   isError = false,
   noDataFoundText = 'No data found.',
   errorText = 'Something went wrong. Please try again.',
@@ -31,6 +32,7 @@ const ServerSortableTableView = <T, S>({
   data: T[];
   defaultSortingState: ColumnSort;
   isLoading: boolean;
+  isFetching?: boolean;
   isError?: boolean;
   noDataFoundText?: string;
   errorText?: string;
@@ -169,10 +171,12 @@ const ServerSortableTableView = <T, S>({
                         )}
                       </button>
                     ) : (
-                      flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )
+                      <div className="text-left">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </div>
                     )}
                   </th>
                 );
@@ -181,8 +185,8 @@ const ServerSortableTableView = <T, S>({
           ))}
         </thead>
         <tbody className="overflow-y-auto text-sm">
-          {isLoading ? (
-            // Show skeleton rows when loading
+          {isLoading || isFetching ? (
+            // Show skeleton rows when loading or fetching
             Array.from({ length: loadingRows }, (_, index) => (
               <TableSkeletonRow
                 key={index}
@@ -220,7 +224,7 @@ const ServerSortableTableView = <T, S>({
                 return (
                   <tr
                     key={row.id}
-                    className={`border-t border-grey-500 text-low *:py-4 *:pl-6 ${onRowClick ? 'cursor-pointer' : ''}`}
+                    className={`border-t border-grey-500 text-low *:py-4 *:pl-6 transition-all duration-200 ${onRowClick ? 'cursor-pointer hover:bg-gradient-to-r hover:from-transparent hover:via-[#E19EE505] hover:to-transparent' : ''}`}
                     onClick={
                       onRowClick ? () => onRowClick(row.original) : undefined
                     }

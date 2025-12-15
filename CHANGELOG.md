@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.0] - 2025-12-15
+
+### Added
+
+- Enhanced Balances page with comprehensive token distribution visualization
+- Added pagination and search functionality to all tables
+- Added subtle purple gradient hover effect to clickable table rows
+
+### Changed
+
+- Updated Network Stats panel metrics
+- Made balances panels equal size and responsive
+- Moved % of Supply column to last position in balances table
+- Updated EAY calculation
+
+### Fixed
+
+- Fixed mobile sidebar not closing when navigating to new page
+- Fixed table header alignment and naming
+- Fixed total joined gateways count using contract value
+- Fixed AR.IO Scan URLs to use /entity/ instead of /wallet/
+- Fixed transaction history display for Ethereum users
+
 ## [1.20.0] - 2025-12-09
 
 ### Added

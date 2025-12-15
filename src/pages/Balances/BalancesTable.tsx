@@ -28,7 +28,7 @@ interface TableData {
 }
 
 const columnHelper = createColumnHelper<TableData>();
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 25;
 const BRIDGE_BALANCE_ADDRESS = 'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
 
 const BalancesTable = () => {
@@ -290,7 +290,7 @@ const BalancesTable = () => {
         isError={false}
         noDataFoundText="No balances found."
         errorText="Unable to load balances."
-        loadingRows={10}
+        loadingRows={ITEMS_PER_PAGE}
         onRowClick={(row: TableData) => {
           navigate(`/balances/${row.address}`);
         }}

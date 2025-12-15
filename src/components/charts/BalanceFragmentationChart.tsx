@@ -13,6 +13,7 @@ interface BalanceData {
   value: number;
   percentage: number;
   address: string;
+  ticker?: string;
 }
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -22,7 +23,7 @@ const CustomTooltip = ({ active, payload }: any) => {
       <div className="rounded-md bg-containerL3 p-3 shadow-lg">
         <p className="text-sm font-semibold text-high">{data.name}</p>
         <p className="text-xs text-mid">
-          {formatWithCommas(data.value)} {payload[0].payload.ticker}
+          {formatWithCommas(data.value)} {data.ticker}
         </p>
         <p className="text-xs text-low">
           {formatPercentage(data.percentage)} of total supply
@@ -69,6 +70,7 @@ const BalanceFragmentationChart = () => {
           value: protocolValue,
           percentage: protocolValue / TOTAL_SUPPLY,
           address: arioProcessId,
+          ticker,
         });
       }
 
@@ -79,6 +81,7 @@ const BalanceFragmentationChart = () => {
           value: bridgeValue,
           percentage: bridgeValue / TOTAL_SUPPLY,
           address: BRIDGE_BALANCE_ADDRESS,
+          ticker,
         });
       }
 
@@ -96,6 +99,7 @@ const BalanceFragmentationChart = () => {
           value: holder.arioBalance,
           percentage: holder.arioBalance / TOTAL_SUPPLY,
           address: holder.address,
+          ticker,
         });
       });
 
@@ -118,6 +122,7 @@ const BalanceFragmentationChart = () => {
           value: othersTotal,
           percentage: othersTotal / TOTAL_SUPPLY,
           address: '',
+          ticker,
         });
       }
 
@@ -196,7 +201,6 @@ const BalanceFragmentationChart = () => {
                               ? '#E19EE540'
                               : '#E19EE510'
                       }
-                      {...{ ticker }}
                     />
                   ))}
                 </Pie>

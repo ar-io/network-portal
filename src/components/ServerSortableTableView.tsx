@@ -17,6 +17,7 @@ const ServerSortableTableView = <T, S>({
   data,
   defaultSortingState,
   isLoading,
+  isFetching = false,
   isError = false,
   noDataFoundText = 'No data found.',
   errorText = 'Something went wrong. Please try again.',
@@ -31,6 +32,7 @@ const ServerSortableTableView = <T, S>({
   data: T[];
   defaultSortingState: ColumnSort;
   isLoading: boolean;
+  isFetching?: boolean;
   isError?: boolean;
   noDataFoundText?: string;
   errorText?: string;
@@ -183,8 +185,8 @@ const ServerSortableTableView = <T, S>({
           ))}
         </thead>
         <tbody className="overflow-y-auto text-sm">
-          {isLoading ? (
-            // Show skeleton rows when loading
+          {isLoading || isFetching ? (
+            // Show skeleton rows when loading or fetching
             Array.from({ length: loadingRows }, (_, index) => (
               <TableSkeletonRow
                 key={index}

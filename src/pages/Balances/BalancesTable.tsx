@@ -56,7 +56,11 @@ const BalancesTable = () => {
     'balance';
   const apiSortOrder = sortDesc ? 'desc' : 'asc';
 
-  const { data: allBalances, isLoading: balancesLoading } = useAllBalances({
+  const {
+    data: allBalances,
+    isLoading: balancesLoading,
+    isFetching: balancesFetching,
+  } = useAllBalances({
     sortBy: apiSortBy,
     sortOrder: apiSortOrder,
   });
@@ -282,6 +286,7 @@ const BalancesTable = () => {
         currentSorting={sorting}
         onSortingChange={handleSortingChange}
         isLoading={isLoading}
+        isFetching={balancesFetching}
         isError={false}
         noDataFoundText="No balances found."
         errorText="Unable to load balances."

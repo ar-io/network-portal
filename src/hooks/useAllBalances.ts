@@ -49,6 +49,7 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!arIOReadSDK,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching new sort/filter
   });
 };
 

@@ -116,15 +116,19 @@ const MyBalancesPanel = () => {
           )}
         </div>
 
-        {/* Delegated Balance */}
+        {/* Delegated Balance - Clickable */}
         <div className="flex justify-between items-center">
           <span className="text-xs text-low">Delegated</span>
           {isLoading ? (
             <Placeholder className="h-4 w-16" />
           ) : (
-            <span className="text-sm font-semibold text-high">
+            <button
+              onClick={() => navigate('/staking')}
+              className="text-sm font-semibold text-primary hover:text-high transition-colors underline"
+              title="View staking details"
+            >
               {formatWithCommas(calculatedBalances.delegated)}
-            </span>
+            </button>
           )}
         </div>
 

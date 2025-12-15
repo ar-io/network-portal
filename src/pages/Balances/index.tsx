@@ -16,7 +16,7 @@ const Balances = () => {
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto scrollbar scrollbar-thin">
           <div className="flex flex-col gap-6 pb-6">
-            <div className="flex gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <BalanceFragmentationChart />
               <NetworkStatsPanel />
               {walletAddress && <MyBalancesPanel />}

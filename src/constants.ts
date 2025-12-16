@@ -66,3 +66,8 @@ export const REFERENCE_GATEWAY_FQDN =
 
 export const REDELEGATION_FEE_TOOLTIP_TEXT =
   'Redelegation fees are assessed at 10% per redelegation performed since the last fee reset, up to 60%. Fees are reset when no redelegations are performed in the last 7 days.';
+
+export const BRIDGE_BALANCE_ADDRESS =
+  'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
+export const BASE_TOKEN_CONTRACT_URL =
+  'https://basescan.org/token/0x138746adfa52909e5920def027f5a8dc1c7effb6';

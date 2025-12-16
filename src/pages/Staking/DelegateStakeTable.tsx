@@ -1,22 +1,31 @@
-import { mARIOToken } from '@ar.io/sdk/web';
+import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
+import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import Streak from '@src/components/Streak';
-import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import { InfoIcon } from '@src/components/icons';
+import {
+  CaretDoubleRightIcon,
+  CaretRightIcon,
+  InfoIcon,
+} from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
-import useGateways from '@src/hooks/useGateways';
+import useAllGateways from '@src/hooks/useAllGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import {
+  ColumnDef,
+  SortingState,
+  createColumnHelper,
+} from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
+import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,45 +45,82 @@ interface TableData {
 }
 
 const columnHelper = createColumnHelper<TableData>();
+const ITEMS_PER_PAGE = 25;
 
 const DelegateStake = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
+  const navigate = useNavigate();
 
-  const { isLoading, isError, data: gateways } = useGateways();
-  const { isLoading: protocolBalanceLoading, data: protocolBalance } =
-    useProtocolBalance();
-  const [stakeableGateways, setStakeableGateways] = useState<Array<TableData>>(
-    [],
-  );
-  const [isProcessingData, setIsProcessingData] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'totalStake', desc: true },
+  ]);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Map table columns to API sort fields
+  const sortMapping: Record<string, string> = {
+    label: 'settings.label',
+    domain: 'settings.fqdn',
+    owner: 'gatewayAddress',
+    totalStake: 'totalDelegatedStake',
+  };
+
+  const sortColumn = sorting[0]?.id;
+  const sortDesc = sorting[0]?.desc;
+  const apiSortBy =
+    (sortColumn && sortMapping[sortColumn]) || 'totalDelegatedStake';
+  const apiSortOrder = sortDesc ? 'desc' : 'asc';
+
+  const {
+    isLoading,
+    isFetching,
+    isError,
+    data: allGateways,
+  } = useAllGateways({
+    sortBy: apiSortBy,
+    sortOrder: apiSortOrder,
+  });
+  const { data: protocolBalance } = useProtocolBalance();
+  const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
     useState<string>();
 
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
 
-  const navigate = useNavigate();
+  // Filter gateways that allow delegate staking
+  const delegateEnabledGateways = useMemo(() => {
+    if (!allGateways) return [];
+    return allGateways.filter(
+      (gateway) =>
+        gateway.status === 'joined' && gateway.settings.allowDelegatedStaking,
+    );
+  }, [allGateways]);
 
   useEffect(() => {
-    if (!gateways || !protocolBalance) {
+    if (!delegateEnabledGateways.length || !protocolBalance) {
+      setTableData([]);
       return;
     }
 
-    // Pre-calculate expensive values
     const protocolBalanceARIO = new mARIOToken(protocolBalance).toARIO();
-    const joinedGatewayCount = Object.values(gateways).filter(
-      (g) => g.status === 'joined',
-    ).length;
+    const joinedGatewayCount = delegateEnabledGateways.length;
 
-    const stakeableGateways: Array<TableData> = Object.entries(gateways)
-      .filter(
-        ([, gateway]) =>
-          gateway.status === 'joined' && gateway.settings.allowDelegatedStaking,
-      )
-      .map(([owner, gateway]) => {
+    const processedData: Array<TableData> = delegateEnabledGateways.map(
+      (gateway: AoGatewayWithAddress) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
-        const totalEpochCount = (gateway.stats as any).totalEpochCount;
+        const totalEpochCount = gateway.stats.totalEpochCount;
 
         // Pre-calculate token conversions
         const totalDelegatedStakeARIO = new mARIOToken(
@@ -89,7 +135,7 @@ const DelegateStake = () => {
         return {
           label: gateway.settings.label,
           domain: gateway.settings.fqdn,
-          owner,
+          owner: gateway.gatewayAddress,
           streak:
             gateway.stats.failedConsecutiveEpochs > 0
               ? -gateway.stats.failedConsecutiveEpochs
@@ -108,10 +154,33 @@ const DelegateStake = () => {
             gateway,
           ).EAY,
         };
-      });
-    setStakeableGateways(stakeableGateways);
-    setIsProcessingData(false);
-  }, [gateways, protocolBalance]);
+      },
+    );
+    setTableData(processedData);
+  }, [delegateEnabledGateways, protocolBalance]);
+
+  // Filter data by search term
+  const filteredData = useMemo(() => {
+    if (!debouncedSearchTerm) return tableData;
+    const lowerSearch = debouncedSearchTerm.toLowerCase();
+    return tableData.filter((item) =>
+      item.domain.toLowerCase().includes(lowerSearch),
+    );
+  }, [tableData, debouncedSearchTerm]);
+
+  // Client-side pagination
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage]);
+
+  const handleSortingChange = (newSorting: SortingState) => {
+    setSorting(newSorting);
+    setCurrentPage(1);
+  };
 
   // Define columns for the table
   const columns = useMemo<ColumnDef<TableData, any>[]>(
@@ -174,7 +243,7 @@ const DelegateStake = () => {
       columnHelper.accessor('rewardShareRatio', {
         id: 'rewardShareRatio',
         header: 'Reward Share Ratio',
-        sortDescFirst: true,
+        enableSorting: false,
         cell: ({ row }) =>
           row.original.rewardShareRatio >= 0
             ? `${row.original.rewardShareRatio}%`
@@ -201,7 +270,7 @@ const DelegateStake = () => {
             </Tooltip>
           </div>
         ),
-        sortDescFirst: true,
+        enableSorting: false,
         cell: ({ row }) => (
           <div>
             {row.original.eay < 0
@@ -213,7 +282,7 @@ const DelegateStake = () => {
       columnHelper.accessor('performance', {
         id: 'performance',
         header: 'Performance',
-        sortDescFirst: true,
+        enableSorting: false,
         cell: ({ row }) =>
           row.original.performance < 0 ? (
             'N/A'
@@ -237,7 +306,7 @@ const DelegateStake = () => {
       columnHelper.accessor('streak', {
         id: 'streak',
         header: 'Streak',
-        sortDescFirst: true,
+        enableSorting: false,
         cell: ({ row }) => <Streak streak={row.original.streak} />,
       }),
 
@@ -290,19 +359,85 @@ const DelegateStake = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-3">
-        <div className="grow text-sm text-mid">Delegate Stake</div>
-        <ColumnSelector tableId="delegate-stake" columns={columns} />
+      <div className="flex w-full items-center justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-3">
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-mid">
+            Delegate Stake{' '}
+            {!isLoading &&
+              `(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(tableData.length)}` : ''})`}
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
+            <input
+              type="text"
+              placeholder="Search domain..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                aria-label="First page"
+              >
+                <CaretDoubleRightIcon className="h-4 w-4 rotate-180" />
+              </button>
+
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                aria-label="Previous page"
+              >
+                <CaretRightIcon className="h-4 w-4 rotate-180" />
+              </button>
+
+              <span className="text-xs text-mid">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                aria-label="Next page"
+              >
+                <CaretRightIcon className="h-4 w-4" />
+              </button>
+
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="rounded-md bg-containerL2 p-1 text-mid transition-all hover:bg-containerL1 disabled:opacity-50"
+                aria-label="Last page"
+              >
+                <CaretDoubleRightIcon className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          <ColumnSelector tableId="delegate-stake" columns={columns} />
+        </div>
       </div>
-      <TableView
+      <ServerSortableTableView
         columns={columns}
-        data={stakeableGateways}
-        isLoading={isLoading || protocolBalanceLoading || isProcessingData}
+        data={paginatedData}
+        defaultSortingState={{ id: 'totalStake', desc: true }}
+        currentSorting={sorting}
+        onSortingChange={handleSortingChange}
+        isLoading={isLoading}
+        isFetching={isFetching}
         isError={isError}
         noDataFoundText="No gateways with delegate staking enabled found."
         errorText="Unable to load delegate stakes."
-        loadingRows={10}
-        defaultSortingState={{ id: 'totalStake', desc: true }}
+        loadingRows={ITEMS_PER_PAGE}
         onRowClick={(row) => {
           navigate(`/gateways/${row.owner}`);
         }}

@@ -168,6 +168,7 @@ const Sidebar = () => {
               active={location.pathname.startsWith(path)}
               onClick={() => {
                 navigate(path);
+                closeMobileMenu();
               }}
             />
           ))}

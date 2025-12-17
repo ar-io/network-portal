@@ -65,6 +65,9 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const sidebarOpen = useSettings((state) => state.sidebarOpen);
   const aoCongested = useGlobalState((state) => state.aoCongested);
+  const arioProcessId = useGlobalState(
+    (state) => state.arIOReadSDK?.process?.processId || ARIO_PROCESS_ID,
+  );
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -83,7 +86,7 @@ const Sidebar = () => {
     {
       title: 'Process',
       icon: <ContractIcon className="size-4" />,
-      path: `https://scan.ar.io/entity/${ARIO_PROCESS_ID.toString()}`,
+      path: `https://scan.ar.io/entity/${arioProcessId}`,
     },
     {
       title: 'Settings',

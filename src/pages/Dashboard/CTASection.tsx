@@ -51,13 +51,9 @@ const CTASection = () => {
               </span>
               <PinkArrowIcon className="size-3" />
             </div>
-            <p className="text-sm text-mid mb-4">
+            <p className="text-sm text-mid">
               Start your gateway and earn {ticker} rewards
             </p>
-            <div className="flex items-center gap-1 text-sm text-low">
-              <span>Get started</span>
-              <LinkArrowIcon className="size-3" />
-            </div>
           </div>
         </div>
 
@@ -73,13 +69,9 @@ const CTASection = () => {
               </span>
               <PinkArrowIcon className="size-3" />
             </div>
-            <p className="text-sm text-mid mb-4">
+            <p className="text-sm text-mid">
               Stake your {ticker} tokens and earn rewards
             </p>
-            <div className="flex items-center gap-1 text-sm text-low">
-              <span>View gateways</span>
-              <LinkArrowIcon className="size-3" />
-            </div>
           </div>
         </div>
 
@@ -95,13 +87,7 @@ const CTASection = () => {
               </span>
               <SendHorizonal className="size-4" />
             </div>
-            <p className="text-sm text-mid mb-4">
-              Send tokens to other addresses
-            </p>
-            <div className="flex items-center gap-1 text-sm text-low">
-              <span>Send tokens</span>
-              <LinkArrowIcon className="size-3" />
-            </div>
+            <p className="text-sm text-mid">Send tokens to other addresses</p>
           </div>
         </div>
       </div>

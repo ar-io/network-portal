@@ -1,8 +1,10 @@
+import EpochSelector from '@src/components/EpochSelector';
 import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGatewaysPerEpoch from '@src/hooks/useGatewaysPerEpoch';
-import { useEffect, useState } from 'react';
+import useGatewaysPerEpochWithCount from '@src/hooks/useGatewaysPerEpochWithCount';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -35,12 +37,19 @@ const CustomTooltip = ({
   return null;
 };
 
-const GatewaysInNetworkPanel = () => {
-  const { data: gatewaysPerEpoch } = useGatewaysPerEpoch();
+interface GatewaysInNetworkPanelProps {
+  epochCount: number;
+  onEpochCountChange: (value: number) => void;
+}
+
+const GatewaysInNetworkPanel = ({
+  epochCount,
+  onEpochCountChange,
+}: GatewaysInNetworkPanelProps) => {
+  const { data: gatewaysPerEpoch } = useGatewaysPerEpochWithCount(epochCount);
   const { data: epochSettings } = useEpochSettings();
 
   const [activeIndex, setActiveIndex] = useState<number>();
-
   const [percentageChange, setPercentageChange] = useState<number>();
 
   useEffect(() => {
@@ -66,8 +75,9 @@ const GatewaysInNetworkPanel = () => {
 
   return (
     <div className="flex h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid lg:min-w-[22rem]">
-      <div className=" px-6 pt-5 text-mid">
-        Gateways in the Network by Epoch
+      <div className="flex items-center justify-between px-6 pt-5">
+        <span className="text-mid">Gateways in the Network by Epoch</span>
+        <EpochSelector value={epochCount} onChange={onEpochCountChange} />
       </div>
       <div className="flex gap-2">
         <div className="py-6 pl-6 text-[2.625rem] text-high">

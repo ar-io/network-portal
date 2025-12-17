@@ -5,10 +5,12 @@ const Tooltip = ({
   message,
   children,
   useMaxWidth = true,
+  side = 'top',
 }: {
   message: ReactNode;
   children: ReactNode;
   useMaxWidth?: boolean;
+  side?: 'top' | 'right' | 'bottom' | 'left';
 }) => {
   return (
     <ReactTooltip.Provider>
@@ -18,6 +20,7 @@ const Tooltip = ({
         </ReactTooltip.Trigger>
         <ReactTooltip.Portal>
           <ReactTooltip.Content
+            side={side}
             className={`z-50 mb-1 w-fit ${useMaxWidth ? 'max-w-[25rem]' : undefined} rounded-md border border-grey-500 bg-containerL0 px-6 py-3`}
           >
             {/* <ReactTooltip.Arrow className={`${marginBottom}`} /> */}

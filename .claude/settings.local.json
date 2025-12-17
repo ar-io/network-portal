@@ -14,7 +14,9 @@
       "Bash(grep:*)",
       "Bash(jira issue create:*)",
       "Bash(jira issue view:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(cat:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

@@ -38,6 +38,7 @@ const useArNSStatsWithCount = (epochCount: number) => {
       });
     },
     enabled: !!arioReadSDK && !!epochs,
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours
   });
   return res;
 };

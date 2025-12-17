@@ -123,7 +123,7 @@ const NetworkStatsPanel = () => {
                   href={BASE_TOKEN_CONTRACT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-2xl font-semibold text-high underline hover:text-primary transition-colors"
+                  className="text-2xl font-semibold text-high hover:text-primary transition-colors"
                 >
                   {stat.value}
                 </a>

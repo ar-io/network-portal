@@ -44,6 +44,7 @@ const useObserversWithCount = (epochCount: number) => {
       });
     },
     enabled: !!arioReadSDK && !!epochs,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
   return res;
 };

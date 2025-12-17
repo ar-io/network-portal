@@ -6,7 +6,6 @@ interface EpochSelectorProps {
 const EpochSelector = ({ value, onChange }: EpochSelectorProps) => {
   const epochOptions = [
     { label: 'Last 1 Week', value: 7 },
-    { label: 'Last 2 Weeks', value: 14 },
     { label: 'Last 1 Month', value: 30 },
     { label: 'Last 3 Months', value: 90 },
     { label: 'Last 6 Months', value: 180 },

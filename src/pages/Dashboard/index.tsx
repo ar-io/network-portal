@@ -1,5 +1,4 @@
 import Header from '@src/components/Header';
-import BalanceFragmentationChart from '@src/components/charts/BalanceFragmentationChart';
 import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useState } from 'react';
 import ArNSStatsPanel from './ArNSStatsPanel';
@@ -10,7 +9,7 @@ import ObserverPerformancePanel from './ObserverPerformancePanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
-  const [epochCount, setEpochCount] = useState(30); // Default to 1 month
+  const [epochCount, setEpochCount] = useState(7); // Default to 1 week
 
   return (
     <div className="flex h-full max-w-full flex-col pb-6">
@@ -36,8 +35,14 @@ const Dashboard = () => {
                   onEpochCountChange={setEpochCount}
                 />
                 <div className="grid h-fit gap-6 lg:grid-cols-2">
-                  <ObserverPerformancePanel />
-                  <ArNSStatsPanel />
+                  <ObserverPerformancePanel
+                    epochCount={epochCount}
+                    onEpochCountChange={setEpochCount}
+                  />
+                  <ArNSStatsPanel
+                    epochCount={epochCount}
+                    onEpochCountChange={setEpochCount}
+                  />
                 </div>
                 <RewardsDistributionPanel
                   epochCount={epochCount}

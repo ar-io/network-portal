@@ -1,4 +1,6 @@
 import Header from '@src/components/Header';
+import BalanceFragmentationChart from '@src/components/charts/BalanceFragmentationChart';
+import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import ArNSStatsPanel from './ArNSStatsPanel';
 import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
@@ -16,6 +18,7 @@ const Dashboard = () => {
           <div className="flex w-full flex-col gap-6 pt-0 lg:flex-row">
             <div className="flex flex-col gap-6">
               <IOTokenDistributionPanel />
+              <NetworkStatsPanel />
             </div>
 
             <div className="flex grow flex-col gap-6 lg:min-w-[50rem]">

@@ -78,7 +78,7 @@ const IOTokenDistributionPanel = () => {
   );
 
   return (
-    <div className="flex w-full flex-col rounded-xl border border-grey-500 lg:w-[22rem]">
+    <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500 lg:w-[22rem]">
       <div className="text-gradient px-5 pt-5 text-sm">
         {data && activeIndex !== undefined
           ? data[activeIndex].name

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.21.1] - 2025-12-17
 
+### Added
+
+- Added Explorer link in sidebar navigation that links to scan.ar.io
+
 ### Changed
 
 - Updated "Join X gateways" text to show dynamic total gateway count instead of hardcoded value
@@ -16,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed "Key metrics for the network" subtitle from Network Statistics panel
 - Added info icons with tooltips next to Network Statistics labels instead of tooltips on values
 - Updated Tooltip component to support positioning (side prop)
+- Updated Process link to dynamically use ARIO_PROCESS_ID
 
 ### Fixed
 

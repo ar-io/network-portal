@@ -37,7 +37,7 @@ const CTASection = () => {
   };
 
   return (
-    <div className="w-full">
+    <div className="hidden lg:block w-full">
       <div className="grid gap-4 md:grid-cols-3">
         {/* Join Network CTA */}
         <div

@@ -1,11 +1,6 @@
 import Header from '@src/components/Header';
-<<<<<<< HEAD
 import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useState } from 'react';
-=======
-import BalanceFragmentationChart from '@src/components/charts/BalanceFragmentationChart';
-import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
->>>>>>> ec55cf3 (feat(sidebar): add Explorer link and update Process link)
 import ArNSStatsPanel from './ArNSStatsPanel';
 import CTASection from './CTASection';
 import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';

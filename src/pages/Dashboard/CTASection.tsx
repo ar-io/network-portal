@@ -1,4 +1,4 @@
-import { LinkArrowIcon, PinkArrowIcon } from '@src/components/icons';
+import { PinkArrowIcon } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StartGatewayModal from '@src/components/modals/StartGatewayModal';
 import TransferArioModal from '@src/components/modals/TransferArioModal';

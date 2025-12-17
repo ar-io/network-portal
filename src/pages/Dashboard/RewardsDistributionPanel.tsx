@@ -1,7 +1,8 @@
 import { isDistributedEpochData, mARIOToken } from '@ar.io/sdk/web';
+import EpochSelector from '@src/components/EpochSelector';
 import Placeholder from '@src/components/Placeholder';
 import useEpochSettings from '@src/hooks/useEpochSettings';
-import useEpochs from '@src/hooks/useEpochs';
+import useEpochsWithCount from '@src/hooks/useEpochsWithCount';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useMemo, useState } from 'react';
@@ -142,14 +143,21 @@ const CustomUnclaimedBar = ({
   );
 };
 
-const RewardsDistributionPanel = () => {
+interface RewardsDistributionPanelProps {
+  epochCount: number;
+  onEpochCountChange: (value: number) => void;
+}
+
+const RewardsDistributionPanel = ({
+  epochCount,
+  onEpochCountChange,
+}: RewardsDistributionPanelProps) => {
   const ticker = useGlobalState((state) => state.ticker);
 
   const [focusBar, setFocusBar] = useState<number>();
   const [mouseLeave, setMouseLeave] = useState(true);
-  const { data: epochs } = useEpochs();
+  const { data: epochs } = useEpochsWithCount(epochCount);
   const { data: epochSettings } = useEpochSettings();
-  const isMobile = useGlobalState((state) => state.isMobile);
 
   const rewardsData: Array<RewardsData> | undefined = useMemo(() => {
     const data = epochs
@@ -175,13 +183,16 @@ const RewardsDistributionPanel = () => {
         };
       });
 
-    return isMobile && data && data.length > 7 ? data.slice(-7) : data;
-  }, [epochs, isMobile]);
+    return data;
+  }, [epochs]);
 
   return (
     <div className="rounded-xl border border-grey-500 lg:min-w-[22rem]">
-      <div className="px-5 pb-3 pt-5 text-sm text-mid">
-        Eligible Rewards in {ticker} by Epoch vs. Rewards Distributed
+      <div className="flex items-center justify-between px-5 pb-3 pt-5">
+        <span className="text-sm text-mid">
+          Eligible Rewards in {ticker} by Epoch vs. Rewards Distributed
+        </span>
+        <EpochSelector value={epochCount} onChange={onEpochCountChange} />
       </div>
       <div className="relative h-80">
         {rewardsData ? (

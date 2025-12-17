@@ -86,11 +86,11 @@ const IOTokenDistributionPanel = () => {
             ? `${ticker} Token`
             : ''}
       </div>
-      <div className="relative h-48 w-full grow lg:w-[352px]">
+      <div className="relative h-48 w-full grow">
         {data ? (
           <>
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart width={352} height={120}>
+              <PieChart>
                 <Pie
                   data={data}
                   dataKey="value"
@@ -112,8 +112,8 @@ const IOTokenDistributionPanel = () => {
                   ))}
                 </Pie>
                 <Text
-                  x={176}
-                  y={60}
+                  x="50%"
+                  y="50%"
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fill="#E19EE5"

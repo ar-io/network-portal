@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.0] - 2025-12-17
+
+### Added
+
+- Added new CTASection component with Join Network, Delegate to Gateways, and Transfer ARIO call-to-action cards
+- Added EpochSelector component with time-based options (Last 1 Week, Last 2 Weeks, Last 1 Month, Last 3 Months, Last 6 Months)
+- Added dynamic epoch fetching hooks (useEpochsWithCount, useGatewaysPerEpochWithCount) that fetch the requested number of historical epochs
+- Added epoch selection controls to Gateways in Network and Rewards Distribution panels with synchronized state
+
+### Changed
+
+- Enhanced Dashboard layout with CTA section at the top and reorganized existing panels
+- Updated Gateways in Network and Rewards Distribution panels to support dynamic epoch count selection
+- Fixed ARIO Token Distribution chart sizing issues that occurred on hover
+- Moved Network Statistics panel above IO Token Distribution panel in left column
+- Changed default epoch display from 7 to 30 epochs (1 month)
+
+### Fixed
+
+- Resolved chart container width conflicts in IOTokenDistributionPanel that caused layout shifts on hover
+- Fixed epoch data fetching to actually retrieve historical data instead of being limited to hardcoded 13 epochs
+
 ## [1.21.1] - 2025-12-17
 
 ### Added

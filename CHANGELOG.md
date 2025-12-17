@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.1] - 2025-12-17
+
+### Changed
+
+- Updated "Join X gateways" text to show dynamic total gateway count instead of hardcoded value
+- Changed Network Statistics header from gradient to gray text
+- Removed "Key metrics for the network" subtitle from Network Statistics panel
+- Added info icons with tooltips next to Network Statistics labels instead of tooltips on values
+- Updated Tooltip component to support positioning (side prop)
+
+### Fixed
+
+- Confirmed Start a Gateway card scrolls naturally without fixed positioning
+
 ## [1.21.0] - 2025-12-15
 
 ### Added

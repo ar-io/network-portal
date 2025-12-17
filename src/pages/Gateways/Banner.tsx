@@ -8,6 +8,7 @@ import {
 } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StartGatewayModal from '@src/components/modals/StartGatewayModal';
+import useAllGateways from '@src/hooks/useAllGateways';
 import { GatewayStatus, useGatewayInfo } from '@src/hooks/useGatewayInfo';
 import { useGlobalState } from '@src/store';
 import { useState } from 'react';
@@ -31,6 +32,7 @@ const Banner = () => {
   const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
   const { gatewayInfo, gatewayStatus } = useGatewayInfo();
+  const { data: allGateways } = useAllGateways();
 
   return (
     <div
@@ -89,7 +91,8 @@ const Banner = () => {
             </div>
 
             <div className="text-xs text-mid mb-4">
-              Join 750+ gateways earning ARIO tokens
+              Join {allGateways ? `${allGateways.length}+` : '500+'} gateways
+              earning ARIO tokens
             </div>
 
             <div className="text-sm text-low mb-6 space-y-2">

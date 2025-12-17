@@ -14,7 +14,12 @@ const useObserversWithCount = (epochCount: number) => {
   const { data: epochs } = useEpochsWithCount(epochCount);
 
   const res = useQuery<Array<ObserverHistoricalStats>>({
-    queryKey: ['observersWithCount', epochs, arioReadSDK, epochCount],
+    queryKey: [
+      'observersWithCount',
+      epochs?.length,
+      epochs?.[0]?.epochIndex,
+      epochCount,
+    ],
     queryFn: () => {
       if (!arioReadSDK || !epochs) {
         throw new Error('arIOReadSDK not initialized or epochs not available');

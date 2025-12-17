@@ -15,7 +15,12 @@ const useArNSStatsWithCount = (epochCount: number) => {
   const { data: epochs } = useEpochsWithCount(epochCount);
 
   const res = useQuery<Array<ArNSHistoricalStats>>({
-    queryKey: ['arNSStatsWithCount', epochs, arioReadSDK, epochCount],
+    queryKey: [
+      'arNSStatsWithCount',
+      epochs?.length,
+      epochs?.[0]?.epochIndex,
+      epochCount,
+    ],
     queryFn: () => {
       if (!arioReadSDK || !epochs) {
         throw new Error('arIOReadSDK not initialized or epochs not available');

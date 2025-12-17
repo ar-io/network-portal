@@ -39,7 +39,6 @@
     "dexie-react-hooks": "^1.1.7",
     "fflate": "^0.8.2",
     "file-saver": "^2.0.5",
-    "global": "^4.4.0",
     "ky": "^1.7.5",
     "loglevel": "^1.9.1",
     "lottie-react": "^2.4.0",

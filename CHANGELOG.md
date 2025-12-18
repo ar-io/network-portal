@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed Explorer link in sidebar navigation to correctly link to scan.ar.io/#/entity/ instead of scan.ar.io/entity/
+- Fixed height of Observer Performance panel chart to prevent layout shift on data load
 
 ## [1.22.0] - 2025-12-17
 

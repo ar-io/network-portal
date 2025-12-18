@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added EpochSelector component with time-based options (Last 1 Week, Last 2 Weeks, Last 1 Month, Last 3 Months, Last 6 Months)
 - Added dynamic epoch fetching hooks (useEpochsWithCount, useGatewaysPerEpochWithCount) that fetch the requested number of historical epochs
 - Added epoch selection controls to Gateways in Network and Rewards Distribution panels with synchronized state
+- Added edge-to-edge background charts to Observer Performance and ArNS Stats panels
+- Added historical data hooks (useObserversWithCount, useArNSStatsWithCount) for dashboard charts
 
 ### Changed
 

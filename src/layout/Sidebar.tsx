@@ -8,7 +8,14 @@ import changeLog from '../../CHANGELOG.md?raw';
 
 import SettingsModal from '@src/components/modals/SettingsModal';
 import { updateSettings, useGlobalState, useSettings } from '@src/store';
-import { Globe, HandCoins, Menu, Puzzle, Settings } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Globe,
+  HandCoins,
+  Menu,
+  Puzzle,
+  Settings,
+} from 'lucide-react';
 import {
   ArioLogoIcon,
   BinocularsIcon,
@@ -65,14 +72,16 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const sidebarOpen = useSettings((state) => state.sidebarOpen);
   const aoCongested = useGlobalState((state) => state.aoCongested);
-  const arioProcessId = useGlobalState(
-    (state) => state.arIOReadSDK?.process?.processId || ARIO_PROCESS_ID,
-  );
 
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const ROUTES_SECONDARY = [
+    {
+      title: 'Bridge',
+      icon: <ArrowLeftRight className="size-4" />,
+      path: `https://swap.ar.io`,
+    },
     {
       title: 'Explorer',
       icon: <Globe className="size-4" />,
@@ -82,11 +91,6 @@ const Sidebar = () => {
       title: 'Docs',
       icon: <DocsIcon className="size-4" />,
       path: ARIO_DOCS_URL,
-    },
-    {
-      title: 'Process',
-      icon: <ContractIcon className="size-4" />,
-      path: `https://scan.ar.io/entity/${arioProcessId}`,
     },
     {
       title: 'Settings',

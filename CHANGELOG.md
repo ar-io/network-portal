@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# # [1.22.1] - 2025-12-18
+
+### Fixed
+- Fixed Explorer link in sidebar navigation to correctly link to scan.ar.io/#/entity/ instead of scan.ar.io/entity/
+
 ## [1.22.0] - 2025-12-17
 
 ### Added

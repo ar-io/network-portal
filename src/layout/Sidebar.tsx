@@ -86,7 +86,7 @@ const Sidebar = () => {
     {
       title: 'Process',
       icon: <ContractIcon className="size-4" />,
-      path: `https://scan.ar.io/entity/${arioProcessId}`,
+      path: `https://scan.ar.io/#/entity/${arioProcessId}`,
     },
     {
       title: 'Settings',

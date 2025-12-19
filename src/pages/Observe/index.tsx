@@ -28,7 +28,7 @@ const Report = () => {
           setSelectedAssessment={setSelectedAssessment}
         />
       ) : (
-        <div>Unable to gateway with ID {ownerId}.</div>
+        <div>Unable to load gateway with ID {ownerId}.</div>
       )}
       {selectedAssessment && gateway && (
         <AssessmentDetailsPanel

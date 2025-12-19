@@ -56,69 +56,65 @@ const Banner = () => {
     : 'N/A';
 
   return (
-    <div>
+    <>
       {!walletAddress ? (
-        <div>
-          <button
-            className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
-            onClick={() => {
-              if (!walletAddress) {
-                setLoginOpen(true);
-              } else {
-                setStartGatewayOpen(true);
-              }
-            }}
-          >
-            <div
-              className="invisible size-full rounded-xl
-       bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
-            >
-              <div className="size-full overflow-hidden rounded-xl bg-grey-800">
-                <ObserversBgIcon className="relative left-[calc(4rem-1px)]  top-[calc(2rem-1px)] z-0 opacity-10" />
-              </div>
-            </div>
-            <ObserversBgIcon className="visible absolute left-16 top-8 z-0 opacity-10  group-hover:invisible" />
-            <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
-              <div className="flex items-center gap-2">
-                <ObserversConnectIcon className="size-4" />
-                <div className="text-gradient">Connect your wallet</div>{' '}
-              </div>
-
-              <div className="pt-2 text-sm text-low">
-                Login to view your observer status.
-              </div>
-            </div>
-          </button>
-        </div>
-      ) : gatewayStatus === GatewayStatus.NOT_FOUND ? (
-        <div>
-          <button
-            className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
-            onClick={() => {
+        <button
+          className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
+          onClick={() => {
+            if (!walletAddress) {
+              setLoginOpen(true);
+            } else {
               setStartGatewayOpen(true);
-            }}
-          >
-            <div
-              className="invisible size-full rounded-xl
+            }
+          }}
+        >
+          <div
+            className="invisible size-full rounded-xl
        bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
-            >
-              <div className="size-full overflow-hidden rounded-xl bg-grey-800">
-                <StartGatewayCubes className="relative -top-px left-[calc(4rem-1px)] z-0" />
-              </div>
+          >
+            <div className="size-full overflow-hidden rounded-xl bg-grey-800">
+              <ObserversBgIcon className="relative left-[calc(4rem-1px)]  top-[calc(2rem-1px)] z-0 opacity-10" />
             </div>
-            <StartGatewayCubes className="visible absolute left-16 top-0 z-0 group-hover:invisible" />
-            <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
-              <div className="flex items-center gap-2">
-                <div className="text-gradient">Configure your gateway</div>{' '}
-                <PinkArrowIcon className="size-3" />
-              </div>
+          </div>
+          <ObserversBgIcon className="visible absolute left-16 top-8 z-0 opacity-10  group-hover:invisible" />
+          <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
+            <div className="flex items-center gap-2">
+              <ObserversConnectIcon className="size-4" />
+              <div className="text-gradient">Connect your wallet</div>{' '}
+            </div>
 
-              <div className="pt-2 text-sm text-low">
-                Configure a gateway to become an observer.
-              </div>
+            <div className="pt-2 text-sm text-low">
+              Login to view your observer status.
             </div>
-          </button>
-        </div>
+          </div>
+        </button>
+      ) : gatewayStatus === GatewayStatus.NOT_FOUND ? (
+        <button
+          className="group relative h-[7.5rem] w-full overflow-hidden rounded-xl bg-grey-800"
+          onClick={() => {
+            setStartGatewayOpen(true);
+          }}
+        >
+          <div
+            className="invisible size-full rounded-xl
+       bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end p-px group-hover:visible"
+          >
+            <div className="size-full overflow-hidden rounded-xl bg-grey-800">
+              <StartGatewayCubes className="relative -top-px left-[calc(4rem-1px)] z-0" />
+            </div>
+          </div>
+          <StartGatewayCubes className="visible absolute left-16 top-0 z-0 group-hover:invisible" />
+          <div className="absolute top-0 z-10 flex size-full flex-col items-center justify-center bg-transparent py-6 align-middle">
+            <div className="flex items-center gap-2">
+              <div className="text-gradient">Configure your gateway</div>{' '}
+              <PinkArrowIcon className="size-3" />
+            </div>
+
+            <div className="pt-2 text-sm text-low">
+              Configure a gateway to become an observer.
+            </div>
+          </div>
+        </button>
       ) : gateway ? (
         <div className="relative min-h-fit w-full overflow-hidden rounded-xl border border-grey-800 lg:h-[7.5rem]">
           <div className="top-0 z-10 flex size-full flex-col bg-transparent py-6 align-middle lg:absolute">
@@ -173,7 +169,7 @@ const Banner = () => {
       {startGatewayOpen && (
         <StartGatewayModal onClose={() => setStartGatewayOpen(false)} />
       )}
-    </div>
+    </>
   );
 };
 

@@ -9,6 +9,7 @@ import { formatDate, formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import DelegateStake from './DelegateStakeTable';
 import MyStakesTable from './MyStakesTable';
+import StakingInfoBanner from './StakingInfoBanner';
 
 const TopPanel = ({
   title,
@@ -165,6 +166,7 @@ const ConnectedLandingPage = () => {
         ))}
       </div>
       <MyStakesTable />
+      <StakingInfoBanner />
       <DelegateStake />
     </div>
   );

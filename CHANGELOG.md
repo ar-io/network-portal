@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.2] - 2025-12-19
+
+### Fixed
+
+- Fixed inconsistent padding on page headers
+- Updated `@ar.io/sdk` to `3.22.2` to fix historical ArNS stats chart
+
 ## [1.22.1] - 2025-12-18
 
 ### Added

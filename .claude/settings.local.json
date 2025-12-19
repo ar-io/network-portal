@@ -16,7 +16,9 @@
       "Bash(jira issue view:*)",
       "Bash(git restore:*)",
       "Bash(cat:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

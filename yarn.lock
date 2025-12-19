@@ -42,10 +42,10 @@
     winston "^3.13.0"
     zod "^3.23.8"
 
-"@ar.io/sdk@^3.22.1":
-  version "3.22.1"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-3.22.1.tgz#d758dc8a40528c1eebba9751cfba8547148e31a6"
-  integrity sha512-MH+JST5Zm1CPS43vZvxvwrBEdN7qKYZSmQuXp/EUrZkTLdegt5KnhMoUEqQCOQKlT2YF7hYI+NFwhy32ezQqxQ==
+"@ar.io/sdk@^3.22.2":
+  version "3.22.2"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-3.22.2.tgz#45c3fe0a75ce3101881506cd6d21c9cc3178f6ed"
+  integrity sha512-SeHJ0hly7o14JsO8nu88TSr2zcef4xmIKkxBRik4dhE0qcYzLSmniIuBLrR9+2BUYvR5H6evL9W7JyGoJdUiow==
   dependencies:
     "@dha-team/arbundles" "^1.0.1"
     "@permaweb/aoconnect" "0.0.68"

@@ -1,7 +1,7 @@
 {
   "name": "@ar-io/network-portal",
   "private": true,
-  "version": "1.22.1",
+  "version": "1.22.2",
   "type": "module",
   "scripts": {
     "build": "yarn clean && tsc --build tsconfig.build.json && cross-env NODE_OPTIONS=--max-old-space-size=32768 vite build",
@@ -19,7 +19,7 @@
     "deploy": "yarn build && permaweb-deploy --arns-name ${VITE_ARNS_NAME}"
   },
   "dependencies": {
-    "@ar.io/sdk": "^3.22.1",
+    "@ar.io/sdk": "^3.22.2",
     "@dha-team/arbundles": "^1.0.3",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^2.2.0",

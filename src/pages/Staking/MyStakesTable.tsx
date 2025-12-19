@@ -4,7 +4,6 @@ import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
 import CopyButton from '@src/components/CopyButton';
-import Dropdown from '@src/components/Dropdown';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
@@ -30,39 +29,26 @@ import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-interface ActiveStakesTableData {
-  owner: string;
-  delegatedStake: number;
-  gateway: AoGatewayWithAddress;
-  pendingWithdrawals: number;
-  streak: number;
-  eay: number;
-}
-
-interface PendingWithdrawalsTableData {
+interface UnifiedStakeData {
   owner: string;
   gateway: AoGatewayWithAddress;
-  withdrawal: AoVaultData;
-  withdrawalId: string;
+  amount: number;
+  status: 'Active' | 'Withdrawing';
+  streak?: number;
+  eay?: number;
+  withdrawalDate?: Date;
+  withdrawalId?: string;
+  withdrawal?: AoVaultData;
 }
 
-type TableMode = 'activeStakes' | 'pendingWithdrawals';
-
-const columnHelper = createColumnHelper<ActiveStakesTableData>();
-const columnHelperWithdrawals =
-  createColumnHelper<PendingWithdrawalsTableData>();
+const columnHelper = createColumnHelper<UnifiedStakeData>();
 
 const MyStakesTable = () => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const ticker = useGlobalState((state) => state.ticker);
 
   const { isFetching, isError: gatewaysError, data: gateways } = useGateways();
-  const [activeStakes, setActiveStakes] =
-    useState<Array<ActiveStakesTableData>>();
-  const [pendingWithdrawals, setPendingWithdrawals] =
-    useState<Array<PendingWithdrawalsTableData>>();
-
-  const [tableMode, setTableMode] = useState<TableMode>('activeStakes');
+  const [unifiedStakes, setUnifiedStakes] = useState<Array<UnifiedStakeData>>();
 
   const [showWithdrawAllModal, setShowWithdrawAllModal] = useState(false);
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
@@ -92,62 +78,73 @@ const MyStakesTable = () => {
   const { data: protocolBalance } = useProtocolBalance();
 
   useEffect(() => {
-    const activeStakes: Array<ActiveStakesTableData> | undefined = isFetching
+    const unified: Array<UnifiedStakeData> | undefined = isFetching
       ? undefined
       : !delegateStakes || !gateways || !protocolBalance
         ? []
-        : delegateStakes.stakes
-            .filter((stake) => stake.balance > 0)
-            .map((stake) => {
-              const gateway = gateways[stake.gatewayAddress];
-              return {
-                owner: stake.gatewayAddress,
-                delegatedStake: stake.balance,
-                gateway: { ...gateway, gatewayAddress: stake.gatewayAddress },
-                pendingWithdrawals: delegateStakes.withdrawals.filter(
-                  (w) => w.gatewayAddress === stake.gatewayAddress,
-                ).length,
-                streak:
-                  gateway.status === 'leaving'
-                    ? Number.NEGATIVE_INFINITY
-                    : gateway.stats.failedConsecutiveEpochs > 0
-                      ? -gateway.stats.failedConsecutiveEpochs
-                      : gateway.stats.passedConsecutiveEpochs,
-                eay: calculateGatewayRewards(
-                  new mARIOToken(protocolBalance).toARIO(),
-                  Object.values(gateways).filter((g) => g.status === 'joined')
-                    .length,
-                  gateway,
-                ).EAY,
-              };
-            });
-
-    const pendingWithdrawals: Array<PendingWithdrawalsTableData> | undefined =
-      isFetching
-        ? undefined
-        : !delegateStakes || !gateways
-          ? []
-          : delegateStakes.withdrawals.map((withdrawal) => {
+        : [
+            // Active stakes
+            ...delegateStakes.stakes
+              .filter((stake) => stake.balance > 0)
+              .map((stake) => {
+                const gateway = gateways[stake.gatewayAddress];
+                return {
+                  owner: stake.gatewayAddress,
+                  gateway: { ...gateway, gatewayAddress: stake.gatewayAddress },
+                  amount: stake.balance,
+                  status: 'Active' as const,
+                  streak:
+                    gateway.status === 'leaving'
+                      ? Number.NEGATIVE_INFINITY
+                      : gateway.stats.failedConsecutiveEpochs > 0
+                        ? -gateway.stats.failedConsecutiveEpochs
+                        : gateway.stats.passedConsecutiveEpochs,
+                  eay: calculateGatewayRewards(
+                    new mARIOToken(protocolBalance).toARIO(),
+                    Object.values(gateways).filter((g) => g.status === 'joined')
+                      .length,
+                    gateway,
+                  ).EAY,
+                };
+              }),
+            // Pending withdrawals
+            ...delegateStakes.withdrawals.map((withdrawal) => {
               const gateway = gateways[withdrawal.gatewayAddress];
-
               return {
                 owner: withdrawal.gatewayAddress,
                 gateway: {
                   ...gateway,
                   gatewayAddress: withdrawal.gatewayAddress,
                 },
-                withdrawal,
+                amount: withdrawal.balance,
+                status: 'Withdrawing' as const,
+                withdrawalDate: new Date(withdrawal.endTimestamp),
                 withdrawalId: withdrawal.vaultId,
+                withdrawal,
               };
-            });
+            }),
+          ];
 
-    setActiveStakes(activeStakes);
-    setPendingWithdrawals(pendingWithdrawals);
+    setUnifiedStakes(unified);
   }, [delegateStakes, gateways, isFetching, protocolBalance]);
 
-  // Define columns for the active stakes table
-  const activeStakesColumns: ColumnDef<ActiveStakesTableData, any>[] = useMemo(
+  // Define columns for the unified stakes table
+  const columns: ColumnDef<UnifiedStakeData, any>[] = useMemo(
     () => [
+      columnHelper.accessor('status', {
+        id: 'status',
+        header: 'Status',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <div
+            className={
+              row.original.status === 'Active' ? 'text-primary' : 'text-warning'
+            }
+          >
+            {row.original.status}
+          </div>
+        ),
+      }),
       columnHelper.accessor('gateway.settings.label', {
         id: 'label',
         header: 'Label',
@@ -180,12 +177,12 @@ const MyStakesTable = () => {
         sortDescFirst: false,
         cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
       }),
-      columnHelper.accessor('delegatedStake', {
-        id: 'delegatedStake',
-        header: `Current Stake (${ticker})`,
+      columnHelper.accessor('amount', {
+        id: 'amount',
+        header: `Amount (${ticker})`,
         sortDescFirst: true,
         cell: ({ row }) => {
-          return `${new mARIOToken(row.original.delegatedStake).toARIO().valueOf()}`;
+          return `${new mARIOToken(row.original.amount).toARIO().valueOf()}`;
         },
       }),
       columnHelper.accessor('eay', {
@@ -211,7 +208,9 @@ const MyStakesTable = () => {
         sortDescFirst: true,
         cell: ({ row }) => (
           <div>
-            {row.original.eay < 0
+            {row.original.status === 'Withdrawing' ||
+            !row.original.eay ||
+            row.original.eay < 0
               ? 'N/A'
               : `${formatWithCommas(row.original.eay * 100)}%`}
           </div>
@@ -221,19 +220,24 @@ const MyStakesTable = () => {
         id: 'streak',
         header: 'Streak',
         sortDescFirst: true,
-        cell: ({ row }) => <Streak streak={row.original.streak} />,
+        cell: ({ row }) =>
+          row.original.status === 'Withdrawing' ? (
+            <span className="text-low">N/A</span>
+          ) : (
+            <Streak streak={row.original.streak!} />
+          ),
       }),
-      columnHelper.accessor('pendingWithdrawals', {
-        id: 'pendingWithdrawals',
-        header: 'Pending Withdrawals',
+      columnHelper.accessor('withdrawalDate', {
+        id: 'withdrawalDate',
+        header: 'Withdrawal Date',
         sortDescFirst: true,
         cell: ({ row }) => (
           <div
-            className={
-              row.original.pendingWithdrawals > 0 ? 'text-high' : 'text-low'
-            }
+            className={row.original.withdrawalDate ? 'text-high' : 'text-low'}
           >
-            {`${row.original.pendingWithdrawals}`}
+            {row.original.withdrawalDate
+              ? dayjs(row.original.withdrawalDate).format('YYYY-MM-DD')
+              : 'N/A'}
           </div>
         ),
       }),
@@ -255,41 +259,92 @@ const MyStakesTable = () => {
                   </div>
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
-                  <DropdownMenu.Item
-                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setStakingModalWalletAddress(row.original.owner);
-                    }}
-                  >
-                    Add Stake
-                  </DropdownMenu.Item>
+                  {row.original.status === 'Active' ? (
+                    <>
+                      <DropdownMenu.Item
+                        className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStakingModalWalletAddress(row.original.owner);
+                        }}
+                      >
+                        Add Stake
+                      </DropdownMenu.Item>
 
-                  <DropdownMenu.Item
-                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWithdrawalModalWalletAddress(row.original.owner);
-                    }}
-                  >
-                    Withdraw Stake
-                  </DropdownMenu.Item>
+                      <DropdownMenu.Item
+                        className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setWithdrawalModalWalletAddress(row.original.owner);
+                        }}
+                      >
+                        Withdraw Stake
+                      </DropdownMenu.Item>
 
-                  <DropdownMenu.Item
-                    className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowRedelegateModal({
-                        sourceGateway: row.original.gateway,
-                        onClose: () => setShowRedelegateModal(undefined),
-                        maxRedelegationStake: new mARIOToken(
-                          row.original.delegatedStake,
-                        ).toARIO(),
-                      });
-                    }}
-                  >
-                    Redelegate
-                  </DropdownMenu.Item>
+                      <DropdownMenu.Item
+                        className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowRedelegateModal({
+                            sourceGateway: row.original.gateway,
+                            onClose: () => setShowRedelegateModal(undefined),
+                            maxRedelegationStake: new mARIOToken(
+                              row.original.amount,
+                            ).toARIO(),
+                          });
+                        }}
+                      >
+                        Redelegate
+                      </DropdownMenu.Item>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenu.Item
+                        className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmInstantWithdrawal({
+                            gateway: row.original.gateway,
+                            gatewayAddress: row.original.owner,
+                            vault: row.original.withdrawal!,
+                            vaultId: row.original.withdrawalId!,
+                          });
+                        }}
+                      >
+                        Expedite Withdrawal
+                      </DropdownMenu.Item>
+
+                      <DropdownMenu.Item
+                        className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmCancelWithdrawal({
+                            gatewayAddress: row.original.owner,
+                            vaultId: row.original.withdrawalId!,
+                          });
+                        }}
+                      >
+                        Cancel Withdrawal
+                      </DropdownMenu.Item>
+
+                      <DropdownMenu.Item
+                        className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowRedelegateModal({
+                            sourceGateway: row.original.gateway,
+                            onClose: () => setShowRedelegateModal(undefined),
+                            maxRedelegationStake: new mARIOToken(
+                              row.original.amount,
+                            ).toARIO(),
+                            vaultId: row.original.withdrawalId,
+                          });
+                        }}
+                      >
+                        Redelegate
+                      </DropdownMenu.Item>
+                    </>
+                  )}
                 </DropdownMenu.Content>
               </DropdownMenu.Root>
             </div>
@@ -306,155 +361,15 @@ const MyStakesTable = () => {
   );
 
   const hasDelegatedStake =
-    activeStakes?.some((v) => v.delegatedStake > 0) ?? false;
-
-  // Define columns for the pending withdrawals table
-  const pendingWithdrawalsColumns: ColumnDef<
-    PendingWithdrawalsTableData,
-    any
-  >[] = useMemo(
-    () => [
-      columnHelperWithdrawals.accessor('gateway.settings.label', {
-        id: 'label',
-        header: 'Label',
-        sortDescFirst: false,
-      }),
-      columnHelperWithdrawals.accessor('gateway.settings.fqdn', {
-        id: 'domain',
-        header: 'Domain',
-        sortDescFirst: false,
-        cell: ({ row }) => (
-          <div className="text-gradient">
-            <a
-              href={`https://${row.getValue('domain')}`}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {row.getValue('domain')}
-            </a>{' '}
-          </div>
-        ),
-      }),
-      columnHelperWithdrawals.accessor('owner', {
-        id: 'owner',
-        header: 'Address',
-        sortDescFirst: false,
-        cell: ({ row }) => <AddressCell address={row.getValue('owner')} />,
-      }),
-      columnHelperWithdrawals.accessor('withdrawal.balance', {
-        id: 'withdrawal',
-        header: `Stake Withdrawing (${ticker})`,
-        sortDescFirst: true,
-        cell: ({ row }) => {
-          return `${new mARIOToken(row.original.withdrawal.balance).toARIO().valueOf()}`;
-        },
-      }),
-      columnHelperWithdrawals.accessor((row) => row.withdrawal.endTimestamp, {
-        id: 'endDate',
-        header: `Date Returning`,
-        sortDescFirst: true,
-        cell: ({ row }) => {
-          return `${dayjs(new Date(row.original.withdrawal.endTimestamp)).format('YYYY-MM-DD')}`;
-        },
-      }),
-      columnHelperWithdrawals.display({
-        id: 'actions',
-        cell: ({ row }) => {
-          return (
-            <div className="flex w-full justify-end pr-6">
-              <DropdownMenu.Root modal={false}>
-                <DropdownMenu.Trigger
-                  asChild
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="cursor-pointer rounded-md bg-gradient-to-b from-btn-primary-outer-gradient-start to-btn-primary-outer-gradient-end  p-px">
-                    <div className="inline-flex size-full items-center justify-start gap-[0.6875rem] rounded-md bg-btn-primary-base bg-gradient-to-b from-btn-primary-gradient-start to-btn-primary-gradient-end px-[0.3125rem] py-[.3125rem] shadow-inner">
-                      <ThreeDotsIcon className="size-4" />
-                    </div>
-                  </div>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
-                  <DropdownMenu.Item
-                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmInstantWithdrawal({
-                        gateway: row.original.gateway,
-                        gatewayAddress: row.original.owner,
-                        vault: row.original.withdrawal,
-                        vaultId: row.original.withdrawalId,
-                      });
-                    }}
-                  >
-                    Expedite Withdrawal
-                  </DropdownMenu.Item>
-
-                  <DropdownMenu.Item
-                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmCancelWithdrawal({
-                        gatewayAddress: row.original.owner,
-                        vaultId: row.original.withdrawalId,
-                      });
-                    }}
-                  >
-                    Cancel Withdrawal
-                  </DropdownMenu.Item>
-
-                  <DropdownMenu.Item
-                    className="cursor-pointer select-none  px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowRedelegateModal({
-                        sourceGateway: row.original.gateway,
-                        onClose: () => setShowRedelegateModal(undefined),
-                        maxRedelegationStake: new mARIOToken(
-                          row.original.withdrawal.balance,
-                        ).toARIO(),
-                        vaultId: row.original.withdrawalId,
-                      });
-                    }}
-                  >
-                    Redelegate
-                  </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
-            </div>
-          );
-        },
-      }),
-    ],
-    [
-      ticker,
-      setConfirmInstantWithdrawal,
-      setConfirmCancelWithdrawal,
-      setShowRedelegateModal,
-    ],
-  );
+    unifiedStakes?.some((v) => v.status === 'Active' && v.amount > 0) ?? false;
 
   return (
     <div>
-      <div
-        className={`flex w-full items-center gap-4 rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-3 ${tableMode === 'activeStakes' ? 'py-2' : 'py-[0.9375rem]'} `}
-      >
-        <div className="grow text-sm text-mid">
-          <Dropdown
-            options={[
-              { label: 'Active Stakes', value: 'activeStakes' },
-              { label: 'Pending Withdrawals', value: 'pendingWithdrawals' },
-            ]}
-            onChange={(e) => {
-              setTableMode(e.target.value as TableMode);
-            }}
-            value={tableMode}
-            tightPadding={true}
-          />
-        </div>
+      <div className="flex w-full items-center gap-4 rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-3 py-2">
+        <div className="grow text-sm text-mid">My Stakes</div>
 
         <div className="flex items-center gap-3">
-          {tableMode === 'activeStakes' && hasDelegatedStake && (
+          {hasDelegatedStake && (
             <Button
               buttonType={ButtonType.SECONDARY}
               className="*:text-gradient-red h-[1.875rem]"
@@ -465,62 +380,36 @@ const MyStakesTable = () => {
             />
           )}
 
-          <ColumnSelector
-            tableId={
-              tableMode === 'activeStakes'
-                ? 'my-stakes-active'
-                : 'my-stakes-withdrawals'
-            }
-            columns={
-              tableMode === 'activeStakes'
-                ? activeStakesColumns
-                : (pendingWithdrawalsColumns as any)
-            }
-          />
+          <ColumnSelector tableId="my-stakes-unified" columns={columns} />
         </div>
       </div>
-      {tableMode === 'activeStakes' ? (
-        <TableView
-          key="activeStakesTable"
-          columns={activeStakesColumns}
-          data={activeStakes || []}
-          isLoading={isFetching || activeStakes === undefined}
-          isError={gatewaysError || delegateStakesError}
-          noDataFoundText="No stakes found."
-          errorText="Unable to load stakes."
-          loadingRows={10}
-          defaultSortingState={{
-            id: 'delegatedStake',
-            desc: true,
-          }}
-          onRowClick={(row) => {
-            navigate(`/gateways/${row.owner}`);
-          }}
-          tableId="my-stakes-active"
-        />
-      ) : (
-        <TableView
-          key="pendingWithdrawalsTable"
-          columns={pendingWithdrawalsColumns}
-          data={pendingWithdrawals || []}
-          isLoading={isFetching || pendingWithdrawals === undefined}
-          isError={gatewaysError || delegateStakesError}
-          noDataFoundText="No withdrawals found."
-          errorText="Unable to load withdrawals."
-          loadingRows={10}
-          defaultSortingState={{
-            id: 'label',
-            desc: true,
-          }}
-          onRowClick={(row) => {
-            navigate(`/gateways/${row.owner}`);
-          }}
-          tableId="my-stakes-withdrawals"
-        />
-      )}
-      {showWithdrawAllModal && activeStakes !== undefined && (
+      <TableView
+        key="unifiedStakesTable"
+        columns={columns}
+        data={unifiedStakes || []}
+        isLoading={isFetching || unifiedStakes === undefined}
+        isError={gatewaysError || delegateStakesError}
+        noDataFoundText="No stakes found."
+        errorText="Unable to load stakes."
+        loadingRows={10}
+        defaultSortingState={{
+          id: 'amount',
+          desc: true,
+        }}
+        onRowClick={(row) => {
+          navigate(`/gateways/${row.owner}`);
+        }}
+        tableId="my-stakes-unified"
+      />
+      {showWithdrawAllModal && unifiedStakes !== undefined && (
         <WithdrawAllModal
-          activeStakes={activeStakes}
+          activeStakes={unifiedStakes
+            .filter((s) => s.status === 'Active')
+            .map((s) => ({
+              owner: s.owner,
+              delegatedStake: s.amount,
+              gateway: s.gateway,
+            }))}
           onClose={() => setShowWithdrawAllModal(false)}
         />
       )}

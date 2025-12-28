@@ -365,7 +365,7 @@ const MyStakesTable = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center gap-4 rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-3 py-2">
+      <div className="flex w-full items-center overflow-x-auto gap-4 rounded-t-xl border border-grey-600 bg-containerL3 pl-6 pr-3 py-2">
         <div className="grow text-sm text-mid">My Stakes</div>
 
         <div className="flex items-center gap-3">

@@ -72,7 +72,7 @@ const ObserverPerformancePanel = ({
 
       {/* Main Content */}
       <div className="relative z-10">
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center overflow-x-auto justify-between">
           <div className="text-sm text-mid">Observer Performance</div>
           <div className="flex items-center gap-3">
             <EpochSelector value={epochCount} onChange={onEpochCountChange} />

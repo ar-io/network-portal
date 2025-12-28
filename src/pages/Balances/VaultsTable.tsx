@@ -173,7 +173,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
 
   return (
     <div>
-      <div className="flex w-full items-center rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
+      <div className="flex w-full items-center overflow-x-auto rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
         <div className="grow text-sm text-mid">Locked Token Vaults</div>
         <ColumnSelector tableId="vaults" columns={columns} />
       </div>

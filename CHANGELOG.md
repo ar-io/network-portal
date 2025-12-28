@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.3] - 2025-12-28
+
+### Changed
+
+- Improved responsive padding and overflow handling across all pages
+- Added consistent horizontal padding (px-4 on mobile, px-6 on desktop)
+- Fixed overflow issues with proper scrollbar styling
+- Added overflow-x-auto to table headers for better mobile experience
+- Simplified layout structure by removing redundant wrapper divs
+
 ## [1.22.2] - 2025-12-19
 
 ### Fixed

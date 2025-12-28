@@ -210,7 +210,7 @@ const ObserversTable = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem] text-sm">
+      <div className="flex w-full items-center overflow-x-auto justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem] text-sm">
         <div className="flex items-center gap-4">
           <div className="text-mid">
             Observers{' '}

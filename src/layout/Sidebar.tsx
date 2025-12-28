@@ -119,7 +119,7 @@ const Sidebar = () => {
 
   const sideBarClasses = `fixed lg:sticky top-0 left-0 z-40 h-screen flex flex-col p-6
     dark:bg-grey-1000 dark:text-mid transition-transform duration-300 ease-in-out
-    w-fit lg:max-w-48
+    w-fit lg:max-w-48 border-r dark:border-transparent-100-8
     ${isMobile && !isMobileOpen ? '-translate-x-full' : 'translate-x-0'}
     lg:translate-x-0`;
 

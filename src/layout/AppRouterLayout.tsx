@@ -14,7 +14,7 @@ function AppRouterLayout() {
         className={`flex h-full ${aoCongested ? 'h-[calc(100vh-2rem)]' : ''}`}
       >
         <Sidebar />
-        <main className="flex-1 overflow-hidden px-6 lg:pl-0">
+        <main className="flex-1 overflow-hidden lg:pl-0">
           <Outlet />
         </main>
       </div>

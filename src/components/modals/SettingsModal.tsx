@@ -82,7 +82,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
             </div>
           </div>
 
-          <div className="my-8 flex grow flex-col gap-2 overflow-y-auto text-sm text-mid scrollbar">
+          <div className="flex grow flex-col gap-2 overflow-y-auto text-sm text-mid scrollbar">
             <div className="flex items-center">
               <div className="grow">AO CU URL</div>
 
@@ -117,7 +117,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
             </div>
           </div>
 
-          <div className="my-8 flex grow flex-col gap-2 overflow-y-auto text-sm text-mid scrollbar">
+          <div className="flex grow flex-col gap-2 overflow-y-auto text-sm text-mid scrollbar">
             <div className="flex items-center">
               <div className="grow">Arweave GQL URL</div>
 

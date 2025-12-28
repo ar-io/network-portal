@@ -18,12 +18,12 @@ const Dashboard = () => {
       </div>
       <div className="flex-1 px-4 lg:px-6 py-2 overflow-scroll scrollbar scrollbar-thin">
         <div className="h-full">
-          <div className="flex w-full flex-col gap-6 pb-46">
+          <div className="flex w-full flex-col gap-6 pb-4">
             {/* CTA Section at the top */}
             <CTASection />
 
             {/* Main Dashboard Content */}
-            <div className="flex w-full flex-col gap-6 pb-46 lg:flex-row">
+            <div className="flex w-full flex-col gap-6 pb-4 lg:flex-row">
               <div className="flex flex-col gap-6">
                 <IOTokenDistributionPanel />
                 <NetworkStatsPanel />

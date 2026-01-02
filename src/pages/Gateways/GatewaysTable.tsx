@@ -63,7 +63,7 @@ const GatewaysTable = () => {
     domain: 'settings.fqdn',
     owner: 'gatewayAddress',
     start: 'startTimestamp',
-    totalStake: 'totalDelegatedStake',
+    totalStake: 'stake',
     status: 'status',
     performance: 'stats.passedEpochCount',
     streak: 'stats.passedConsecutiveEpochs',

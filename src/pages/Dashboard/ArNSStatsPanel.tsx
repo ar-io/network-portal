@@ -50,7 +50,13 @@ const ArNSStatsPanel = ({
                   <stop offset="95%" stopColor="#E19EE5" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
-              <YAxis axisLine={false} tickLine={false} tick={false} width={0} />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={false}
+                width={0}
+                domain={['dataMin', 'dataMax']}
+              />
               <Area
                 type="monotone"
                 dataKey="totalActiveNames"
@@ -65,18 +71,11 @@ const ArNSStatsPanel = ({
         </div>
       )}
 
-      {/* Insufficient data message */}
-      {historicalArNSStats && historicalArNSStats.length === 1 && (
-        <div className="absolute bottom-2 right-2 text-xs text-low opacity-50 pointer-events-none">
-          Historical trend available soon
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-mid">
-            ArNS Names Purchased
+            ArNS Names
             {arnsStats && (
               <Tooltip
                 message={
@@ -108,15 +107,27 @@ const ArNSStatsPanel = ({
             Awaiting first epoch...
           </div>
         ) : (
-          <>
-            <div className="self-center text-center text-[2.625rem] font-bold text-high">
-              {arnsStats ? (
-                formatWithCommas(arnsStats.namesPurchased)
-              ) : (
-                <Placeholder />
-              )}
+          <div className="flex items-end justify-between">
+            <div className="flex flex-col">
+              <div className="text-[2.625rem] font-bold text-high leading-none">
+                {arnsStats ? (
+                  formatWithCommas(arnsStats.namesPurchased)
+                ) : (
+                  <Placeholder />
+                )}
+              </div>
             </div>
-          </>
+            <div className="flex flex-col items-end">
+              <div className="text-xs text-mid mb-1">Demand Factor</div>
+              <div className="text-2xl font-bold text-high">
+                {arnsStats ? (
+                  arnsStats.demandFactor.toFixed(3)
+                ) : (
+                  <Placeholder />
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

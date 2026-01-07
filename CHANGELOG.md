@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.23.0] - 2026-01-07
+
+### Changed
+
+- Updated ArNS Stats Panel: renamed header to "ArNS Names", moved count to left, added demand factor display on right
+- Fixed ArNS Stats chart Y-axis domain to properly show data variation
+- Bumped `@ar.io/sdk` to `3.23.0-alpha.3`
 
 ## [1.22.4] - 2026-01-07
 

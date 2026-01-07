@@ -21,11 +21,11 @@ const BalancesForAddress = () => {
   }, [walletAddress]);
 
   return (
-    <div className="flex h-full max-w-full flex-col">
-      <div className="mb-4 px-4 lg:px-6 shrink-0">
+    <div className="px-4 lg:px-6 flex h-full max-w-full flex-col">
+      <div className="mb-4 shrink-0">
         <Header />
       </div>
-      <div className="flex-1 px-4 lg:px-6 py-2 overflow-scroll scrollbar scrollbar-thin">
+      <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
         <div className="h-full">
           <div className="flex flex-col gap-6 pb-6">
             {walletAddressData ? (

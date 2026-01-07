@@ -37,9 +37,22 @@ const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
         cursor = result.nextCursor;
       }
 
+      // if totalStake sorting, we need to do it client side because totalStake is not a field in the API
+      if (sortBy === 'totalStake') {
+        allGateways.sort((a, b) => {
+          const stakeA = a.totalDelegatedStake + a.operatorStake;
+          const stakeB = b.totalDelegatedStake + b.operatorStake;
+          if (sortOrder === 'asc') {
+            return stakeA - stakeB;
+          } else {
+            return stakeB - stakeA;
+          }
+        });
+      }
+
       return allGateways;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60 * 60 * 1000,
     enabled: !!arIOReadSDK,
     placeholderData: (previousData) => previousData,
   });

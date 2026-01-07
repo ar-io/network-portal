@@ -73,8 +73,8 @@ export default function ExtensionDetail({
   const isGithubUrl = extension.url.includes('github.com');
 
   return (
-    <div className="flex h-full max-w-full flex-col gap-6">
-      <div className="px-4 lg:px-6 py-2 shrink-0">
+    <div className="px-4 lg:px-6 flex h-full max-w-full flex-col gap-6">
+      <div className="py-2 shrink-0">
         <Header />
       </div>
 

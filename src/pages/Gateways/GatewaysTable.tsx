@@ -63,7 +63,7 @@ const GatewaysTable = () => {
     domain: 'settings.fqdn',
     owner: 'gatewayAddress',
     start: 'startTimestamp',
-    totalStake: 'totalDelegatedStake',
+    totalStake: 'totalStake',
     status: 'status',
     performance: 'stats.passedEpochCount',
     streak: 'stats.passedConsecutiveEpochs',
@@ -71,8 +71,7 @@ const GatewaysTable = () => {
 
   const sortColumn = sorting[0]?.id;
   const sortDesc = sorting[0]?.desc;
-  const apiSortBy =
-    (sortColumn && sortMapping[sortColumn]) || 'totalDelegatedStake';
+  const apiSortBy = (sortColumn && sortMapping[sortColumn]) || 'totalStake';
   const apiSortOrder = sortDesc ? 'desc' : 'asc';
 
   const {

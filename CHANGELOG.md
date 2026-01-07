@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Use client-side sorting on `GatewaysTable` when sorting by `totalStake`
+- Fix `My Gateway` overlay on Gateways page
 
 ## [1.22.3] - 2025-12-28
 

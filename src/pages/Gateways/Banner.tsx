@@ -35,13 +35,7 @@ const Banner = () => {
   const { data: allGateways } = useAllGateways();
 
   return (
-    <div
-      className={
-        walletAddress && gatewayStatus === GatewayStatus.FOUND
-          ? 'sticky top-4 z-10'
-          : ''
-      }
-    >
+    <div>
       {walletAddress && gatewayStatus === GatewayStatus.FOUND ? (
         <div>
           <button

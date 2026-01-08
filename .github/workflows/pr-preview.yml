@@ -45,5 +45,5 @@ jobs:
           arns-name: ${{ secrets.ARNS_NAME }}
           preview: "true"
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-folder: ./out
+          deploy-folder: ./dist
           ttl-seconds: "60"

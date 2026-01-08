@@ -23,27 +23,33 @@ const Dashboard = () => {
             <CTASection />
 
             {/* Main Dashboard Content */}
-            <div className="flex w-full flex-col gap-6 pb-4 lg:flex-row">
-              <div className="flex flex-col gap-6">
+            <div className="flex w-full grid grid-cols-1 md:grid-cols-5 gap-6">
+              <div className="col-span-1">
                 <IOTokenDistributionPanel />
-                <NetworkStatsPanel />
               </div>
-
-              <div className="flex grow flex-col gap-6 lg:min-w-[50rem]">
+              <div className="col-span-1 md:col-span-4">
                 <GatewaysInNetworkPanel
                   epochCount={epochCount}
                   onEpochCountChange={setEpochCount}
                 />
-                <div className="grid h-fit gap-6 lg:grid-cols-2">
-                  <ObserverPerformancePanel
-                    epochCount={epochCount}
-                    onEpochCountChange={setEpochCount}
-                  />
-                  <ArNSStatsPanel
-                    epochCount={epochCount}
-                    onEpochCountChange={setEpochCount}
-                  />
-                </div>
+              </div>
+              <div className="col-span-1">
+                <NetworkStatsPanel />
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <ObserverPerformancePanel
+                  epochCount={epochCount}
+                  onEpochCountChange={setEpochCount}
+                />
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <ArNSStatsPanel
+                  epochCount={epochCount}
+                  onEpochCountChange={setEpochCount}
+                />
+              </div>
+              <div className="hidden md:block md:col-span-1" />
+              <div className="col-span-1 md:col-span-4">
                 <RewardsDistributionPanel
                   epochCount={epochCount}
                   onEpochCountChange={setEpochCount}

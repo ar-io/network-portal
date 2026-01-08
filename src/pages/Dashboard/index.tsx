@@ -48,8 +48,7 @@ const Dashboard = () => {
                   onEpochCountChange={setEpochCount}
                 />
               </div>
-              <div className="hidden md:block md:col-span-1" />
-              <div className="col-span-1 md:col-span-4">
+              <div className="col-span-1 md:col-span-4 md:col-start-2">
                 <RewardsDistributionPanel
                   epochCount={epochCount}
                   onEpochCountChange={setEpochCount}

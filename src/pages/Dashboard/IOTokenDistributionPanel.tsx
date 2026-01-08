@@ -78,7 +78,7 @@ const IOTokenDistributionPanel = () => {
   );
 
   return (
-    <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500 lg:w-[22rem]">
+    <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500">
       <div className="text-gradient px-5 pt-5 text-sm">
         {data && activeIndex !== undefined
           ? data[activeIndex].name
@@ -136,7 +136,7 @@ const IOTokenDistributionPanel = () => {
           </div>
         )}
       </div>
-      <div className="grid w-full grid-cols-5 gap-2 rounded-b-xl bg-containerL3 p-2 py-4">
+      <div className="grid w-full grid-cols-5 gap-2 rounded-b-xl bg-containerL3 p-2">
         {data?.map((entry, index) => {
           return (
             <div

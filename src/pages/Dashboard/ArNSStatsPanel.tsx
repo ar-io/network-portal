@@ -6,14 +6,8 @@ import useArNSStatsWithCount from '@src/hooks/useArNSStatsWithCount';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import { formatWithCommas } from '@src/utils';
 import { InfoIcon } from 'lucide-react';
-import {
-  Area,
-  AreaChart,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  YAxis,
-} from 'recharts';
+import { useState } from 'react';
+import { Area, AreaChart, ResponsiveContainer, YAxis } from 'recharts';
 
 interface ArNSStatsPanelProps {
   epochCount: number;
@@ -27,16 +21,26 @@ const ArNSStatsPanel = ({
   const { data: epochSettings } = useEpochSettings();
   const { data: arnsStats } = useArNSStats();
   const { data: historicalArNSStats } = useArNSStatsWithCount(epochCount);
+  const [hoveredData, setHoveredData] = useState<{
+    epochIndex: number;
+    totalActiveNames: number;
+  } | null>(null);
 
   return (
-    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 lg:min-w-[22rem] h-64 overflow-hidden">
+    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 lg:min-w-[22rem] h-full min-h-64 overflow-hidden">
       {/* Background Chart */}
       {historicalArNSStats && historicalArNSStats.length >= 2 && (
-        <div className="absolute inset-0 top-16 opacity-20 pointer-events-none">
+        <div className="absolute inset-0 top-16 opacity-20">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={historicalArNSStats}
               margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              onMouseMove={(state) => {
+                if (state?.activePayload?.[0]?.payload) {
+                  setHoveredData(state.activePayload[0].payload);
+                }
+              }}
+              onMouseLeave={() => setHoveredData(null)}
             >
               <defs>
                 <linearGradient
@@ -109,8 +113,15 @@ const ArNSStatsPanel = ({
         ) : (
           <div className="flex items-end justify-between">
             <div className="flex flex-col">
+              {hoveredData && (
+                <div className="text-xs text-mid mb-1">
+                  Epoch {hoveredData.epochIndex}
+                </div>
+              )}
               <div className="text-[2.625rem] font-bold text-high leading-none">
-                {arnsStats ? (
+                {hoveredData ? (
+                  formatWithCommas(hoveredData.totalActiveNames)
+                ) : arnsStats ? (
                   formatWithCommas(arnsStats.namesPurchased)
                 ) : (
                   <Placeholder />

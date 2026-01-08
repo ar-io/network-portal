@@ -23,7 +23,7 @@ const Dashboard = () => {
             <CTASection />
 
             {/* Main Dashboard Content */}
-            <div className="flex w-full grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div className="w-full grid grid-cols-1 md:grid-cols-5 gap-6">
               <div className="col-span-1">
                 <IOTokenDistributionPanel />
               </div>

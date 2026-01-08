@@ -27,7 +27,7 @@ const ObserverPerformancePanel = ({
     : undefined;
 
   return (
-    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 lg:min-w-[22rem] h-64 overflow-hidden">
+    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 lg:min-w-[22rem] overflow-hidden h-full min-h-64">
       {/* Background Chart */}
       {historicalObserverStats && historicalObserverStats.length >= 2 && (
         <div className="absolute inset-0 top-16 opacity-20 pointer-events-none">

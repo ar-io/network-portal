@@ -115,11 +115,11 @@ const GatewaysInNetworkPanel = ({
                 id="gatewaysColorGradient"
                 x1="0"
                 y1="0"
-                x2="1"
+                x2="0"
                 y2="1"
               >
-                <stop offset="0%" stopColor="#F7C3A1" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="#DF9BE8" stopOpacity={0.125} />
+                <stop offset="5%" stopColor="#E19EE5" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#E19EE5" stopOpacity={0.1} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -134,8 +134,10 @@ const GatewaysInNetworkPanel = ({
             <Area
               type="monotone"
               dataKey="totalEligibleGateways"
-              stroke="white"
-              fillOpacity={1}
+              stroke="#E19EE5"
+              strokeWidth={2}
+              strokeOpacity={0.2}
+              fillOpacity={0.2}
               fill="url(#gatewaysColorGradient)"
               activeDot={{ r: 3 }} // This will always show the dot at the activeIndex
               dot={(props) => {
@@ -147,9 +149,9 @@ const GatewaysInNetworkPanel = ({
                       cx={cx}
                       cy={cy}
                       r={3}
-                      stroke="white"
-                      strokeWidth={0}
-                      fill="white"
+                      stroke="#ffffff"
+                      strokeWidth={2}
+                      fill="#E19EE5"
                     />
                   );
                 }

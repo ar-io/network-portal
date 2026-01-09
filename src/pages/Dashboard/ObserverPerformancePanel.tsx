@@ -5,8 +5,15 @@ import { BinocularsIcon } from '@src/components/icons';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
 import { useGlobalState } from '@src/store';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Area, AreaChart, ResponsiveContainer, YAxis } from 'recharts';
+import {
+  Area,
+  AreaChart,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  YAxis,
+} from 'recharts';
 
 interface ObserverPerformancePanelProps {
   epochCount: number;
@@ -21,20 +28,32 @@ const ObserverPerformancePanel = ({
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const { data: epochSettings } = useEpochSettings();
   const { data: historicalObserverStats } = useObserversWithCount(epochCount);
+  const [hoveredData, setHoveredData] = useState<{
+    epochIndex: number;
+    performancePercentage: number;
+    reportsCount: number;
+    prescribedObservers: number;
+  } | null>(null);
 
   const reportsCount = currentEpoch
     ? Object.keys(currentEpoch.observations.reports).length
     : undefined;
 
   return (
-    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 lg:min-w-[22rem] overflow-hidden h-full min-h-64">
+    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 overflow-hidden h-full min-h-64">
       {/* Background Chart */}
       {historicalObserverStats && historicalObserverStats.length >= 2 && (
-        <div className="absolute inset-0 top-16 opacity-20 pointer-events-none">
+        <div className="absolute inset-0 top-16">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={historicalObserverStats}
               margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              onMouseMove={(state) => {
+                if (state?.activePayload?.[0]?.payload) {
+                  setHoveredData(state.activePayload[0].payload);
+                }
+              }}
+              onMouseLeave={() => setHoveredData(null)}
             >
               <defs>
                 <linearGradient
@@ -49,14 +68,22 @@ const ObserverPerformancePanel = ({
                 </linearGradient>
               </defs>
               <YAxis axisLine={false} tickLine={false} tick={false} width={0} />
+              <RechartsTooltip content={() => null} cursor={false} />
               <Area
                 type="monotone"
                 dataKey="performancePercentage"
                 stroke="#E19EE5"
                 strokeWidth={2}
+                strokeOpacity={0.2}
+                fillOpacity={0.2}
                 fill="url(#observerPerformanceGradient)"
                 dot={false}
-                activeDot={false}
+                activeDot={{
+                  r: 4,
+                  fill: '#E19EE5',
+                  stroke: '#ffffff',
+                  strokeWidth: 2,
+                }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -86,20 +113,34 @@ const ObserverPerformancePanel = ({
           </div>
         ) : (
           <>
-            <div className="flex grow justify-between align-bottom text-[2.625rem] font-bold text-high">
-              <div className="flex flex-col place-items-end">
-                <div className="grow" />
-                <div className="flex items-center leading-none">
-                  {reportsCount !== undefined ? (
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col">
+                {hoveredData && (
+                  <div className="text-xs text-mid mb-1">
+                    Epoch {hoveredData.epochIndex}
+                  </div>
+                )}
+                <div className="text-[2.625rem] font-bold text-high leading-none">
+                  {hoveredData ? (
+                    hoveredData.performancePercentage.toFixed(2) + '%'
+                  ) : reportsCount !== undefined ? (
                     ((100 * reportsCount) / 50).toFixed(2) + '%'
                   ) : (
                     <Placeholder />
                   )}
                 </div>
               </div>
-              <div className="flex flex-col place-items-end text-right text-xs">
+              <div className="flex flex-col items-end text-right text-xs text-mid">
                 <div className="grow" />
-                {reportsCount !== undefined ? (
+                {hoveredData ? (
+                  <>
+                    <div>
+                      {hoveredData.reportsCount}/
+                      {hoveredData.prescribedObservers}
+                    </div>
+                    <div>observations submitted</div>
+                  </>
+                ) : reportsCount !== undefined ? (
                   <>
                     <div>{reportsCount}/50</div>
                     <div>observations submitted</div>

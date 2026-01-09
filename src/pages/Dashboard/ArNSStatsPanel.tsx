@@ -7,7 +7,13 @@ import useEpochSettings from '@src/hooks/useEpochSettings';
 import { formatWithCommas } from '@src/utils';
 import { InfoIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Area, AreaChart, ResponsiveContainer, YAxis } from 'recharts';
+import {
+  Area,
+  AreaChart,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  YAxis,
+} from 'recharts';
 
 interface ArNSStatsPanelProps {
   epochCount: number;
@@ -27,10 +33,10 @@ const ArNSStatsPanel = ({
   } | null>(null);
 
   return (
-    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 lg:min-w-[22rem] h-full min-h-64 overflow-hidden">
+    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 h-full min-h-64 overflow-hidden">
       {/* Background Chart */}
       {historicalArNSStats && historicalArNSStats.length >= 2 && (
-        <div className="absolute inset-0 top-16 opacity-20">
+        <div className="absolute inset-0 top-16">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={historicalArNSStats}
@@ -61,14 +67,22 @@ const ArNSStatsPanel = ({
                 width={0}
                 domain={['dataMin', 'dataMax']}
               />
+              <RechartsTooltip content={() => null} cursor={false} />
               <Area
                 type="monotone"
                 dataKey="totalActiveNames"
                 stroke="#E19EE5"
                 strokeWidth={2}
+                strokeOpacity={0.2}
+                fillOpacity={0.2}
                 fill="url(#arnsStatsGradient)"
                 dot={false}
-                activeDot={false}
+                activeDot={{
+                  r: 4,
+                  fill: '#E19EE5',
+                  stroke: '#ffffff',
+                  strokeWidth: 2,
+                }}
               />
             </AreaChart>
           </ResponsiveContainer>

@@ -44,7 +44,7 @@ const StatsPanel = ({ gateway }: StatsPanelProps) => {
         value={
           gateway?.startTimestamp
             ? formatDateTime(new Date(gateway?.startTimestamp))
-            : undefined
+            : null
         }
       />
 

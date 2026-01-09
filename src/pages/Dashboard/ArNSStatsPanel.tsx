@@ -19,11 +19,15 @@ import {
 interface ArNSStatsPanelProps {
   epochCount: number;
   onEpochCountChange: (value: number) => void;
+  hoveredEpochIndex?: number | null;
+  onEpochHover?: (epochIndex: number | null) => void;
 }
 
 const ArNSStatsPanel = ({
   epochCount,
   onEpochCountChange,
+  hoveredEpochIndex,
+  onEpochHover,
 }: ArNSStatsPanelProps) => {
   const { data: epochSettings } = useEpochSettings();
   const { data: arnsStats } = useArNSStats();
@@ -78,6 +82,23 @@ const ArNSStatsPanel = ({
     }
   }, [historicalArNSStats, hoveredData]);
 
+  // Update hover data when external hover changes
+  useEffect(() => {
+    if (hoveredEpochIndex !== null && historicalArNSStats) {
+      const data = historicalArNSStats.find(
+        (item) => item.epochIndex === hoveredEpochIndex,
+      );
+      if (
+        data &&
+        (!hoveredData || hoveredData.epochIndex !== hoveredEpochIndex)
+      ) {
+        setHoveredData(data);
+      }
+    } else if (hoveredEpochIndex === null && hoveredData) {
+      setHoveredData(null);
+    }
+  }, [hoveredEpochIndex, historicalArNSStats, hoveredData]);
+
   return (
     <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 h-full min-h-64 overflow-hidden">
       {/* Background Chart */}
@@ -86,14 +107,21 @@ const ArNSStatsPanel = ({
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={historicalArNSStats}
-              margin={{ top: 10, right: 0, bottom: 0, left: 0 }}
+              margin={{ top: 10, right: 0, bottom: 10, left: 0 }}
               onMouseMove={(state) => {
                 if (state?.activePayload?.[0]?.payload) {
-                  setHoveredData(state.activePayload[0].payload);
+                  const payload = state.activePayload[0].payload;
+                  setHoveredData(payload);
+                  if (onEpochHover) {
+                    onEpochHover(payload.epochIndex);
+                  }
                 }
               }}
               onMouseLeave={() => {
                 setHoveredData(null);
+                if (onEpochHover) {
+                  onEpochHover(null);
+                }
               }}
             >
               <defs>
@@ -124,7 +152,27 @@ const ArNSStatsPanel = ({
                 strokeOpacity={0.2}
                 fillOpacity={0.2}
                 fill="url(#arnsStatsGradient)"
-                dot={false}
+                dot={(props) => {
+                  // eslint-disable-next-line react/prop-types
+                  const { cx, cy, payload } = props;
+                  if (
+                    hoveredData &&
+                    payload &&
+                    payload.epochIndex === hoveredData.epochIndex
+                  ) {
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill="#E19EE5"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      />
+                    );
+                  }
+                  return <></>;
+                }}
                 activeDot={{
                   r: 4,
                   fill: '#E19EE5',

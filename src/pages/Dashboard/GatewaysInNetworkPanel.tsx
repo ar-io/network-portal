@@ -40,11 +40,15 @@ const CustomTooltip = ({
 interface GatewaysInNetworkPanelProps {
   epochCount: number;
   onEpochCountChange: (value: number) => void;
+  hoveredEpochIndex?: number | null;
+  onEpochHover?: (epochIndex: number | null) => void;
 }
 
 const GatewaysInNetworkPanel = ({
   epochCount,
   onEpochCountChange,
+  hoveredEpochIndex,
+  onEpochHover,
 }: GatewaysInNetworkPanelProps) => {
   const { data: gatewaysPerEpoch } = useGatewaysPerEpochWithCount(epochCount);
   const { data: epochSettings } = useEpochSettings();
@@ -54,9 +58,17 @@ const GatewaysInNetworkPanel = ({
 
   useEffect(() => {
     if (gatewaysPerEpoch) {
-      setActiveIndex(gatewaysPerEpoch.length - 1);
+      if (hoveredEpochIndex !== null) {
+        // Find the index that matches the hovered epoch
+        const index = gatewaysPerEpoch.findIndex(
+          (item) => item.epochIndex === hoveredEpochIndex,
+        );
+        setActiveIndex(index >= 0 ? index : gatewaysPerEpoch.length - 1);
+      } else {
+        setActiveIndex(gatewaysPerEpoch.length - 1);
+      }
     }
-  }, [gatewaysPerEpoch]);
+  }, [gatewaysPerEpoch, hoveredEpochIndex]);
 
   useEffect(() => {
     if (!activeIndex || !gatewaysPerEpoch || !gatewaysPerEpoch[activeIndex]) {
@@ -69,7 +81,7 @@ const GatewaysInNetworkPanel = ({
 
       const percentageChange =
         ((currentGateways - previousGateways) / previousGateways) * 100;
-      setPercentageChange(percentageChange || undefined);
+      setPercentageChange(percentageChange);
     }
   }, [activeIndex, gatewaysPerEpoch]);
 
@@ -86,7 +98,7 @@ const GatewaysInNetworkPanel = ({
             gatewaysPerEpoch[activeIndex] &&
             gatewaysPerEpoch[activeIndex].totalEligibleGateways}
         </div>
-        {percentageChange && (
+        {percentageChange !== undefined && (
           <div className="flex h-full flex-col justify-end pb-4">
             <Streak streak={percentageChange} fixedDigits={2} rightLabel="%" />
           </div>
@@ -102,13 +114,21 @@ const GatewaysInNetworkPanel = ({
             data={gatewaysPerEpoch}
             margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
             onMouseMove={(state) => {
-              if (state.isTooltipActive) {
-                setActiveIndex(state.activeTooltipIndex);
-              } else {
-                setActiveIndex(gatewaysPerEpoch.length - 1);
+              if (
+                state.isTooltipActive &&
+                state.activeTooltipIndex !== undefined
+              ) {
+                const epochData = gatewaysPerEpoch[state.activeTooltipIndex];
+                if (epochData && onEpochHover) {
+                  onEpochHover(epochData.epochIndex);
+                }
               }
             }}
-            onMouseLeave={() => setActiveIndex(gatewaysPerEpoch.length - 1)}
+            onMouseLeave={() => {
+              if (onEpochHover) {
+                onEpochHover(null);
+              }
+            }}
           >
             <defs>
               <linearGradient
@@ -139,7 +159,6 @@ const GatewaysInNetworkPanel = ({
               strokeOpacity={0.2}
               fillOpacity={0.2}
               fill="url(#gatewaysColorGradient)"
-              activeDot={{ r: 3 }} // This will always show the dot at the activeIndex
               dot={(props) => {
                 // eslint-disable-next-line react/prop-types
                 const { cx, cy, index } = props;
@@ -148,7 +167,7 @@ const GatewaysInNetworkPanel = ({
                     <circle
                       cx={cx}
                       cy={cy}
-                      r={3}
+                      r={4}
                       stroke="#ffffff"
                       strokeWidth={2}
                       fill="#E19EE5"

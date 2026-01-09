@@ -19,11 +19,15 @@ import {
 interface ObserverPerformancePanelProps {
   epochCount: number;
   onEpochCountChange: (value: number) => void;
+  hoveredEpochIndex?: number | null;
+  onEpochHover?: (epochIndex: number | null) => void;
 }
 
 const ObserverPerformancePanel = ({
   epochCount,
   onEpochCountChange,
+  hoveredEpochIndex,
+  onEpochHover,
 }: ObserverPerformancePanelProps) => {
   const _navigate = useNavigate();
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
@@ -54,14 +58,8 @@ const ObserverPerformancePanel = ({
         const previousPerformance =
           historicalObserverStats[hoveredIndex - 1].performancePercentage;
 
-        if (previousPerformance > 0) {
-          const change =
-            ((currentPerformance - previousPerformance) / previousPerformance) *
-            100;
-          setPercentageChange(change);
-        } else {
-          setPercentageChange(undefined);
-        }
+        const change = currentPerformance - previousPerformance;
+        setPercentageChange(change);
       } else {
         setPercentageChange(undefined);
       }
@@ -75,16 +73,27 @@ const ObserverPerformancePanel = ({
       const previousPerformance =
         historicalObserverStats[secondLastIndex].performancePercentage;
 
-      if (previousPerformance > 0) {
-        const change =
-          ((currentPerformance - previousPerformance) / previousPerformance) *
-          100;
-        setPercentageChange(change);
-      } else {
-        setPercentageChange(undefined);
-      }
+      const change = currentPerformance - previousPerformance;
+      setPercentageChange(change);
     }
   }, [historicalObserverStats, hoveredData]);
+
+  // Update hover data when external hover changes
+  useEffect(() => {
+    if (hoveredEpochIndex !== null && historicalObserverStats) {
+      const data = historicalObserverStats.find(
+        (item) => item.epochIndex === hoveredEpochIndex,
+      );
+      if (
+        data &&
+        (!hoveredData || hoveredData.epochIndex !== hoveredEpochIndex)
+      ) {
+        setHoveredData(data);
+      }
+    } else if (hoveredEpochIndex === null && hoveredData) {
+      setHoveredData(null);
+    }
+  }, [hoveredEpochIndex, historicalObserverStats, hoveredData]);
 
   const reportsCount = currentEpoch
     ? Object.keys(currentEpoch.observations.reports).length
@@ -98,13 +107,22 @@ const ObserverPerformancePanel = ({
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={historicalObserverStats}
-              margin={{ top: 10, right: 0, bottom: 0, left: 0 }}
+              margin={{ top: 10, right: 0, bottom: 10, left: 0 }}
               onMouseMove={(state) => {
                 if (state?.activePayload?.[0]?.payload) {
-                  setHoveredData(state.activePayload[0].payload);
+                  const payload = state.activePayload[0].payload;
+                  setHoveredData(payload);
+                  if (onEpochHover) {
+                    onEpochHover(payload.epochIndex);
+                  }
                 }
               }}
-              onMouseLeave={() => setHoveredData(null)}
+              onMouseLeave={() => {
+                setHoveredData(null);
+                if (onEpochHover) {
+                  onEpochHover(null);
+                }
+              }}
             >
               <defs>
                 <linearGradient
@@ -128,7 +146,27 @@ const ObserverPerformancePanel = ({
                 strokeOpacity={0.2}
                 fillOpacity={0.2}
                 fill="url(#observerPerformanceGradient)"
-                dot={false}
+                dot={(props) => {
+                  // eslint-disable-next-line react/prop-types
+                  const { cx, cy, payload } = props;
+                  if (
+                    hoveredData &&
+                    payload &&
+                    payload.epochIndex === hoveredData.epochIndex
+                  ) {
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill="#E19EE5"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      />
+                    );
+                  }
+                  return <></>;
+                }}
                 activeDot={{
                   r: 4,
                   fill: '#E19EE5',

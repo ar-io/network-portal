@@ -5,7 +5,7 @@ import useEpochSettings from '@src/hooks/useEpochSettings';
 import useEpochsWithCount from '@src/hooks/useEpochsWithCount';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -146,11 +146,15 @@ const CustomUnclaimedBar = ({
 interface RewardsDistributionPanelProps {
   epochCount: number;
   onEpochCountChange: (value: number) => void;
+  hoveredEpochIndex?: number | null;
+  onEpochHover?: (epochIndex: number | null) => void;
 }
 
 const RewardsDistributionPanel = ({
   epochCount,
   onEpochCountChange,
+  hoveredEpochIndex,
+  onEpochHover,
 }: RewardsDistributionPanelProps) => {
   const ticker = useGlobalState((state) => state.ticker);
 
@@ -186,6 +190,22 @@ const RewardsDistributionPanel = ({
     return data;
   }, [epochs]);
 
+  // Update focus when external hover changes
+  useEffect(() => {
+    if (hoveredEpochIndex !== null && rewardsData) {
+      const index = rewardsData.findIndex(
+        (item) => item.epoch === hoveredEpochIndex,
+      );
+      if (index >= 0) {
+        setFocusBar(index);
+        setMouseLeave(false);
+      }
+    } else if (hoveredEpochIndex === null) {
+      setFocusBar(undefined);
+      setMouseLeave(true);
+    }
+  }, [hoveredEpochIndex, rewardsData]);
+
   return (
     <div className="rounded-xl border border-grey-500 lg:min-w-[22rem]">
       <div className="flex items-center justify-between px-5 pb-3 pt-5">
@@ -202,9 +222,18 @@ const RewardsDistributionPanel = ({
                 data={rewardsData}
                 margin={{ top: 20, right: 16, left: 8, bottom: 10 }}
                 onMouseMove={(state) => {
-                  if (state.isTooltipActive) {
+                  if (
+                    state.isTooltipActive &&
+                    state.activeTooltipIndex !== undefined
+                  ) {
                     setFocusBar(state.activeTooltipIndex);
                     setMouseLeave(false);
+                    if (rewardsData && onEpochHover) {
+                      const epochData = rewardsData[state.activeTooltipIndex];
+                      if (epochData) {
+                        onEpochHover(epochData.epoch);
+                      }
+                    }
                   } else {
                     setFocusBar(undefined);
                     setMouseLeave(true);
@@ -212,6 +241,9 @@ const RewardsDistributionPanel = ({
                 }}
                 onMouseLeave={() => {
                   setMouseLeave(true);
+                  if (onEpochHover) {
+                    onEpochHover(null);
+                  }
                 }}
                 barCategoryGap={'20%'}
               >

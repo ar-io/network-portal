@@ -10,6 +10,9 @@ import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
   const [epochCount, setEpochCount] = useState(7); // Default to 1 week
+  const [hoveredEpochIndex, setHoveredEpochIndex] = useState<number | null>(
+    null,
+  );
 
   return (
     <div className="px-4 pb-4 lg:px-6 flex h-full max-w-full flex-col">
@@ -30,6 +33,8 @@ const Dashboard = () => {
               <GatewaysInNetworkPanel
                 epochCount={epochCount}
                 onEpochCountChange={setEpochCount}
+                hoveredEpochIndex={hoveredEpochIndex}
+                onEpochHover={setHoveredEpochIndex}
               />
             </div>
             <div className="col-span-1 md:col-span-2">
@@ -39,18 +44,24 @@ const Dashboard = () => {
               <ObserverPerformancePanel
                 epochCount={epochCount}
                 onEpochCountChange={setEpochCount}
+                hoveredEpochIndex={hoveredEpochIndex}
+                onEpochHover={setHoveredEpochIndex}
               />
             </div>
             <div className="col-span-1 md:col-span-2">
               <ArNSStatsPanel
                 epochCount={epochCount}
                 onEpochCountChange={setEpochCount}
+                hoveredEpochIndex={hoveredEpochIndex}
+                onEpochHover={setHoveredEpochIndex}
               />
             </div>
             <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel
                 epochCount={epochCount}
                 onEpochCountChange={setEpochCount}
+                hoveredEpochIndex={hoveredEpochIndex}
+                onEpochHover={setHoveredEpochIndex}
               />
             </div>
           </div>

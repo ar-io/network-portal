@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.3] - 2026-01-09
+
+### Enhanced
+
+- Added interactive hover functionality to dashboard charts with epoch information display
+- Added pink circle highlights on chart hover for ArNS Stats and Observer Performance panels
+- Unified chart styling across all dashboard panels with consistent pink color scheme and opacity
+- Enhanced Observer Performance panel to display epoch-specific observations count on hover
+
+### Changed
+
+- Aligned chart fill colors and gradients across ArNS Stats, Observer Performance, and Gateways panels
+
 ## [1.23.2] - 2026-01-08
 
 ### Changed

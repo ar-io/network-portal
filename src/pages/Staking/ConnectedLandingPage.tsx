@@ -7,7 +7,6 @@ import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import DelegateStake from './DelegateStakeTable';
 import MyStakesTable from './MyStakesTable';
-import StakingInfoBanner from './StakingInfoBanner';
 import StakingRewardsCard from './StakingRewardsCard';
 
 const TopPanel = ({

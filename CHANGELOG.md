@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.0] - 2026-01-09
+
+### Added
+
+- Interactive staking rewards visualization with epoch-based chart and selector
+- Percentage change badges for ArNS Stats and Observer Performance panels
+- New `useRewardsForAddress` hook for efficient rewards data fetching with React Query caching
+- Dynamic rewards display showing individual epoch rewards on hover vs. total earned by default
+- Epoch range selector (1 week, 1 month, 3 months, 6 months) for rewards tracking
+
+### Enhanced
+
+- Staking page now displays larger, more prominent balance values in redesigned cards
+- Enhanced `Streak` component to handle 0% changes with green styling and up arrow
+- Rewards chart excludes current epoch data since rewards are only distributed when epochs complete
+- Chart scaling improvements with minimum Y-axis value of 1 for better visualization
+- Loading states with placeholder skeletons instead of misleading zero values
+
+### Changed
+
+- Staking rewards card now shows cumulative rewards by default with individual epoch details on hover
+- Percentage change calculations now contextually switch between total vs. individual epoch comparisons
+- Chart axes are hidden for cleaner appearance while maintaining proper data scaling
+- Rewards data rounded to one decimal place for improved chart readability
+
 ## [1.23.3] - 2026-01-09
 
 ### Enhanced

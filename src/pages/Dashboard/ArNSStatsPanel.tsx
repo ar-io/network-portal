@@ -1,12 +1,13 @@
 import EpochSelector from '@src/components/EpochSelector';
 import Placeholder from '@src/components/Placeholder';
+import Streak from '@src/components/Streak';
 import Tooltip from '@src/components/Tooltip';
 import useArNSStats from '@src/hooks/useArNSStats';
 import useArNSStatsWithCount from '@src/hooks/useArNSStatsWithCount';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import { formatWithCommas } from '@src/utils';
 import { InfoIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -18,11 +19,15 @@ import {
 interface ArNSStatsPanelProps {
   epochCount: number;
   onEpochCountChange: (value: number) => void;
+  hoveredEpochIndex?: number | null;
+  onEpochHover?: (epochIndex: number | null) => void;
 }
 
 const ArNSStatsPanel = ({
   epochCount,
   onEpochCountChange,
+  hoveredEpochIndex,
+  onEpochHover,
 }: ArNSStatsPanelProps) => {
   const { data: epochSettings } = useEpochSettings();
   const { data: arnsStats } = useArNSStats();
@@ -31,6 +36,68 @@ const ArNSStatsPanel = ({
     epochIndex: number;
     totalActiveNames: number;
   } | null>(null);
+  const [percentageChange, setPercentageChange] = useState<number>();
+
+  useEffect(() => {
+    if (!historicalArNSStats || historicalArNSStats.length < 2) {
+      setPercentageChange(undefined);
+      return;
+    }
+
+    // If hovering, calculate based on hovered data
+    if (hoveredData) {
+      const hoveredIndex = historicalArNSStats.findIndex(
+        (item) => item.epochIndex === hoveredData.epochIndex,
+      );
+
+      if (hoveredIndex > 0) {
+        const currentNames = hoveredData.totalActiveNames;
+        const previousNames =
+          historicalArNSStats[hoveredIndex - 1].totalActiveNames;
+
+        if (previousNames > 0) {
+          const change = ((currentNames - previousNames) / previousNames) * 100;
+          setPercentageChange(change);
+        } else {
+          setPercentageChange(undefined);
+        }
+      } else {
+        setPercentageChange(undefined);
+      }
+    } else {
+      // Default to showing last epoch vs previous
+      const lastIndex = historicalArNSStats.length - 1;
+      const secondLastIndex = lastIndex - 1;
+
+      const currentNames = historicalArNSStats[lastIndex].totalActiveNames;
+      const previousNames =
+        historicalArNSStats[secondLastIndex].totalActiveNames;
+
+      if (previousNames > 0) {
+        const change = ((currentNames - previousNames) / previousNames) * 100;
+        setPercentageChange(change);
+      } else {
+        setPercentageChange(undefined);
+      }
+    }
+  }, [historicalArNSStats, hoveredData]);
+
+  // Update hover data when external hover changes
+  useEffect(() => {
+    if (hoveredEpochIndex !== null && historicalArNSStats) {
+      const data = historicalArNSStats.find(
+        (item) => item.epochIndex === hoveredEpochIndex,
+      );
+      if (
+        data &&
+        (!hoveredData || hoveredData.epochIndex !== hoveredEpochIndex)
+      ) {
+        setHoveredData(data);
+      }
+    } else if (hoveredEpochIndex === null && hoveredData) {
+      setHoveredData(null);
+    }
+  }, [hoveredEpochIndex, historicalArNSStats, hoveredData]);
 
   return (
     <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 h-full min-h-64 overflow-hidden">
@@ -40,13 +107,22 @@ const ArNSStatsPanel = ({
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={historicalArNSStats}
-              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              margin={{ top: 10, right: 0, bottom: 10, left: 0 }}
               onMouseMove={(state) => {
                 if (state?.activePayload?.[0]?.payload) {
-                  setHoveredData(state.activePayload[0].payload);
+                  const payload = state.activePayload[0].payload;
+                  setHoveredData(payload);
+                  if (onEpochHover) {
+                    onEpochHover(payload.epochIndex);
+                  }
                 }
               }}
-              onMouseLeave={() => setHoveredData(null)}
+              onMouseLeave={() => {
+                setHoveredData(null);
+                if (onEpochHover) {
+                  onEpochHover(null);
+                }
+              }}
             >
               <defs>
                 <linearGradient
@@ -76,7 +152,27 @@ const ArNSStatsPanel = ({
                 strokeOpacity={0.2}
                 fillOpacity={0.2}
                 fill="url(#arnsStatsGradient)"
-                dot={false}
+                dot={(props) => {
+                  // eslint-disable-next-line react/prop-types
+                  const { cx, cy, payload } = props;
+                  if (
+                    hoveredData &&
+                    payload &&
+                    payload.epochIndex === hoveredData.epochIndex
+                  ) {
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill="#E19EE5"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      />
+                    );
+                  }
+                  return <></>;
+                }}
                 activeDot={{
                   r: 4,
                   fill: '#E19EE5',
@@ -132,14 +228,25 @@ const ArNSStatsPanel = ({
                   Epoch {hoveredData.epochIndex}
                 </div>
               )}
-              <div className="text-[2.625rem] font-bold text-high leading-none">
-                {hoveredData ? (
-                  formatWithCommas(hoveredData.totalActiveNames)
-                ) : arnsStats ? (
-                  formatWithCommas(arnsStats.namesPurchased)
-                ) : (
-                  <Placeholder />
-                )}
+              <div className="flex items-baseline gap-3">
+                <div className="text-[2.625rem] font-bold text-high leading-none">
+                  {hoveredData ? (
+                    formatWithCommas(hoveredData.totalActiveNames)
+                  ) : arnsStats ? (
+                    formatWithCommas(arnsStats.namesPurchased)
+                  ) : (
+                    <Placeholder />
+                  )}
+                </div>
+                <div className="min-w-[4rem]">
+                  {percentageChange !== undefined && (
+                    <Streak
+                      streak={percentageChange}
+                      fixedDigits={2}
+                      rightLabel="%"
+                    />
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex flex-col items-end">

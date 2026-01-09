@@ -1,11 +1,12 @@
 import Button from '@src/components/Button';
 import EpochSelector from '@src/components/EpochSelector';
 import Placeholder from '@src/components/Placeholder';
+import Streak from '@src/components/Streak';
 import { BinocularsIcon } from '@src/components/icons';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
 import { useGlobalState } from '@src/store';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Area,
@@ -18,11 +19,15 @@ import {
 interface ObserverPerformancePanelProps {
   epochCount: number;
   onEpochCountChange: (value: number) => void;
+  hoveredEpochIndex?: number | null;
+  onEpochHover?: (epochIndex: number | null) => void;
 }
 
 const ObserverPerformancePanel = ({
   epochCount,
   onEpochCountChange,
+  hoveredEpochIndex,
+  onEpochHover,
 }: ObserverPerformancePanelProps) => {
   const _navigate = useNavigate();
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
@@ -34,6 +39,61 @@ const ObserverPerformancePanel = ({
     reportsCount: number;
     prescribedObservers: number;
   } | null>(null);
+  const [percentageChange, setPercentageChange] = useState<number>();
+
+  useEffect(() => {
+    if (!historicalObserverStats || historicalObserverStats.length < 2) {
+      setPercentageChange(undefined);
+      return;
+    }
+
+    if (hoveredData) {
+      // When hovering, calculate based on hovered data
+      const hoveredIndex = historicalObserverStats.findIndex(
+        (item) => item.epochIndex === hoveredData.epochIndex,
+      );
+
+      if (hoveredIndex > 0) {
+        const currentPerformance = hoveredData.performancePercentage;
+        const previousPerformance =
+          historicalObserverStats[hoveredIndex - 1].performancePercentage;
+
+        const change = currentPerformance - previousPerformance;
+        setPercentageChange(change);
+      } else {
+        setPercentageChange(undefined);
+      }
+    } else {
+      // Default to showing last performance vs previous
+      const lastIndex = historicalObserverStats.length - 1;
+      const secondLastIndex = lastIndex - 1;
+
+      const currentPerformance =
+        historicalObserverStats[lastIndex].performancePercentage;
+      const previousPerformance =
+        historicalObserverStats[secondLastIndex].performancePercentage;
+
+      const change = currentPerformance - previousPerformance;
+      setPercentageChange(change);
+    }
+  }, [historicalObserverStats, hoveredData]);
+
+  // Update hover data when external hover changes
+  useEffect(() => {
+    if (hoveredEpochIndex !== null && historicalObserverStats) {
+      const data = historicalObserverStats.find(
+        (item) => item.epochIndex === hoveredEpochIndex,
+      );
+      if (
+        data &&
+        (!hoveredData || hoveredData.epochIndex !== hoveredEpochIndex)
+      ) {
+        setHoveredData(data);
+      }
+    } else if (hoveredEpochIndex === null && hoveredData) {
+      setHoveredData(null);
+    }
+  }, [hoveredEpochIndex, historicalObserverStats, hoveredData]);
 
   const reportsCount = currentEpoch
     ? Object.keys(currentEpoch.observations.reports).length
@@ -47,13 +107,22 @@ const ObserverPerformancePanel = ({
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={historicalObserverStats}
-              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              margin={{ top: 10, right: 0, bottom: 10, left: 0 }}
               onMouseMove={(state) => {
                 if (state?.activePayload?.[0]?.payload) {
-                  setHoveredData(state.activePayload[0].payload);
+                  const payload = state.activePayload[0].payload;
+                  setHoveredData(payload);
+                  if (onEpochHover) {
+                    onEpochHover(payload.epochIndex);
+                  }
                 }
               }}
-              onMouseLeave={() => setHoveredData(null)}
+              onMouseLeave={() => {
+                setHoveredData(null);
+                if (onEpochHover) {
+                  onEpochHover(null);
+                }
+              }}
             >
               <defs>
                 <linearGradient
@@ -77,7 +146,27 @@ const ObserverPerformancePanel = ({
                 strokeOpacity={0.2}
                 fillOpacity={0.2}
                 fill="url(#observerPerformanceGradient)"
-                dot={false}
+                dot={(props) => {
+                  // eslint-disable-next-line react/prop-types
+                  const { cx, cy, payload } = props;
+                  if (
+                    hoveredData &&
+                    payload &&
+                    payload.epochIndex === hoveredData.epochIndex
+                  ) {
+                    return (
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill="#E19EE5"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      />
+                    );
+                  }
+                  return <></>;
+                }}
                 activeDot={{
                   r: 4,
                   fill: '#E19EE5',
@@ -120,14 +209,25 @@ const ObserverPerformancePanel = ({
                     Epoch {hoveredData.epochIndex}
                   </div>
                 )}
-                <div className="text-[2.625rem] font-bold text-high leading-none">
-                  {hoveredData ? (
-                    hoveredData.performancePercentage.toFixed(2) + '%'
-                  ) : reportsCount !== undefined ? (
-                    ((100 * reportsCount) / 50).toFixed(2) + '%'
-                  ) : (
-                    <Placeholder />
-                  )}
+                <div className="flex items-baseline gap-3">
+                  <div className="text-[2.625rem] font-bold text-high leading-none">
+                    {hoveredData ? (
+                      hoveredData.performancePercentage.toFixed(2) + '%'
+                    ) : reportsCount !== undefined ? (
+                      ((100 * reportsCount) / 50).toFixed(2) + '%'
+                    ) : (
+                      <Placeholder />
+                    )}
+                  </div>
+                  <div className="min-w-[4rem]">
+                    {percentageChange !== undefined && (
+                      <Streak
+                        streak={percentageChange}
+                        fixedDigits={2}
+                        rightLabel="%"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex flex-col items-end text-right text-xs text-mid">

@@ -1,0 +1,56 @@
+{
+  "extensions": [
+    {
+      "id": "ao-cu-sidecar",
+      "name": "AO Legacy Compute Unit (CU) Sidecar",
+      "description": "Run a local AO Compute Unit alongside your gateway for processing AO messages and maintaining process state.",
+      "longDescription": "The AO Compute Unit (CU) Sidecar enables your gateway to operate as a computational node in the AO ecosystem. By running a CU locally, your gateway can process AO messages, execute WebAssembly modules, maintain process state, and create checkpoints directly to Arweave. This eliminates dependency on external compute services, significantly improves response times for AO queries, and allows you to contribute computational resources to the decentralized AO network. Essential for gateways serving AO-powered applications, or even just for ArNS, GAR or other AR.IO Network Process needs..",
+      "author": "Forward Research",
+      "authorUrl": "https://fwd.ar.io",
+      "url": "https://github.com/permaweb/ao/tree/main/servers/cu",
+      "category": "compute",
+      "tags": ["official", "stable"],
+      "version": "0.2.3",
+      "imageUri": "ghcr.io/permaweb/ao-cu:latest",
+      "lastUpdated": "2025-01-09",
+      "minGatewayVersion": "N/A",
+      "documentation": "https://docs.ar.io/gateways/cu",
+      "logo": "https://github.com/permaweb/ao/raw/main/logos/ao_pictograph_darkmode.svg"
+    },
+    {
+      "id": "bundler-sidecar",
+      "name": "AR.IO Bundler Sidecar",
+      "description": "The AR.IO Bundler Sidecar is a Docker-ready ANS-104 bundler that runs alongside an AR.IO gateway to submit data to Arweave independently.",
+      "longDescription": "The AR.IO Bundler Sidecar is a Docker-deployable ANS-104 bundler, based on ArDrive Turbo, that runs alongside your AR.IO Gateway to accept and submit data items to Arweave. It uses a separate Docker Compose file for independent control, letting you start or stop the bundler without disrupting gateway operations. A shared network ensures seamless integration and direct communication between the bundler and the gateway.",
+      "author": "AR.IO Labs",
+      "authorUrl": "https://ar.io",
+      "url": "https://github.com/ardriveapp/turbo-upload-service",
+      "category": "storage",
+      "tags": ["official", "beta"],
+      "version": "1.0.0-beta.2",
+      "imageUri": "ghcr.io/ar-io/turbo-bundler:bundler",
+      "lastUpdated": "2025-01-08",
+      "minGatewayVersion": "25",
+      "logo": "f_zUr27rrP5AdssUstaPWSlWPkvI9gJ586501AcMui8",
+      "documentation": "https://docs.ar.io/gateways/bundler"
+    },
+    {
+      "id": "grafana-sidecar",
+      "name": "AR.IO Grafana Sidecar",
+      "description": "Docker-ready Grafana sidecar for visualizing AR.IO Gateway metrics via Prometheus.",
+      "longDescription": "The AR.IO Grafana Sidecar is a Docker-deployable monitoring dashboard that visualizes AR.IO Gateway performance and health metrics tracked via Prometheus. It runs in a separate container alongside the gateway using a shared network, allowing seamless integration without modifying core services. Easily monitor uptime, latency, errors, and more—all through a familiar Grafana interface.",
+      "author": "AR.IO Labs",
+      "authorUrl": "https://ar.io",
+      "url": "https://github.com/ar-io/ar-io-node/tree/develop/monitoring/grafana",
+      "category": "monitoring",
+      "tags": ["official", "stable"],
+      "version": "0.9.2",
+      "imageUri": "grafana/grafana:0.9.2-alpine",
+      "lastUpdated": "2025-01-07",
+      "minGatewayVersion": "25",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Grafana_logo.svg/512px-Grafana_logo.svg.png",
+      "documentation": "https://docs.ar.io/gateways/grafana",
+      "screenshots": ["R_qwVFIB4E57W893H974vjJ9r7O_3G9hzxsJY7Z1nt0"]
+    }
+  ]
+}

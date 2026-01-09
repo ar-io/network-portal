@@ -9,20 +9,16 @@ const Streak = ({
   fixedDigits?: number;
   rightLabel?: string;
 }) => {
-  if (streak === 0) {
-    return '';
-  }
-
   if (streak === Number.NEGATIVE_INFINITY) {
     return 'N/A';
   }
 
   const colorClasses =
-    streak > 0
+    streak >= 0
       ? 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up'
       : 'border-text-red/[.56] bg-text-red/[.1] text-text-red';
   const icon =
-    streak > 0 ? (
+    streak >= 0 ? (
       <StreakUpArrowIcon className="size-3" />
     ) : (
       <StreakDownArrowIcon className="size-3" />

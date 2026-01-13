@@ -5,8 +5,10 @@ import Bubble from '@src/components/Bubble';
 import ColumnSelector from '@src/components/ColumnSelector';
 import TableView from '@src/components/TableView';
 import { Assessment, ReportData } from '@src/types';
+import { formatWithCommas } from '@src/utils';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface TableData {
   observedHost: string;
@@ -38,6 +40,17 @@ const GatewayAssessmentsTable = ({
 
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment>();
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const tableData = useMemo<Array<TableData>>(() => {
     return Object.entries(reportData.gatewayAssessments).flatMap(
       ([observedHost, assessment]) =>
@@ -59,6 +72,18 @@ const GatewayAssessmentsTable = ({
         ),
     );
   }, [reportData]);
+
+  // Filter data by search term
+  const filteredData = useMemo(() => {
+    if (!tableData || !debouncedSearchTerm) return tableData;
+    const lowerSearch = debouncedSearchTerm.toLowerCase();
+    return tableData.filter(
+      (item) =>
+        item.observedHost.toLowerCase().includes(lowerSearch) ||
+        item.expectedOwner.toLowerCase().includes(lowerSearch) ||
+        (item.observedOwner?.toLowerCase().includes(lowerSearch) ?? false),
+    );
+  }, [tableData, debouncedSearchTerm]);
 
   const columns = useMemo<ColumnDef<TableData, any>[]>(
     () => [
@@ -149,13 +174,28 @@ const GatewayAssessmentsTable = ({
 
   return (
     <div className="mb-6">
-      <div className="flex w-full items-center overflow-x-auto rounded-t-xl border border-grey-600 bg-containerL3 py-[0.9375rem] pl-6 pr-[0.8125rem]">
-        <div className="grow text-sm text-mid">Reports</div>
+      <div className="flex w-full items-center justify-between overflow-x-auto rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem] text-sm">
+        <div className="flex items-center gap-4">
+          <div className="text-mid">
+            Gateway Assessments{' '}
+            {`(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(tableData.length)}` : ''})`}
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
+            <input
+              type="text"
+              placeholder="Search by host or owner..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-[300px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
+            />
+          </div>
+        </div>
         <ColumnSelector tableId="gateway-assessments" columns={columns} />
       </div>
       <TableView
         columns={columns}
-        data={tableData || []}
+        data={filteredData}
         isLoading={false}
         noDataFoundText="No reports found."
         defaultSortingState={{ id: 'observedHost', desc: false }}

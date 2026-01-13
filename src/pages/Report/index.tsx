@@ -16,7 +16,7 @@ const Report = () => {
   const { isLoading, data: reportData } = useReport(reportId);
 
   return (
-    <div className="flex h-full max-w-full flex-col gap-6">
+    <div className="flex h-full max-w-full flex-col gap-6 px-4 pb-6 lg:px-6">
       <ReportHeader gateway={gateway} reportData={reportData} />
       <div className="flex-1 overflow-hidden">
         {isLoading || !reportData ? undefined : reportData ? (

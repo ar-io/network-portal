@@ -15,7 +15,7 @@ const Reports = () => {
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
 
   return (
-    <div className="flex h-full max-w-full flex-col gap-6 pb-6">
+    <div className="flex h-full max-w-full flex-col gap-6 px-4 pb-6 lg:px-6">
       <ReportsHeader gateway={gateway} />
       <div className="flex-1 overflow-hidden">
         {isLoading || !currentEpoch ? undefined : ownerId && gateway ? (

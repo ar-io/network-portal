@@ -18,7 +18,8 @@
       "Bash(cat:*)",
       "Bash(rg:*)",
       "WebFetch(domain:github.com)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": []
   }

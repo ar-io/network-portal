@@ -49,7 +49,10 @@ const config = createConfig({
     metaMask({
       extensionOnly: true,
       injectProvider: false,
-      dappMetadata: { name: 'Network Portal by ar.io', iconUrl: './ario.svg' },
+      dappMetadata: {
+        name: 'Network Portal by ar.io',
+        iconUrl: './favicon.svg',
+      },
     }),
   ],
   transports: {

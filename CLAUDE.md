@@ -32,10 +32,11 @@ yarn deploy        # Deploy to Arweave (requires env vars)
 
 ### State Management
 
-- **Zustand** for global state (see `/src/store/index.ts`)
-- Key global state includes: wallet info, SDK instances, current epoch, block height
+- **Zustand** for global state with two stores:
+  - `useGlobalState` (`/src/store/globalState.ts`) - wallet info, SDK instances, current epoch, block height, theme
+  - `useSettings` (`/src/store/settings.ts`) - user-configurable settings (AO CU URL, ARIO process ID)
 - **React Query** for server state with 5-minute default cache time
-- **IndexedDB** (via Dexie) for persistent caching of observations and epochs
+- **IndexedDB** (via Dexie) for persistent caching of observations and epochs (`/src/store/db.ts`)
 
 ### Data Fetching Pattern
 
@@ -55,17 +56,34 @@ const useDataHook = (params) => {
 };
 ```
 
+### SDK Integration
+
+- Uses `@ar.io/sdk` for all ar.io network interactions
+- `arIOReadSDK` for read operations (available without wallet)
+- `arIOWriteableSDK` for write operations (requires connected wallet with signer)
+- SDKs are reinstantiated when settings change (AO CU URL or ARIO process ID)
+
 ### Multi-Wallet Architecture
 
-- Supports ArConnect (Arweave), MetaMask (Ethereum), and Beacon wallets
-- Wallet logic abstracted in `/src/services/wallets/`
-- Unified through `WalletProvider` context
+- Supports Wander (Arweave), MetaMask (Ethereum), and Beacon wallets
+- Wallet connectors in `/src/services/wallets/` implement `NetworkPortalWalletConnector` interface
+- `WalletProvider` component handles wallet connection lifecycle and events
+- Wallet type persisted in localStorage
+
+### App Initialization
+
+`GlobalDataProvider` handles app-wide data initialization:
+- Fetches current epoch and ticker on load
+- Updates block height every 2 minutes
+- Monitors AO CU URL for congestion (5s threshold)
+- Cleans up stale IndexedDB cache
 
 ### Routing
 
 - Hash-based routing with React Router v6
 - Lazy-loaded route components
-- Main routes: `/dashboard`, `/gateways`, `/staking`, `/observers`, `/balances`
+- Main routes: `/dashboard`, `/gateways`, `/gateways/:ownerId`, `/staking`, `/observers`, `/balances`, `/extensions`
+- Nested routes for reports: `/gateways/:ownerId/reports`, `/gateways/:ownerId/reports/:reportId`
 
 ### Key Domain Concepts
 
@@ -79,10 +97,11 @@ const useDataHook = (params) => {
 
 - `/src/components/` - Reusable UI components
 - `/src/hooks/` - Data fetching and business logic hooks
-- `/src/pages/` - Route page components
+- `/src/pages/` - Route page components (organized by feature)
 - `/src/services/` - External service integrations
 - `/src/store/` - Zustand state management
 - `/src/utils/` - Helper functions
+- `/tests/` - Test files (also some co-located in `/src/`)
 
 ### Development Notes
 

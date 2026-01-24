@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import {
   ArioLogoIcon,
+  ArioWordmarkIcon,
   BinocularsIcon,
   CloseDrawerIcon,
   ContractIcon,
@@ -158,15 +159,11 @@ const Sidebar = () => {
         id="sidebar-navigation"
         aria-label="Main navigation"
       >
-        <div className="flex pb-[3.25rem]">
-          <ArioLogoIcon className="h-[1.6875rem] w-[2.125rem]" />
-          {(sidebarOpen || isMobileOpen) && (
-            <div className="pl-3">
-              <p className="align-top text-sm leading-none text-neutrals-100">
-                NETWORK PORTAL
-              </p>
-              <p className="text-xs">by ar.io</p>
-            </div>
+        <div className="flex items-center pb-[3.25rem]">
+          {sidebarOpen || isMobileOpen ? (
+            <ArioWordmarkIcon className="h-9 w-auto" />
+          ) : (
+            <ArioLogoIcon className="h-12 w-auto" />
           )}
         </div>
         <div className="dark:text-grey-100">

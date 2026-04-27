@@ -129,7 +129,7 @@ const Sidebar = () => {
     <button
       onClick={toggleMobileMenu}
       onKeyDown={(e) => e.key === 'Enter' && toggleMobileMenu()}
-      className={`fixed left-4 ${aoCongested ? 'top-[4.5rem]' : 'top-4'} z-50 rounded-md p-2 text-grey-100 focus:outline-none focus:ring-2 focus:ring-grey-100 lg:hidden`}
+      className={`fixed left-4 ${aoCongested ? 'top-[7rem]' : 'top-[3.5rem]'} z-50 rounded-md p-2 text-grey-100 focus:outline-none focus:ring-2 focus:ring-grey-100 lg:hidden`}
       aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
       aria-expanded={isMobileOpen}
       aria-controls="sidebar-navigation"

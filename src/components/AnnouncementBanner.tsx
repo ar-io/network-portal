@@ -1,6 +1,12 @@
+const SNAPSHOT_DATE = new Date('2026-05-15T00:00:00Z');
+
 function AnnouncementBanner() {
+  if (Date.now() > SNAPSHOT_DATE.getTime()) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-row items-center justify-center gap-2 bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end px-4 py-2 text-sm text-grey-1100">
+    <div className="flex flex-row flex-wrap items-center justify-center gap-x-2 bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end px-4 py-2 text-center text-sm text-grey-1100 dark:text-grey-1100">
       <span>
         <span className="font-bold">Ar.io is migrating to Solana.</span>{' '}
         Gateways will continue to serve names and data. Register before the May

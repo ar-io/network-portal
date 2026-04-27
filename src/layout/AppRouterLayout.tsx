@@ -1,3 +1,4 @@
+import AnnouncementBanner from '@src/components/AnnouncementBanner';
 import NetworkStatusBanner from '@src/components/NetworkStatusBanner';
 import { useGlobalState } from '@src/store';
 import { Toaster } from 'react-hot-toast';
@@ -9,6 +10,7 @@ function AppRouterLayout() {
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden dark:bg-grey-1000 dark:text-grey-100">
+      <AnnouncementBanner />
       <NetworkStatusBanner />
       <div
         className={`flex h-full ${aoCongested ? 'h-[calc(100vh-2rem)]' : ''}`}

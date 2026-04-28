@@ -25,8 +25,7 @@ function AnnouncementBanner() {
     >
       <span>
         <span className="font-bold">Ar.io is migrating to Solana.</span>{' '}
-        Gateways will continue to serve names and data. Register before the May
-        15, 2026 snapshot!
+        Register before the May 15, 2026 snapshot!
       </span>
       <a
         href="https://ar.io/solana-migration/"

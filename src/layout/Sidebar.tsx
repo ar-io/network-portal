@@ -123,6 +123,7 @@ const Sidebar = () => {
     lg:translate-x-0`;
 
   // Mobile menu button (only visible on mobile)
+  // Positioned absolutely relative to AppRouterLayout's "relative flex" wrapper
   const mobileMenuButton = isMobile && !isMobileOpen && (
     <button
       onClick={toggleMobileMenu}

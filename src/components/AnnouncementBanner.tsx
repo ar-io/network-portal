@@ -1,3 +1,5 @@
+import { ExternalLink } from 'lucide-react';
+
 const SNAPSHOT_DATE = new Date('2026-05-15T00:00:00Z');
 
 function AnnouncementBanner() {
@@ -18,7 +20,7 @@ function AnnouncementBanner() {
         rel="noopener noreferrer"
         className="whitespace-nowrap font-bold underline hover:opacity-80"
       >
-        Learn More →
+        Learn More <ExternalLink className="inline size-3" />
       </a>
     </div>
   );

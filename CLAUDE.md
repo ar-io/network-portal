@@ -25,22 +25,36 @@ yarn tsc --noEmit  # Type check without building
 
 # Build and deploy
 yarn build         # Production build
-yarn deploy        # Deploy to Arweave (requires env vars)
+yarn deploy        # Deploy to Arweave (requires VITE_IO_PROCESS_ID, VITE_ARNS_NAME, DEPLOY_KEY env vars)
 ```
+
+## Code Conventions
+
+- **Formatting**: Biome with single quotes, 2-space indent
+- **Commits**: Conventional Commits enforced via commitlint (`feat:`, `fix:`, `chore:`, etc.)
+- **Pre-commit**: Husky runs lint-staged which auto-fixes with Biome on `*.{ts,tsx,js,md,json}`
+- **Path aliases**: Use `@src/*` for `./src/*` and `@tests/*` for `./tests/*` (configured in both tsconfig.json and vite.config.ts)
+- **SVGs**: Import as React components via vite-plugin-svgr; icon components live in `/src/components/icons/` (only barrel export in the project)
 
 ## High-Level Architecture
 
+### Provider Stack (App.tsx)
+
+Components wrap in this order (outermost first):
+`WagmiProvider` → `QueryClientProvider` → `GlobalDataProvider` → `WalletProvider` → `MathJaxContext` → `RouterProvider`
+
 ### State Management
 
-- **Zustand** for global state with two stores:
+- **Zustand** for global state:
   - `useGlobalState` (`/src/store/globalState.ts`) - wallet info, SDK instances, current epoch, block height, theme
   - `useSettings` (`/src/store/settings.ts`) - user-configurable settings (AO CU URL, ARIO process ID)
+  - `useColumnPreferences` (`/src/store/columnPreferences.ts`) - table column visibility
 - **React Query** for server state with 5-minute default cache time
 - **IndexedDB** (via Dexie) for persistent caching of observations and epochs (`/src/store/db.ts`)
 
 ### Data Fetching Pattern
 
-All data fetching uses custom hooks in `/src/hooks/` following this pattern:
+45+ custom hooks in `/src/hooks/` follow this pattern:
 
 ```typescript
 const useDataHook = (params) => {
@@ -69,6 +83,7 @@ const useDataHook = (params) => {
 - Wallet connectors in `/src/services/wallets/` implement `NetworkPortalWalletConnector` interface
 - `WalletProvider` component handles wallet connection lifecycle and events
 - Wallet type persisted in localStorage
+- Wagmi config handles Ethereum chain interactions (mainnet only)
 
 ### App Initialization
 
@@ -80,10 +95,9 @@ const useDataHook = (params) => {
 
 ### Routing
 
-- Hash-based routing with React Router v6
-- Lazy-loaded route components
-- Main routes: `/dashboard`, `/gateways`, `/gateways/:ownerId`, `/staking`, `/observers`, `/balances`, `/extensions`
-- Nested routes for reports: `/gateways/:ownerId/reports`, `/gateways/:ownerId/reports/:reportId`
+- Hash-based routing (`createHashRouter`) with React Router v6, wrapped by Sentry
+- All route components lazy-loaded with `React.lazy()` except Dashboard
+- Routes: `/dashboard`, `/gateways`, `/gateways/:ownerId`, `/gateways/:ownerId/reports`, `/gateways/:ownerId/reports/:reportId`, `/gateways/:ownerId/observe`, `/staking`, `/observers`, `/balances`, `/balances/:walletAddress`, `/extensions`
 
 ### Key Domain Concepts
 
@@ -95,13 +109,20 @@ const useDataHook = (params) => {
 
 ### Important Directories
 
-- `/src/components/` - Reusable UI components
+- `/src/components/` - Reusable UI components (flat structure with `/forms`, `/modals`, `/panels`, `/charts` subdirs)
 - `/src/hooks/` - Data fetching and business logic hooks
-- `/src/pages/` - Route page components (organized by feature)
-- `/src/services/` - External service integrations
+- `/src/pages/` - Route page components (one directory per page with `index.tsx`)
+- `/src/services/` - External service integrations (Sentry, wallet connectors)
 - `/src/store/` - Zustand state management
 - `/src/utils/` - Helper functions
-- `/tests/` - Test files (also some co-located in `/src/`)
+- `/tokens/` - Design token definitions (primitives.json consumed by Tailwind config)
+- `/tests/` - Test files (some also co-located in `/src/`)
+
+### Testing
+
+- Vitest with globals enabled (no need to import `describe`, `it`, `expect`, etc.)
+- Separate `vitest.config.ts` for test configuration
+- Coverage thresholds: 80% for branches, functions, and lines
 
 ### Development Notes
 
@@ -109,4 +130,4 @@ const useDataHook = (params) => {
 - Environment variables use `VITE_` prefix
 - Pre-commit hooks run Biome via Husky
 - CI/CD deploys to GitHub Pages (staging) and Arweave (production)
-- Uses Tailwind CSS with custom design tokens in `/tokens/`
+- Tailwind CSS with custom design tokens in `/tokens/`, Rubik font, dark mode support

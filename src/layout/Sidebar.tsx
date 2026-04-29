@@ -72,8 +72,6 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const sidebarOpen = useSettings((state) => state.sidebarOpen);
-  const aoCongested = useGlobalState((state) => state.aoCongested);
-
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
@@ -125,11 +123,12 @@ const Sidebar = () => {
     lg:translate-x-0`;
 
   // Mobile menu button (only visible on mobile)
+  // Positioned absolutely relative to AppRouterLayout's "relative flex" wrapper
   const mobileMenuButton = isMobile && !isMobileOpen && (
     <button
       onClick={toggleMobileMenu}
       onKeyDown={(e) => e.key === 'Enter' && toggleMobileMenu()}
-      className={`fixed left-4 ${aoCongested ? 'top-[4.5rem]' : 'top-4'} z-50 rounded-md p-2 text-grey-100 focus:outline-none focus:ring-2 focus:ring-grey-100 lg:hidden`}
+      className="absolute left-4 top-4 z-50 rounded-md p-2 text-grey-100 focus:outline-none focus:ring-2 focus:ring-grey-100 lg:hidden"
       aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
       aria-expanded={isMobileOpen}
       aria-controls="sidebar-navigation"

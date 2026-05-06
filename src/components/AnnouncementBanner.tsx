@@ -1,7 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const SNAPSHOT_DATE = new Date('2026-05-15T00:00:00Z');
+const SNAPSHOT_DATE = new Date('2026-06-01T00:00:00Z');
 
 function AnnouncementBanner() {
   const [, setTick] = useState(0);
@@ -25,7 +25,7 @@ function AnnouncementBanner() {
     >
       <span>
         <span className="font-bold">Ar.io is migrating to Solana.</span>{' '}
-        Register before the May 15, 2026 snapshot!
+        Register before the June 1, 2026 snapshot!
       </span>
       <a
         href="https://ar.io/solana-migration/"

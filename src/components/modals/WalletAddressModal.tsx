@@ -1,4 +1,4 @@
-import { isValidAoAddress } from '@src/utils';
+import { isValidSolanaAddress } from '@src/utils';
 import { useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import BaseModal from './BaseModal';
@@ -15,7 +15,7 @@ const WalletAddressModal = ({
   const [walletAddress, setWalletAddress] = useState('');
 
   const isValidAddress = useMemo(() => {
-    return isValidAoAddress(walletAddress);
+    return isValidSolanaAddress(walletAddress);
   }, [walletAddress]);
 
   return (

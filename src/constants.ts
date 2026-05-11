@@ -1,8 +1,4 @@
-import { ARIO_TESTNET_PROCESS_ID } from '@ar.io/sdk/web';
 import * as loglevel from 'loglevel';
-
-import Ar from 'arweave/web/ar';
-import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
 
@@ -17,15 +13,26 @@ export const WRITE_OPTIONS = {
   ],
 };
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
-export const ARIO_PROCESS_ID = new ArweaveTransactionID(
-  import.meta.env.VITE_ARIO_PROCESS_ID ?? ARIO_TESTNET_PROCESS_ID,
-);
-export const AO_CU_URL =
-  import.meta.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';
+
+export const SOLANA_RPC_URL =
+  import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
+
+// Program ID overrides for localnet/devnet. When unset, the SDK uses its
+// hardcoded mainnet placeholder addresses.
+export const SOLANA_CORE_PROGRAM_ID =
+  import.meta.env.VITE_ARIO_CORE_PROGRAM_ID || undefined;
+export const SOLANA_GAR_PROGRAM_ID =
+  import.meta.env.VITE_ARIO_GAR_PROGRAM_ID || undefined;
+export const SOLANA_ARNS_PROGRAM_ID =
+  import.meta.env.VITE_ARIO_ARNS_PROGRAM_ID || undefined;
+export const SOLANA_ANT_PROGRAM_ID =
+  import.meta.env.VITE_ARIO_ANT_PROGRAM_ID || undefined;
+
 export const DEFAULT_ARWEAVE_PROTOCOL =
   import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
-  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net'; // TODO: likely should change to ar-io.net depending on how this is used throughout the app
+  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net';
 
 export const DEFAULT_ARWEAVE_GQL_ENDPOINT =
   import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ?? 'https://arweave.net/graphql';
@@ -36,8 +43,6 @@ export const THEME_TYPES = {
   LIGHT: 'light',
   DARK: 'dark',
 };
-
-export const AR = new Ar();
 
 // Unicode non-breaking space that renders where &nbsp; does not in React code
 export const NBSP = '\u00A0';
@@ -69,5 +74,3 @@ export const REDELEGATION_FEE_TOOLTIP_TEXT =
 
 export const BRIDGE_BALANCE_ADDRESS =
   'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
-export const BASE_TOKEN_CONTRACT_URL =
-  'https://basescan.org/token/0x138746adfa52909e5920def027f5a8dc1c7effb6';

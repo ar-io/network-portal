@@ -1,22 +1,14 @@
+import { ARIO, AoARIORead, AoARIOWrite, AoEpochData } from '@ar.io/sdk/web';
+import { address, createSolanaRpc } from '@solana/kit';
+import type { Rpc, SolanaRpcApi } from '@solana/kit';
 import {
-  AOProcess,
-  ARIO,
-  AoARIORead,
-  AoARIOWrite,
-  AoEpochData,
-  ContractSigner,
-} from '@ar.io/sdk/web';
-import { connect } from '@permaweb/aoconnect';
-import {
-  DEFAULT_ARWEAVE_HOST,
-  DEFAULT_ARWEAVE_PORT,
-  DEFAULT_ARWEAVE_PROTOCOL,
+  SOLANA_ARNS_PROGRAM_ID,
+  SOLANA_CORE_PROGRAM_ID,
+  SOLANA_GAR_PROGRAM_ID,
   THEME_TYPES,
 } from '@src/constants';
-import { AoAddress, NetworkPortalWalletConnector } from '@src/types';
-import Arweave from 'arweave/web';
+import { AoAddress } from '@src/types';
 import { create } from 'zustand';
-import { shallow } from 'zustand/shallow';
 import { NetworkPortalDB, createDb } from './db';
 import { useSettings } from './settings';
 
@@ -24,154 +16,91 @@ type ThemeType = (typeof THEME_TYPES)[keyof typeof THEME_TYPES];
 
 type GlobalState = {
   theme: ThemeType;
-  arweave: Arweave;
+  rpc: Rpc<SolanaRpcApi>;
+  solanaRpcUrl: string;
   arIOReadSDK: AoARIORead;
   arIOWriteableSDK?: AoARIOWrite;
-  blockHeight?: number;
+  solanaSlot?: number;
   currentEpoch?: AoEpochData;
   walletAddress?: AoAddress;
-  wallet?: NetworkPortalWalletConnector;
   walletStateInitialized: boolean;
   ticker: string;
-  aoCongested: boolean;
-  contractSigner?: ContractSigner;
   networkPortalDB: NetworkPortalDB;
   isMobile: boolean;
 };
 
 type GlobalStateActions = {
   setTheme: (theme: ThemeType) => void;
-  setBlockHeight: (blockHeight: number) => void;
+  setSolanaSlot: (slot: number) => void;
   setCurrentEpoch: (currentEpoch: AoEpochData) => void;
-  updateWallet: (
-    walletAddress?: AoAddress,
-    wallet?: NetworkPortalWalletConnector,
-  ) => void;
-  setContractSigner: (signer?: ContractSigner) => void;
+  updateWallet: (walletAddress?: AoAddress) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
-  setAoCongested: (congested: boolean) => void;
   setIsMobile: (isMobile: boolean) => void;
+  setWriteSDK: (sdk?: AoARIOWrite) => void;
 };
+
+const makeRpc = (rpcUrl: string) => createSolanaRpc(rpcUrl);
+
+const makeArIOReadSDK = (rpc: Rpc<SolanaRpcApi>): AoARIORead => {
+  return ARIO.init({
+    backend: 'solana',
+    rpc,
+    ...(SOLANA_CORE_PROGRAM_ID
+      ? { coreProgramId: address(SOLANA_CORE_PROGRAM_ID) }
+      : {}),
+    ...(SOLANA_GAR_PROGRAM_ID
+      ? { garProgramId: address(SOLANA_GAR_PROGRAM_ID) }
+      : {}),
+    ...(SOLANA_ARNS_PROGRAM_ID
+      ? { arnsProgramId: address(SOLANA_ARNS_PROGRAM_ID) }
+      : {}),
+  });
+};
+
+const initialSolanaRpcUrl = useSettings.getState().solanaRpcUrl;
+const initialRpc = makeRpc(initialSolanaRpcUrl);
 
 const initialGlobalState: GlobalState = {
   theme: THEME_TYPES.DARK,
-  arweave: Arweave.init({
-    host: DEFAULT_ARWEAVE_HOST,
-    protocol: DEFAULT_ARWEAVE_PROTOCOL,
-    port: DEFAULT_ARWEAVE_PORT,
-  }),
-  arIOReadSDK: ARIO.init({
-    process: new AOProcess({
-      processId: useSettings.getState().arioProcessId,
-      ao: connect({
-        CU_URL: useSettings.getState().aoCuUrl,
-      }),
-    }),
-  }),
+  rpc: initialRpc,
+  solanaRpcUrl: initialSolanaRpcUrl,
+  arIOReadSDK: makeArIOReadSDK(initialRpc),
   walletStateInitialized: false,
   ticker: '',
-  aoCongested: false,
-  networkPortalDB: createDb(useSettings.getState().arioProcessId),
+  networkPortalDB: createDb('solana-mainnet'),
   isMobile: window.innerWidth < 1024,
-};
-
-const makeArIOReadSDK = ({
-  aoCuUrl,
-  arioProcessId,
-}: {
-  aoCuUrl: string;
-  arioProcessId: string;
-}) => {
-  return ARIO.init({
-    process: new AOProcess({
-      processId: arioProcessId,
-      ao: connect({
-        CU_URL: aoCuUrl,
-      }),
-    }),
-  });
-};
-
-const makeArIOWriteSDK = ({
-  aoCuUrl,
-  arioProcessId,
-  contractSigner,
-}: {
-  aoCuUrl: string;
-  arioProcessId: string;
-  contractSigner?: ContractSigner;
-}) => {
-  if (!contractSigner) return undefined;
-  return ARIO.init({
-    signer: contractSigner,
-    process: new AOProcess({
-      processId: arioProcessId,
-      ao: connect({
-        CU_URL: aoCuUrl,
-      }),
-    }),
-  });
 };
 
 class GlobalStateActionBase implements GlobalStateActions {
   constructor(
     private set: (props: Partial<GlobalState>, replace?: boolean) => void,
-    get: () => GlobalStateInterface,
+    _get: () => GlobalStateInterface,
   ) {
-    /* Subscribe to changes in the Settings store.
-     * If/When: The user changes the AO CU URL or the AR.IO Process in the SettingsModal,
-     * Then: Reinstantiate the AR.IO read and write SDKs.
-     */
     useSettings.subscribe(
-      (state) => [state.aoCuUrl, state.arioProcessId],
-      ([aoCuUrl, arioProcessId]) => {
-        const { contractSigner } = get();
-        const arIOReadSDK = makeArIOReadSDK({ aoCuUrl, arioProcessId });
-        const arIOWriteableSDK = makeArIOWriteSDK({
-          aoCuUrl,
-          arioProcessId,
-          contractSigner,
-        });
-        set({ arIOReadSDK, arIOWriteableSDK });
-      },
-      { equalityFn: shallow },
-    );
-    /* Subscribe to changes in the Settings store.
-     * If/When: The user changes the AR.IO Process in the SettingsModal,
-     * Then: Close and re-open the Dexie (IndexedDB) database.
-     */
-    useSettings.subscribe(
-      (state) => state.arioProcessId,
-      (arioProcessId) => {
-        const currentEpoch = undefined;
-        let { networkPortalDB } = get();
-        networkPortalDB.close();
-        networkPortalDB = createDb(arioProcessId);
-        set({ currentEpoch, networkPortalDB });
+      (state) => state.solanaRpcUrl,
+      (solanaRpcUrl) => {
+        const rpc = makeRpc(solanaRpcUrl);
+        const arIOReadSDK = makeArIOReadSDK(rpc);
+        set({ rpc, solanaRpcUrl, arIOReadSDK, arIOWriteableSDK: undefined });
       },
     );
   }
 
   setTheme = (theme: ThemeType) => {
     this.set({ theme });
-    // disabling as this should not be done in the store
-    // applyThemePreference(theme);
   };
 
-  setBlockHeight = (blockHeight: number) => {
-    this.set({ blockHeight });
+  setSolanaSlot = (solanaSlot: number) => {
+    this.set({ solanaSlot });
   };
 
   setCurrentEpoch = (currentEpoch: AoEpochData) => {
     this.set({ currentEpoch });
   };
 
-  updateWallet = (
-    walletAddress?: AoAddress,
-    wallet?: NetworkPortalWalletConnector,
-  ) => {
-    this.set({ walletAddress, wallet });
+  updateWallet = (walletAddress?: AoAddress) => {
+    this.set({ walletAddress });
   };
 
   setWalletStateInitialized = (initialized: boolean) => {
@@ -182,22 +111,12 @@ class GlobalStateActionBase implements GlobalStateActions {
     this.set({ ticker });
   };
 
-  setAoCongested = (congested: boolean) => {
-    this.set({ aoCongested: congested });
-  };
-
-  setContractSigner = (contractSigner?: ContractSigner) => {
-    const { aoCuUrl, arioProcessId } = useSettings.getState();
-    const arIOWriteableSDK = makeArIOWriteSDK({
-      aoCuUrl,
-      arioProcessId,
-      contractSigner,
-    });
-    this.set({ contractSigner, arIOWriteableSDK });
-  };
-
   setIsMobile = (isMobile: boolean) => {
     this.set({ isMobile });
+  };
+
+  setWriteSDK = (arIOWriteableSDK?: AoARIOWrite) => {
+    this.set({ arIOWriteableSDK });
   };
 }
 

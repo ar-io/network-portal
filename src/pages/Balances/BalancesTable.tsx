@@ -40,9 +40,6 @@ const BalancesTable = () => {
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'liquidBalance', desc: true },
   ]);
-  const arioProcessId = useGlobalState(
-    (state) => state.arIOReadSDK?.process?.processId ?? '',
-  );
   const navigate = useNavigate();
 
   // Debounce search term to avoid excessive API calls
@@ -87,11 +84,7 @@ const BalancesTable = () => {
     }
 
     const enrichedData: TableData[] = allBalances
-      .filter(
-        (balance) =>
-          balance.address !== arioProcessId.toString() &&
-          balance.address !== BRIDGE_BALANCE_ADDRESS,
-      )
+      .filter((balance) => balance.address !== BRIDGE_BALANCE_ADDRESS)
       .map((balance, index) => {
         const vaultData = vaultsByAddress?.get(balance.address) || {
           vaultCount: 0,
@@ -115,7 +108,7 @@ const BalancesTable = () => {
 
     setTableData(enrichedData);
     setIsProcessingData(false);
-  }, [allBalances, vaultsByAddress, arioProcessId]);
+  }, [allBalances, vaultsByAddress]);
 
   // Prefetch other sort combinations when data loads
   useEffect(() => {

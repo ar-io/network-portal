@@ -1,6 +1,6 @@
 import { AoGatewayWithAddress } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
-import { isValidAoAddress } from '@src/utils';
+import { isValidSolanaAddress } from '@src/utils';
 import { useQuery } from '@tanstack/react-query';
 
 const useGateway = ({
@@ -19,10 +19,10 @@ const useGateway = ({
         );
       }
 
-      if (!isValidAoAddress(ownerWalletAddress)) {
+      if (!isValidSolanaAddress(ownerWalletAddress)) {
         return Promise.reject(
           new Error(
-            `Error: Unable to find gateway. '${ownerWalletAddress}' is not a valid AO wallet address.`,
+            `Error: Unable to find gateway. '${ownerWalletAddress}' is not a valid Solana wallet address.`,
           ),
         );
       }

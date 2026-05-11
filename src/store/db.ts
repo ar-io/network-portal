@@ -20,7 +20,7 @@ export interface Observation {
   assessment: Assessment;
 }
 
-export const createDb = (dbName: string) => {
+export const createDb = (dbName: string = 'solana-mainnet') => {
   const db = new Dexie(dbName) as NetworkPortalDB;
   // Schema declaration:
   db.version(1).stores({

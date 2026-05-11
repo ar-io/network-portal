@@ -152,10 +152,6 @@ const PropertyDisplayPanel = ({
     },
     { label: 'Note:', value: gateway?.settings.note },
     {
-      label: 'Reward Auto Stake:',
-      value: gatewayLeaving ? 'N/A' : gateway?.settings.autoStake,
-    },
-    {
       label: 'Delegated Staking:',
       value: gatewayLeaving ? 'N/A' : gateway?.settings.allowDelegatedStaking,
       rightComponent:

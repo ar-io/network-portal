@@ -2,7 +2,11 @@ import { ARIOToken, AoGatewayWithAddress } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
-import { formatAddress, formatWithCommas } from '@src/utils';
+import {
+  formatAddress,
+  formatWithCommas,
+  getTransactionExplorerUrl,
+} from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -172,12 +176,9 @@ const ReviewStakeModal = ({
                 <div>Transaction ID:</div>
                 <button
                   className="flex items-center justify-center break-all"
-                  title="View transaction on AR.IO Scan"
+                  title="View transaction on Solana Explorer"
                   onClick={async () => {
-                    window.open(
-                      `https://scan.ar.io/#/message/${txid}`,
-                      '_blank',
-                    );
+                    window.open(getTransactionExplorerUrl(txid!), '_blank');
                   }}
                 >
                   {txid}

@@ -47,7 +47,7 @@ const HeaderItem = ({
 };
 
 const Header = () => {
-  const blockHeight = useGlobalState((state) => state.blockHeight);
+  const solanaSlot = useGlobalState((state) => state.solanaSlot);
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const epochCountdown = useEpochCountdown();
   const ticker = useGlobalState((state) => state.ticker);
@@ -82,9 +82,9 @@ const Header = () => {
           loading={epochCountdown === undefined}
         />
         <HeaderItem
-          value={blockHeight?.toLocaleString('en-US')}
-          label="ARWEAVE BLOCK"
-          loading={!blockHeight}
+          value={solanaSlot?.toLocaleString('en-US')}
+          label="SOLANA SLOT"
+          loading={!solanaSlot}
         />
         <HeaderItem
           value={

@@ -2,7 +2,12 @@ import { ARIOToken, AoGatewayWithAddress } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { AoAddress, WithdrawalType } from '@src/types';
-import { formatAddress, formatDateTime, formatWithCommas } from '@src/utils';
+import {
+  formatAddress,
+  formatDateTime,
+  formatWithCommas,
+  getTransactionExplorerUrl,
+} from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -235,12 +240,9 @@ const ReviewWithdrawalModal = ({
                 <div>Transaction ID:</div>
                 <button
                   className="flex items-center justify-center break-all"
-                  title="View transaction on AR.IO Scan"
+                  title="View transaction on Solana Explorer"
                   onClick={async () => {
-                    window.open(
-                      `https://scan.ar.io/#/message/${txid}`,
-                      '_blank',
-                    );
+                    window.open(getTransactionExplorerUrl(txid!), '_blank');
                   }}
                 >
                   {txid}

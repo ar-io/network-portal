@@ -10,8 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_DSN_PROJECT_ID: string;
   readonly VITE_NODE_ENV: string;
   readonly VITE_GITHUB_HASH: string;
-  readonly VITE_ARIO_PROCESS_ID: string;
-  readonly VITE_AO_CU_URL: string;
+  readonly VITE_SOLANA_RPC_URL: string;
 }
 
 interface ImportMeta {

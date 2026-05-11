@@ -42,6 +42,22 @@ const TAG_STYLES: Record<ExtensionTag, string> = {
   stable: 'bg-containerL3 text-high border border-grey-400',
 };
 
+const EXCLUDED_EXTENSION_PATTERNS = [
+  /\blegacy\s*(compute\s*unit|cu)\b/i,
+  /\bhyperbeam\b/i,
+];
+
+function isExcludedExtension(extension: Extension): boolean {
+  const searchableText = [extension.id, extension.name]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return EXCLUDED_EXTENSION_PATTERNS.some((pattern) =>
+    pattern.test(searchableText),
+  );
+}
+
 export default function Extensions() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,12 +81,15 @@ export default function Extensions() {
   });
 
   const extensions: Extension[] = extensionsData?.extensions || [];
+  const visibleExtensions = extensions.filter(
+    (ext) => !isExcludedExtension(ext),
+  );
 
   // Process dynamic categories and tags
   const dynamicCategories: Record<string, string> = {};
   const dynamicTags: Record<string, string> = {};
 
-  extensions.forEach((ext: Extension) => {
+  visibleExtensions.forEach((ext: Extension) => {
     // Validate and add category if not in predefined list
     if (ext.category && !CATEGORY_LABELS[ext.category as ExtensionCategory]) {
       const category = ext.category.trim();
@@ -91,11 +110,11 @@ export default function Extensions() {
     }
   });
 
-  const selectedExtension = extensions.find(
+  const selectedExtension = visibleExtensions.find(
     (ext) => ext.id === selectedExtensionId,
   );
 
-  const filteredExtensions = extensions.filter((ext) => {
+  const filteredExtensions = visibleExtensions.filter((ext) => {
     const matchesSearch =
       searchTerm === '' ||
       ext.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

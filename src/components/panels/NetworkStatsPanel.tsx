@@ -1,10 +1,6 @@
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
-import { InfoIcon, LinkArrowIcon } from '@src/components/icons';
-import {
-  BASE_TOKEN_CONTRACT_URL,
-  BRIDGE_BALANCE_ADDRESS,
-} from '@src/constants';
+import { InfoIcon } from '@src/components/icons';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllDelegates from '@src/hooks/useAllDelegates';
 import useAllVaults from '@src/hooks/useAllVaults';
@@ -24,10 +20,6 @@ const NetworkStatsPanel = () => {
   const { data: allDelegates, isLoading: delegatesLoading } = useAllDelegates();
   const { data: vaultsByAddress, isLoading: vaultsLoading } = useAllVaults();
   const ticker = useGlobalState((state) => state.ticker);
-
-  const bridgeBalance = allBalances?.find(
-    (balance) => balance.address === BRIDGE_BALANCE_ADDRESS,
-  );
 
   // Calculate total vaults
   const totalVaults = vaultsByAddress
@@ -73,29 +65,6 @@ const NetworkStatsPanel = () => {
         </div>
       ),
     },
-    {
-      label: `Bridged ${ticker} (Base)`,
-      value: bridgeBalance ? formatWithCommas(bridgeBalance.arioBalance) : '-',
-      isLoading: balancesLoading,
-      tooltip: (
-        <div>
-          <div>
-            Total amount of {ticker} tokens that have been bridged to the Base
-            network.
-          </div>
-          <div className="mt-2">
-            <a
-              href={BASE_TOKEN_CONTRACT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gradient hover:underline"
-            >
-              View Base token contract →
-            </a>
-          </div>
-        </div>
-      ),
-    },
   ];
 
   return (
@@ -117,25 +86,6 @@ const NetworkStatsPanel = () => {
             </div>
             {stat.isLoading ? (
               <Placeholder className="mt-1 h-6 w-20" />
-            ) : stat.label.includes('Bridged') ? (
-              <div className="flex items-center gap-2">
-                <a
-                  href={BASE_TOKEN_CONTRACT_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-2xl font-semibold text-high hover:text-primary transition-colors"
-                >
-                  {stat.value}
-                </a>
-                <a
-                  href={BASE_TOKEN_CONTRACT_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-mid hover:text-primary transition-colors"
-                >
-                  <LinkArrowIcon className="h-4 w-4" />
-                </a>
-              </div>
             ) : (
               <span className="text-2xl font-semibold text-high">
                 {stat.value}

@@ -1,21 +1,19 @@
-import { useGlobalState, useSettings } from '@src/store';
+import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 const useProtocolBalance = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const arioProcessId = useSettings((state) => state.arioProcessId);
 
   const queryResults = useQuery({
-    queryKey: ['protocolBalance', arioProcessId, arIOReadSDK],
-    queryFn: () => {
+    queryKey: ['protocolBalance', arIOReadSDK],
+    queryFn: async () => {
       if (arIOReadSDK) {
-        return arIOReadSDK.getBalance({
-          address: arioProcessId,
-        });
+        const supply = await arIOReadSDK.getTokenSupply();
+        return supply.protocolBalance;
       }
       throw new Error('Error: ArIO Read SDK is not initialized');
     },
-    enabled: !!arioProcessId && !!arIOReadSDK,
+    enabled: !!arIOReadSDK,
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 

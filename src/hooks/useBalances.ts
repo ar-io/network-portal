@@ -1,37 +1,40 @@
 import { mARIOToken } from '@ar.io/sdk/web';
-import { AR } from '@src/constants';
+import { address } from '@solana/kit';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
 import { useQuery } from '@tanstack/react-query';
 
-export type Balances = { ar: number; ario: number };
+// Constant from @solana/web3.js - 1 billion lamports per SOL
+const LAMPORTS_PER_SOL = 1000000000;
+
+export type Balances = { sol: number; ario: number };
 
 const useBalances = (walletAddress?: AoAddress) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const arweave = useGlobalState((state) => state.arweave);
-  const blockHeight = useGlobalState((state) => state.blockHeight);
+  const rpc = useGlobalState((state) => state.rpc);
+  const solanaSlot = useGlobalState((state) => state.solanaSlot);
 
   const res = useQuery<Balances>({
-    queryKey: ['balances', arIOReadSDK, arweave, walletAddress, blockHeight],
+    queryKey: ['balances', walletAddress, solanaSlot],
     queryFn: async () => {
-      if (!walletAddress || !arweave || !arIOReadSDK) {
+      if (!walletAddress || !rpc || !arIOReadSDK) {
         throw new Error(
-          'Error: Wallet Address, arweave, or arIOReadSDK is not initialized',
+          'Error: Wallet Address, rpc, or arIOReadSDK is not initialized',
         );
       }
 
-      const [mioBalance, winstonBalance] = await Promise.all([
+      const [mioBalance, lamports] = await Promise.all([
         arIOReadSDK.getBalance({ address: walletAddress.toString() }),
-        arweave.wallets.getBalance(walletAddress.toString()),
+        rpc.getBalance(address(walletAddress.toString())).send(),
       ]);
 
-      const arBalance = +AR.winstonToAr(winstonBalance);
+      const solBalance = Number(lamports.value) / LAMPORTS_PER_SOL;
       const ioBalance = new mARIOToken(mioBalance).toARIO().valueOf();
 
-      return { ar: arBalance, ario: ioBalance };
+      return { sol: solBalance, ario: ioBalance };
     },
     staleTime: 5 * 60 * 1000,
-    enabled: !!walletAddress && !!arweave && !!arIOReadSDK,
+    enabled: !!walletAddress && !!rpc && !!arIOReadSDK,
   });
 
   return res;

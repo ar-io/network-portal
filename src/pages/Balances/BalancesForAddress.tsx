@@ -1,6 +1,5 @@
 import Header from '@src/components/Header';
-import { isArweaveTransactionID, isEthAddress } from '@src/utils';
-import { ArweaveTransactionID } from '@src/utils/ArweaveTransactionId';
+import { isSolanaAddress } from '@src/utils/solanaAddress';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Banner from './Banner';
@@ -13,11 +12,9 @@ const BalancesForAddress = () => {
   const walletAddressData = useMemo(() => {
     return walletAddress === undefined
       ? undefined
-      : isEthAddress(walletAddress)
+      : isSolanaAddress(walletAddress)
         ? walletAddress
-        : isArweaveTransactionID(walletAddress)
-          ? new ArweaveTransactionID(walletAddress)
-          : undefined;
+        : undefined;
   }, [walletAddress]);
 
   return (

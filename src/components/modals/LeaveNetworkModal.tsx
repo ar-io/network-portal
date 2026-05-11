@@ -2,7 +2,7 @@ import { mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
-import { formatWithCommas } from '@src/utils';
+import { formatWithCommas, getTransactionExplorerUrl } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -152,12 +152,9 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
                 <div>Transaction ID:</div>
                 <button
                   className="flex items-center justify-center break-all"
-                  title="View transaction on AR.IO Scan"
+                  title="View transaction on Solana Explorer"
                   onClick={async () => {
-                    window.open(
-                      `https://scan.ar.io/#/message/${txid}`,
-                      '_blank',
-                    );
+                    window.open(getTransactionExplorerUrl(txid!), '_blank');
                   }}
                 >
                   {txid}

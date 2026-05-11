@@ -82,9 +82,9 @@ const Header = () => {
           loading={epochCountdown === undefined}
         />
         <HeaderItem
-          value={solanaSlot?.toLocaleString('en-US')}
+          value={solanaSlot}
           label="SOLANA SLOT"
-          loading={!solanaSlot}
+          loading={solanaSlot === undefined}
         />
         <HeaderItem
           value={

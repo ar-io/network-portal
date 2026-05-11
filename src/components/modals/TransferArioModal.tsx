@@ -64,8 +64,10 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
 
   useEffect(() => {
     const arioBalance = balances?.ario ?? 0;
+    const normalizedRecipient = recipient.trim();
     const hasRecipientError =
-      !isValidSolanaAddress(recipient) && recipient.length > 0;
+      !isValidSolanaAddress(normalizedRecipient) &&
+      normalizedRecipient.length > 0;
     const hasAmountError = isNaN(+amount) || +amount > arioBalance;
     setRecipientError(hasRecipientError ? 'Invalid address' : undefined);
     setAmountError(
@@ -79,7 +81,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
     setFormValid(
       !hasRecipientError &&
         !hasAmountError &&
-        recipient.length > 0 &&
+        normalizedRecipient.length > 0 &&
         +amount > 0,
     );
   }, [amount, balances, balances?.ario, recipient]);
@@ -178,7 +180,11 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
                     className="flex items-center justify-center break-all"
                     title="View transaction on Solana Explorer"
                     onClick={async () => {
-                      window.open(getTransactionExplorerUrl(txid!), '_blank');
+                      window.open(
+                        getTransactionExplorerUrl(txid!),
+                        '_blank',
+                        'noopener,noreferrer',
+                      );
                     }}
                   >
                     {txid}

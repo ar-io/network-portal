@@ -157,7 +157,11 @@ const RevokeVaultModal = ({
                   className="flex items-center justify-center break-all"
                   title="View transaction on Solana Explorer"
                   onClick={async () => {
-                    window.open(getTransactionExplorerUrl(txid!), '_blank');
+                    window.open(
+                      getTransactionExplorerUrl(txid!),
+                      '_blank',
+                      'noopener,noreferrer',
+                    );
                   }}
                 >
                   {txid}

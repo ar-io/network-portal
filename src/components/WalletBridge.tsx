@@ -81,60 +81,18 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
             setWriteSDK(writeSDK);
           } else {
             console.warn('Wallet adapter not ready for write operations');
-            // Fall back to read-only SDK
-            const readOnlySDK = ARIO.init({
-              backend: 'solana',
-              rpc,
-              ...(SOLANA_CORE_PROGRAM_ID
-                ? { coreProgramId: address(SOLANA_CORE_PROGRAM_ID) }
-                : {}),
-              ...(SOLANA_GAR_PROGRAM_ID
-                ? { garProgramId: address(SOLANA_GAR_PROGRAM_ID) }
-                : {}),
-              ...(SOLANA_ARNS_PROGRAM_ID
-                ? { arnsProgramId: address(SOLANA_ARNS_PROGRAM_ID) }
-                : {}),
-            });
-            setWriteSDK(readOnlySDK as any);
+            setWriteSDK(undefined);
           }
         } catch (error) {
           console.error('Failed to create wallet signer:', error);
-          // Fall back to read-only SDK on error
-          const readOnlySDK = ARIO.init({
-            backend: 'solana',
-            rpc,
-            ...(SOLANA_CORE_PROGRAM_ID
-              ? { coreProgramId: address(SOLANA_CORE_PROGRAM_ID) }
-              : {}),
-            ...(SOLANA_GAR_PROGRAM_ID
-              ? { garProgramId: address(SOLANA_GAR_PROGRAM_ID) }
-              : {}),
-            ...(SOLANA_ARNS_PROGRAM_ID
-              ? { arnsProgramId: address(SOLANA_ARNS_PROGRAM_ID) }
-              : {}),
-          });
-          setWriteSDK(readOnlySDK as any);
+          setWriteSDK(undefined);
         }
       } else {
         console.log(
           'Wallet connected (read-only - no signing capability):',
           walletAddress,
         );
-        // Create read-only SDK if wallet doesn't support signing
-        const readOnlySDK = ARIO.init({
-          backend: 'solana',
-          rpc,
-          ...(SOLANA_CORE_PROGRAM_ID
-            ? { coreProgramId: address(SOLANA_CORE_PROGRAM_ID) }
-            : {}),
-          ...(SOLANA_GAR_PROGRAM_ID
-            ? { garProgramId: address(SOLANA_GAR_PROGRAM_ID) }
-            : {}),
-          ...(SOLANA_ARNS_PROGRAM_ID
-            ? { arnsProgramId: address(SOLANA_ARNS_PROGRAM_ID) }
-            : {}),
-        });
-        setWriteSDK(readOnlySDK as any);
+        setWriteSDK(undefined);
       }
     } else {
       updateWallet(undefined);

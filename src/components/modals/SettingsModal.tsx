@@ -3,6 +3,15 @@ import { updateSettings, useSettings } from '@src/store';
 import { useState } from 'react';
 import BaseModal from './BaseModal';
 
+const isValidHttpUrl = (value: string) => {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   const solanaRpcUrl = useSettings((state) => state.solanaRpcUrl);
   const arweaveGqlUrl = useSettings((state) => state.arweaveGqlUrl);
@@ -44,7 +53,9 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                 onClick={() => {
                   updateSettings({ solanaRpcUrl: localRpcUrl });
                 }}
-                disabled={localRpcUrl === solanaRpcUrl}
+                disabled={
+                  localRpcUrl === solanaRpcUrl || !isValidHttpUrl(localRpcUrl)
+                }
               >
                 Save
               </button>
@@ -79,7 +90,9 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                 onClick={() => {
                   updateSettings({ arweaveGqlUrl: localGqlUrl });
                 }}
-                disabled={localGqlUrl === arweaveGqlUrl}
+                disabled={
+                  localGqlUrl === arweaveGqlUrl || !isValidHttpUrl(localGqlUrl)
+                }
               >
                 Save
               </button>

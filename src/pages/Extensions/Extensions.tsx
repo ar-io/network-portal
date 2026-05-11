@@ -43,7 +43,7 @@ const TAG_STYLES: Record<ExtensionTag, string> = {
 };
 
 const EXCLUDED_EXTENSION_PATTERNS = [
-  /\blegacy\s*(compute\s*unit|cu)\b/i,
+  /\blegacy[\s_-]*(compute[\s_-]*unit|cu)\b/i,
   /\bhyperbeam\b/i,
 ];
 

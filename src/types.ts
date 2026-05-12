@@ -6,6 +6,8 @@ export type AoAddress = string;
 
 export enum WALLET_TYPES {
   PHANTOM = 'Phantom',
+  SOLFLARE = 'Solflare',
+  BACKPACK = 'Backpack',
 }
 
 export interface ReportData {

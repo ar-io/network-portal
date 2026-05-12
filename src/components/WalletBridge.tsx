@@ -17,8 +17,18 @@ import {
 } from '@src/utils/walletAdapterBridge';
 import { ReactElement, useEffect } from 'react';
 
+const getWalletTypeFromAdapter = (adapterName?: string): string => {
+  if (!adapterName) return WALLET_TYPES.PHANTOM;
+  const typeMap: Record<string, string> = {
+    Phantom: WALLET_TYPES.PHANTOM,
+    Solflare: WALLET_TYPES.SOLFLARE,
+    Backpack: WALLET_TYPES.BACKPACK,
+  };
+  return typeMap[adapterName] || WALLET_TYPES.PHANTOM;
+};
+
 const WalletBridge = ({ children }: { children: ReactElement }) => {
-  const { publicKey, signTransaction, connected } = useWallet();
+  const { publicKey, signTransaction, connected, wallet } = useWallet();
 
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const setWalletStateInitialized = useGlobalState(
@@ -32,7 +42,10 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
     if (connected && publicKey) {
       const walletAddress = publicKey.toBase58();
       updateWallet(walletAddress);
-      localStorage.setItem(KEY_WALLET_TYPE, WALLET_TYPES.PHANTOM);
+      localStorage.setItem(
+        KEY_WALLET_TYPE,
+        getWalletTypeFromAdapter(wallet?.adapter?.name),
+      );
 
       if (signTransaction) {
         try {
@@ -110,6 +123,7 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
     updateWallet,
     setWalletStateInitialized,
     setWriteSDK,
+    wallet?.adapter?.name,
   ]);
 
   return <>{children}</>;

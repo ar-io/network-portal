@@ -54,7 +54,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   const vaultsTableData: Array<TableData> = useMemo(() => {
     return (
       vaults
-        ?.filter((vault) => vault.address === walletAddress?.toString())
+        ?.filter((vault) => vault.controller === walletAddress?.toString())
         .map((vault) => {
           return {
             startTimestamp: vault.startTimestamp,

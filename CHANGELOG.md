@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-solana.0] - 2026-05-13
+
+### Added
+
+- Initial Solana migration with wallet adapter support and a new wallet bridge flow
+- Dynamic wallet type detection for supported Solana wallets
+- Devnet-first configuration for the migration branch
+
+### Changed
+
+- Reworked app initialization, global state, settings, and routing to support the Solana wallet stack
+- Updated network, balance, gateway, and modal flows for Solana-specific behavior
+- Bumped `@ar.io/sdk` to `4.0.0-solana.8`
+- Updated versioning and test expectations for the migration branch
+
+### Fixed
+
+- Hardened modal validation and wallet write-state handling
+- Corrected vault balance filtering and total balance tallying
+- Fixed reward calculations used on gateway operator stake views
+
+### Removed
+
+- Legacy wallet provider and connectors that were replaced by the Solana wallet bridge
+- Arweave-specific transaction and address utilities no longer used in the Solana migration
+
 ## [1.24.4] - 2026-05-06
 
 ### Changed

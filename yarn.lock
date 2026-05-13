@@ -30,15 +30,17 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@4.0.0-solana.4":
-  version "4.0.0-solana.4"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.4.tgz#0b0bfc4dc7ff15c2aaab842d42fd9eb916af3d3e"
-  integrity sha512-75fp8NIDTH3UVoASq09pWgi87w5pKhZEe/ndwEmPG6fN6Nvsg0OoEDvna3i5cW+DbxjJIj+3tYN7wl6LQufcDQ==
+"@ar.io/sdk@4.0.0-solana.8":
+  version "4.0.0-solana.8"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.8.tgz#5b0ec089dd0ee732e027094107375d7adf782af3"
+  integrity sha512-+xusf3K9qhHsALPxqpc7HeivQ6dNdFp48Sd/E7HzmnfFH/wPiKASC2z135yUV3B2SJAmO4/SqIvoEnj8APppcQ==
   dependencies:
+    "@ar.io/solana-contracts" "0.1.0-devnet.0"
     "@ardrive/turbo-sdk" "^1.19.0"
     "@dha-team/arbundles" "^1.0.1"
     "@permaweb/aoconnect" "0.0.68"
     "@solana-program/compute-budget" "^0.15.0"
+    "@solana-program/token" "^0.13.0"
     "@solana/kit" "^6.8.0"
     arweave "1.15.5"
     axios "^1.13.2"
@@ -63,6 +65,11 @@
     prompts "^2.4.2"
     winston "^3.13.0"
     zod "^3.23.8"
+
+"@ar.io/solana-contracts@0.1.0-devnet.0":
+  version "0.1.0-devnet.0"
+  resolved "https://registry.yarnpkg.com/@ar.io/solana-contracts/-/solana-contracts-0.1.0-devnet.0.tgz#b03d1fd243b80665bd289232b335a25a22e3795a"
+  integrity sha512-MzdoB2lBHWNqGRi5Ki7a8legTv8YuoymwuahPSQr6lk75UMr7dMz5VWF2ypXLv2GJZODz69ChNSd/eTP7X4n8g==
 
 "@ardrive/turbo-sdk@^1.17.0":
   version "1.24.0"
@@ -4285,10 +4292,22 @@
   resolved "https://registry.yarnpkg.com/@solana-program/system/-/system-0.10.0.tgz#f68ffb0a3e1c1d5e68ecfe111fbbe729f95a582a"
   integrity sha512-Go+LOEZmqmNlfr+Gjy5ZWAdY5HbYzk2RBewD9QinEU/bBSzpFfzqDRT55JjFRBGJUvMgf3C2vfXEGT4i8DSI4g==
 
+"@solana-program/system@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@solana-program/system/-/system-0.12.0.tgz#a69ebdd9918d5a0d06246555965a59a829991ad9"
+  integrity sha512-ZnAAWeGVMWNtJhw3GdifI2HnhZ0A0H0qs8tBkcFvxp/8wIavvO+GOM4Jd0N22u2+Lni2zcwvcrxrsxj6Mjphng==
+
 "@solana-program/token-2022@^0.6.1":
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/@solana-program/token-2022/-/token-2022-0.6.1.tgz#dcc44d56228e34c3b90099d9d3cab97d84c12367"
   integrity sha512-Ex02cruDMGfBMvZZCrggVR45vdQQSI/unHVpt/7HPt/IwFYB4eTlXtO8otYZyqV/ce5GqZ8S6uwyRf0zy6fdbA==
+
+"@solana-program/token@^0.13.0":
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@solana-program/token/-/token-0.13.0.tgz#6ef44f5fdc9cc4f087fcda3a001da8fe033ab678"
+  integrity sha512-/Apjrd5lwOJGrPB0J5Rv7EBeclvyEBQPAGA85Scm7wBH+GpkbdLDM9uK3TNg8jjFKyWQYai/JtPHbrx7VgFLSg==
+  dependencies:
+    "@solana-program/system" "^0.12.0"
 
 "@solana-program/token@^0.9.0":
   version "0.9.0"

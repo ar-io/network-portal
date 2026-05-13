@@ -30,7 +30,7 @@ const MyBalancesPanel = () => {
   const walletVaults = useMemo(() => {
     if (!allVaults || !walletAddress) return [];
     return allVaults.filter(
-      (vault) => vault.controller === walletAddress.toString(),
+      (vault) => vault.address === walletAddress.toString(),
     );
   }, [allVaults, walletAddress]);
 

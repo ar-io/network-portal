@@ -74,7 +74,7 @@ const Banner = ({
       : undefined;
 
     const locked = vaults
-      ?.filter((vault) => vault.controller === walletAddress?.toString())
+      ?.filter((vault) => vault.address === walletAddress?.toString())
       .reduce((acc, vault) => {
         return acc + new mARIOToken(vault.balance).toARIO().valueOf();
       }, 0);

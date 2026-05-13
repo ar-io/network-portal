@@ -39,15 +39,27 @@ export const calculateOperatorRewards = (
   gateway: AoGateway,
   operatorStake: ARIOToken,
 ): OperatorRewards => {
+  if (totalGateways <= 0) {
+    return {
+      operatorStake,
+      rewardsSharedPerEpoch: new ARIOToken(0),
+      EEY: 0,
+      EAY: 0,
+    };
+  }
   const epochRewards = protocolBalance.valueOf() * EPOCH_DISTRIBUTION_RATIO;
   const baseGatewayReward =
     (epochRewards * GATEWAY_REWARDS_RATIO) / totalGateways;
 
   const gatewayRewardShareRatio =
-    gateway.settings.delegateRewardShareRatio / 100;
+    (gateway.settings?.delegateRewardShareRatio ?? 0) / 100;
 
+  const rewardsPerEpochValue =
+    baseGatewayReward * (1 - gatewayRewardShareRatio);
   const rewardsSharedPerEpoch = new ARIOToken(
-    baseGatewayReward * (1 - gatewayRewardShareRatio),
+    Number.isFinite(rewardsPerEpochValue) && rewardsPerEpochValue >= 0
+      ? rewardsPerEpochValue
+      : 0,
   );
 
   // Return -1 if totalDelegatedStake is 0. This signals 0 stake and allows calling
@@ -71,18 +83,29 @@ export const calculateGatewayRewards = (
   totalGateways: number,
   gateway: AoGateway,
 ): GatewayRewards => {
+  if (totalGateways <= 0) {
+    return {
+      totalDelegatedStake: new mARIOToken(gateway.totalDelegatedStake).toARIO(),
+      rewardsSharedPerEpoch: new ARIOToken(0),
+      EEY: 0,
+      EAY: 0,
+    };
+  }
   const epochRewards = protocolBalance.valueOf() * EPOCH_DISTRIBUTION_RATIO;
   const baseGatewayReward =
     (epochRewards * GATEWAY_REWARDS_RATIO) / totalGateways;
 
   const gatewayRewardShareRatio =
-    gateway.settings.delegateRewardShareRatio / 100;
+    (gateway.settings?.delegateRewardShareRatio ?? 0) / 100;
   const totalDelegatedStake = new mARIOToken(
     gateway.totalDelegatedStake,
   ).toARIO();
 
+  const rewardsPerEpochValue = baseGatewayReward * gatewayRewardShareRatio;
   const rewardsSharedPerEpoch = new ARIOToken(
-    baseGatewayReward * gatewayRewardShareRatio,
+    Number.isFinite(rewardsPerEpochValue) && rewardsPerEpochValue >= 0
+      ? rewardsPerEpochValue
+      : 0,
   );
 
   // Return -1 if totalDelegatedStake is 0. This signals 0 stake and allows calling

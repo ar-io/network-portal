@@ -165,6 +165,7 @@ const GatewaysInNetworkPanel = ({
                 if (index === activeIndex) {
                   return (
                     <circle
+                      key={`gateway-dot-${index}`}
                       cx={cx}
                       cy={cy}
                       r={4}
@@ -174,7 +175,7 @@ const GatewaysInNetworkPanel = ({
                     />
                   );
                 }
-                return <></>;
+                return null;
               }}
             />
           </AreaChart>

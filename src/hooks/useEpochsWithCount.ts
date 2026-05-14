@@ -1,5 +1,7 @@
+import { log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { getEpoch } from '@src/store/db';
+import { getErrorMessage } from '@src/utils/getErrorMessage';
 import { showErrorToast } from '@src/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 
@@ -18,17 +20,27 @@ const useEpochsWithCount = (epochCount: number) => {
 
       // Fetch the requested number of historical epochs (minus 1 for current epoch)
       const historicalEpochsToFetch = Math.max(0, epochCount - 1);
+      const historicalEpochIndexes = Array.from(
+        { length: historicalEpochsToFetch },
+        (_, index) => startEpoch.epochIndex - index - 1,
+      ).filter((epochIndex) => epochIndex >= 0);
+
+      log.info(
+        `[useEpochsWithCount] Fetching ${historicalEpochIndexes.length} historical epochs for epochCount=${epochCount} before current epoch ${startEpoch.epochIndex}.`,
+      );
 
       const additionalEpochs = await Promise.all(
-        Array.from(
-          { length: historicalEpochsToFetch },
-          (_, index) => startEpoch.epochIndex - index - 1,
-        ).map((epochIndex) =>
+        historicalEpochIndexes.map((epochIndex) =>
           getEpoch(networkPortalDB, arIOReadSDK, epochIndex)
             .then((epoch) => {
               return epoch;
             })
-            .catch(() => {
+            .catch((error) => {
+              const message = getErrorMessage(error);
+              log.error(
+                `[useEpochsWithCount] Unexpected error while retrieving epoch ${epochIndex}: ${message}`,
+                error,
+              );
               showErrorToast(
                 `Unable to retrieve epoch data for epoch ${epochIndex}.`,
               );
@@ -37,10 +49,15 @@ const useEpochsWithCount = (epochCount: number) => {
         ),
       );
 
-      return [
-        startEpoch,
-        ...additionalEpochs.filter((e: any) => e !== undefined),
-      ];
+      const availableEpochs = additionalEpochs.filter((e) => e !== undefined);
+      if (availableEpochs.length !== additionalEpochs.length) {
+        const missingCount = additionalEpochs.length - availableEpochs.length;
+        log.info(
+          `[useEpochsWithCount] Missing ${missingCount} historical epoch(s); this can happen when older epochs are not yet available on the current backend.`,
+        );
+      }
+
+      return [startEpoch, ...availableEpochs];
     },
     enabled: !!arIOReadSDK && startEpoch !== undefined,
     staleTime: 60 * 60 * 1000, // 1 hour

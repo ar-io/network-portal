@@ -1,5 +1,7 @@
 import { AoARIORead, AoEpochData } from '@ar.io/sdk/web';
+import { log } from '@src/constants';
 import { Assessment } from '@src/types';
+import { getErrorMessage } from '@src/utils/getErrorMessage';
 import Dexie, { type EntityTable } from 'dexie';
 
 export type NetworkPortalDB = Dexie & {
@@ -19,6 +21,19 @@ export interface Observation {
   gatewayAddress: string;
   assessment: Assessment;
 }
+
+const isMissingEpochError = (error: unknown): boolean => {
+  const message = getErrorMessage(error).toLowerCase();
+
+  return [
+    'not found',
+    'not available',
+    'does not exist',
+    'missing',
+    'accountnotfound',
+    '404',
+  ].some((token) => message.includes(token));
+};
 
 export const createDb = (dbName: string = 'solana-mainnet') => {
   const db = new Dexie(dbName) as NetworkPortalDB;
@@ -51,16 +66,45 @@ export const getEpoch = async (
     return epoch;
   }
 
-  const epochData = await arIOReadSDK.getEpoch({ epochIndex });
+  let epochData: AoEpochData | undefined;
+  try {
+    epochData = await arIOReadSDK.getEpoch({ epochIndex });
+  } catch (error) {
+    if (isMissingEpochError(error)) {
+      log.info(
+        `[getEpoch] Epoch ${epochIndex} is not available on this backend yet.`,
+      );
+      return undefined;
+    }
+
+    log.error(
+      `[getEpoch] Failed to retrieve epoch ${epochIndex}: ${getErrorMessage(error)}`,
+      error,
+    );
+    throw error;
+  }
+
+  if (epochData && epochData.epochIndex !== epochIndex) {
+    log.warn(
+      `[getEpoch] Epoch index mismatch: requested ${epochIndex}, received ${epochData.epochIndex}.`,
+    );
+  }
 
   if (epochData) {
     try {
       await networkPortalDB.epochs.add(epochData);
     } catch (e) {
-      console.error('Error with epoch data saving:', epochIndex, e);
+      log.error(`Error with epoch data saving for epoch ${epochIndex}:`, e);
       return undefined;
     }
   }
+
+  if (!epochData) {
+    log.info(
+      `[getEpoch] Empty epoch payload returned for epoch ${epochIndex}.`,
+    );
+  }
+
   return epochData;
 };
 

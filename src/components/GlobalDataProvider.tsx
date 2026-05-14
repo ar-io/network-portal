@@ -13,6 +13,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const setTicker = useGlobalState((state) => state.setTicker);
   const rpc = useGlobalState((state) => state.rpc);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const setIsMobile = useGlobalState((state) => state.setIsMobile);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
@@ -36,6 +37,9 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           );
           return;
         }
+        log.info(
+          `[GlobalDataProvider] Current epoch loaded: ${currentEpoch.epochIndex} (RPC: ${solanaRpcUrl})`,
+        );
         setCurrentEpoch(currentEpoch);
       } catch (_error) {
         log.error('Error fetching current epoch');
@@ -46,7 +50,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
     };
 
     update();
-  }, [arioReadSDK, queryClient, setCurrentEpoch, setTicker]);
+  }, [arioReadSDK, queryClient, setCurrentEpoch, setTicker, solanaRpcUrl]);
 
   useEffect(() => {
     if (currentEpoch?.epochIndex && networkPortalDB) {

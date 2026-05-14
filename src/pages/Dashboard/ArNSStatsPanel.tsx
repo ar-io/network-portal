@@ -154,7 +154,7 @@ const ArNSStatsPanel = ({
                 fill="url(#arnsStatsGradient)"
                 dot={(props) => {
                   // eslint-disable-next-line react/prop-types
-                  const { cx, cy, payload } = props;
+                  const { cx, cy, payload, index } = props;
                   if (
                     hoveredData &&
                     payload &&
@@ -162,6 +162,7 @@ const ArNSStatsPanel = ({
                   ) {
                     return (
                       <circle
+                        key={`arns-dot-${index}`}
                         cx={cx}
                         cy={cy}
                         r={4}
@@ -171,7 +172,7 @@ const ArNSStatsPanel = ({
                       />
                     );
                   }
-                  return <></>;
+                  return null;
                 }}
                 activeDot={{
                   r: 4,

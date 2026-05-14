@@ -148,7 +148,7 @@ const ObserverPerformancePanel = ({
                 fill="url(#observerPerformanceGradient)"
                 dot={(props) => {
                   // eslint-disable-next-line react/prop-types
-                  const { cx, cy, payload } = props;
+                  const { cx, cy, payload, index } = props;
                   if (
                     hoveredData &&
                     payload &&
@@ -156,6 +156,7 @@ const ObserverPerformancePanel = ({
                   ) {
                     return (
                       <circle
+                        key={`observer-dot-${index}`}
                         cx={cx}
                         cy={cy}
                         r={4}
@@ -165,7 +166,7 @@ const ObserverPerformancePanel = ({
                       />
                     );
                   }
-                  return <></>;
+                  return null;
                 }}
                 activeDot={{
                   r: 4,

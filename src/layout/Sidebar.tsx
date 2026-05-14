@@ -68,8 +68,20 @@ const ROUTES_PRIMARY = [
   },
 ];
 
+const CHANGELOG_START = (() => {
+  const unreleasedIndex = changeLog.indexOf('## [Unreleased]');
+
+  if (unreleasedIndex !== -1) {
+    return unreleasedIndex + '## [Unreleased]'.length;
+  }
+
+  const firstReleaseIndex = changeLog.search(/^## \[/m);
+
+  return firstReleaseIndex === -1 ? 0 : firstReleaseIndex;
+})();
+
 const FORMATTED_CHANGELOG = changeLog
-  .substring(changeLog.indexOf('## [Unreleased]') + 16)
+  .substring(CHANGELOG_START)
   .trim()
   .replace(/\[([\w.]+)\]/g, (_match, text) => `v${text}`);
 

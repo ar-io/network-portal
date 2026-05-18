@@ -149,24 +149,22 @@ const ObserverPerformancePanel = ({
                 dot={(props) => {
                   // eslint-disable-next-line react/prop-types
                   const { cx, cy, payload, index } = props;
-                  if (
-                    hoveredData &&
-                    payload &&
-                    payload.epochIndex === hoveredData.epochIndex
-                  ) {
-                    return (
-                      <circle
-                        key={`observer-dot-${index}`}
-                        cx={cx}
-                        cy={cy}
-                        r={4}
-                        fill="#E19EE5"
-                        stroke="#ffffff"
-                        strokeWidth={2}
-                      />
-                    );
-                  }
-                  return null;
+                  const isActive =
+                    !!hoveredData &&
+                    !!payload &&
+                    payload.epochIndex === hoveredData.epochIndex;
+
+                  return (
+                    <circle
+                      key={`observer-dot-${index}`}
+                      cx={cx}
+                      cy={cy}
+                      r={isActive ? 4 : 0}
+                      fill={isActive ? '#E19EE5' : 'transparent'}
+                      stroke={isActive ? '#ffffff' : 'transparent'}
+                      strokeWidth={isActive ? 2 : 0}
+                    />
+                  );
                 }}
                 activeDot={{
                   r: 4,

@@ -3,6 +3,7 @@ import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useState } from 'react';
 import ArNSStatsPanel from './ArNSStatsPanel';
 import CTASection from './CTASection';
+import ClaimableRewardsSection from './ClaimableRewardsSection';
 import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
 import ObserverPerformancePanel from './ObserverPerformancePanel';
@@ -23,6 +24,9 @@ const Dashboard = () => {
         <div className="h-full w-full space-y-6">
           {/* CTA Section at the top */}
           <CTASection />
+
+          {/* Claimable rewards callout */}
+          <ClaimableRewardsSection />
 
           {/* Main Dashboard Content */}
           <div className="w-full grid grid-cols-1 md:grid-cols-6 gap-6">

@@ -1,4 +1,5 @@
-import { ARIO, AoARIORead, AoARIOWrite, AoEpochData } from '@ar.io/sdk/web';
+import type { SolanaARIOWriteable } from '@ar.io/sdk/solana';
+import { ARIO, AoARIORead, AoEpochData } from '@ar.io/sdk/web';
 import { address, createSolanaRpc } from '@solana/kit';
 import type { Rpc, SolanaRpcApi } from '@solana/kit';
 import {
@@ -19,7 +20,7 @@ type GlobalState = {
   rpc: Rpc<SolanaRpcApi>;
   solanaRpcUrl: string;
   arIOReadSDK: AoARIORead;
-  arIOWriteableSDK?: AoARIOWrite;
+  arIOWriteableSDK?: SolanaARIOWriteable;
   solanaSlot?: number;
   currentEpoch?: AoEpochData;
   walletAddress?: AoAddress;
@@ -37,7 +38,7 @@ type GlobalStateActions = {
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
   setIsMobile: (isMobile: boolean) => void;
-  setWriteSDK: (sdk?: AoARIOWrite) => void;
+  setWriteSDK: (sdk?: SolanaARIOWriteable) => void;
 };
 
 const makeRpc = (rpcUrl: string) => createSolanaRpc(rpcUrl);
@@ -115,7 +116,7 @@ class GlobalStateActionBase implements GlobalStateActions {
     this.set({ isMobile });
   };
 
-  setWriteSDK = (arIOWriteableSDK?: AoARIOWrite) => {
+  setWriteSDK = (arIOWriteableSDK?: SolanaARIOWriteable) => {
     this.set({ arIOWriteableSDK });
   };
 }

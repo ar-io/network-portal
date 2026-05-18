@@ -15,6 +15,11 @@ type TxResult = {
   label: string;
 };
 
+type ActionFeedback = {
+  kind: 'success' | 'error';
+  text: string;
+};
+
 const ClaimableRewardsSection = () => {
   const queryClient = useQueryClient();
   const walletAddress = useGlobalState((state) => state.walletAddress);
@@ -28,7 +33,7 @@ const ClaimableRewardsSection = () => {
 
   const [isClaiming, setIsClaiming] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
-  const [actionMessage, setActionMessage] = useState<string>();
+  const [actionMessage, setActionMessage] = useState<ActionFeedback>();
   const [recentTxs, setRecentTxs] = useState<Array<TxResult>>([]);
 
   const claimableWithdrawals = useMemo(() => {
@@ -76,10 +81,7 @@ const ClaimableRewardsSection = () => {
   };
 
   const claimAllWithdrawals = async () => {
-    if (!walletAddress || !arIOWriteableSDK || isClaiming) {
-      return;
-    }
-    if (claimableWithdrawals.length === 0) {
+    if (!walletAddress || isClaiming) {
       return;
     }
 
@@ -90,6 +92,14 @@ const ClaimableRewardsSection = () => {
     const txs: Array<TxResult> = [];
 
     try {
+      if (!arIOWriteableSDK) {
+        throw new Error('Connect a signing wallet before claiming rewards.');
+      }
+
+      if (claimableWithdrawals.length === 0) {
+        throw new Error('No matured withdrawals are available to claim yet.');
+      }
+
       for (const withdrawal of claimableWithdrawals) {
         const { id } = await arIOWriteableSDK.claimWithdrawal(
           {
@@ -106,15 +116,21 @@ const ClaimableRewardsSection = () => {
       }
 
       setRecentTxs((prev) => [...txs, ...prev].slice(0, 8));
-      setActionMessage(
-        `Claimed ${successCount} withdrawal${successCount === 1 ? '' : 's'} totaling ${formatWithCommas(claimableWithdrawalAmount)} ${ticker}.`,
-      );
+      setActionMessage({
+        kind: 'success',
+        text: `Claimed ${successCount} withdrawal${successCount === 1 ? '' : 's'} totaling ${formatWithCommas(claimableWithdrawalAmount)} ${ticker}.`,
+      });
       refreshRelatedQueries();
     } catch (error: any) {
-      showErrorToast(`${error}`);
-      setActionMessage(
-        `Claim completed for ${successCount} withdrawal${successCount === 1 ? '' : 's'} before an error interrupted the batch.`,
-      );
+      const errorMessage = `${error}`;
+      showErrorToast(errorMessage);
+      setActionMessage({
+        kind: 'error',
+        text:
+          successCount > 0
+            ? `Claimed ${successCount} withdrawal${successCount === 1 ? '' : 's'} before an error interrupted the batch. ${errorMessage}`
+            : errorMessage,
+      });
       if (txs.length > 0) {
         setRecentTxs((prev) => [...txs, ...prev].slice(0, 8));
         refreshRelatedQueries();
@@ -125,10 +141,7 @@ const ClaimableRewardsSection = () => {
   };
 
   const releaseAllVaults = async () => {
-    if (!walletAddress || !arIOWriteableSDK || isReleasing) {
-      return;
-    }
-    if (unlockedVaults.length === 0) {
+    if (!walletAddress || isReleasing) {
       return;
     }
 
@@ -139,6 +152,14 @@ const ClaimableRewardsSection = () => {
     const txs: Array<TxResult> = [];
 
     try {
+      if (!arIOWriteableSDK) {
+        throw new Error('Connect a signing wallet before releasing vaults.');
+      }
+
+      if (unlockedVaults.length === 0) {
+        throw new Error('No unlocked vaults are available to release yet.');
+      }
+
       for (const vault of unlockedVaults) {
         const { id } = await arIOWriteableSDK.releaseVault(
           {
@@ -155,15 +176,21 @@ const ClaimableRewardsSection = () => {
       }
 
       setRecentTxs((prev) => [...txs, ...prev].slice(0, 8));
-      setActionMessage(
-        `Released ${successCount} unlocked vault${successCount === 1 ? '' : 's'} totaling ${formatWithCommas(claimableVaultAmount)} ${ticker}.`,
-      );
+      setActionMessage({
+        kind: 'success',
+        text: `Released ${successCount} unlocked vault${successCount === 1 ? '' : 's'} totaling ${formatWithCommas(claimableVaultAmount)} ${ticker}.`,
+      });
       refreshRelatedQueries();
     } catch (error: any) {
-      showErrorToast(`${error}`);
-      setActionMessage(
-        `Release completed for ${successCount} vault${successCount === 1 ? '' : 's'} before an error interrupted the batch.`,
-      );
+      const errorMessage = `${error}`;
+      showErrorToast(errorMessage);
+      setActionMessage({
+        kind: 'error',
+        text:
+          successCount > 0
+            ? `Released ${successCount} vault${successCount === 1 ? '' : 's'} before an error interrupted the batch. ${errorMessage}`
+            : errorMessage,
+      });
       if (txs.length > 0) {
         setRecentTxs((prev) => [...txs, ...prev].slice(0, 8));
         refreshRelatedQueries();
@@ -173,9 +200,7 @@ const ClaimableRewardsSection = () => {
     }
   };
 
-  const shouldRender =
-    !!walletAddress &&
-    (hasClaimableRewards || isClaiming || isReleasing || !!actionMessage);
+  const shouldRender = !!walletAddress;
 
   if (!shouldRender) {
     return null;
@@ -183,18 +208,8 @@ const ClaimableRewardsSection = () => {
 
   const hasWriteSupport = !!arIOWriteableSDK;
   const loading = withdrawalsLoading || vaultsLoading;
-  const claimWithdrawalsDisabled =
-    !hasWriteSupport ||
-    loading ||
-    claimableWithdrawals.length === 0 ||
-    isClaiming ||
-    isReleasing;
-  const releaseVaultsDisabled =
-    !hasWriteSupport ||
-    loading ||
-    unlockedVaults.length === 0 ||
-    isClaiming ||
-    isReleasing;
+  const claimWithdrawalsDisabled = loading || isClaiming || isReleasing;
+  const releaseVaultsDisabled = loading || isClaiming || isReleasing;
 
   return (
     <div className="rounded-xl border border-grey-600 bg-containerL1 p-4 lg:p-5">
@@ -207,6 +222,12 @@ const ClaimableRewardsSection = () => {
             Withdrawals and unlocked vaults are claimed with separate
             transactions.
           </div>
+          {!hasClaimableRewards && !loading && (
+            <div className="mt-2 text-xs text-low">
+              No claimable rewards detected right now. You can still retry a
+              claim or release action and the result will be shown here.
+            </div>
+          )}
         </div>
       </div>
 
@@ -266,8 +287,10 @@ const ClaimableRewardsSection = () => {
       </div>
 
       {actionMessage && (
-        <div className="mt-3 rounded-md border border-grey-600 bg-containerL0 px-3 py-2 text-xs text-high">
-          {actionMessage}
+        <div
+          className={`mt-3 rounded-md px-3 py-2 text-xs ${actionMessage.kind === 'error' ? 'border border-red-500/30 bg-red-500/10 text-red-200' : 'border border-grey-600 bg-containerL0 text-high'}`}
+        >
+          {actionMessage.text}
         </div>
       )}
 

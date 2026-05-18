@@ -30,10 +30,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@4.0.0-solana.9":
-  version "4.0.0-solana.9"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.9.tgz#25db9bb252c79c60e6df1560b96febc2a7a20801"
-  integrity sha512-gXjlJI0k4sqjPLf/Tx9DCB/CKO80LcoRgMCw5K4D7adSPtYL/Ezc92ayEt8Td+ei6Kwd+ohHGU7RblsZvaoOcw==
+"@ar.io/sdk@4.0.0-solana.12":
+  version "4.0.0-solana.12"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.12.tgz#ef6ac38b3184bef9414b0bca770fa11f1a95e01d"
+  integrity sha512-GwW4k9lguFeQrK+Wrh9Esk+2mJf6hv7IWfHBhTy3/viePYvhLQ0CZnEu7Pi/zV0AA8h4xnsXJoerRYBfzAXpuA==
   dependencies:
     "@ar.io/solana-contracts" "0.1.0-devnet.0"
     "@ardrive/turbo-sdk" "^1.19.0"

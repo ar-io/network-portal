@@ -38,41 +38,45 @@ const isValidRequiredSolanaAddress = (value: string): boolean => {
   return isValidSolanaAddress(value.trim());
 };
 
+const isValidRequiredText = (value: string): boolean => {
+  return value.trim().length > 0;
+};
+
 const SOLANA_ADDRESS_FIELDS: Array<{
   key: keyof SolanaAddressSettings;
   label: string;
   defaultValue: string;
-  required: boolean;
+  validation: 'solanaOptional' | 'solanaRequired' | 'textRequired';
 }> = [
   {
     key: 'solanaCoreProgramId',
     label: 'Solana Core Program ID',
     defaultValue: SOLANA_CORE_PROGRAM_ID ?? '',
-    required: false,
+    validation: 'solanaOptional',
   },
   {
     key: 'solanaGarProgramId',
     label: 'Solana GAR Program ID',
     defaultValue: SOLANA_GAR_PROGRAM_ID ?? '',
-    required: false,
+    validation: 'solanaOptional',
   },
   {
     key: 'solanaArnsProgramId',
     label: 'Solana ARNS Program ID',
     defaultValue: SOLANA_ARNS_PROGRAM_ID ?? '',
-    required: false,
+    validation: 'solanaOptional',
   },
   {
     key: 'solanaAntProgramId',
     label: 'Solana ANT Program ID',
     defaultValue: SOLANA_ANT_PROGRAM_ID ?? '',
-    required: false,
+    validation: 'solanaOptional',
   },
   {
     key: 'bridgeBalanceAddress',
     label: 'Bridge Balance Address',
     defaultValue: BRIDGE_BALANCE_ADDRESS,
-    required: true,
+    validation: 'textRequired',
   },
 ];
 
@@ -119,11 +123,15 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
       localSolanaAddressSettings[key] !== currentSolanaAddressSettings[key],
   );
   const hasInvalidSolanaAddressSettings = SOLANA_ADDRESS_FIELDS.some(
-    ({ key, required }) => {
+    ({ key, validation }) => {
       const value = localSolanaAddressSettings[key];
-      return required
-        ? !isValidRequiredSolanaAddress(value)
-        : !isValidOptionalSolanaAddress(value);
+      if (validation === 'solanaRequired') {
+        return !isValidRequiredSolanaAddress(value);
+      }
+      if (validation === 'textRequired') {
+        return !isValidRequiredText(value);
+      }
+      return !isValidOptionalSolanaAddress(value);
     },
   );
 
@@ -188,11 +196,14 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
               </div>
 
               {SOLANA_ADDRESS_FIELDS.map(
-                ({ key, label, defaultValue, required }) => {
+                ({ key, label, defaultValue, validation }) => {
                   const value = localSolanaAddressSettings[key];
-                  const isValid = required
-                    ? isValidRequiredSolanaAddress(value)
-                    : isValidOptionalSolanaAddress(value);
+                  const isValid =
+                    validation === 'solanaRequired'
+                      ? isValidRequiredSolanaAddress(value)
+                      : validation === 'textRequired'
+                        ? isValidRequiredText(value)
+                        : isValidOptionalSolanaAddress(value);
 
                   return (
                     <div key={key} className="flex flex-col gap-1">
@@ -202,7 +213,8 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                           isValid ? 'border-grey-500' : 'border-red-500'
                         }`}
                         placeholder={
-                          required
+                          validation === 'solanaRequired' ||
+                          validation === 'textRequired'
                             ? defaultValue
                             : defaultValue || 'Leave empty to use SDK default'
                         }
@@ -216,9 +228,11 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                       />
                       {!isValid ? (
                         <div className="text-xs text-red-400">
-                          {required
-                            ? 'A valid Solana address is required.'
-                            : 'Must be a valid Solana address or left empty.'}
+                          {validation === 'textRequired'
+                            ? 'A value is required.'
+                            : validation === 'solanaRequired'
+                              ? 'A valid Solana address is required.'
+                              : 'Must be a valid Solana address or left empty.'}
                         </div>
                       ) : null}
                     </div>

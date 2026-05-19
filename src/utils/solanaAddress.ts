@@ -8,3 +8,14 @@ export const isSolanaAddress = (address: string): boolean => {
     return false;
   }
 };
+
+export const getOptionalSolanaAddress = (
+  value?: string,
+): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const trimmedValue = value.trim();
+  return isSolanaAddress(trimmedValue) ? trimmedValue : undefined;
+};

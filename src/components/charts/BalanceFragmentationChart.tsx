@@ -1,7 +1,6 @@
 import Placeholder from '@src/components/Placeholder';
-import { BRIDGE_BALANCE_ADDRESS } from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
-import { useGlobalState } from '@src/store';
+import { useGlobalState, useSettings } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
@@ -44,11 +43,14 @@ const BalanceFragmentationChart = () => {
   const [activeIndex, setActiveIndex] = useState<number>();
   const { data: allBalances, isLoading } = useAllBalances();
   const ticker = useGlobalState((state) => state.ticker);
+  const bridgeBalanceAddress = useSettings(
+    (state) => state.bridgeBalanceAddress,
+  );
 
   useEffect(() => {
     if (allBalances && allBalances.length > 0) {
       const bridgeBalance = allBalances.find(
-        (b) => b.address === BRIDGE_BALANCE_ADDRESS,
+        (b) => b.address === bridgeBalanceAddress,
       );
       const bridgeValue = bridgeBalance?.arioBalance || 0;
 
@@ -61,14 +63,14 @@ const BalanceFragmentationChart = () => {
           name: 'Bridge Balance',
           value: bridgeValue,
           percentage: bridgeValue / TOTAL_SUPPLY,
-          address: BRIDGE_BALANCE_ADDRESS,
+          address: bridgeBalanceAddress,
           ticker,
         });
       }
 
       // Add individual balances for top holders (excluding bridge)
       const topHolders = allBalances
-        .filter((b) => b.address !== BRIDGE_BALANCE_ADDRESS)
+        .filter((b) => b.address !== bridgeBalanceAddress)
         .slice(0, 19);
 
       topHolders.forEach((holder, index) => {
@@ -87,7 +89,7 @@ const BalanceFragmentationChart = () => {
         allBalances.length - topHolders.length - excludedCount;
       if (othersCount > 0) {
         const othersTotal = allBalances
-          .filter((b) => b.address !== BRIDGE_BALANCE_ADDRESS)
+          .filter((b) => b.address !== bridgeBalanceAddress)
           .slice(19)
           .reduce((sum, b) => sum + b.arioBalance, 0);
 
@@ -102,7 +104,7 @@ const BalanceFragmentationChart = () => {
 
       setData(balanceData);
     }
-  }, [allBalances, ticker]);
+  }, [allBalances, bridgeBalanceAddress, ticker]);
 
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
@@ -163,7 +165,7 @@ const BalanceFragmentationChart = () => {
                     <Cell
                       key={`cell-${index}`}
                       fill={
-                        entry.address === BRIDGE_BALANCE_ADDRESS
+                        entry.address === bridgeBalanceAddress
                           ? index === activeIndex
                             ? '#FF8C00'
                             : '#FF8C0050'

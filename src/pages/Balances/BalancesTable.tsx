@@ -3,11 +3,10 @@ import ColumnSelector from '@src/components/ColumnSelector';
 import Placeholder from '@src/components/Placeholder';
 import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
-import { BRIDGE_BALANCE_ADDRESS } from '@src/constants';
 import useAllBalances from '@src/hooks/useAllBalances';
 import useAllVaults from '@src/hooks/useAllVaults';
 import usePrefetchBalances from '@src/hooks/usePrefetchBalances';
-import { useGlobalState } from '@src/store';
+import { useGlobalState, useSettings } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 import {
   ColumnDef,
@@ -34,6 +33,9 @@ const ITEMS_PER_PAGE = 10;
 
 const BalancesTable = () => {
   const ticker = useGlobalState((state) => state.ticker);
+  const bridgeBalanceAddress = useSettings(
+    (state) => state.bridgeBalanceAddress,
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -84,7 +86,7 @@ const BalancesTable = () => {
     }
 
     const enrichedData: TableData[] = allBalances
-      .filter((balance) => balance.address !== BRIDGE_BALANCE_ADDRESS)
+      .filter((balance) => balance.address !== bridgeBalanceAddress)
       .map((balance, index) => {
         const vaultData = vaultsByAddress?.get(balance.address) || {
           vaultCount: 0,
@@ -108,7 +110,7 @@ const BalancesTable = () => {
 
     setTableData(enrichedData);
     setIsProcessingData(false);
-  }, [allBalances, vaultsByAddress]);
+  }, [allBalances, bridgeBalanceAddress, vaultsByAddress]);
 
   // Prefetch other sort combinations when data loads
   useEffect(() => {

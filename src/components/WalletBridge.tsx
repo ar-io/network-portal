@@ -6,14 +6,11 @@ import type {
 import { ARIO } from '@ar.io/sdk/web';
 import { address, createSolanaRpcSubscriptions } from '@solana/kit';
 import { useWallet } from '@solana/wallet-adapter-react';
-import {
-  SOLANA_ARNS_PROGRAM_ID,
-  SOLANA_CORE_PROGRAM_ID,
-  SOLANA_GAR_PROGRAM_ID,
-} from '@src/constants';
 import { useGlobalState } from '@src/store';
+import { useSettings } from '@src/store';
 import { KEY_WALLET_TYPE } from '@src/store/persistent';
 import { WALLET_TYPES } from '@src/types';
+import { getOptionalSolanaAddress } from '@src/utils/solanaAddress';
 import {
   type WalletAdapterSigner,
   createWalletAdapterSigner,
@@ -41,6 +38,9 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
   const setWriteSDK = useGlobalState((state) => state.setWriteSDK);
   const rpc = useGlobalState((state) => state.rpc);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
+  const solanaCoreProgramId = useSettings((state) => state.solanaCoreProgramId);
+  const solanaGarProgramId = useSettings((state) => state.solanaGarProgramId);
+  const solanaArnsProgramId = useSettings((state) => state.solanaArnsProgramId);
 
   useEffect(() => {
     if (connected && publicKey) {
@@ -73,6 +73,9 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
             const signer = createWalletAdapterSigner(
               walletAdapter,
             ) as unknown as SolanaSigner;
+            const coreProgramId = getOptionalSolanaAddress(solanaCoreProgramId);
+            const garProgramId = getOptionalSolanaAddress(solanaGarProgramId);
+            const arnsProgramId = getOptionalSolanaAddress(solanaArnsProgramId);
 
             // Create writeable SDK with proper signer and subscriptions
             const writeSDK = ARIO.init({
@@ -80,14 +83,12 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
               rpc,
               rpcSubscriptions,
               signer,
-              ...(SOLANA_CORE_PROGRAM_ID
-                ? { coreProgramId: address(SOLANA_CORE_PROGRAM_ID) }
+              ...(coreProgramId
+                ? { coreProgramId: address(coreProgramId) }
                 : {}),
-              ...(SOLANA_GAR_PROGRAM_ID
-                ? { garProgramId: address(SOLANA_GAR_PROGRAM_ID) }
-                : {}),
-              ...(SOLANA_ARNS_PROGRAM_ID
-                ? { arnsProgramId: address(SOLANA_ARNS_PROGRAM_ID) }
+              ...(garProgramId ? { garProgramId: address(garProgramId) } : {}),
+              ...(arnsProgramId
+                ? { arnsProgramId: address(arnsProgramId) }
                 : {}),
             }) as unknown as SolanaARIOWriteable;
 
@@ -124,6 +125,9 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
     signTransaction,
     rpc,
     solanaRpcUrl,
+    solanaCoreProgramId,
+    solanaGarProgramId,
+    solanaArnsProgramId,
     updateWallet,
     setWalletStateInitialized,
     setWriteSDK,

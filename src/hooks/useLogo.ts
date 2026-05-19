@@ -1,15 +1,18 @@
 import { ANT } from '@ar.io/sdk/web';
 import { address } from '@solana/kit';
-import { SOLANA_ANT_PROGRAM_ID } from '@src/constants';
 import { useGlobalState } from '@src/store';
+import { useSettings } from '@src/store';
+import { getOptionalSolanaAddress } from '@src/utils/solanaAddress';
 import { useQuery } from '@tanstack/react-query';
 
 const useLogo = ({ primaryName }: { primaryName?: string }) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const rpc = useGlobalState((state) => state.rpc);
+  const solanaAntProgramId = useSettings((state) => state.solanaAntProgramId);
+  const antProgramId = getOptionalSolanaAddress(solanaAntProgramId);
 
   const queryResults = useQuery({
-    queryKey: ['logo', primaryName, arIOReadSDK],
+    queryKey: ['logo', primaryName, arIOReadSDK, antProgramId],
     queryFn: async () => {
       if (!primaryName || !arIOReadSDK) {
         throw new Error('Primary Name or ArIO Read SDK not available');
@@ -24,9 +27,7 @@ const useLogo = ({ primaryName }: { primaryName?: string }) => {
         backend: 'solana',
         processId: record.processId,
         rpc,
-        ...(SOLANA_ANT_PROGRAM_ID
-          ? { antProgramId: address(SOLANA_ANT_PROGRAM_ID) }
-          : {}),
+        ...(antProgramId ? { antProgramId: address(antProgramId) } : {}),
       });
 
       const logoTxId = await antProcess.getLogo();

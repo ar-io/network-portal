@@ -2,14 +2,11 @@ import type { SolanaARIOWriteable } from '@ar.io/sdk/solana';
 import { ARIO, AoARIORead, AoEpochData } from '@ar.io/sdk/web';
 import { address, createSolanaRpc } from '@solana/kit';
 import type { Rpc, SolanaRpcApi } from '@solana/kit';
-import {
-  SOLANA_ARNS_PROGRAM_ID,
-  SOLANA_CORE_PROGRAM_ID,
-  SOLANA_GAR_PROGRAM_ID,
-  THEME_TYPES,
-} from '@src/constants';
+import { THEME_TYPES } from '@src/constants';
 import { AoAddress } from '@src/types';
+import { getOptionalSolanaAddress } from '@src/utils/solanaAddress';
 import { create } from 'zustand';
+import { shallow } from 'zustand/shallow';
 import { NetworkPortalDB, createDb } from './db';
 import { useSettings } from './settings';
 
@@ -44,18 +41,17 @@ type GlobalStateActions = {
 const makeRpc = (rpcUrl: string) => createSolanaRpc(rpcUrl);
 
 const makeArIOReadSDK = (rpc: Rpc<SolanaRpcApi>): AoARIORead => {
+  const settings = useSettings.getState();
+  const coreProgramId = getOptionalSolanaAddress(settings.solanaCoreProgramId);
+  const garProgramId = getOptionalSolanaAddress(settings.solanaGarProgramId);
+  const arnsProgramId = getOptionalSolanaAddress(settings.solanaArnsProgramId);
+
   return ARIO.init({
     backend: 'solana',
     rpc,
-    ...(SOLANA_CORE_PROGRAM_ID
-      ? { coreProgramId: address(SOLANA_CORE_PROGRAM_ID) }
-      : {}),
-    ...(SOLANA_GAR_PROGRAM_ID
-      ? { garProgramId: address(SOLANA_GAR_PROGRAM_ID) }
-      : {}),
-    ...(SOLANA_ARNS_PROGRAM_ID
-      ? { arnsProgramId: address(SOLANA_ARNS_PROGRAM_ID) }
-      : {}),
+    ...(coreProgramId ? { coreProgramId: address(coreProgramId) } : {}),
+    ...(garProgramId ? { garProgramId: address(garProgramId) } : {}),
+    ...(arnsProgramId ? { arnsProgramId: address(arnsProgramId) } : {}),
   });
 };
 
@@ -79,12 +75,18 @@ class GlobalStateActionBase implements GlobalStateActions {
     _get: () => GlobalStateInterface,
   ) {
     useSettings.subscribe(
-      (state) => state.solanaRpcUrl,
-      (solanaRpcUrl) => {
+      (state) => ({
+        solanaRpcUrl: state.solanaRpcUrl,
+        solanaCoreProgramId: state.solanaCoreProgramId,
+        solanaGarProgramId: state.solanaGarProgramId,
+        solanaArnsProgramId: state.solanaArnsProgramId,
+      }),
+      ({ solanaRpcUrl }) => {
         const rpc = makeRpc(solanaRpcUrl);
         const arIOReadSDK = makeArIOReadSDK(rpc);
         set({ rpc, solanaRpcUrl, arIOReadSDK, arIOWriteableSDK: undefined });
       },
+      { equalityFn: shallow },
     );
   }
 

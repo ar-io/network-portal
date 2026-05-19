@@ -1,4 +1,12 @@
-import { DEFAULT_ARWEAVE_GQL_ENDPOINT, SOLANA_RPC_URL } from '@src/constants';
+import {
+  BRIDGE_BALANCE_ADDRESS,
+  DEFAULT_ARWEAVE_GQL_ENDPOINT,
+  SOLANA_ANT_PROGRAM_ID,
+  SOLANA_ARNS_PROGRAM_ID,
+  SOLANA_CORE_PROGRAM_ID,
+  SOLANA_GAR_PROGRAM_ID,
+  SOLANA_RPC_URL,
+} from '@src/constants';
 import { create } from 'zustand';
 import { persist, subscribeWithSelector } from 'zustand/middleware';
 
@@ -6,6 +14,22 @@ type Settings = {
   solanaRpcUrl: string;
   arweaveGqlUrl: string;
   sidebarOpen: boolean;
+  solanaCoreProgramId: string;
+  solanaGarProgramId: string;
+  solanaArnsProgramId: string;
+  solanaAntProgramId: string;
+  bridgeBalanceAddress: string;
+};
+
+const DEFAULT_SETTINGS: Settings = {
+  solanaRpcUrl: SOLANA_RPC_URL,
+  arweaveGqlUrl: DEFAULT_ARWEAVE_GQL_ENDPOINT,
+  sidebarOpen: true,
+  solanaCoreProgramId: SOLANA_CORE_PROGRAM_ID ?? '',
+  solanaGarProgramId: SOLANA_GAR_PROGRAM_ID ?? '',
+  solanaArnsProgramId: SOLANA_ARNS_PROGRAM_ID ?? '',
+  solanaAntProgramId: SOLANA_ANT_PROGRAM_ID ?? '',
+  bridgeBalanceAddress: BRIDGE_BALANCE_ADDRESS,
 };
 
 const isLocalRpcUrl = (rpcUrl: string | undefined): boolean => {
@@ -25,33 +49,26 @@ const isLocalRpcUrl = (rpcUrl: string | undefined): boolean => {
 
 export const useSettings = create<Settings>()(
   subscribeWithSelector(
-    persist(
-      () => ({
-        solanaRpcUrl: SOLANA_RPC_URL,
-        arweaveGqlUrl: DEFAULT_ARWEAVE_GQL_ENDPOINT,
-        sidebarOpen: true as boolean,
-      }),
-      {
-        name: 'settings',
-        merge: (persistedState, currentState) => {
-          const mergedState = {
-            ...currentState,
-            ...(persistedState as Partial<Settings>),
-          };
+    persist(() => DEFAULT_SETTINGS, {
+      name: 'settings',
+      merge: (persistedState, currentState) => {
+        const mergedState = {
+          ...currentState,
+          ...(persistedState as Partial<Settings>),
+        };
 
-          // If a stale localhost RPC was persisted from prior localnet sessions,
-          // prefer the env-provided RPC (devnet/mainnet) on next boot.
-          if (
-            isLocalRpcUrl(mergedState.solanaRpcUrl) &&
-            !isLocalRpcUrl(SOLANA_RPC_URL)
-          ) {
-            mergedState.solanaRpcUrl = SOLANA_RPC_URL;
-          }
+        // If a stale localhost RPC was persisted from prior localnet sessions,
+        // prefer the env-provided RPC (devnet/mainnet) on next boot.
+        if (
+          isLocalRpcUrl(mergedState.solanaRpcUrl) &&
+          !isLocalRpcUrl(SOLANA_RPC_URL)
+        ) {
+          mergedState.solanaRpcUrl = SOLANA_RPC_URL;
+        }
 
-          return mergedState;
-        },
+        return mergedState;
       },
-    ),
+    }),
   ),
 );
 

@@ -31,8 +31,7 @@ const ClaimableRewardsSection = () => {
   );
   const { data: allVaults, isLoading: vaultsLoading } = useVaults();
 
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [isReleasing, setIsReleasing] = useState(false);
+  const [isProcessingRewards, setIsProcessingRewards] = useState(false);
   const [actionMessage, setActionMessage] = useState<ActionFeedback>();
   const [recentTxs, setRecentTxs] = useState<Array<TxResult>>([]);
 
@@ -71,6 +70,7 @@ const ClaimableRewardsSection = () => {
 
   const hasClaimableRewards =
     claimableWithdrawals.length > 0 || unlockedVaults.length > 0;
+  const totalClaimableAmount = claimableWithdrawalAmount + claimableVaultAmount;
 
   const refreshRelatedQueries = () => {
     queryClient.invalidateQueries({ queryKey: ['withdrawals'] });
@@ -80,15 +80,16 @@ const ClaimableRewardsSection = () => {
     queryClient.invalidateQueries({ queryKey: ['gatewayVaults'] });
   };
 
-  const claimAllWithdrawals = async () => {
-    if (!walletAddress || isClaiming) {
+  const claimAllRewards = async () => {
+    if (!walletAddress || isProcessingRewards) {
       return;
     }
 
-    setIsClaiming(true);
+    setIsProcessingRewards(true);
     setActionMessage(undefined);
 
-    let successCount = 0;
+    let claimedWithdrawals = 0;
+    let releasedVaults = 0;
     const txs: Array<TxResult> = [];
 
     try {
@@ -96,8 +97,10 @@ const ClaimableRewardsSection = () => {
         throw new Error('Connect a signing wallet before claiming rewards.');
       }
 
-      if (claimableWithdrawals.length === 0) {
-        throw new Error('No matured withdrawals are available to claim yet.');
+      if (claimableWithdrawals.length === 0 && unlockedVaults.length === 0) {
+        throw new Error(
+          'No unlocked vaults or matured withdrawals are available yet.',
+        );
       }
 
       for (const withdrawal of claimableWithdrawals) {
@@ -108,56 +111,11 @@ const ClaimableRewardsSection = () => {
           WRITE_OPTIONS,
         );
 
-        successCount += 1;
+        claimedWithdrawals += 1;
         txs.push({
           txid: id,
           label: `Claimed withdrawal ${withdrawal.vaultId}`,
         });
-      }
-
-      setRecentTxs((prev) => [...txs, ...prev].slice(0, 8));
-      setActionMessage({
-        kind: 'success',
-        text: `Claimed ${successCount} withdrawal${successCount === 1 ? '' : 's'} totaling ${formatWithCommas(claimableWithdrawalAmount)} ${ticker}.`,
-      });
-      refreshRelatedQueries();
-    } catch (error: any) {
-      const errorMessage = `${error}`;
-      showErrorToast(errorMessage);
-      setActionMessage({
-        kind: 'error',
-        text:
-          successCount > 0
-            ? `Claimed ${successCount} withdrawal${successCount === 1 ? '' : 's'} before an error interrupted the batch. ${errorMessage}`
-            : errorMessage,
-      });
-      if (txs.length > 0) {
-        setRecentTxs((prev) => [...txs, ...prev].slice(0, 8));
-        refreshRelatedQueries();
-      }
-    } finally {
-      setIsClaiming(false);
-    }
-  };
-
-  const releaseAllVaults = async () => {
-    if (!walletAddress || isReleasing) {
-      return;
-    }
-
-    setIsReleasing(true);
-    setActionMessage(undefined);
-
-    let successCount = 0;
-    const txs: Array<TxResult> = [];
-
-    try {
-      if (!arIOWriteableSDK) {
-        throw new Error('Connect a signing wallet before releasing vaults.');
-      }
-
-      if (unlockedVaults.length === 0) {
-        throw new Error('No unlocked vaults are available to release yet.');
       }
 
       for (const vault of unlockedVaults) {
@@ -168,7 +126,7 @@ const ClaimableRewardsSection = () => {
           WRITE_OPTIONS,
         );
 
-        successCount += 1;
+        releasedVaults += 1;
         txs.push({
           txid: id,
           label: `Released vault ${vault.vaultId}`,
@@ -176,19 +134,23 @@ const ClaimableRewardsSection = () => {
       }
 
       setRecentTxs((prev) => [...txs, ...prev].slice(0, 8));
+      const totalProcessed = claimedWithdrawals + releasedVaults;
+      const totalAmount = claimableWithdrawalAmount + claimableVaultAmount;
+
       setActionMessage({
         kind: 'success',
-        text: `Released ${successCount} unlocked vault${successCount === 1 ? '' : 's'} totaling ${formatWithCommas(claimableVaultAmount)} ${ticker}.`,
+        text: `Processed ${totalProcessed} reward${totalProcessed === 1 ? '' : 's'}: ${claimedWithdrawals} withdrawal${claimedWithdrawals === 1 ? '' : 's'} and ${releasedVaults} unlocked vault${releasedVaults === 1 ? '' : 's'}, totaling ${formatWithCommas(totalAmount)} ${ticker}.`,
       });
       refreshRelatedQueries();
     } catch (error: any) {
       const errorMessage = `${error}`;
       showErrorToast(errorMessage);
+      const partialProcessed = claimedWithdrawals + releasedVaults;
       setActionMessage({
         kind: 'error',
         text:
-          successCount > 0
-            ? `Released ${successCount} vault${successCount === 1 ? '' : 's'} before an error interrupted the batch. ${errorMessage}`
+          partialProcessed > 0
+            ? `Processed ${partialProcessed} reward${partialProcessed === 1 ? '' : 's'} (${claimedWithdrawals} withdrawal${claimedWithdrawals === 1 ? '' : 's'}, ${releasedVaults} unlocked vault${releasedVaults === 1 ? '' : 's'}) before an error interrupted the batch. ${errorMessage}`
             : errorMessage,
       });
       if (txs.length > 0) {
@@ -196,7 +158,7 @@ const ClaimableRewardsSection = () => {
         refreshRelatedQueries();
       }
     } finally {
-      setIsReleasing(false);
+      setIsProcessingRewards(false);
     }
   };
 
@@ -208,8 +170,7 @@ const ClaimableRewardsSection = () => {
 
   const hasWriteSupport = !!arIOWriteableSDK;
   const loading = withdrawalsLoading || vaultsLoading;
-  const claimWithdrawalsDisabled = loading || isClaiming || isReleasing;
-  const releaseVaultsDisabled = loading || isClaiming || isReleasing;
+  const claimRewardsDisabled = loading || isProcessingRewards;
 
   return (
     <div className="rounded-xl border border-grey-600 bg-containerL1 p-4 lg:p-5">
@@ -218,16 +179,6 @@ const ClaimableRewardsSection = () => {
           <div className="text-gradient text-sm font-semibold">
             Claimable Rewards
           </div>
-          <div className="mt-1 text-xs text-mid">
-            Withdrawals and unlocked vaults are claimed with separate
-            transactions.
-          </div>
-          {!hasClaimableRewards && !loading && (
-            <div className="mt-2 text-xs text-low">
-              No claimable rewards detected right now. You can still retry a
-              claim or release action and the result will be shown here.
-            </div>
-          )}
         </div>
       </div>
 
@@ -238,51 +189,38 @@ const ClaimableRewardsSection = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="rounded-lg border border-grey-700 bg-grey-800/40 p-3">
-          <div className="text-xs text-mid">Matured Withdrawals</div>
-          <div className="mt-1 text-sm text-high">
-            {loading
-              ? 'Loading...'
-              : `${claimableWithdrawals.length} ready • ${formatWithCommas(claimableWithdrawalAmount)} ${ticker}`}
-          </div>
-          <div className="mt-3 w-fit">
-            <Button
-              buttonType={ButtonType.PRIMARY}
-              title="Claim all matured withdrawals"
-              text={isClaiming ? 'Claiming...' : 'Claim All Matured'}
-              className={`w-fit ${claimWithdrawalsDisabled ? 'pointer-events-none opacity-40' : ''}`}
-              onClick={claimAllWithdrawals}
-            />
-          </div>
-          <div
-            className={`mt-2 text-xs text-mid ${claimWithdrawalsDisabled ? 'opacity-40' : ''}`}
-          >
-            One transaction per matured withdrawal.
-          </div>
+      <div className="rounded-lg border border-grey-700 bg-grey-800/40 p-3">
+        <div className="text-xs text-mid">
+          Review available withdrawals and unlocked vaults, then claim all
+          rewards in one action.
         </div>
+        {!hasClaimableRewards && !loading && (
+          <div className="mt-2 text-xs text-low">
+            No claimable rewards detected right now. You can still retry a claim
+            or release action and the result will be shown here.
+          </div>
+        )}
+        <div className="mt-3 text-sm text-high">
+          {loading
+            ? 'Loading...'
+            : `${unlockedVaults.length} vaults • ${claimableWithdrawals.length} withdrawals • ${formatWithCommas(totalClaimableAmount)} ${ticker}`}
+        </div>
+      </div>
 
-        <div className="rounded-lg border border-grey-700 bg-grey-800/40 p-3">
-          <div className="text-xs text-mid">Unlocked Vaults</div>
-          <div className="mt-1 text-sm text-high">
-            {loading
-              ? 'Loading...'
-              : `${unlockedVaults.length} ready • ${formatWithCommas(claimableVaultAmount)} ${ticker}`}
-          </div>
-          <div className="mt-3 w-fit">
-            <Button
-              buttonType={ButtonType.PRIMARY}
-              title="Release all unlocked vaults"
-              text={isReleasing ? 'Releasing...' : 'Release All Unlocked'}
-              className={`w-fit ${releaseVaultsDisabled ? 'pointer-events-none opacity-40' : ''}`}
-              onClick={releaseAllVaults}
-            />
-          </div>
-          <div
-            className={`mt-2 text-xs text-mid ${releaseVaultsDisabled ? 'opacity-40' : ''}`}
-          >
-            One transaction per unlocked vault.
-          </div>
+      <div className="mt-3 flex flex-col gap-2">
+        <div className="w-fit">
+          <Button
+            buttonType={ButtonType.PRIMARY}
+            title="Claim all rewards"
+            text={isProcessingRewards ? 'Claiming...' : 'Claim All Rewards'}
+            className={`w-fit ${claimRewardsDisabled ? 'pointer-events-none opacity-40' : ''}`}
+            onClick={claimAllRewards}
+          />
+        </div>
+        <div
+          className={`text-xs text-mid ${claimRewardsDisabled ? 'opacity-40' : ''}`}
+        >
+          One transaction per unlocked vault and pending withdrawal.
         </div>
       </div>
 

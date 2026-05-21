@@ -54,9 +54,13 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
       if (signTransaction) {
         try {
           // Create WebSocket URL for subscriptions (required for transaction confirmation)
-          const wsUrl = solanaRpcUrl
-            .replace(/^http/, 'ws')
-            .replace(':8899', ':8900');
+          const wsEndpoint = new URL(solanaRpcUrl);
+          wsEndpoint.protocol =
+            wsEndpoint.protocol === 'https:' ? 'wss:' : 'ws:';
+          if (wsEndpoint.port) {
+            wsEndpoint.port = String(Number(wsEndpoint.port) + 1);
+          }
+          const wsUrl = wsEndpoint.toString();
           const rpcSubscriptions = createSolanaRpcSubscriptions(
             wsUrl,
           ) as SolanaRpcSubscriptions;

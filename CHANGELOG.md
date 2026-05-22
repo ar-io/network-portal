@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reworked app initialization, global state, settings, and routing to support the Solana wallet stack
 - Updated network, balance, gateway, and modal flows for Solana-specific behavior
-- Bumped `@ar.io/sdk` to `4.0.0-solana.8`
+- Bumped `@ar.io/sdk` to `4.0.0-solana.14`
 - Updated versioning and test expectations for the migration branch
 
 ### Fixed

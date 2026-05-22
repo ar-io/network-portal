@@ -40,6 +40,38 @@ type GlobalStateActions = {
 
 const makeRpc = (rpcUrl: string) => createSolanaRpc(rpcUrl);
 
+const getNetworkTierFromRpcUrl = (
+  rpcUrl: string,
+): 'localnet' | 'mainnet' | 'devnet' | 'testnet' => {
+  const inferFromText = (value: string) => {
+    const lowerValue = value.toLowerCase();
+
+    if (lowerValue.includes('localhost') || lowerValue.includes('127.0.0.1')) {
+      return 'localnet';
+    }
+
+    if (lowerValue.includes('devnet')) {
+      return 'devnet';
+    }
+
+    if (lowerValue.includes('testnet')) {
+      return 'testnet';
+    }
+
+    return 'mainnet';
+  };
+
+  try {
+    const parsedUrl = new URL(rpcUrl);
+    return inferFromText(`${parsedUrl.hostname}${parsedUrl.pathname}`);
+  } catch {
+    return inferFromText(rpcUrl);
+  }
+};
+
+const getDbNameFromRpcUrl = (rpcUrl: string) =>
+  `solana-${getNetworkTierFromRpcUrl(rpcUrl)}`;
+
 const makeArIOReadSDK = (rpc: Rpc<SolanaRpcApi>): AoARIORead => {
   const settings = useSettings.getState();
   const coreProgramId = getOptionalSolanaAddress(settings.solanaCoreProgramId);
@@ -65,14 +97,14 @@ const initialGlobalState: GlobalState = {
   arIOReadSDK: makeArIOReadSDK(initialRpc),
   walletStateInitialized: false,
   ticker: '',
-  networkPortalDB: createDb('solana-mainnet'),
+  networkPortalDB: createDb(getDbNameFromRpcUrl(initialSolanaRpcUrl)),
   isMobile: window.innerWidth < 1024,
 };
 
 class GlobalStateActionBase implements GlobalStateActions {
   constructor(
     private set: (props: Partial<GlobalState>, replace?: boolean) => void,
-    _get: () => GlobalStateInterface,
+    get: () => GlobalStateInterface,
   ) {
     useSettings.subscribe(
       (state) => ({
@@ -84,7 +116,22 @@ class GlobalStateActionBase implements GlobalStateActions {
       ({ solanaRpcUrl }) => {
         const rpc = makeRpc(solanaRpcUrl);
         const arIOReadSDK = makeArIOReadSDK(rpc);
-        set({ rpc, solanaRpcUrl, arIOReadSDK, arIOWriteableSDK: undefined });
+        const currentDb = get().networkPortalDB;
+        const nextDbName = getDbNameFromRpcUrl(solanaRpcUrl);
+        const nextDb =
+          currentDb.name === nextDbName ? currentDb : createDb(nextDbName);
+
+        if (nextDb !== currentDb) {
+          currentDb.close();
+        }
+
+        set({
+          rpc,
+          solanaRpcUrl,
+          arIOReadSDK,
+          arIOWriteableSDK: undefined,
+          networkPortalDB: nextDb,
+        });
       },
       { equalityFn: shallow },
     );

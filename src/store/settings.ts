@@ -39,11 +39,9 @@ const isLocalRpcUrl = (rpcUrl: string | undefined): boolean => {
 
   try {
     const parsedUrl = new URL(rpcUrl);
-    return (
-      parsedUrl.hostname === '127.0.0.1' || parsedUrl.hostname === 'localhost'
-    );
+    return /^(localhost|127\.0\.0\.1)$/.test(parsedUrl.hostname);
   } catch {
-    return rpcUrl.includes('127.0.0.1') || rpcUrl.includes('localhost');
+    return /(^|[:/?.#])(localhost|127\.0\.0\.1)(?=[:/?.#]|$)/.test(rpcUrl);
   }
 };
 

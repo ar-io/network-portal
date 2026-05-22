@@ -7,9 +7,9 @@ function AppRouterLayout() {
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden dark:bg-grey-1000 dark:text-grey-100">
       <NetworkStatusBanner />
-      <div className="flex h-full">
+      <div className="flex min-h-0 flex-1">
         <Sidebar />
-        <main className="flex-1 overflow-hidden lg:pl-0">
+        <main className="min-h-0 flex-1 overflow-hidden lg:pl-0">
           <Outlet />
         </main>
       </div>

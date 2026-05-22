@@ -1,8 +1,4 @@
-import type {
-  SolanaARIOWriteable,
-  SolanaRpcSubscriptions,
-  SolanaSigner,
-} from '@ar.io/sdk/solana';
+import type { SolanaRpcSubscriptions } from '@ar.io/sdk/solana';
 import { ARIO } from '@ar.io/sdk/web';
 import { address, createSolanaRpcSubscriptions } from '@solana/kit';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -73,10 +69,15 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
               signTransaction as WalletAdapterSigner['signTransaction'],
           };
 
+          console.debug('Wallet adapter signer ready:', {
+            connected: walletAdapter.connected,
+            hasPublicKey: walletAdapter.publicKey !== null,
+            hasSignTransaction:
+              typeof walletAdapter.signTransaction === 'function',
+          });
+
           if (isWalletAdapterReady(walletAdapter)) {
-            const signer = createWalletAdapterSigner(
-              walletAdapter,
-            ) as unknown as SolanaSigner;
+            const signer = createWalletAdapterSigner(walletAdapter);
             const coreProgramId = getOptionalSolanaAddress(solanaCoreProgramId);
             const garProgramId = getOptionalSolanaAddress(solanaGarProgramId);
             const arnsProgramId = getOptionalSolanaAddress(solanaArnsProgramId);
@@ -94,7 +95,7 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
               ...(arnsProgramId
                 ? { arnsProgramId: address(arnsProgramId) }
                 : {}),
-            }) as unknown as SolanaARIOWriteable;
+            });
 
             console.log(
               '✅ Wallet connected with write capabilities:',

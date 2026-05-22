@@ -31,12 +31,14 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
       return;
     }
 
+    const normalizedRecipient = recipient.trim();
+
     setShowBlockingMessageModal(true);
     try {
       const mArio = new ARIOToken(+amount).toMARIO();
       const { id: txID } = await arIOWriteableSDK.transfer(
         {
-          target: recipient,
+          target: normalizedRecipient,
           qty: mArio,
         },
         WRITE_OPTIONS,

@@ -353,8 +353,8 @@ const Gateway = () => {
             <div className="mt-1 text-sm">
               <ul>
                 <li>
-                  Observer AR and Turbo Credit balance is low. Please add more
-                  AR or Turbo Credits to the observer wallet.
+                  Observer SOL and Turbo Credit balance is low. Please add more
+                  SOL or Turbo Credits to the observer wallet.
                 </li>
               </ul>
             </div>

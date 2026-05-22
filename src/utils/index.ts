@@ -1,10 +1,10 @@
-import { encode } from 'base64-arraybuffer';
 import {
   ARNS_TX_ID_REGEX,
   SOLANA_EXPLORER_URL,
   THEME_TYPES,
-} from '../constants';
-import { isSolanaAddress } from './solanaAddress';
+} from '@src/constants';
+import { isSolanaAddress } from '@src/utils/solanaAddress';
+import { encode } from 'base64-arraybuffer';
 
 const COMMA_NUMBER_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,

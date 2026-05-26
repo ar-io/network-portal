@@ -20,10 +20,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@4.0.0-solana.14":
-  version "4.0.0-solana.14"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.14.tgz#b5eb5e2550b388f7ca7c2707a13d279f619f60c1"
-  integrity sha512-6Z1/4mclslBh2AZTK3rpHlYIVmX6McF5Y0t7fMEmmcj10deOJe+Mc6fGD7cWJUp2cQzwzOkozl4SqujEKtheQw==
+"@ar.io/sdk@4.0.0-solana.15":
+  version "4.0.0-solana.15"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.15.tgz#27cf89c70a2c8d2857862072d9bd374a44656afc"
+  integrity sha512-kh864BZDNQqGLzVE9mzwozsomHJHONHzNddpVCA4Pxdb+VyJQfR99lerU82XGYmd14bUmqi74PM8RCX2+Nvm/Q==
   dependencies:
     "@ar.io/solana-contracts" "0.1.0-devnet.0"
     "@solana-program/compute-budget" "^0.15.0"

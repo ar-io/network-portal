@@ -1,4 +1,4 @@
-import { AoTokenSupplyData, mARIOToken } from '@ar.io/sdk/web';
+import { TokenSupplyData, mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useTokenSupply from '@src/hooks/useTokenSupply';
 import { useGlobalState } from '@src/store';
@@ -18,7 +18,7 @@ type IOCategory =
 type IODistribution = { name: IOCategory; value: number }[];
 
 const calculateIODistribution = (
-  tokenSupply: AoTokenSupplyData,
+  tokenSupply: TokenSupplyData,
 ): IODistribution => {
   return [
     {

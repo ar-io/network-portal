@@ -1,8 +1,8 @@
 import {
-  AoGateway,
-  AoGatewayVault,
-  AoGatewayWithAddress,
-  AoVaultData,
+  Gateway,
+  GatewayVault,
+  GatewayWithAddress,
+  VaultData,
   mARIOToken,
 } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -21,11 +21,11 @@ import { useState } from 'react';
 import CollapsiblePanel from './CollapsiblePanel';
 
 type PendingWithdrawalProps = {
-  gateway?: AoGatewayWithAddress | null;
+  gateway?: GatewayWithAddress | null;
   walletAddress?: string;
 };
 
-const columnHelper = createColumnHelper<AoGatewayVault>();
+const columnHelper = createColumnHelper<GatewayVault>();
 
 const PendingWithdrawals = ({
   gateway,
@@ -45,8 +45,8 @@ const PendingWithdrawals = ({
 
   const [confirmInstantWithdrawal, setConfirmInstantWithdrawal] = useState<{
     gatewayAddress: string;
-    gateway: AoGateway;
-    vault: AoVaultData;
+    gateway: Gateway;
+    vault: VaultData;
     vaultId: string;
   }>();
 
@@ -54,7 +54,7 @@ const PendingWithdrawals = ({
     useState<RedelegateModalProps>();
 
   // Define columns for the table
-  const columns: ColumnDef<AoGatewayVault, any>[] = [
+  const columns: ColumnDef<GatewayVault, any>[] = [
     columnHelper.accessor('balance', {
       id: 'balance',
       header: 'Stake Withdrawing',

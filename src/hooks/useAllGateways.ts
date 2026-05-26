@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { GatewayWithAddress } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -11,14 +11,14 @@ const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const { sortBy = 'totalDelegatedStake', sortOrder = 'desc' } = options;
 
-  return useQuery<AoGatewayWithAddress[]>({
+  return useQuery<GatewayWithAddress[]>({
     queryKey: ['allGateways', arIOReadSDK, sortBy, sortOrder],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      const allGateways: AoGatewayWithAddress[] = [];
+      const allGateways: GatewayWithAddress[] = [];
       let hasNextPage = true;
       let cursor: string | undefined;
       const limit = 1000;

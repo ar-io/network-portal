@@ -1,4 +1,4 @@
-import { AoGateway, mARIOToken } from '@ar.io/sdk/web';
+import { Gateway, mARIOToken } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import ConnectModal from '@src/components/modals/ConnectModal';
@@ -75,7 +75,7 @@ const PropertyDisplayPanel = ({
   gateway,
 }: {
   ownerId?: string;
-  gateway?: AoGateway | null;
+  gateway?: Gateway | null;
 }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const ticker = useGlobalState((state) => state.ticker);

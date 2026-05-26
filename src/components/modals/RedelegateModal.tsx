@@ -1,4 +1,4 @@
-import { ARIOToken, AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { REDELEGATION_FEE_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
@@ -18,7 +18,7 @@ import ReviewRedelegateModal from './ReviewRedelegateModal';
 
 export type RedelegateModalProps = {
   onClose: () => void;
-  sourceGateway: AoGatewayWithAddress;
+  sourceGateway: GatewayWithAddress;
   vaultId?: string;
   maxRedelegationStake: ARIOToken;
 };
@@ -34,7 +34,7 @@ const RedelegateModal = ({
 
   const { data: delegateStakes } = useDelegateStakes(walletAddress?.toString());
 
-  const [targetGateway, setTargetGateway] = useState<AoGatewayWithAddress>();
+  const [targetGateway, setTargetGateway] = useState<GatewayWithAddress>();
   const [targetGatewayCurrentStake, setTargetGatewayCurrentStake] =
     useState<number>();
 
@@ -51,7 +51,7 @@ const RedelegateModal = ({
 
   const { data: gateways } = useGateways();
   const [filteredGateways, setFilteredGateways] =
-    useState<AoGatewayWithAddress[]>();
+    useState<GatewayWithAddress[]>();
 
   useEffect(() => {
     if (gateways) {

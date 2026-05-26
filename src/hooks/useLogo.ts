@@ -24,7 +24,6 @@ const useLogo = ({ primaryName }: { primaryName?: string }) => {
       }
 
       const antProcess = await ANT.init({
-        backend: 'solana',
         processId: record.processId,
         rpc,
         ...(antProgramId ? { antProgramId: address(antProgramId) } : {}),

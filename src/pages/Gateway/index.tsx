@@ -1,7 +1,7 @@
 /* eslint-disable tailwindcss/classnames-order */
 import {
   ARIOToken,
-  AoUpdateGatewaySettingsParams,
+  UpdateGatewaySettingsParams,
   mARIOToken,
 } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
@@ -284,7 +284,7 @@ const Gateway = () => {
         {} as Record<string, string | number | boolean>,
       );
 
-      const updateGatewaySettingsParams: AoUpdateGatewaySettingsParams = {
+      const updateGatewaySettingsParams: UpdateGatewaySettingsParams = {
         allowDelegatedStaking: changed.allowDelegatedStaking as boolean,
         delegateRewardShareRatio:
           formState.allowDelegatedStaking && changed.delegateRewardShareRatio

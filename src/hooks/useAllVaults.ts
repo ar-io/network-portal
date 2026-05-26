@@ -1,4 +1,4 @@
-import { AoWalletVault, mARIOToken } from '@ar.io/sdk/web';
+import { WalletVault, mARIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -31,7 +31,7 @@ const useAllVaults = () => {
         });
 
         // Process each vault
-        result.items.forEach((vault: AoWalletVault) => {
+        result.items.forEach((vault: WalletVault) => {
           const existing = vaultsByAddress.get(vault.address) || {
             address: vault.address,
             vaultCount: 0,

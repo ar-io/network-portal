@@ -1,4 +1,5 @@
 import type { SolanaRpcSubscriptions } from '@ar.io/sdk/solana';
+import type { SolanaARIOWriteable } from '@ar.io/sdk/solana';
 import { ARIO } from '@ar.io/sdk/web';
 import { address, createSolanaRpcSubscriptions } from '@solana/kit';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -84,7 +85,6 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
 
             // Create writeable SDK with proper signer and subscriptions
             const writeSDK = ARIO.init({
-              backend: 'solana',
               rpc,
               rpcSubscriptions,
               signer,
@@ -95,7 +95,7 @@ const WalletBridge = ({ children }: { children: ReactElement }) => {
               ...(arnsProgramId
                 ? { arnsProgramId: address(arnsProgramId) }
                 : {}),
-            });
+            }) as unknown as SolanaARIOWriteable;
 
             console.log(
               '✅ Wallet connected with write capabilities:',

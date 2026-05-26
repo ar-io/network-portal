@@ -1,4 +1,4 @@
-import { ARIOToken, AoGateway, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, Gateway, mARIOToken } from '@ar.io/sdk/web';
 import {
   UserRewards,
   calculateGatewayRewards,
@@ -9,7 +9,7 @@ import useGateways from './useGateways';
 import useProtocolBalance from './useProtocolBalance';
 
 const useRewardsInfo = (
-  gateway: AoGateway | null | undefined,
+  gateway: Gateway | null | undefined,
   userStake: number,
 ) => {
   const { data: gateways } = useGateways();

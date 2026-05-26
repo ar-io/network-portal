@@ -1,4 +1,4 @@
-import { ARIOToken, AoGateway, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, Gateway, mARIOToken } from '@ar.io/sdk/web';
 
 const EPOCHS_PER_YEAR = 365;
 const EPOCH_DISTRIBUTION_RATIO = 0.0005; // 0.05%
@@ -36,7 +36,7 @@ export interface UserRewards {
 export const calculateOperatorRewards = (
   protocolBalance: ARIOToken,
   totalGateways: number,
-  gateway: AoGateway,
+  gateway: Gateway,
   operatorStake: ARIOToken,
 ): OperatorRewards => {
   if (totalGateways <= 0) {
@@ -81,7 +81,7 @@ export const calculateOperatorRewards = (
 export const calculateGatewayRewards = (
   protocolBalance: ARIOToken,
   totalGateways: number,
-  gateway: AoGateway,
+  gateway: Gateway,
 ): GatewayRewards => {
   if (totalGateways <= 0) {
     return {

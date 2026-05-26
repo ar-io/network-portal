@@ -1,4 +1,4 @@
-import { AoGatewayVault } from '@ar.io/sdk/web';
+import { GatewayVault } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -14,7 +14,7 @@ const useGatewayVaults = (address?: string) => {
 
       let cursor: string | undefined;
 
-      let results: Array<AoGatewayVault> = [];
+      let results: Array<GatewayVault> = [];
 
       do {
         const pageResult = await arIOReadSDK.getGatewayVaults({

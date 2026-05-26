@@ -1,4 +1,4 @@
-import { AoGatewayDelegateWithAddress } from '@ar.io/sdk/web';
+import { GatewayDelegateWithAddress } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -14,7 +14,7 @@ const useGatewayDelegateStakes = (address?: string) => {
 
       let cursor: string | undefined;
 
-      let results: Array<AoGatewayDelegateWithAddress> = [];
+      let results: Array<GatewayDelegateWithAddress> = [];
 
       do {
         const pageResult = await arIOReadSDK.getGatewayDelegates({

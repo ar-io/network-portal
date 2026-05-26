@@ -1,6 +1,6 @@
 import {
-  AoARIORead,
-  AoGatewayWithAddress,
+  ARIORead,
+  GatewayWithAddress,
   PaginationParams,
   PaginationResult,
 } from '@ar.io/sdk/web';
@@ -34,8 +34,8 @@ const usePaginatedGateways = (options: PageBasedOptions = {}) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const fetchPaginatedGateways = async (
-    arIOReadSDK: AoARIORead,
-  ): Promise<PageBasedPaginationResult<AoGatewayWithAddress>> => {
+    arIOReadSDK: ARIORead,
+  ): Promise<PageBasedPaginationResult<GatewayWithAddress>> => {
     const safeLimit =
       Number.isFinite(limit) && limit > 0 && limit <= 1000 ? limit : 1000;
     const safePage = Number.isFinite(page) && page > 0 ? page : 1;

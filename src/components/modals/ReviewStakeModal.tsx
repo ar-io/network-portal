@@ -1,4 +1,4 @@
-import { ARIOToken, AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { ARIOToken, GatewayWithAddress } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
@@ -26,7 +26,7 @@ const ReviewStakeModal = ({
   walletAddress,
   ticker,
 }: {
-  gateway: AoGatewayWithAddress;
+  gateway: GatewayWithAddress;
   amountToStake: number;
   walletAddress: AoAddress;
   onClose: () => void;

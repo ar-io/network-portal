@@ -1,18 +1,18 @@
-import { AoUserWithdrawal } from '@ar.io/sdk/web';
+import { UserWithdrawal } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 const useWithdrawals = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
-  return useQuery<Array<AoUserWithdrawal>>({
+  return useQuery<Array<UserWithdrawal>>({
     queryKey: ['withdrawals', arIOReadSDK, address],
     queryFn: async () => {
       if (!address) {
         throw new Error('Address is not set');
       }
 
-      const withdrawals: Array<AoUserWithdrawal> = [];
+      const withdrawals: Array<UserWithdrawal> = [];
       let cursor: string | undefined;
 
       do {

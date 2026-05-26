@@ -1,8 +1,8 @@
-import { AoEpochData } from '@ar.io/sdk/web';
+import { EpochData } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
-const useObservers = (epoch?: AoEpochData) => {
+const useObservers = (epoch?: EpochData) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const queryResults = useQuery({

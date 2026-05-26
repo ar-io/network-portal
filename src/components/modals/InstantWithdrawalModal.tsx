@@ -1,4 +1,4 @@
-import { AoGateway, AoVaultData, mARIOToken } from '@ar.io/sdk/web';
+import { Gateway, VaultData, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import {
@@ -26,10 +26,10 @@ const InstantWithdrawalModal = ({
   vault,
   onClose,
 }: {
-  gateway: AoGateway;
+  gateway: Gateway;
   gatewayAddress: string;
   vaultId: string;
-  vault: AoVaultData;
+  vault: VaultData;
   onClose: () => void;
 }) => {
   const queryClient = useQueryClient();

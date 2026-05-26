@@ -1,10 +1,10 @@
-import { AoStakeDelegation, AoVaultDelegation } from '@ar.io/sdk/web';
+import { StakeDelegation, VaultDelegation } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 type DelegateStakes = {
-  stakes: Array<AoStakeDelegation>;
-  withdrawals: Array<AoVaultDelegation>;
+  stakes: Array<StakeDelegation>;
+  withdrawals: Array<VaultDelegation>;
 };
 
 const useDelegateStakes = (address?: string) => {

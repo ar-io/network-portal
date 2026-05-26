@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { GatewayWithAddress } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { isValidSolanaAddress } from '@src/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -35,7 +35,7 @@ const useGateway = ({
               ? ({
                   ...gateway,
                   gatewayAddress: ownerWalletAddress,
-                } as AoGatewayWithAddress)
+                } as GatewayWithAddress)
               : null;
           });
       }

@@ -1,4 +1,4 @@
-import { AoEpochSettings } from '@ar.io/sdk/web';
+import { EpochSettings } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -8,7 +8,7 @@ const useEpochSettings = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const queryResults = useQuery<
-    AoEpochSettings & { hasEpochZeroStarted: boolean }
+    EpochSettings & { hasEpochZeroStarted: boolean }
   >({
     queryKey: ['epochSettings', arIOReadSDK],
     queryFn: async () => {

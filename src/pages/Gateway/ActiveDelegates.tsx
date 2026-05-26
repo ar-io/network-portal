@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Placeholder from '@src/components/Placeholder';
 import TableView from '@src/components/TableView';
@@ -21,7 +21,7 @@ const columnHelper = createColumnHelper<TableData>();
 const ActiveDelegates = ({
   gateway,
 }: {
-  gateway?: AoGatewayWithAddress | null;
+  gateway?: GatewayWithAddress | null;
 }) => {
   const ticker = useGlobalState((state) => state.ticker);
   const {

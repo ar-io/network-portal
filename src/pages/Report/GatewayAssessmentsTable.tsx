@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { GatewayWithAddress } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import AssessmentDetailsPanel from '@src/components/AssessmentDetailsPanel';
 import Bubble from '@src/components/Bubble';
@@ -33,7 +33,7 @@ const GatewayAssessmentsTable = ({
   gateway,
   reportData,
 }: {
-  gateway?: AoGatewayWithAddress | null;
+  gateway?: GatewayWithAddress | null;
   reportData: ReportData;
 }) => {
   const [observedHost, setObservedHost] = useState<string>();

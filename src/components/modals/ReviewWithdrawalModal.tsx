@@ -1,4 +1,4 @@
-import { ARIOToken, AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { ARIOToken, GatewayWithAddress } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { AoAddress, WithdrawalType } from '@src/types';
@@ -30,7 +30,7 @@ const ReviewWithdrawalModal = ({
   withdrawalFee,
   returningAmount,
 }: {
-  gateway: AoGatewayWithAddress;
+  gateway: GatewayWithAddress;
   amountToWithdraw: number;
   withdrawalType: WithdrawalType;
   walletAddress: AoAddress;

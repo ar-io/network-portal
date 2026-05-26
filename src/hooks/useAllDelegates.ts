@@ -1,18 +1,18 @@
-import { AoAllDelegates } from '@ar.io/sdk/web';
+import { AllDelegates } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 const useAllDelegates = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
-  return useQuery<AoAllDelegates[]>({
+  return useQuery<AllDelegates[]>({
     queryKey: ['allDelegates', arIOReadSDK],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      const allDelegates: AoAllDelegates[] = [];
+      const allDelegates: AllDelegates[] = [];
       let hasNextPage = true;
       let cursor: string | undefined;
       const limit = 1000;

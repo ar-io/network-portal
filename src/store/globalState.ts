@@ -1,5 +1,5 @@
 import type { SolanaARIOWriteable } from '@ar.io/sdk/solana';
-import { ARIO, AoARIORead, AoARIOWrite, AoEpochData } from '@ar.io/sdk/web';
+import { ARIO, ARIORead, EpochData } from '@ar.io/sdk/web';
 import { address, createSolanaRpc } from '@solana/kit';
 import type { Rpc, SolanaRpcApi } from '@solana/kit';
 import { THEME_TYPES } from '@src/constants';
@@ -16,10 +16,10 @@ type GlobalState = {
   theme: ThemeType;
   rpc: Rpc<SolanaRpcApi>;
   solanaRpcUrl: string;
-  arIOReadSDK: AoARIORead;
-  arIOWriteableSDK?: AoARIOWrite;
+  arIOReadSDK: ARIORead;
+  arIOWriteableSDK?: SolanaARIOWriteable;
   solanaSlot?: number;
-  currentEpoch?: AoEpochData;
+  currentEpoch?: EpochData;
   walletAddress?: AoAddress;
   walletStateInitialized: boolean;
   ticker: string;
@@ -30,12 +30,12 @@ type GlobalState = {
 type GlobalStateActions = {
   setTheme: (theme: ThemeType) => void;
   setSolanaSlot: (slot: number) => void;
-  setCurrentEpoch: (currentEpoch: AoEpochData) => void;
+  setCurrentEpoch: (currentEpoch: EpochData) => void;
   updateWallet: (walletAddress?: AoAddress) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
   setIsMobile: (isMobile: boolean) => void;
-  setWriteSDK: (sdk?: AoARIOWrite) => void;
+  setWriteSDK: (sdk?: SolanaARIOWriteable) => void;
 };
 
 const makeRpc = (rpcUrl: string) => createSolanaRpc(rpcUrl);
@@ -72,14 +72,13 @@ const getNetworkTierFromRpcUrl = (
 const getDbNameFromRpcUrl = (rpcUrl: string) =>
   `solana-${getNetworkTierFromRpcUrl(rpcUrl)}`;
 
-const makeArIOReadSDK = (rpc: Rpc<SolanaRpcApi>): AoARIORead => {
+const makeArIOReadSDK = (rpc: Rpc<SolanaRpcApi>): ARIORead => {
   const settings = useSettings.getState();
   const coreProgramId = getOptionalSolanaAddress(settings.solanaCoreProgramId);
   const garProgramId = getOptionalSolanaAddress(settings.solanaGarProgramId);
   const arnsProgramId = getOptionalSolanaAddress(settings.solanaArnsProgramId);
 
   return ARIO.init({
-    backend: 'solana',
     rpc,
     ...(coreProgramId ? { coreProgramId: address(coreProgramId) } : {}),
     ...(garProgramId ? { garProgramId: address(garProgramId) } : {}),
@@ -145,7 +144,7 @@ class GlobalStateActionBase implements GlobalStateActions {
     this.set({ solanaSlot });
   };
 
-  setCurrentEpoch = (currentEpoch: AoEpochData) => {
+  setCurrentEpoch = (currentEpoch: EpochData) => {
     this.set({ currentEpoch });
   };
 
@@ -165,7 +164,7 @@ class GlobalStateActionBase implements GlobalStateActions {
     this.set({ isMobile });
   };
 
-  setWriteSDK = (arIOWriteableSDK?: AoARIOWrite) => {
+  setWriteSDK = (arIOWriteableSDK?: SolanaARIOWriteable) => {
     this.set({ arIOWriteableSDK });
   };
 }

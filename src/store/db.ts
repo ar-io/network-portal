@@ -1,4 +1,4 @@
-import { AoARIORead, AoEpochData } from '@ar.io/sdk/web';
+import { ARIORead, EpochData } from '@ar.io/sdk/web';
 import { log } from '@src/constants';
 import { Assessment } from '@src/types';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
@@ -10,7 +10,7 @@ export type NetworkPortalDB = Dexie & {
     'id' // primary key "id" (for the typings only)
   >;
   epochs: EntityTable<
-    AoEpochData,
+    EpochData,
     'epochIndex' // primary key "id" (for the typings only)
   >;
 };
@@ -55,7 +55,7 @@ export const createDb = (dbName: string = 'solana-mainnet') => {
 };
 export const getEpoch = async (
   networkPortalDB: NetworkPortalDB,
-  arIOReadSDK: AoARIORead,
+  arIOReadSDK: ARIORead,
   epochIndex: number,
 ) => {
   const epoch = await networkPortalDB.epochs
@@ -66,7 +66,7 @@ export const getEpoch = async (
     return epoch;
   }
 
-  let epochData: AoEpochData | undefined;
+  let epochData: EpochData | undefined;
   try {
     epochData = await arIOReadSDK.getEpoch({ epochIndex });
   } catch (error) {

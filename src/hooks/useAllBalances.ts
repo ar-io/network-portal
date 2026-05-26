@@ -1,8 +1,8 @@
-import { AoBalanceWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { BalanceWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
-export interface ProcessedBalance extends AoBalanceWithAddress {
+export interface ProcessedBalance extends BalanceWithAddress {
   arioBalance: number;
 }
 
@@ -22,7 +22,7 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      const allBalances: AoBalanceWithAddress[] = [];
+      const allBalances: BalanceWithAddress[] = [];
       let hasNextPage = true;
       let cursor: string | undefined;
       const limit = 1000;

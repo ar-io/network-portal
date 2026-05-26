@@ -1,10 +1,10 @@
-import { AoVaultData } from '@ar.io/sdk/web';
+import { VaultData } from '@ar.io/sdk/web';
 
 const MAX_EXPEDITED_WITHDRAWAL_PENALTY_RATE = 0.5;
 const MIN_EXPEDITED_WITHDRAWAL_PENALTY_RATE = 0.1;
 
 export const calculateInstantWithdrawalPenaltyRate = (
-  vault: AoVaultData,
+  vault: VaultData,
   date: Date,
 ) => {
   const elapsedTimeMs = Math.max(0, date.getTime() - vault.startTimestamp);

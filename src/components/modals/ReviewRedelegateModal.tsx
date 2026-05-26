@@ -1,4 +1,4 @@
-import { ARIOToken, AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { ARIOToken, GatewayWithAddress } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
@@ -19,8 +19,8 @@ import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
 
 type ReviewRedelegateModalProps = {
-  sourceGateway: AoGatewayWithAddress;
-  targetGateway: AoGatewayWithAddress;
+  sourceGateway: GatewayWithAddress;
+  targetGateway: GatewayWithAddress;
   amountToRedelegate: ARIOToken;
   fee: number;
   newTotalStake: number;

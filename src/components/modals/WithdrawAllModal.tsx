@@ -1,4 +1,4 @@
-import { AoGateway, mARIOToken } from '@ar.io/sdk/web';
+import { Gateway, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -15,7 +15,7 @@ const WithdrawAllModal = ({
   activeStakes,
 }: {
   onClose: () => void;
-  activeStakes: { owner: string; delegatedStake: number; gateway: AoGateway }[];
+  activeStakes: { owner: string; delegatedStake: number; gateway: Gateway }[];
 }) => {
   const queryClient = useQueryClient();
 

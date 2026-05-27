@@ -7,6 +7,24 @@ interface UseAllGatewaysOptions {
   sortOrder?: 'asc' | 'desc';
 }
 
+const getNestedValue = (obj: Record<string, any>, path: string) =>
+  path.split('.').reduce((value, key) => value?.[key], obj);
+
+const compareValues = (
+  valueA: string | number | undefined,
+  valueB: string | number | undefined,
+) => {
+  if (valueA == null && valueB == null) return 0;
+  if (valueA == null) return 1;
+  if (valueB == null) return -1;
+
+  if (typeof valueA === 'number' && typeof valueB === 'number') {
+    return valueA - valueB;
+  }
+
+  return String(valueA).localeCompare(String(valueB));
+};
+
 const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const { sortBy = 'totalDelegatedStake', sortOrder = 'desc' } = options;
@@ -37,18 +55,25 @@ const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
         cursor = result.nextCursor;
       }
 
-      // if totalStake sorting, we need to do it client side because totalStake is not a field in the API
-      if (sortBy === 'totalStake') {
-        allGateways.sort((a, b) => {
-          const stakeA = a.totalDelegatedStake + a.operatorStake;
-          const stakeB = b.totalDelegatedStake + b.operatorStake;
-          if (sortOrder === 'asc') {
-            return stakeA - stakeB;
-          } else {
-            return stakeB - stakeA;
-          }
-        });
-      }
+      allGateways.sort((a, b) => {
+        const valueA =
+          sortBy === 'totalStake'
+            ? a.totalDelegatedStake + a.operatorStake
+            : (getNestedValue(a as Record<string, any>, sortBy) as
+                | string
+                | number
+                | undefined);
+        const valueB =
+          sortBy === 'totalStake'
+            ? b.totalDelegatedStake + b.operatorStake
+            : (getNestedValue(b as Record<string, any>, sortBy) as
+                | string
+                | number
+                | undefined);
+
+        const comparison = compareValues(valueA, valueB);
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
 
       return allGateways;
     },

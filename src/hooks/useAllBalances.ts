@@ -41,7 +41,20 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
         cursor = result.nextCursor;
       }
 
-      // Convert mARIO to ARIO (no additional sorting since API handles it)
+      allBalances.sort((a, b) => {
+        const valueA = sortBy === 'address' ? a.address : a.balance;
+        const valueB = sortBy === 'address' ? b.address : b.balance;
+
+        if (typeof valueA === 'string' && typeof valueB === 'string') {
+          const comparison = valueA.localeCompare(valueB);
+          return sortOrder === 'asc' ? comparison : -comparison;
+        }
+
+        const comparison = Number(valueA) - Number(valueB);
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
+
+      // Convert mARIO to ARIO after ordering to keep server/client behavior consistent.
       return allBalances.map((item) => ({
         ...item,
         arioBalance: new mARIOToken(item.balance).toARIO().valueOf(),

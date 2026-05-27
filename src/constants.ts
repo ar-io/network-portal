@@ -1,4 +1,4 @@
-import { DEVNET_PROGRAM_IDS, DEVNET_RPC_URL } from '@ar.io/sdk/solana';
+import { DEVNET_PROGRAM_IDS } from '@ar.io/sdk/solana';
 import * as loglevel from 'loglevel';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
@@ -15,7 +15,8 @@ export const WRITE_OPTIONS = {
 };
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 
-export const SOLANA_RPC_URL = DEVNET_RPC_URL;
+export const SOLANA_RPC_URL =
+  'https://still-stylish-diagram.solana-devnet.quiknode.pro/7bb783112e4f06d72eeb7ca7125bbce97009438f/';
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
 export const SOLANA_CORE_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.core);

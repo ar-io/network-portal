@@ -7,8 +7,20 @@ interface UseAllGatewaysOptions {
   sortOrder?: 'asc' | 'desc';
 }
 
-const getNestedValue = (obj: Record<string, any>, path: string) =>
-  path.split('.').reduce((value, key) => value?.[key], obj);
+const getNestedValue = (obj: Record<string, any>, path: string): unknown =>
+  path.split('.').reduce<unknown>((value, key) => {
+    if (value && typeof value === 'object' && key in value) {
+      return (value as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, obj);
+
+const toSortableValue = (value: unknown): string | number | undefined => {
+  if (typeof value === 'string' || typeof value === 'number') {
+    return value;
+  }
+  return undefined;
+};
 
 const compareValues = (
   valueA: string | number | undefined,
@@ -59,17 +71,11 @@ const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
         const valueA =
           sortBy === 'totalStake'
             ? a.totalDelegatedStake + a.operatorStake
-            : (getNestedValue(a as Record<string, any>, sortBy) as
-                | string
-                | number
-                | undefined);
+            : toSortableValue(getNestedValue(a as Record<string, any>, sortBy));
         const valueB =
           sortBy === 'totalStake'
             ? b.totalDelegatedStake + b.operatorStake
-            : (getNestedValue(b as Record<string, any>, sortBy) as
-                | string
-                | number
-                | undefined);
+            : toSortableValue(getNestedValue(b as Record<string, any>, sortBy));
 
         const comparison = compareValues(valueA, valueB);
         return sortOrder === 'asc' ? comparison : -comparison;

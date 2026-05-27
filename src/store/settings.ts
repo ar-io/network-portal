@@ -55,6 +55,14 @@ export const useSettings = create<Settings>()(
           ...(persistedState as Partial<Settings>),
         };
 
+        // Keep app startup pinned to staging defaults regardless of stale
+        // persisted values from previous environments.
+        mergedState.solanaRpcUrl = SOLANA_RPC_URL;
+        mergedState.solanaCoreProgramId = SOLANA_CORE_PROGRAM_ID ?? '';
+        mergedState.solanaGarProgramId = SOLANA_GAR_PROGRAM_ID ?? '';
+        mergedState.solanaArnsProgramId = SOLANA_ARNS_PROGRAM_ID ?? '';
+        mergedState.solanaAntProgramId = SOLANA_ANT_PROGRAM_ID ?? '';
+
         // If a stale localhost RPC was persisted from prior localnet sessions,
         // prefer the env-provided RPC (devnet/mainnet) on next boot.
         if (

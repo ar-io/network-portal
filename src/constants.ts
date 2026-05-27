@@ -1,3 +1,4 @@
+import { DEVNET_PROGRAM_IDS, DEVNET_RPC_URL } from '@ar.io/sdk/solana';
 import * as loglevel from 'loglevel';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
@@ -14,20 +15,13 @@ export const WRITE_OPTIONS = {
 };
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 
-export const SOLANA_RPC_URL =
-  import.meta.env.VITE_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+export const SOLANA_RPC_URL = DEVNET_RPC_URL;
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
-// Program ID overrides for localnet/devnet. When unset, the SDK uses its
-// hardcoded mainnet placeholder addresses.
-export const SOLANA_CORE_PROGRAM_ID =
-  import.meta.env.VITE_ARIO_CORE_PROGRAM_ID || undefined;
-export const SOLANA_GAR_PROGRAM_ID =
-  import.meta.env.VITE_ARIO_GAR_PROGRAM_ID || undefined;
-export const SOLANA_ARNS_PROGRAM_ID =
-  import.meta.env.VITE_ARIO_ARNS_PROGRAM_ID || undefined;
-export const SOLANA_ANT_PROGRAM_ID =
-  import.meta.env.VITE_ARIO_ANT_PROGRAM_ID || undefined;
+export const SOLANA_CORE_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.core);
+export const SOLANA_GAR_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.gar);
+export const SOLANA_ARNS_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.arns);
+export const SOLANA_ANT_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.ant);
 
 export const DEFAULT_ARWEAVE_PROTOCOL =
   import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';

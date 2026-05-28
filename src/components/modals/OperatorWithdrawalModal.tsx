@@ -179,7 +179,7 @@ const OperatorStakingModal = ({
                     <Label>Standard Withdrawal</Label>
                   </div>
                   <p className="pl-6 text-left text-xs text-mid">
-                    90 day withdrawal period with no fees.
+                    30 day withdrawal period with no fees.
                   </p>
                 </div>
               </Radio>

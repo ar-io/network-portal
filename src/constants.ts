@@ -16,7 +16,7 @@ export const WRITE_OPTIONS = {
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 
 export const SOLANA_RPC_URL =
-  'https://still-stylish-diagram.solana-devnet.quiknode.pro/7bb783112e4f06d72eeb7ca7125bbce97009438f/';
+  'https://frosty-hidden-bush.solana-devnet.quiknode.pro/d878601b7931461e8fd02c6a798cbda800da1762/';
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
 export const SOLANA_CORE_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.core);

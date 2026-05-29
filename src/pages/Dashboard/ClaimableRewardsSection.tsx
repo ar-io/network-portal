@@ -162,7 +162,7 @@ const ClaimableRewardsSection = () => {
     }
   };
 
-  const shouldRender = !!walletAddress;
+  const shouldRender = !!walletAddress && totalClaimableAmount > 0;
 
   if (!shouldRender) {
     return null;

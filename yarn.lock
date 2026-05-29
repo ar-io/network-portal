@@ -20,12 +20,12 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@4.0.0-solana.15":
-  version "4.0.0-solana.15"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.15.tgz#27cf89c70a2c8d2857862072d9bd374a44656afc"
-  integrity sha512-kh864BZDNQqGLzVE9mzwozsomHJHONHzNddpVCA4Pxdb+VyJQfR99lerU82XGYmd14bUmqi74PM8RCX2+Nvm/Q==
+"@ar.io/sdk@4.0.0-solana.22":
+  version "4.0.0-solana.22"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.22.tgz#0bdc5698f0ad76c34d842b83af2eb405205ea41d"
+  integrity sha512-6Diug3UzO5dbOlAcJyONunuzAlea3jFkgIdWeWDnq36mj+z9PLM9AvdkO8I/7wKCuAHVy/u++UJDIdUwM/TBfA==
   dependencies:
-    "@ar.io/solana-contracts" "0.1.0-devnet.0"
+    "@ar.io/solana-contracts" "0.4.0"
     "@solana-program/compute-budget" "^0.15.0"
     "@solana-program/token" "^0.13.0"
     "@solana/kit" "^6.8.0"
@@ -51,10 +51,13 @@
     winston "^3.13.0"
     zod "^3.23.8"
 
-"@ar.io/solana-contracts@0.1.0-devnet.0":
-  version "0.1.0-devnet.0"
-  resolved "https://registry.yarnpkg.com/@ar.io/solana-contracts/-/solana-contracts-0.1.0-devnet.0.tgz#b03d1fd243b80665bd289232b335a25a22e3795a"
-  integrity sha512-MzdoB2lBHWNqGRi5Ki7a8legTv8YuoymwuahPSQr6lk75UMr7dMz5VWF2ypXLv2GJZODz69ChNSd/eTP7X4n8g==
+"@ar.io/solana-contracts@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@ar.io/solana-contracts/-/solana-contracts-0.4.0.tgz#f658a2bcb926451188302cbbcc4a1d1f49f875ee"
+  integrity sha512-rLQVlNS1YBJq2cG5xu9qOmWF0qOPiLXD0AGVlW2WFeNxIXLvDYiARXLJXQ26kvnfIED/Fx3X5cg7Y4m4L1ZF4A==
+  dependencies:
+    "@noble/hashes" "^1.5.0"
+    bs58 "^6.0.0"
 
 "@ardrive/turbo-sdk@^1.17.0":
   version "1.24.0"
@@ -2451,9 +2454,9 @@
   resolved "https://registry.npmjs.org/@noble/hashes/-/hashes-1.6.0.tgz#d4bfb516ad6e7b5111c216a5cc7075f4cf19e6c5"
   integrity sha512-YUULf0Uk4/mAA89w+k3+yUYh6NrEvxZa5T6SY3wlMvE2chHkxFUUIDI8/XW1QSC357iA5pSnqt7XEhvFOqmDyQ==
 
-"@noble/hashes@1.8.0", "@noble/hashes@^1", "@noble/hashes@^1.0.0", "@noble/hashes@^1.2.0":
+"@noble/hashes@1.8.0", "@noble/hashes@^1", "@noble/hashes@^1.0.0", "@noble/hashes@^1.2.0", "@noble/hashes@^1.5.0":
   version "1.8.0"
-  resolved "https://registry.npmjs.org/@noble/hashes/-/hashes-1.8.0.tgz#cee43d801fcef9644b11b8194857695acd5f815a"
+  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.8.0.tgz#cee43d801fcef9644b11b8194857695acd5f815a"
   integrity sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==
 
 "@noble/hashes@~1.6.0":

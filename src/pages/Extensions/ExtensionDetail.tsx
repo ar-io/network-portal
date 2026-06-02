@@ -71,6 +71,9 @@ export default function ExtensionDetail({
   };
 
   const isGithubUrl = extension.url.includes('github.com');
+  const openExtension = () => {
+    window.open(extension.url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="px-4 lg:px-6 flex h-full max-w-full flex-col gap-6">
@@ -113,7 +116,7 @@ export default function ExtensionDetail({
               </div>
             </div>
             <button
-              onClick={() => window.open(extension.url, '_blank')}
+              onClick={openExtension}
               className="group relative mt-4 flex items-center gap-2 self-start rounded-lg px-4 py-2 text-sm transition-all sm:mt-0"
             >
               <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-gradient-primary-start to-gradient-primary-end opacity-0 transition-opacity group-hover:opacity-100" />

@@ -170,6 +170,7 @@ export default function Extensions() {
                 window.open(
                   'https://github.com/ar-io/network-portal/issues/new?template=extension_submission.md',
                   '_blank',
+                  'noopener,noreferrer',
                 )
               }
               className="group flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-mid transition-colors hover:text-high"

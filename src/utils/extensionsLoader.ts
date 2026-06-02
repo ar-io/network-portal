@@ -2,13 +2,36 @@
  * Utility to load extensions data from ArNS name
  */
 
-import type { Extension } from '@src/types';
+import type { Extension, ExtensionCategory, ExtensionTag } from '@src/types';
 
 interface ExtensionsData {
   extensions: Extension[];
 }
 
 const HTTP_URL_PROTOCOLS = new Set(['http:', 'https:']);
+const EXTENSION_CATEGORIES = [
+  'storage',
+  'routing',
+  'monitoring',
+  'security',
+  'performance',
+  'indexing',
+  'caching',
+  'moderation',
+  'analytics',
+  'developer-tools',
+  'compute',
+] as const satisfies readonly ExtensionCategory[];
+const EXTENSION_TAGS = [
+  'featured',
+  'grant-funded',
+  'community',
+  'official',
+  'beta',
+  'stable',
+] as const satisfies readonly ExtensionTag[];
+const EXTENSION_CATEGORY_SET = new Set<string>(EXTENSION_CATEGORIES);
+const EXTENSION_TAG_SET = new Set<string>(EXTENSION_TAGS);
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -33,6 +56,38 @@ function normalizeHttpUrl(value: unknown): string | undefined {
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
+}
+
+function normalizeCategory(value: unknown): ExtensionCategory | undefined {
+  if (!isNonEmptyString(value)) {
+    return undefined;
+  }
+
+  const category = value.trim().toLowerCase();
+  return EXTENSION_CATEGORY_SET.has(category)
+    ? (category as ExtensionCategory)
+    : undefined;
+}
+
+function normalizeTags(value: unknown): ExtensionTag[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return Array.from(
+    new Set(
+      value.flatMap((tag) => {
+        if (!isNonEmptyString(tag)) {
+          return [];
+        }
+
+        const normalizedTag = tag.trim().toLowerCase();
+        return EXTENSION_TAG_SET.has(normalizedTag)
+          ? [normalizedTag as ExtensionTag]
+          : [];
+      }),
+    ),
+  );
 }
 
 function optionalStringArray(value: unknown): string[] | undefined {
@@ -71,17 +126,16 @@ function validateExtension(extension: unknown): Extension | undefined {
     !isNonEmptyString(description) ||
     !isNonEmptyString(longDescription) ||
     !isNonEmptyString(author) ||
-    !isNonEmptyString(category) ||
-    !Array.isArray(tags) ||
-    !tags.every(isNonEmptyString) ||
     !isNonEmptyString(lastUpdated)
   ) {
     return undefined;
   }
 
   const safeUrl = normalizeHttpUrl(url);
+  const safeCategory = normalizeCategory(category);
+  const safeTags = normalizeTags(tags);
 
-  if (!safeUrl) {
+  if (!safeUrl || !safeCategory || !safeTags) {
     return undefined;
   }
 
@@ -101,8 +155,8 @@ function validateExtension(extension: unknown): Extension | undefined {
     author,
     ...(safeAuthorUrl && { authorUrl: safeAuthorUrl }),
     url: safeUrl,
-    category: category as Extension['category'],
-    tags: tags as Extension['tags'],
+    category: safeCategory,
+    tags: safeTags,
     ...(safeVersion && { version: safeVersion }),
     ...(safeImageUri && { imageUri: safeImageUri }),
     lastUpdated,

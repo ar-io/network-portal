@@ -98,6 +98,36 @@ describe('validateExtensionsData', () => {
     });
   });
 
+  it('normalizes category and tags before returning extensions', () => {
+    expect(
+      validateExtensionsData({
+        extensions: [
+          {
+            ...validExtension,
+            category: ' storage ',
+            tags: [' Official ', 'unknown-tag', 'BETA', 'official'],
+          },
+        ],
+      }),
+    ).toEqual({
+      extensions: [
+        {
+          ...validExtension,
+          category: 'storage',
+          tags: ['official', 'beta'],
+        },
+      ],
+    });
+  });
+
+  it('rejects extensions with unknown categories', () => {
+    expect(
+      validateExtensionsData({
+        extensions: [{ ...validExtension, category: 'unknown-category' }],
+      }),
+    ).toEqual({ extensions: [] });
+  });
+
   it('returns an empty extension list for malformed registry data', () => {
     expect(validateExtensionsData({ extensions: 'not an array' })).toEqual({
       extensions: [],

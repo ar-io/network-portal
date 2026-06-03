@@ -19,10 +19,20 @@ export const SOLANA_RPC_URL =
   'https://frosty-hidden-bush.solana-devnet.quiknode.pro/d878601b7931461e8fd02c6a798cbda800da1762/';
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
-export const SOLANA_CORE_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.core);
-export const SOLANA_GAR_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.gar);
-export const SOLANA_ARNS_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.arns);
-export const SOLANA_ANT_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.ant);
+// export const SOLANA_CORE_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.core);
+// export const SOLANA_GAR_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.gar);
+// export const SOLANA_ARNS_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.arns);
+// export const SOLANA_ANT_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.ant);
+
+// STAGING v2 Hardcoded program IDs - IGNORE in favor of .env.local values
+export const SOLANA_CORE_PROGRAM_ID =
+  '8Njx9wPkXiNzDCgjwVsJFRjpAEV34gGW3n8DzX3V23m1';
+export const SOLANA_GAR_PROGRAM_ID =
+  '7WsDTrtZBsfKtnP33XkjuqXCY69JE7n4QVYpynqJCFxz';
+export const SOLANA_ARNS_PROGRAM_ID =
+  '6EZNezcg4rc5hnh8HG34vGquT3WpW5xXypzPb24uyEpp';
+export const SOLANA_ANT_PROGRAM_ID =
+  'DbHbRwUD1oAn1mrDSqtWtvwGcNrmhWdD2g8L4xmeQ7NX';
 
 export const DEFAULT_ARWEAVE_PROTOCOL =
   import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';

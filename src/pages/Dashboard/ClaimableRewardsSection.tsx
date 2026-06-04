@@ -170,7 +170,8 @@ const ClaimableRewardsSection = () => {
 
   const hasWriteSupport = !!arIOWriteableSDK;
   const loading = withdrawalsLoading || vaultsLoading;
-  const claimRewardsDisabled = loading || isProcessingRewards;
+  const claimRewardsDisabled =
+    loading || isProcessingRewards || !hasWriteSupport;
 
   return (
     <div className="rounded-xl border border-grey-600 bg-containerL1 p-4 lg:p-5">

@@ -3,12 +3,28 @@ import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
 import WithdrawWarning from './WithdrawWarning';
+
+// Space batched Solana withdrawals out so each transaction is built with
+// fresh vault PDA seeds instead of reusing the just-created withdrawal vault.
+const WITHDRAW_ALL_TRANSACTION_DELAY_MS = 1_200;
+
+const waitForNextWithdrawalTransaction = () =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, WITHDRAW_ALL_TRANSACTION_DELAY_MS);
+  });
+
+const getWithdrawableStakes = (
+  stakes: { owner: string; delegatedStake: number; gateway: Gateway }[],
+) =>
+  [...stakes]
+    .filter((stake) => stake.delegatedStake > 0)
+    .sort((a, b) => b.delegatedStake - a.delegatedStake);
 
 const WithdrawAllModal = ({
   onClose,
@@ -22,68 +38,98 @@ const WithdrawAllModal = ({
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [remainingStakes, setRemainingStakes] = useState(() =>
+    getWithdrawableStakes(activeStakes),
+  );
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
-  const [initialActiveStakes] = useState(activeStakes);
-
-  const withDelegatedStake = useMemo(
-    () =>
-      [...initialActiveStakes]
-        .filter((stake) => stake.delegatedStake > 0)
-        .sort((a, b) => b.delegatedStake - a.delegatedStake),
-    [initialActiveStakes],
-  );
-
-  const totalWithdrawalMIO = withDelegatedStake.reduce(
+  const totalWithdrawalMIO = remainingStakes.reduce(
     (acc, stake) => acc + stake.delegatedStake,
     0,
   );
 
+  const refreshStakeQueries = () => {
+    if (!walletAddress) {
+      return;
+    }
+
+    void Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['gateway', walletAddress.toString()],
+        refetchType: 'all',
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['gateways'],
+        refetchType: 'all',
+      }),
+      queryClient.invalidateQueries({
+        queryKey: ['delegateStakes'],
+        refetchType: 'all',
+      }),
+    ]).catch((error) => {
+      log.error('Failed to refresh stakes after withdraw all', error);
+    });
+  };
+
+  useEffect(() => {
+    if (!showSuccessModal && !isProcessing && remainingStakes.length === 0) {
+      onClose();
+    }
+  }, [isProcessing, onClose, remainingStakes.length, showSuccessModal]);
+
   const processWithdrawAll = async () => {
-    if (withDelegatedStake.length === 0) {
+    if (isProcessing) {
+      return;
+    }
+
+    if (remainingStakes.length === 0) {
       onClose();
       return;
     }
 
     if (walletAddress && arIOWriteableSDK) {
+      let completedWithdrawal = false;
+      setIsProcessing(true);
       setShowBlockingMessageModal(true);
 
       try {
-        for (const stake of withDelegatedStake) {
-          if (stake.delegatedStake > 0) {
-            const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
-              {
-                target: stake.owner,
-                decreaseQty: stake.delegatedStake, // read and write value both in mIO
-              },
-              WRITE_OPTIONS,
-            );
-
-            log.info(`Decrease Delegate Stake txID: ${txID}`);
+        for (const [index, stake] of remainingStakes.entries()) {
+          if (index > 0) {
+            await waitForNextWithdrawalTransaction();
           }
-        }
 
-        queryClient.invalidateQueries({
-          queryKey: ['gateway', walletAddress.toString()],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['delegateStakes'],
-          refetchType: 'all',
-        });
+          const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
+            {
+              target: stake.owner,
+              decreaseQty: stake.delegatedStake, // read and write value both in mIO
+            },
+            WRITE_OPTIONS,
+          );
+
+          completedWithdrawal = true;
+          setRemainingStakes((currentStakes) =>
+            currentStakes.filter(
+              (currentStake) => currentStake.owner !== stake.owner,
+            ),
+          );
+
+          log.info(`Decrease Delegate Stake txID: ${txID}`);
+        }
 
         setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {
         setShowBlockingMessageModal(false);
+        setIsProcessing(false);
+
+        if (completedWithdrawal) {
+          refreshStakeQueries();
+        }
       }
     }
   };
@@ -102,8 +148,8 @@ const WithdrawAllModal = ({
 
             <div className="border-y border-grey-800 p-8">
               <table className="mb-8 w-full table-auto">
-                {withDelegatedStake.map((stake, index) => (
-                  <tr key={index} className="text-sm">
+                {remainingStakes.map((stake) => (
+                  <tr key={stake.owner} className="text-sm">
                     <td className="py-2 text-low ">
                       {stake.gateway.settings.label}
                     </td>
@@ -140,6 +186,7 @@ const WithdrawAllModal = ({
               <div className="mt-6 flex grow justify-center">
                 <Button
                   onClick={processWithdrawAll}
+                  disabled={isProcessing}
                   buttonType={ButtonType.PRIMARY}
                   title="Withdraw"
                   text={<div className="py-2">Withdraw</div>}

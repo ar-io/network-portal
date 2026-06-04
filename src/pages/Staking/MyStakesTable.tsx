@@ -401,9 +401,9 @@ const MyStakesTable = () => {
         }}
         tableId="my-stakes-unified"
       />
-      {showWithdrawAllModal && unifiedStakes !== undefined && (
+      {showWithdrawAllModal && (
         <WithdrawAllModal
-          activeStakes={unifiedStakes
+          activeStakes={(unifiedStakes ?? [])
             .filter((s) => s.status === 'Active')
             .map((s) => ({
               owner: s.owner,

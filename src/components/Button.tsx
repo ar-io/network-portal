@@ -15,6 +15,7 @@ export const Button = ({
   title,
   text,
   active = false,
+  disabled = false,
   onClick,
 }: {
   forwardRef?: LegacyRef<HTMLButtonElement>;
@@ -25,6 +26,7 @@ export const Button = ({
   title: string;
   text?: ReactElement | string;
   active?: boolean;
+  disabled?: boolean;
   onClick?: MouseEventHandler;
 }) => {
   if (buttonType === ButtonType.PRIMARY) {
@@ -42,8 +44,11 @@ export const Button = ({
           title={title}
           ref={forwardRef}
           className={
-            btnClassNames + (icon ? ' justify-start' : ' justify-center')
+            btnClassNames +
+            (icon ? ' justify-start' : ' justify-center') +
+            (disabled ? ' cursor-not-allowed opacity-60' : '')
           }
+          disabled={disabled}
           onClick={onClick}
         >
           {icon}
@@ -71,6 +76,7 @@ export const Button = ({
         ref={forwardRef}
         title={title}
         className={buttonClassNames}
+        disabled={disabled}
         onClick={onClick}
       >
         {icon}

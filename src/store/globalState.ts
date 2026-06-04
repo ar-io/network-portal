@@ -11,6 +11,7 @@ import type { Rpc, SolanaRpcApi } from '@solana/kit';
 import { THEME_TYPES } from '@src/constants';
 import { AoAddress } from '@src/types';
 import { getOptionalSolanaAddress } from '@src/utils/solanaAddress';
+import pLimit from 'p-limit';
 import { create } from 'zustand';
 import { shallow } from 'zustand/shallow';
 import { NetworkPortalDB, createDb } from './db';
@@ -44,19 +45,62 @@ type GlobalStateActions = {
   setWriteSDK: (sdk?: SolanaARIOWriteable) => void;
 };
 
-/** Memoised kit RPC client with circuit breaker — rebuilt after `setSolanaConfig()`. */
-let _rpc: any | null = null;
-export function getSolanaRpc(rpcUrl: string) {
-  if (!_rpc) {
-    _rpc = createCircuitBreakerRpc({
+// Limit concurrent RPC requests to avoid 429 rate limiting.
+// The SDK fans out many parallel calls internally (e.g. getEpoch makes
+// 3 + N calls where N = number of observers), so without a limiter a
+// single page load can fire 100+ simultaneous HTTP requests.
+const rpcLimiter = pLimit(10);
+
+/**
+ * Wrap a Solana RPC instance so every `.send()` call goes through a
+ * shared concurrency limiter.  This is transparent to the SDK — it
+ * receives a normal `Rpc<SolanaRpcApi>` whose methods return pending
+ * requests, but those requests queue behind the limiter when sent.
+ */
+const withConcurrencyLimit = (rpc: Rpc<SolanaRpcApi>): Rpc<SolanaRpcApi> =>
+  new Proxy(rpc, {
+    get(target, prop, receiver) {
+      const value = Reflect.get(target, prop, receiver);
+      if (typeof value !== 'function') return value;
+
+      return (...args: unknown[]) => {
+        const pending = (value as (...a: unknown[]) => unknown).apply(
+          target,
+          args,
+        );
+
+        // RPC methods return a "pending request" object with a .send() method.
+        // Wrap .send() so it goes through the limiter.
+        if (
+          pending &&
+          typeof pending === 'object' &&
+          'send' in pending &&
+          typeof (pending as any).send === 'function'
+        ) {
+          const origSend = (pending as any).send;
+          return new Proxy(pending as object, {
+            get(t, p, r) {
+              if (p === 'send') {
+                return (...sendArgs: unknown[]) =>
+                  rpcLimiter(() => origSend.apply(t, sendArgs));
+              }
+              return Reflect.get(t, p, r);
+            },
+          });
+        }
+
+        return pending;
+      };
+    },
+  }) as Rpc<SolanaRpcApi>;
+
+const makeRpc = (rpcUrl: string) =>
+  withConcurrencyLimit(
+    createCircuitBreakerRpc({
       primaryUrl: rpcUrl,
       fallbackUrl: defaultFallbackUrl(rpcUrl),
-    });
-  }
-  return _rpc;
-}
-
-const makeRpc = (rpcUrl: string) => getSolanaRpc(rpcUrl);
+    }) as Rpc<SolanaRpcApi>,
+  );
 
 const getNetworkTierFromRpcUrl = (
   rpcUrl: string,

@@ -3,7 +3,7 @@ import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
@@ -27,18 +27,27 @@ const WithdrawAllModal = ({
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
-  const sorted = activeStakes.sort(
-    (a, b) => b.delegatedStake - a.delegatedStake,
+  const [initialActiveStakes] = useState(activeStakes);
+
+  const withDelegatedStake = useMemo(
+    () =>
+      [...initialActiveStakes]
+        .filter((stake) => stake.delegatedStake > 0)
+        .sort((a, b) => b.delegatedStake - a.delegatedStake),
+    [initialActiveStakes],
   );
 
-  const withDelegatedStake = sorted.filter((stake) => stake.delegatedStake > 0);
-
-  const totalWithdrawalMIO = activeStakes.reduce(
+  const totalWithdrawalMIO = withDelegatedStake.reduce(
     (acc, stake) => acc + stake.delegatedStake,
     0,
   );
 
   const processWithdrawAll = async () => {
+    if (withDelegatedStake.length === 0) {
+      onClose();
+      return;
+    }
+
     if (walletAddress && arIOWriteableSDK) {
       setShowBlockingMessageModal(true);
 
@@ -81,63 +90,66 @@ const WithdrawAllModal = ({
 
   return (
     <>
-      <BaseModal onClose={onClose} useDefaultPadding={false}>
-        <div className="w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
-          <div className="px-8  pb-4 pt-6">
-            <div className="text-lg text-high">Withdraw All</div>
-            <div className="flex pt-2 text-xs text-low">
-              Withdraw all delegated stakes.
-            </div>
-          </div>
-
-          <div className="border-y border-grey-800 p-8">
-            <table className="mb-8 w-full table-auto">
-              {withDelegatedStake.map((stake, index) => (
-                <tr key={index} className="text-sm">
-                  <td className="py-2 text-low ">
-                    {stake.gateway.settings.label}
-                  </td>
-                  <td className="py-2">
-                    <a
-                      className="text-gradient"
-                      href={`https://${stake.gateway.settings.fqdn}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {stake.gateway.settings.fqdn}
-                    </a>
-                  </td>
-                  <td className="py-2 text-right text-mid ">
-                    {new mARIOToken(stake.delegatedStake).toARIO().valueOf()}{' '}
-                    {ticker}
-                  </td>
-                </tr>
-              ))}
-            </table>
-
-            <WithdrawWarning />
-          </div>
-
-          <div className="bg-containerL0 px-8 pb-8 pt-6">
-            <div className="mt-1 flex text-sm text-mid">
-              <div className="grow">Total Withdrawal:</div>
-              <div>
-                {new mARIOToken(totalWithdrawalMIO).toARIO().valueOf()} {ticker}
+      {!showSuccessModal && (
+        <BaseModal onClose={onClose} useDefaultPadding={false}>
+          <div className="w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
+            <div className="px-8  pb-4 pt-6">
+              <div className="text-lg text-high">Withdraw All</div>
+              <div className="flex pt-2 text-xs text-low">
+                Withdraw all delegated stakes.
               </div>
             </div>
 
-            <div className="mt-6 flex grow justify-center">
-              <Button
-                onClick={processWithdrawAll}
-                buttonType={ButtonType.PRIMARY}
-                title="Withdraw"
-                text={<div className="py-2">Withdraw</div>}
-                className="w-full"
-              />
+            <div className="border-y border-grey-800 p-8">
+              <table className="mb-8 w-full table-auto">
+                {withDelegatedStake.map((stake, index) => (
+                  <tr key={index} className="text-sm">
+                    <td className="py-2 text-low ">
+                      {stake.gateway.settings.label}
+                    </td>
+                    <td className="py-2">
+                      <a
+                        className="text-gradient"
+                        href={`https://${stake.gateway.settings.fqdn}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {stake.gateway.settings.fqdn}
+                      </a>
+                    </td>
+                    <td className="py-2 text-right text-mid ">
+                      {new mARIOToken(stake.delegatedStake).toARIO().valueOf()}{' '}
+                      {ticker}
+                    </td>
+                  </tr>
+                ))}
+              </table>
+
+              <WithdrawWarning />
+            </div>
+
+            <div className="bg-containerL0 px-8 pb-8 pt-6">
+              <div className="mt-1 flex text-sm text-mid">
+                <div className="grow">Total Withdrawal:</div>
+                <div>
+                  {new mARIOToken(totalWithdrawalMIO).toARIO().valueOf()}{' '}
+                  {ticker}
+                </div>
+              </div>
+
+              <div className="mt-6 flex grow justify-center">
+                <Button
+                  onClick={processWithdrawAll}
+                  buttonType={ButtonType.PRIMARY}
+                  title="Withdraw"
+                  text={<div className="py-2">Withdraw</div>}
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </BaseModal>
+        </BaseModal>
+      )}
       {showBlockingMessageModal && (
         <BlockingMessageModal
           onClose={() => setShowBlockingMessageModal(false)}

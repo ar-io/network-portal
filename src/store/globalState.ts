@@ -1,5 +1,11 @@
-import type { SolanaARIOWriteable } from '@ar.io/sdk/solana';
-import { ARIO, ARIORead, EpochData } from '@ar.io/sdk/web';
+import type { SolanaARIOWriteable, SolanaRpc } from '@ar.io/sdk/solana';
+import {
+  ARIO,
+  ARIORead,
+  EpochData,
+  createCircuitBreakerRpc,
+  defaultFallbackUrl,
+} from '@ar.io/sdk/web';
 import { address, createSolanaRpc } from '@solana/kit';
 import type { Rpc, SolanaRpcApi } from '@solana/kit';
 import { THEME_TYPES } from '@src/constants';
@@ -38,7 +44,19 @@ type GlobalStateActions = {
   setWriteSDK: (sdk?: SolanaARIOWriteable) => void;
 };
 
-const makeRpc = (rpcUrl: string) => createSolanaRpc(rpcUrl);
+/** Memoised kit RPC client with circuit breaker — rebuilt after `setSolanaConfig()`. */
+let _rpc: any | null = null;
+export function getSolanaRpc(rpcUrl: string) {
+  if (!_rpc) {
+    _rpc = createCircuitBreakerRpc({
+      primaryUrl: rpcUrl,
+      fallbackUrl: defaultFallbackUrl(rpcUrl),
+    });
+  }
+  return _rpc;
+}
+
+const makeRpc = (rpcUrl: string) => getSolanaRpc(rpcUrl);
 
 const getNetworkTierFromRpcUrl = (
   rpcUrl: string,

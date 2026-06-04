@@ -20,10 +20,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@4.0.0-solana.31":
-  version "4.0.0-solana.31"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.31.tgz#012b7fa91a07bc633f04f1fe5796b50a7dfb6a14"
-  integrity sha512-ZejIHLmbkljdVFmmyYE9xeemea/1PWmWqW/F4Xss9ypceWnS9EGgZ+SMgD2m/zSVc0ZXjfF21y8I4NR39ULTNg==
+"@ar.io/sdk@4.0.0-solana.32":
+  version "4.0.0-solana.32"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.32.tgz#299c8caed84533a325cfc23676a2e513ae0bdf7a"
+  integrity sha512-qQs6uZTaiiMMwM1+sMHkPRBRHMsvj4yAxjbL7uGd5JCV/xH4JyvuO04T99ePfB/kwKefO5/tpiZxXCGJIio17Q==
   dependencies:
     "@ar.io/solana-contracts" "0.7.0-staging.17"
     "@solana-program/address-lookup-table" "^0.11.0"

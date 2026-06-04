@@ -9,9 +9,10 @@ type DelegateStakes = {
 
 const useDelegateStakes = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery<DelegateStakes>({
-    queryKey: ['delegateStakes', arIOReadSDK, address],
+    queryKey: ['delegateStakes', solanaRpcUrl, address],
     queryFn: async () => {
       if (!address) {
         throw new Error('Address is not set');

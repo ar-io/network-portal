@@ -4,9 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 const useVaults = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery({
-    queryKey: ['vaults', arioReadSDK],
+    queryKey: ['vaults', solanaRpcUrl],
     queryFn: async () => {
       if (!arioReadSDK) throw new Error('arIOReadSDK is not initialized');
 

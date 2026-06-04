@@ -4,9 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 const useGatewayDelegateStakes = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery({
-    queryKey: ['gatewayDelegates', address, arIOReadSDK],
+    queryKey: ['gatewayDelegates', address, solanaRpcUrl],
     queryFn: async () => {
       if (!address) {
         throw new Error('Address is not set');

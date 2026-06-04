@@ -15,6 +15,7 @@ export interface ReportTransactionData {
 
 const useReports = (ownerId?: string, gateway?: Gateway) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const arweaveGqlUrl = useSettings((state) => state.arweaveGqlUrl);
 
   const observerAddress = gateway?.observerAddress;
@@ -23,7 +24,7 @@ const useReports = (ownerId?: string, gateway?: Gateway) => {
   const { data: epochs } = useEpochs();
 
   const queryResults = useQuery({
-    queryKey: ['reports', ownerId, arIOReadSDK, arweaveGqlUrl],
+    queryKey: ['reports', ownerId, solanaRpcUrl, arweaveGqlUrl],
     queryFn: async () => {
       if (
         !arIOReadSDK ||

@@ -50,9 +50,6 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
     const update = async () => {
       logEpochFetchContext('start');
 
-      await queryClient.cancelQueries();
-      await queryClient.resetQueries();
-
       try {
         const { Ticker } = await arioReadSDK.getInfo();
         setTicker(Ticker);

@@ -78,6 +78,9 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryKeyHashFn: safeQueryKeyHashFn,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   },
 });

@@ -39,10 +39,11 @@ const compareValues = (
 
 const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const { sortBy = 'totalDelegatedStake', sortOrder = 'desc' } = options;
 
   return useQuery<GatewayWithAddress[]>({
-    queryKey: ['allGateways', arIOReadSDK, sortBy, sortOrder],
+    queryKey: ['allGateways', solanaRpcUrl, sortBy, sortOrder],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');

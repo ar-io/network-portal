@@ -10,9 +10,10 @@ const useEpochsWithCount = (epochCount: number) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const startEpoch = useGlobalState((state) => state.currentEpoch);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const queryResults = useQuery({
-    queryKey: ['epochs', arIOReadSDK, startEpoch, epochCount],
+    queryKey: ['epochs', solanaRpcUrl, startEpoch?.epochIndex, epochCount],
     queryFn: async () => {
       if (!arIOReadSDK || startEpoch === undefined) {
         throw new Error('arIOReadSDK or startEpoch not available');

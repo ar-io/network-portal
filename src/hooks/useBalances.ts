@@ -12,10 +12,11 @@ export type Balances = { sol: number; ario: number };
 const useBalances = (walletAddress?: AoAddress) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const rpc = useGlobalState((state) => state.rpc);
-  const solanaSlot = useGlobalState((state) => state.solanaSlot);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery<Balances>({
-    queryKey: ['balances', walletAddress, solanaSlot],
+    queryKey: ['balances', walletAddress, solanaRpcUrl],
+    refetchInterval: 2 * 60 * 1000, // Refresh balances every 2 minutes
     queryFn: async () => {
       if (!walletAddress || !rpc || !arIOReadSDK) {
         throw new Error(

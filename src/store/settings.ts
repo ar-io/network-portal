@@ -131,27 +131,24 @@ export const useSettings = create<Settings>()(
           },
         };
 
-        // Keep app startup pinned to the current env-provided RPC unless the
-        // current env is localnet and a local RPC was persisted.
-        mergedState.solanaRpcUrl = SOLANA_RPC_URL;
+        const previousSolanaRpcUrl = mergedState.solanaRpcUrl;
+        const networkTierChanged =
+          isLocalRpcUrl(previousSolanaRpcUrl) !== isLocalRpcUrl(SOLANA_RPC_URL);
 
-        // If a stale localhost RPC was persisted from prior localnet sessions,
-        // prefer the env-provided RPC (devnet/mainnet) on next boot.
-        if (
-          isLocalRpcUrl(mergedState.solanaRpcUrl) &&
-          !isLocalRpcUrl(SOLANA_RPC_URL)
-        ) {
+        if (networkTierChanged) {
           mergedState.solanaRpcUrl = SOLANA_RPC_URL;
         }
 
         const networkKey = getSolanaSettingsNetworkKey(
           mergedState.solanaRpcUrl,
         );
-        const solanaAddressSettings = getSolanaAddressSettingsForNetwork(
-          persistedSettings,
-          networkKey,
-          true,
-        );
+        const solanaAddressSettings = networkTierChanged
+          ? getDefaultSolanaAddressSettings()
+          : getSolanaAddressSettingsForNetwork(
+              persistedSettings,
+              networkKey,
+              true,
+            );
 
         return {
           ...mergedState,

@@ -5,11 +5,12 @@ const DEFAULT_NAMES = ['dapp_ardrive', 'arns'];
 
 const usePrescribedNames = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
 
   const queryResults = useQuery({
-    queryKey: ['prescribedNames', arIOReadSDK, currentEpoch?.epochIndex || -1],
+    queryKey: ['prescribedNames', solanaRpcUrl, currentEpoch?.epochIndex || -1],
     queryFn: () => {
       if (arIOReadSDK && currentEpoch) {
         return arIOReadSDK.getPrescribedNames(currentEpoch).catch((e) => {

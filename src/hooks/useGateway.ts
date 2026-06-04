@@ -9,9 +9,10 @@ const useGateway = ({
   ownerWalletAddress?: string;
 }) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const queryResults = useQuery({
-    queryKey: ['gateway', ownerWalletAddress || '', arIOReadSDK],
+    queryKey: ['gateway', ownerWalletAddress || '', solanaRpcUrl],
     queryFn: () => {
       if (ownerWalletAddress === undefined) {
         return Promise.reject(

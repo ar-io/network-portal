@@ -8,11 +8,12 @@ import { useQuery } from '@tanstack/react-query';
 const useLogo = ({ primaryName }: { primaryName?: string }) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const rpc = useGlobalState((state) => state.rpc);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const solanaAntProgramId = useSettings((state) => state.solanaAntProgramId);
   const antProgramId = getOptionalSolanaAddress(solanaAntProgramId);
 
   const queryResults = useQuery({
-    queryKey: ['logo', primaryName, arIOReadSDK, antProgramId],
+    queryKey: ['logo', primaryName, solanaRpcUrl, antProgramId],
     queryFn: async () => {
       if (!primaryName || !arIOReadSDK) {
         throw new Error('Primary Name or ArIO Read SDK not available');

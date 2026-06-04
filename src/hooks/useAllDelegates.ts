@@ -4,9 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 const useAllDelegates = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   return useQuery<AllDelegates[]>({
-    queryKey: ['allDelegates', arIOReadSDK],
+    queryKey: ['allDelegates', solanaRpcUrl],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');

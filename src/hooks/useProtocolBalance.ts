@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 
 const useProtocolBalance = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const queryResults = useQuery({
-    queryKey: ['protocolBalance', arIOReadSDK],
+    queryKey: ['protocolBalance', solanaRpcUrl],
     queryFn: async () => {
       if (arIOReadSDK) {
         const supply = await arIOReadSDK.getTokenSupply();

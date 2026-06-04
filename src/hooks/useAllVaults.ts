@@ -10,9 +10,10 @@ export interface VaultsSummary {
 
 const useAllVaults = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   return useQuery<Map<string, VaultsSummary>>({
-    queryKey: ['allVaults', arIOReadSDK],
+    queryKey: ['allVaults', solanaRpcUrl],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');

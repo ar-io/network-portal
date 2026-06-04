@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 const useGateways = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const fetchAllGateways = async (
     arIOReadSDK: ARIORead,
@@ -23,7 +24,7 @@ const useGateways = () => {
   };
 
   const queryResults = useQuery({
-    queryKey: ['gateways', arIOReadSDK],
+    queryKey: ['gateways', solanaRpcUrl],
     queryFn: () => {
       if (arIOReadSDK) {
         return fetchAllGateways(arIOReadSDK);

@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 
 const usePrimaryName = (walletAddress?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery({
-    queryKey: ['primaryName', walletAddress, arIOReadSDK],
+    queryKey: ['primaryName', walletAddress, solanaRpcUrl],
     queryFn: async () => {
       if (!walletAddress || !arIOReadSDK) {
         throw new Error('Wallet Address or SDK not available');

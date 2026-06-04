@@ -4,9 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 const useWithdrawals = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   return useQuery<Array<UserWithdrawal>>({
-    queryKey: ['withdrawals', arIOReadSDK, address],
+    queryKey: ['withdrawals', solanaRpcUrl, address],
     queryFn: async () => {
       if (!address) {
         throw new Error('Address is not set');
@@ -29,7 +30,7 @@ const useWithdrawals = (address?: string) => {
       return withdrawals;
     },
     enabled: !!address && !!arIOReadSDK,
-    staleTime: 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 };
 

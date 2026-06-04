@@ -6,11 +6,12 @@ import dayjs from 'dayjs';
 /** Use shouldFetch to optimize whether to fetch or not.  */
 const useEpochSettings = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const queryResults = useQuery<
     EpochSettings & { hasEpochZeroStarted: boolean }
   >({
-    queryKey: ['epochSettings', arIOReadSDK],
+    queryKey: ['epochSettings', solanaRpcUrl],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK not available');

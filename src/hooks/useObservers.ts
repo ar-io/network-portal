@@ -4,9 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 
 const useObservers = (epoch?: EpochData) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const queryResults = useQuery({
-    queryKey: ['prescribedObservers', arIOReadSDK, epoch?.epochIndex || -1],
+    queryKey: ['prescribedObservers', solanaRpcUrl, epoch?.epochIndex || -1],
     queryFn: () => {
       if (arIOReadSDK && epoch) {
         return arIOReadSDK.getPrescribedObservers(epoch);

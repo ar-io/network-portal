@@ -11,10 +11,10 @@ const TURBO_API_URL = 'https://turbo.ardrive.io';
 
 const useObserverBalances = (observerAddress?: string) => {
   const rpc = useGlobalState((state) => state.rpc);
-  const solanaSlot = useGlobalState((state) => state.solanaSlot);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery<ObserverBalances>({
-    queryKey: ['observerBalances', observerAddress, solanaSlot],
+    queryKey: ['observerBalances', observerAddress, solanaRpcUrl],
     queryFn: async () => {
       if (!observerAddress || !rpc) {
         throw new Error('Observer address or rpc is not initialized');

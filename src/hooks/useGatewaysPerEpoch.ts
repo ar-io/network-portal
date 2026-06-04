@@ -11,12 +11,16 @@ const useGatewaysPerEpoch = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const { data: epochs } = useEpochs();
+  const eligibleGatewayCounts = epochs?.map(
+    (epoch) => epoch?.distributions.totalEligibleGateways,
+  );
 
   const res = useQuery<Array<GatewayEpochCount>>({
     queryKey: [
       'gatewaysPerEpoch',
       epochs?.length,
       epochs?.[0]?.epochIndex,
+      eligibleGatewayCounts,
       solanaRpcUrl,
     ],
     queryFn: () => {

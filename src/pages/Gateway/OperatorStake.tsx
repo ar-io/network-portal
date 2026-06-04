@@ -51,7 +51,10 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
       const totalGateways = Object.values(gateways).filter(
         (g) => g.status === 'joined',
       ).length;
-      if (totalGateways === 0) return;
+      if (totalGateways === 0) {
+        setEAY(undefined);
+        return;
+      }
       const rewards = calculateOperatorRewards(
         new mARIOToken(protocolBalance).toARIO(),
         totalGateways,

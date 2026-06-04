@@ -20,12 +20,12 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@4.0.0-solana.28":
-  version "4.0.0-solana.28"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.28.tgz#77b7980d63f529c4104d77f139de34f013fd01be"
-  integrity sha512-cFs+Uq35W3doSfVWFxaFoJFNr77mxTq82t/5klOlx7HOHzr7/zXbViB+lIXM+eVOrdQb0kTBxrnv1WHqyLkAeA==
+"@ar.io/sdk@4.0.0-solana.31":
+  version "4.0.0-solana.31"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-solana.31.tgz#012b7fa91a07bc633f04f1fe5796b50a7dfb6a14"
+  integrity sha512-ZejIHLmbkljdVFmmyYE9xeemea/1PWmWqW/F4Xss9ypceWnS9EGgZ+SMgD2m/zSVc0ZXjfF21y8I4NR39ULTNg==
   dependencies:
-    "@ar.io/solana-contracts" "0.5.0-staging.15"
+    "@ar.io/solana-contracts" "0.7.0-staging.17"
     "@solana-program/address-lookup-table" "^0.11.0"
     "@solana-program/compute-budget" "^0.15.0"
     "@solana-program/token" "^0.13.0"
@@ -53,10 +53,10 @@
     winston "^3.13.0"
     zod "^3.23.8"
 
-"@ar.io/solana-contracts@0.5.0-staging.15":
-  version "0.5.0-staging.15"
-  resolved "https://registry.yarnpkg.com/@ar.io/solana-contracts/-/solana-contracts-0.5.0-staging.15.tgz#42dbf0e5703598eb8b8c02affdc5731e914fdd0c"
-  integrity sha512-8sgIr+9e+L08PXTOoNXMzRJLfiERP/fycEP3tVmZYESbGdA85VUHpmiCuUr86m3ZEhwNM035/9g4bkcg6pCKlw==
+"@ar.io/solana-contracts@0.7.0-staging.17":
+  version "0.7.0-staging.17"
+  resolved "https://registry.yarnpkg.com/@ar.io/solana-contracts/-/solana-contracts-0.7.0-staging.17.tgz#fc81ae45e345e699188bdf6a147f180db3fc1c39"
+  integrity sha512-sdgwGiZ8rKLfp3nj6VYhByeVs791UVVdy5uyXRjmHPWOhshsCejNd9ibYIYb7IV3DLNJNudW/ZQn9lhn2s6PTA==
   dependencies:
     "@noble/hashes" "^1.5.0"
     bs58 "^6.0.0"

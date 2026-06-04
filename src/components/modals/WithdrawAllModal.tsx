@@ -21,7 +21,6 @@ const WithdrawAllModal = ({
 
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
@@ -74,7 +73,7 @@ const WithdrawAllModal = ({
           refetchType: 'all',
         });
 
-        setShowSuccessModal(true);
+        onClose();
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {
@@ -147,16 +146,6 @@ const WithdrawAllModal = ({
           onClose={() => setShowBlockingMessageModal(false)}
           message="Sign the following data with your wallet to proceed."
         ></BlockingMessageModal>
-      )}
-      {showSuccessModal && (
-        <SuccessModal
-          onClose={() => {
-            setShowSuccessModal(false);
-            onClose();
-          }}
-          title="Congratulations"
-          bodyText="You have successfully withdrawn all stakes."
-        />
       )}
     </>
   );

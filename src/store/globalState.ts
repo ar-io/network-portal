@@ -44,14 +44,16 @@ type GlobalStateActions = {
   setWriteSDK: (sdk?: SolanaARIOWriteable) => void;
 };
 
-/** Memoised kit RPC client with circuit breaker — rebuilt after `setSolanaConfig()`. */
+/** Memoised kit RPC client with circuit breaker, rebuilt when the RPC URL changes. */
 let _rpc: any | null = null;
+let _rpcUrl: string | null = null;
 export function getSolanaRpc(rpcUrl: string) {
-  if (!_rpc) {
+  if (!_rpc || _rpcUrl !== rpcUrl) {
     _rpc = createCircuitBreakerRpc({
       primaryUrl: rpcUrl,
       fallbackUrl: defaultFallbackUrl(rpcUrl),
     });
+    _rpcUrl = rpcUrl;
   }
   return _rpc;
 }

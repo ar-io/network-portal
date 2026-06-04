@@ -40,11 +40,14 @@ export const calculateOperatorRewards = (
   operatorStake: ARIOToken,
 ): OperatorRewards => {
   if (totalGateways <= 0) {
+    const EEY = operatorStake.valueOf() > 0 ? 0 : -1;
+    const EAY = EEY * EPOCHS_PER_YEAR;
+
     return {
       operatorStake,
       rewardsSharedPerEpoch: new ARIOToken(0),
-      EEY: 0,
-      EAY: 0,
+      EEY,
+      EAY,
     };
   }
   const epochRewards = protocolBalance.valueOf() * EPOCH_DISTRIBUTION_RATIO;
@@ -84,11 +87,17 @@ export const calculateGatewayRewards = (
   gateway: Gateway,
 ): GatewayRewards => {
   if (totalGateways <= 0) {
+    const totalDelegatedStake = new mARIOToken(
+      gateway.totalDelegatedStake,
+    ).toARIO();
+    const EEY = totalDelegatedStake.valueOf() > 0 ? 0 : -1;
+    const EAY = EEY * EPOCHS_PER_YEAR;
+
     return {
-      totalDelegatedStake: new mARIOToken(gateway.totalDelegatedStake).toARIO(),
+      totalDelegatedStake,
       rewardsSharedPerEpoch: new ARIOToken(0),
-      EEY: 0,
-      EAY: 0,
+      EEY,
+      EAY,
     };
   }
   const epochRewards = protocolBalance.valueOf() * EPOCH_DISTRIBUTION_RATIO;

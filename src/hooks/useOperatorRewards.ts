@@ -1,10 +1,10 @@
-import { AoGateway, mARIOToken } from '@ar.io/sdk/web';
+import { Gateway, mARIOToken } from '@ar.io/sdk/web';
 import { OperatorRewards, calculateOperatorRewards } from '@src/utils/rewards';
 import { useEffect, useState } from 'react';
 import useGateways from './useGateways';
 import useProtocolBalance from './useProtocolBalance';
 
-const useOperatorRewards = (gateway: AoGateway | undefined) => {
+const useOperatorRewards = (gateway: Gateway | undefined) => {
   const { data: gateways } = useGateways();
   const { data: protocolBalance } = useProtocolBalance();
 

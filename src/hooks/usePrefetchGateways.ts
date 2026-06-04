@@ -12,6 +12,7 @@ interface UsePrefetchGatewaysOptions {
 const usePrefetchGateways = (options: UsePrefetchGatewaysOptions = {}) => {
   const queryClient = useQueryClient();
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const {
     limit = 50,
@@ -31,7 +32,7 @@ const usePrefetchGateways = (options: UsePrefetchGatewaysOptions = {}) => {
         sortBy,
         sortOrder,
         filters,
-        arIOReadSDK,
+        solanaRpcUrl,
       ];
 
       // Only prefetch if not already cached or stale
@@ -107,7 +108,7 @@ const usePrefetchGateways = (options: UsePrefetchGatewaysOptions = {}) => {
         console.debug('Failed to prefetch gateways page:', page, error);
       }
     },
-    [arIOReadSDK, limit, sortBy, sortOrder, filters, queryClient],
+    [arIOReadSDK, solanaRpcUrl, limit, sortBy, sortOrder, filters, queryClient],
   );
 
   const prefetchNextPage = useCallback(

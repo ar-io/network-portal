@@ -1,8 +1,8 @@
-import { AoBalanceWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { BalanceWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
-export interface ProcessedBalance extends AoBalanceWithAddress {
+export interface ProcessedBalance extends BalanceWithAddress {
   arioBalance: number;
 }
 
@@ -13,16 +13,17 @@ interface UseAllBalancesOptions {
 
 const useAllBalances = (options: UseAllBalancesOptions = {}) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const { sortBy = 'balance', sortOrder = 'desc' } = options;
 
   return useQuery<ProcessedBalance[]>({
-    queryKey: ['allBalances', arIOReadSDK, sortBy, sortOrder],
+    queryKey: ['allBalances', solanaRpcUrl, sortBy, sortOrder],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      const allBalances: AoBalanceWithAddress[] = [];
+      const allBalances: BalanceWithAddress[] = [];
       let hasNextPage = true;
       let cursor: string | undefined;
       const limit = 1000;
@@ -41,7 +42,20 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
         cursor = result.nextCursor;
       }
 
-      // Convert mARIO to ARIO (no additional sorting since API handles it)
+      allBalances.sort((a, b) => {
+        const valueA = sortBy === 'address' ? a.address : a.balance;
+        const valueB = sortBy === 'address' ? b.address : b.balance;
+
+        if (typeof valueA === 'string' && typeof valueB === 'string') {
+          const comparison = valueA.localeCompare(valueB);
+          return sortOrder === 'asc' ? comparison : -comparison;
+        }
+
+        const comparison = Number(valueA) - Number(valueB);
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
+
+      // Convert mARIO to ARIO after ordering to keep server/client behavior consistent.
       return allBalances.map((item) => ({
         ...item,
         arioBalance: new mARIOToken(item.balance).toARIO().valueOf(),

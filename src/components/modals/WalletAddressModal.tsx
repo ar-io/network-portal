@@ -1,4 +1,4 @@
-import { isValidAoAddress } from '@src/utils';
+import { isValidSolanaAddress } from '@src/utils';
 import { useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
 import BaseModal from './BaseModal';
@@ -15,7 +15,7 @@ const WalletAddressModal = ({
   const [walletAddress, setWalletAddress] = useState('');
 
   const isValidAddress = useMemo(() => {
-    return isValidAoAddress(walletAddress);
+    return isValidSolanaAddress(walletAddress.trim());
   }, [walletAddress]);
 
   return (
@@ -49,7 +49,7 @@ const WalletAddressModal = ({
         <div className="bg-containerL0 px-8 py-4">
           <div className="flex grow justify-center">
             <Button
-              onClick={() => onSuccess(walletAddress)}
+              onClick={() => onSuccess(walletAddress.trim())}
               buttonType={ButtonType.PRIMARY}
               title="Submit"
               text={<div className="py-2">Submit</div>}

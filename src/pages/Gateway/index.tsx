@@ -1,7 +1,7 @@
 /* eslint-disable tailwindcss/classnames-order */
 import {
   ARIOToken,
-  AoUpdateGatewaySettingsParams,
+  UpdateGatewaySettingsParams,
   mARIOToken,
 } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
@@ -88,7 +88,7 @@ const Gateway = () => {
 
   const hasLowBalance =
     observerBalances &&
-    observerBalances.ar < 0.01 &&
+    observerBalances.sol < 0.01 &&
     observerBalances.turboCredits < 0.01;
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking === true;
@@ -211,11 +211,6 @@ const Gateway = () => {
       validateProperty: validateString('Note', 1, 256),
     },
     {
-      formPropertyName: 'autoStake',
-      label: 'Reward Auto Stake:',
-      rowType: RowType.SINGLE,
-    },
-    {
       formPropertyName: 'allowDelegatedStaking',
       label: 'Delegated Staking:',
       rowType: RowType.SINGLE,
@@ -257,7 +252,6 @@ const Gateway = () => {
       properties: gateway.settings.properties || '',
       status: gateway.status || '',
       note: gateway.settings.note || '',
-      autoStake: gateway.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
       delegateRewardShareRatio:
         (gateway.settings.delegateRewardShareRatio || 0) + '',
@@ -290,7 +284,7 @@ const Gateway = () => {
         {} as Record<string, string | number | boolean>,
       );
 
-      const updateGatewaySettingsParams: AoUpdateGatewaySettingsParams = {
+      const updateGatewaySettingsParams: UpdateGatewaySettingsParams = {
         allowDelegatedStaking: changed.allowDelegatedStaking as boolean,
         delegateRewardShareRatio:
           formState.allowDelegatedStaking && changed.delegateRewardShareRatio
@@ -306,7 +300,6 @@ const Gateway = () => {
             : undefined,
         note: changed.note as string,
         properties: changed.properties as string,
-        autoStake: changed.autoStake as boolean,
         observerAddress: changed.observerAddress as string,
       };
 
@@ -360,8 +353,8 @@ const Gateway = () => {
             <div className="mt-1 text-sm">
               <ul>
                 <li>
-                  Observer AR and Turbo Credit balance is low. Please add more
-                  AR or Turbo Credits to the observer wallet.
+                  Observer SOL and Turbo Credit balance is low. Please add more
+                  SOL or Turbo Credits to the observer wallet.
                 </li>
               </ul>
             </div>

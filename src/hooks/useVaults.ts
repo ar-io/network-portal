@@ -1,17 +1,18 @@
-import { AoWalletVault } from '@ar.io/sdk/web';
+import { WalletVault } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 const useVaults = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery({
-    queryKey: ['vaults', arioReadSDK],
+    queryKey: ['vaults', solanaRpcUrl],
     queryFn: async () => {
       if (!arioReadSDK) throw new Error('arIOReadSDK is not initialized');
 
       let cursor: string | undefined;
-      let vaults: Array<AoWalletVault> = [];
+      let vaults: Array<WalletVault> = [];
 
       do {
         const pageResult = await arioReadSDK.getVaults({ cursor, limit: 1000 });

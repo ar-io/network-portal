@@ -1,15 +1,16 @@
-import { AoARIORead, AoGateway } from '@ar.io/sdk/web';
+import { ARIORead, Gateway } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 const useGateways = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const fetchAllGateways = async (
-    arIOReadSDK: AoARIORead,
-  ): Promise<Record<string, AoGateway>> => {
+    arIOReadSDK: ARIORead,
+  ): Promise<Record<string, Gateway>> => {
     let cursor: string | undefined;
-    const gateways: Record<string, AoGateway> = {};
+    const gateways: Record<string, Gateway> = {};
 
     do {
       const pageResult = await arIOReadSDK.getGateways({ cursor, limit: 1000 });
@@ -23,7 +24,7 @@ const useGateways = () => {
   };
 
   const queryResults = useQuery({
-    queryKey: ['gateways', arIOReadSDK],
+    queryKey: ['gateways', solanaRpcUrl],
     queryFn: () => {
       if (arIOReadSDK) {
         return fetchAllGateways(arIOReadSDK);

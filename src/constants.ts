@@ -1,8 +1,5 @@
-import { ARIO_TESTNET_PROCESS_ID } from '@ar.io/sdk/web';
+import { DEVNET_PROGRAM_IDS } from '@ar.io/sdk/solana';
 import * as loglevel from 'loglevel';
-
-import Ar from 'arweave/web/ar';
-import { ArweaveTransactionID } from './utils/ArweaveTransactionId';
 
 export const APP_NAME = 'AR-IO-Network-Portal-App';
 
@@ -17,15 +14,30 @@ export const WRITE_OPTIONS = {
   ],
 };
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
-export const ARIO_PROCESS_ID = new ArweaveTransactionID(
-  import.meta.env.VITE_ARIO_PROCESS_ID ?? ARIO_TESTNET_PROCESS_ID,
-);
-export const AO_CU_URL =
-  import.meta.env.VITE_AO_CU_URL || 'https://cu.ardrive.io';
+
+export const SOLANA_RPC_URL =
+  'https://frosty-hidden-bush.solana-devnet.quiknode.pro/d878601b7931461e8fd02c6a798cbda800da1762/';
+export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
+
+// export const SOLANA_CORE_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.core);
+// export const SOLANA_GAR_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.gar);
+// export const SOLANA_ARNS_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.arns);
+// export const SOLANA_ANT_PROGRAM_ID = String(DEVNET_PROGRAM_IDS.ant);
+
+// STAGING v2 Hardcoded program IDs - IGNORE in favor of .env.local values
+export const SOLANA_CORE_PROGRAM_ID =
+  '8Njx9wPkXiNzDCgjwVsJFRjpAEV34gGW3n8DzX3V23m1';
+export const SOLANA_GAR_PROGRAM_ID =
+  '7WsDTrtZBsfKtnP33XkjuqXCY69JE7n4QVYpynqJCFxz';
+export const SOLANA_ARNS_PROGRAM_ID =
+  '6EZNezcg4rc5hnh8HG34vGquT3WpW5xXypzPb24uyEpp';
+export const SOLANA_ANT_PROGRAM_ID =
+  'DbHbRwUD1oAn1mrDSqtWtvwGcNrmhWdD2g8L4xmeQ7NX';
+
 export const DEFAULT_ARWEAVE_PROTOCOL =
   import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
-  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net'; // TODO: likely should change to ar-io.net depending on how this is used throughout the app
+  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net';
 
 export const DEFAULT_ARWEAVE_GQL_ENDPOINT =
   import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ?? 'https://arweave.net/graphql';
@@ -36,8 +48,6 @@ export const THEME_TYPES = {
   LIGHT: 'light',
   DARK: 'dark',
 };
-
-export const AR = new Ar();
 
 // Unicode non-breaking space that renders where &nbsp; does not in React code
 export const NBSP = '\u00A0';
@@ -69,5 +79,3 @@ export const REDELEGATION_FEE_TOOLTIP_TEXT =
 
 export const BRIDGE_BALANCE_ADDRESS =
   'mFRKcHsO6Tlv2E2wZcrcbv3mmzxzD7vYPbyybI3KCVA';
-export const BASE_TOKEN_CONTRACT_URL =
-  'https://basescan.org/token/0x138746adfa52909e5920def027f5a8dc1c7effb6';

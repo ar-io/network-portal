@@ -1,41 +1,37 @@
-import { GatewayDelegateWithAddress } from '@ar.io/sdk/web';
+import { UserWithdrawal } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
-const useGatewayDelegateStakes = (address?: string) => {
+const useWithdrawals = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
-  const res = useQuery({
-    queryKey: ['gatewayDelegates', address, solanaRpcUrl],
+  return useQuery<Array<UserWithdrawal>>({
+    queryKey: ['withdrawals', solanaRpcUrl, address],
     queryFn: async () => {
       if (!address) {
         throw new Error('Address is not set');
       }
 
+      const withdrawals: Array<UserWithdrawal> = [];
       let cursor: string | undefined;
 
-      let results: Array<GatewayDelegateWithAddress> = [];
-
       do {
-        const pageResult = await arIOReadSDK.getGatewayDelegates({
+        const pageResult = await arIOReadSDK.getWithdrawals({
           address,
           cursor,
           limit: 100,
         });
 
-        results = results.concat(pageResult.items);
-
+        withdrawals.push(...pageResult.items);
         cursor = pageResult.nextCursor;
       } while (cursor !== undefined);
 
-      return results.filter((delegate) => delegate.delegatedStake > 0);
+      return withdrawals;
     },
-    staleTime: Infinity,
     enabled: !!address && !!arIOReadSDK,
+    staleTime: 5 * 60 * 1000,
   });
-
-  return res;
 };
 
-export default useGatewayDelegateStakes;
+export default useWithdrawals;

@@ -9,10 +9,17 @@ export type GatewayEpochCount = {
 
 const useGatewaysPerEpochWithCount = (epochCount: number) => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const { data: epochs } = useEpochsWithCount(epochCount);
 
   const res = useQuery<Array<GatewayEpochCount>>({
-    queryKey: ['gatewaysPerEpoch', epochs, arioReadSDK, epochCount],
+    queryKey: [
+      'gatewaysPerEpoch',
+      epochs?.length,
+      epochs?.[0]?.epochIndex,
+      solanaRpcUrl,
+      epochCount,
+    ],
     queryFn: () => {
       if (!arioReadSDK || !epochs) {
         throw new Error('arIOReadSDK not initialized or epochs not available');

@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk/web';
+import { Gateway } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
 import { BinocularsIcon, GatewayIcon } from '@src/components/icons';
@@ -7,7 +7,7 @@ import { ChevronRightIcon, NotebookText } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-const GatewayHeader = ({ gateway }: { gateway?: AoGateway | null }) => {
+const GatewayHeader = ({ gateway }: { gateway?: Gateway | null }) => {
   const params = useParams();
 
   const ownerId = params?.ownerId;

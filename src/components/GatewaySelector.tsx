@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useGateways from '@src/hooks/useGateways';
 import useProtocolBalance from '@src/hooks/useProtocolBalance';
@@ -15,14 +15,14 @@ import Tooltip from './Tooltip';
 import BaseModal from './modals/BaseModal';
 
 export type GatewaySelectorProps = {
-  selectedGateway?: AoGatewayWithAddress;
-  setSelectedGateway: (gateway: AoGatewayWithAddress) => void;
-  gateways?: AoGatewayWithAddress[];
+  selectedGateway?: GatewayWithAddress;
+  setSelectedGateway: (gateway: GatewayWithAddress) => void;
+  gateways?: GatewayWithAddress[];
 };
 
 interface TableData {
   label: string;
-  gateway: AoGatewayWithAddress;
+  gateway: GatewayWithAddress;
   rewardShareRatio: number;
   totalStake: number;
   eay: number;
@@ -35,9 +35,9 @@ const GatewaySelectorModal = ({
   onClose,
   onGatewaySelected,
 }: {
-  gateways: AoGatewayWithAddress[];
+  gateways: GatewayWithAddress[];
   onClose: () => void;
-  onGatewaySelected: (gateway: AoGatewayWithAddress) => void;
+  onGatewaySelected: (gateway: GatewayWithAddress) => void;
 }) => {
   const ticker = useGlobalState((state) => state.ticker);
   const [tableData, setTableData] = useState<TableData[]>([]);

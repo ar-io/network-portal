@@ -1,7 +1,10 @@
-import { EthAddress } from '@src/types';
+import {
+  ARNS_TX_ID_REGEX,
+  SOLANA_EXPLORER_URL,
+  THEME_TYPES,
+} from '@src/constants';
+import { isSolanaAddress } from '@src/utils/solanaAddress';
 import { encode } from 'base64-arraybuffer';
-import { isAddress } from 'viem';
-import { ARNS_TX_ID_REGEX, THEME_TYPES } from '../constants';
 
 const COMMA_NUMBER_FORMAT = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
@@ -117,21 +120,12 @@ export const isArweaveTransactionID = (id?: string) => {
   return true;
 };
 
-export const isEthAddress = (address: string): address is EthAddress => {
-  return isAddress(address, {
-    strict: true,
-  });
-};
-
-export const isValidAoAddress = (address: string) => {
-  return isEthAddress(address) || isArweaveTransactionID(address);
-};
+export const isValidSolanaAddress = isSolanaAddress;
 
 export const getBlockExplorerUrlForAddress = (address: string) => {
-  if (isEthAddress(address)) {
-    return `https://etherscan.io/address/${address}`;
-  } else if (isArweaveTransactionID(address)) {
-    return `https://viewblock.io/arweave/address/${address}`;
-  }
-  return '';
+  return `${SOLANA_EXPLORER_URL}/address/${address}`;
+};
+
+export const getTransactionExplorerUrl = (txid: string) => {
+  return `${SOLANA_EXPLORER_URL}/tx/${txid}`;
 };

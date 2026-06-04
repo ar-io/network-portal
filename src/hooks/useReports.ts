@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk/web';
+import { Gateway } from '@ar.io/sdk/web';
 import { useGlobalState, useSettings } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 import arweaveGraphql from 'arweave-graphql';
@@ -13,8 +13,9 @@ export interface ReportTransactionData {
   version: string;
 }
 
-const useReports = (ownerId?: string, gateway?: AoGateway) => {
+const useReports = (ownerId?: string, gateway?: Gateway) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const arweaveGqlUrl = useSettings((state) => state.arweaveGqlUrl);
 
   const observerAddress = gateway?.observerAddress;
@@ -23,7 +24,7 @@ const useReports = (ownerId?: string, gateway?: AoGateway) => {
   const { data: epochs } = useEpochs();
 
   const queryResults = useQuery({
-    queryKey: ['reports', ownerId, arIOReadSDK, arweaveGqlUrl],
+    queryKey: ['reports', ownerId, solanaRpcUrl, arweaveGqlUrl],
     queryFn: async () => {
       if (
         !arIOReadSDK ||

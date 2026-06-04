@@ -1,154 +1,297 @@
 import {
-  ARIO_DEVNET_PROCESS_ID,
-  ARIO_MAINNET_PROCESS_ID,
-  ARIO_TESTNET_PROCESS_ID,
-} from '@ar.io/sdk/web';
-import { AO_CU_URL, DEFAULT_ARWEAVE_GQL_ENDPOINT } from '@src/constants';
+  BRIDGE_BALANCE_ADDRESS,
+  DEFAULT_ARWEAVE_GQL_ENDPOINT,
+  SOLANA_ANT_PROGRAM_ID,
+  SOLANA_ARNS_PROGRAM_ID,
+  SOLANA_CORE_PROGRAM_ID,
+  SOLANA_GAR_PROGRAM_ID,
+  SOLANA_RPC_URL,
+} from '@src/constants';
 import { updateSettings, useSettings } from '@src/store';
+import { isValidSolanaAddress } from '@src/utils';
 import { useState } from 'react';
-import CopyButton from '../CopyButton';
-import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 
-const SettingsModal = ({ onClose }: { onClose: () => void }) => {
-  const arioProcessId = useSettings((state) => state.arioProcessId);
-  const isDevnet = arioProcessId === ARIO_DEVNET_PROCESS_ID;
-  const isTestnet = arioProcessId === ARIO_TESTNET_PROCESS_ID;
-  const isMainnet = arioProcessId === ARIO_MAINNET_PROCESS_ID;
-  const aoCuUrl = useSettings((state) => state.aoCuUrl);
-  const arweaveGqlUrl = useSettings((state) => state.arweaveGqlUrl);
+const isValidHttpUrl = (value: string) => {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
-  const [localCuUrl, setLocalCuUrl] = useState(aoCuUrl);
+type SolanaAddressSettings = {
+  solanaCoreProgramId: string;
+  solanaGarProgramId: string;
+  solanaArnsProgramId: string;
+  solanaAntProgramId: string;
+  bridgeBalanceAddress: string;
+};
+
+const isValidOptionalSolanaAddress = (value: string): boolean => {
+  const trimmed = value.trim();
+  return trimmed === '' || isValidSolanaAddress(trimmed);
+};
+
+const isValidRequiredSolanaAddress = (value: string): boolean => {
+  return isValidSolanaAddress(value.trim());
+};
+
+const isValidRequiredText = (value: string): boolean => {
+  return value.trim().length > 0;
+};
+
+const SOLANA_ADDRESS_FIELDS: Array<{
+  key: keyof SolanaAddressSettings;
+  label: string;
+  defaultValue: string;
+  validation: 'solanaOptional' | 'solanaRequired' | 'textRequired';
+}> = [
+  {
+    key: 'solanaCoreProgramId',
+    label: 'Solana Core Program ID',
+    defaultValue: SOLANA_CORE_PROGRAM_ID ?? '',
+    validation: 'solanaOptional',
+  },
+  {
+    key: 'solanaGarProgramId',
+    label: 'Solana GAR Program ID',
+    defaultValue: SOLANA_GAR_PROGRAM_ID ?? '',
+    validation: 'solanaOptional',
+  },
+  {
+    key: 'solanaArnsProgramId',
+    label: 'Solana ARNS Program ID',
+    defaultValue: SOLANA_ARNS_PROGRAM_ID ?? '',
+    validation: 'solanaOptional',
+  },
+  {
+    key: 'solanaAntProgramId',
+    label: 'Solana ANT Program ID',
+    defaultValue: SOLANA_ANT_PROGRAM_ID ?? '',
+    validation: 'solanaOptional',
+  },
+  {
+    key: 'bridgeBalanceAddress',
+    label: 'Bridge Balance Address',
+    defaultValue: BRIDGE_BALANCE_ADDRESS,
+    validation: 'textRequired',
+  },
+];
+
+const getDefaultSolanaAddressSettings = (): SolanaAddressSettings => ({
+  solanaCoreProgramId: SOLANA_CORE_PROGRAM_ID ?? '',
+  solanaGarProgramId: SOLANA_GAR_PROGRAM_ID ?? '',
+  solanaArnsProgramId: SOLANA_ARNS_PROGRAM_ID ?? '',
+  solanaAntProgramId: SOLANA_ANT_PROGRAM_ID ?? '',
+  bridgeBalanceAddress: BRIDGE_BALANCE_ADDRESS,
+});
+
+const SettingsModal = ({ onClose }: { onClose: () => void }) => {
+  const solanaRpcUrl = useSettings((state) => state.solanaRpcUrl);
+  const arweaveGqlUrl = useSettings((state) => state.arweaveGqlUrl);
+  const solanaCoreProgramId = useSettings((state) => state.solanaCoreProgramId);
+  const solanaGarProgramId = useSettings((state) => state.solanaGarProgramId);
+  const solanaArnsProgramId = useSettings((state) => state.solanaArnsProgramId);
+  const solanaAntProgramId = useSettings((state) => state.solanaAntProgramId);
+  const bridgeBalanceAddress = useSettings(
+    (state) => state.bridgeBalanceAddress,
+  );
+
+  const [localRpcUrl, setLocalRpcUrl] = useState(solanaRpcUrl);
   const [localGqlUrl, setLocalGqlUrl] = useState(arweaveGqlUrl);
+  const [localSolanaAddressSettings, setLocalSolanaAddressSettings] =
+    useState<SolanaAddressSettings>({
+      solanaCoreProgramId,
+      solanaGarProgramId,
+      solanaArnsProgramId,
+      solanaAntProgramId,
+      bridgeBalanceAddress,
+    });
+
+  const currentSolanaAddressSettings: SolanaAddressSettings = {
+    solanaCoreProgramId,
+    solanaGarProgramId,
+    solanaArnsProgramId,
+    solanaAntProgramId,
+    bridgeBalanceAddress,
+  };
+
+  const hasChangedSolanaAddressSettings = SOLANA_ADDRESS_FIELDS.some(
+    ({ key }) =>
+      localSolanaAddressSettings[key] !== currentSolanaAddressSettings[key],
+  );
+  const hasInvalidSolanaAddressSettings = SOLANA_ADDRESS_FIELDS.some(
+    ({ key, validation }) => {
+      const value = localSolanaAddressSettings[key];
+      if (validation === 'solanaRequired') {
+        return !isValidRequiredSolanaAddress(value);
+      }
+      if (validation === 'textRequired') {
+        return !isValidRequiredText(value);
+      }
+      return !isValidOptionalSolanaAddress(value);
+    },
+  );
 
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
-      <div className="h-[32rem] w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
-        <div className="flex w-full flex-col px-8 pb-4 pt-6">
+      <div className="h-[42rem] w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
+        <div className="flex h-full w-full flex-col px-8 pb-4 pt-6">
           <div className="text-lg text-high">Settings</div>
 
-          <div className="my-2 grow overflow-y-auto text-sm text-mid scrollbar">
-            <div className="flex flex-col items-center gap-2 lg:flex-row">
-              <div className="grow">AR.IO Process</div>
-              <div className="grid grid-cols-3">
-                <button
-                  className={`rounded-l border border-grey-500 px-4 py-2 ${isDevnet ? 'bg-streak-up text-containerL0' : undefined}`}
-                  disabled={isDevnet}
-                  onClick={() => {
-                    updateSettings({ arioProcessId: ARIO_DEVNET_PROCESS_ID });
-                  }}
-                >
-                  Devnet
-                </button>
-                <button
-                  className={`border border-grey-500 px-4 py-2 ${isTestnet ? 'bg-streak-up text-containerL0' : undefined}`}
-                  disabled={isTestnet}
-                  onClick={() => {
-                    updateSettings({ arioProcessId: ARIO_TESTNET_PROCESS_ID });
-                  }}
-                >
-                  Testnet
-                </button>
+          <div className="mt-4 flex grow flex-col gap-6 overflow-y-auto pr-1 text-sm text-mid scrollbar">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center">
+                <div className="grow">Solana RPC URL</div>
 
                 <button
-                  className={`rounded-r border border-grey-500 px-4 py-2 ${isMainnet ? 'bg-streak-up text-containerL0' : undefined}`}
-                  disabled={isMainnet}
+                  className="rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0"
                   onClick={() => {
-                    updateSettings({ arioProcessId: ARIO_MAINNET_PROCESS_ID });
+                    setLocalRpcUrl(SOLANA_RPC_URL);
                   }}
                 >
-                  Mainnet
+                  Reset to Default
+                </button>
+              </div>
+              <div className="flex items-center">
+                <input
+                  className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
+                  value={localRpcUrl}
+                  onChange={(e) => {
+                    setLocalRpcUrl(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
+                  onClick={() => {
+                    updateSettings({ solanaRpcUrl: localRpcUrl });
+                  }}
+                  disabled={
+                    localRpcUrl === solanaRpcUrl || !isValidHttpUrl(localRpcUrl)
+                  }
+                >
+                  Save
                 </button>
               </div>
             </div>
-            <div className="my-4 flex items-center justify-center gap-2 text-center text-sm text-mid">
-              <input
-                type="text"
-                value={arioProcessId}
-                className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
-                onChange={(e) => {
-                  if (e.target.value.length !== 43) return;
-                  updateSettings({ arioProcessId: e.target.value });
-                }}
-              />
-              <CopyButton textToCopy={arioProcessId} />
-              <a
-                href={`https://scan.ar.io/#/entity/${arioProcessId}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <LinkArrowIcon className="size-4" />
-              </a>
-            </div>
-          </div>
 
-          <div className="flex grow flex-col gap-2 overflow-y-auto text-sm text-mid scrollbar">
-            <div className="flex items-center">
-              <div className="grow">AO CU URL</div>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center">
+                <div className="grow">Solana Program/Token Addresses</div>
 
-              <button
-                className={`rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0`}
-                onClick={() => {
-                  setLocalCuUrl(AO_CU_URL);
-                }}
-              >
-                Reset to Default
-              </button>
-            </div>
-            <div className="flex items-center">
-              <input
-                className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
-                value={localCuUrl}
-                onChange={(e) => {
-                  setLocalCuUrl(e.target.value);
-                }}
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                className={`rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low`}
-                onClick={() => {
-                  updateSettings({ aoCuUrl: localCuUrl });
-                }}
-                disabled={localCuUrl === aoCuUrl}
-              >
-                Save
-              </button>
-            </div>
-          </div>
+                <button
+                  className="rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0"
+                  onClick={() => {
+                    setLocalSolanaAddressSettings(
+                      getDefaultSolanaAddressSettings(),
+                    );
+                  }}
+                >
+                  Reset to Defaults
+                </button>
+              </div>
 
-          <div className="flex grow flex-col gap-2 overflow-y-auto text-sm text-mid scrollbar">
-            <div className="flex items-center">
-              <div className="grow">Arweave GQL URL</div>
+              {SOLANA_ADDRESS_FIELDS.map(
+                ({ key, label, defaultValue, validation }) => {
+                  const value = localSolanaAddressSettings[key];
+                  const isValid =
+                    validation === 'solanaRequired'
+                      ? isValidRequiredSolanaAddress(value)
+                      : validation === 'textRequired'
+                        ? isValidRequiredText(value)
+                        : isValidOptionalSolanaAddress(value);
 
-              <button
-                className={`rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0`}
-                onClick={() => {
-                  setLocalGqlUrl(DEFAULT_ARWEAVE_GQL_ENDPOINT);
-                }}
-              >
-                Reset to Default
-              </button>
+                  return (
+                    <div key={key} className="flex flex-col gap-1">
+                      <label className="text-xs text-low">{label}</label>
+                      <input
+                        className={`w-full rounded border bg-containerL0 px-4 py-2 text-mid focus:outline-none ${
+                          isValid ? 'border-grey-500' : 'border-red-500'
+                        }`}
+                        placeholder={
+                          validation === 'solanaRequired' ||
+                          validation === 'textRequired'
+                            ? defaultValue
+                            : defaultValue || 'Leave empty to use SDK default'
+                        }
+                        value={value}
+                        onChange={(e) => {
+                          setLocalSolanaAddressSettings((current) => ({
+                            ...current,
+                            [key]: e.target.value,
+                          }));
+                        }}
+                      />
+                      {!isValid ? (
+                        <div className="text-xs text-red-400">
+                          {validation === 'textRequired'
+                            ? 'A value is required.'
+                            : validation === 'solanaRequired'
+                              ? 'A valid Solana address is required.'
+                              : 'Must be a valid Solana address or left empty.'}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                },
+              )}
+
+              <div className="flex justify-end">
+                <button
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
+                  onClick={() => {
+                    updateSettings(localSolanaAddressSettings);
+                  }}
+                  disabled={
+                    !hasChangedSolanaAddressSettings ||
+                    hasInvalidSolanaAddressSettings
+                  }
+                >
+                  Save
+                </button>
+              </div>
             </div>
-            <div className="flex items-center">
-              <input
-                className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
-                value={localGqlUrl}
-                onChange={(e) => {
-                  setLocalGqlUrl(e.target.value);
-                }}
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                className={`rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low`}
-                onClick={() => {
-                  updateSettings({ arweaveGqlUrl: localGqlUrl });
-                }}
-                disabled={localGqlUrl === arweaveGqlUrl}
-              >
-                Save
-              </button>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center">
+                <div className="grow">Arweave GQL URL</div>
+
+                <button
+                  className="rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0"
+                  onClick={() => {
+                    setLocalGqlUrl(DEFAULT_ARWEAVE_GQL_ENDPOINT);
+                  }}
+                >
+                  Reset to Default
+                </button>
+              </div>
+              <div className="flex items-center">
+                <input
+                  className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
+                  value={localGqlUrl}
+                  onChange={(e) => {
+                    setLocalGqlUrl(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
+                  onClick={() => {
+                    updateSettings({ arweaveGqlUrl: localGqlUrl });
+                  }}
+                  disabled={
+                    localGqlUrl === arweaveGqlUrl ||
+                    !isValidHttpUrl(localGqlUrl)
+                  }
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
         </div>

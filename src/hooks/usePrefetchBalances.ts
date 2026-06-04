@@ -11,6 +11,7 @@ interface UsePrefetchBalancesOptions {
 const usePrefetchBalances = (_options: UsePrefetchBalancesOptions = {}) => {
   const queryClient = useQueryClient();
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const prefetchBalances = useCallback(
     async (
@@ -21,7 +22,7 @@ const usePrefetchBalances = (_options: UsePrefetchBalancesOptions = {}) => {
 
       const queryKey = [
         'allBalances',
-        arIOReadSDK,
+        solanaRpcUrl,
         targetSortBy,
         targetSortOrder,
       ];
@@ -75,7 +76,7 @@ const usePrefetchBalances = (_options: UsePrefetchBalancesOptions = {}) => {
         );
       }
     },
-    [arIOReadSDK, queryClient],
+    [arIOReadSDK, solanaRpcUrl, queryClient],
   );
 
   const prefetchNextSort = useCallback(

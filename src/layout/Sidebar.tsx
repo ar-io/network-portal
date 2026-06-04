@@ -1,4 +1,8 @@
-import { APP_VERSION, ARIO_DOCS_URL, ARIO_PROCESS_ID } from '@src/constants';
+import {
+  APP_VERSION,
+  ARIO_DOCS_URL,
+  SOLANA_EXPLORER_URL,
+} from '@src/constants';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -8,6 +12,7 @@ import changeLog from '../../CHANGELOG.md?raw';
 
 import SettingsModal from '@src/components/modals/SettingsModal';
 import { updateSettings, useGlobalState, useSettings } from '@src/store';
+
 import {
   ArrowLeftRight,
   Globe,
@@ -63,8 +68,20 @@ const ROUTES_PRIMARY = [
   },
 ];
 
+const CHANGELOG_START = (() => {
+  const unreleasedIndex = changeLog.indexOf('## [Unreleased]');
+
+  if (unreleasedIndex !== -1) {
+    return unreleasedIndex + '## [Unreleased]'.length;
+  }
+
+  const firstReleaseIndex = changeLog.search(/^## \[/m);
+
+  return firstReleaseIndex === -1 ? 0 : firstReleaseIndex;
+})();
+
 const FORMATTED_CHANGELOG = changeLog
-  .substring(changeLog.indexOf('## [Unreleased]') + 16)
+  .substring(CHANGELOG_START)
   .trim()
   .replace(/\[([\w.]+)\]/g, (_match, text) => `v${text}`);
 
@@ -72,6 +89,7 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const sidebarOpen = useSettings((state) => state.sidebarOpen);
+
   const [showChangLogModal, setShowChangeLogModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
@@ -84,7 +102,7 @@ const Sidebar = () => {
     {
       title: 'Explorer',
       icon: <Globe className="size-4" />,
-      path: `https://scan.ar.io`,
+      path: SOLANA_EXPLORER_URL,
     },
     {
       title: 'Docs',
@@ -123,12 +141,11 @@ const Sidebar = () => {
     lg:translate-x-0`;
 
   // Mobile menu button (only visible on mobile)
-  // Positioned absolutely relative to AppRouterLayout's "relative flex" wrapper
   const mobileMenuButton = isMobile && !isMobileOpen && (
     <button
       onClick={toggleMobileMenu}
       onKeyDown={(e) => e.key === 'Enter' && toggleMobileMenu()}
-      className="absolute left-4 top-4 z-50 rounded-md p-2 text-grey-100 focus:outline-none focus:ring-2 focus:ring-grey-100 lg:hidden"
+      className={`fixed left-4 top-4 z-50 rounded-md p-2 text-grey-100 focus:outline-none focus:ring-2 focus:ring-grey-100 lg:hidden`}
       aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
       aria-expanded={isMobileOpen}
       aria-controls="sidebar-navigation"

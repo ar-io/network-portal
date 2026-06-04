@@ -1,5 +1,6 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import useBalances from '@src/hooks/useBalances';
 import useLogo from '@src/hooks/useLogo';
 import usePrimaryName from '@src/hooks/usePrimaryName';
@@ -54,7 +55,7 @@ const Profile = () => {
   const walletStateInitialized = useGlobalState(
     (state) => state.walletStateInitialized,
   );
-  const wallet = useGlobalState((state) => state.wallet);
+  const { disconnect } = useWallet();
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
@@ -121,9 +122,9 @@ const Profile = () => {
                   </button>
                 )}
               </div>
-              <div className="px-4 pt-3 text-xs text-low">AR Balance</div>
+              <div className="px-4 pt-3 text-xs text-low">SOL Balance</div>
               <div className="px-4 pt-1 text-high">
-                {balances ? formatBalance(balances.ar) : <Placeholder />}
+                {balances ? formatBalance(balances.sol) : <Placeholder />}
               </div>
             </div>
             <div className="flex flex-col gap-3 text-nowrap px-6 pt-3 text-mid">
@@ -132,7 +133,7 @@ const Profile = () => {
                 title="Transaction History"
                 onClick={async () => {
                   window.open(
-                    `https://scan.ar.io/#/entity/${walletAddress.toString()}`,
+                    getBlockExplorerUrlForAddress(walletAddress.toString()),
                     '_blank',
                   );
                 }}
@@ -147,8 +148,8 @@ const Profile = () => {
                 className="flex items-center gap-2"
                 title="Logout"
                 onClick={async () => {
-                  await wallet?.disconnect();
-                  updateWallet(undefined, undefined);
+                  await disconnect();
+                  updateWallet(undefined);
                 }}
               >
                 <LogoutIcon className="size-4" /> Logout

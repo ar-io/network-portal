@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, AoVaultData, mARIOToken } from '@ar.io/sdk/web';
+import { GatewayWithAddress, VaultData, mARIOToken } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
@@ -31,14 +31,14 @@ import { useNavigate } from 'react-router-dom';
 
 interface UnifiedStakeData {
   owner: string;
-  gateway: AoGatewayWithAddress;
+  gateway: GatewayWithAddress;
   amount: number;
   status: 'Active' | 'Withdrawing';
   streak?: number;
   eay?: number;
   withdrawalDate?: Date;
   withdrawalId?: string;
-  withdrawal?: AoVaultData;
+  withdrawal?: VaultData;
 }
 
 const columnHelper = createColumnHelper<UnifiedStakeData>();
@@ -65,8 +65,8 @@ const MyStakesTable = () => {
 
   const [confirmInstantWithdrawal, setConfirmInstantWithdrawal] = useState<{
     gatewayAddress: string;
-    gateway: AoGatewayWithAddress;
-    vault: AoVaultData;
+    gateway: GatewayWithAddress;
+    vault: VaultData;
     vaultId: string;
   }>();
 

@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { GatewayWithAddress } from '@ar.io/sdk/web';
 import Streak from '@src/components/Streak';
 import useHealthcheck from '@src/hooks/useHealthCheck';
 import { formatDateTime } from '@src/utils';
@@ -15,7 +15,7 @@ const formatUptime = (uptime: number) => {
 };
 
 type StatsPanelProps = {
-  gateway?: AoGatewayWithAddress | null;
+  gateway?: GatewayWithAddress | null;
 };
 
 const StatsPanel = ({ gateway }: StatsPanelProps) => {

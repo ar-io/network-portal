@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk/web';
+import { Gateway } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
@@ -24,7 +24,7 @@ const ObserveHeader = ({
   gateway,
   setSelectedAssessment,
 }: {
-  gateway?: AoGateway | null;
+  gateway?: Gateway | null;
   setSelectedAssessment: React.Dispatch<
     React.SetStateAction<Assessment | undefined>
   >;

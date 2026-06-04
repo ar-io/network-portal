@@ -1,4 +1,4 @@
-import { AoWalletVault, mARIOToken } from '@ar.io/sdk/web';
+import { WalletVault, mARIOToken } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -10,9 +10,10 @@ export interface VaultsSummary {
 
 const useAllVaults = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   return useQuery<Map<string, VaultsSummary>>({
-    queryKey: ['allVaults', arIOReadSDK],
+    queryKey: ['allVaults', solanaRpcUrl],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');
@@ -31,7 +32,7 @@ const useAllVaults = () => {
         });
 
         // Process each vault
-        result.items.forEach((vault: AoWalletVault) => {
+        result.items.forEach((vault: WalletVault) => {
           const existing = vaultsByAddress.get(vault.address) || {
             address: vault.address,
             vaultCount: 0,

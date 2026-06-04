@@ -8,8 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies (use frozen lockfile)
 yarn install --frozen-lockfile
 
-# Start development server
+# Start development server (defaults to Solana devnet via .env.local)
 yarn dev
+
+# Start with localnet configuration
+yarn dev:localnet
 
 # Run tests
 yarn test                          # Run all tests once
@@ -41,20 +44,31 @@ yarn deploy        # Deploy to Arweave (requires VITE_IO_PROCESS_ID, VITE_ARNS_N
 ### Provider Stack (App.tsx)
 
 Components wrap in this order (outermost first):
-`WagmiProvider` → `QueryClientProvider` → `GlobalDataProvider` → `WalletProvider` → `MathJaxContext` → `RouterProvider`
+`ConnectionProvider` → `SolanaWalletProvider` → `WalletModalProvider` → `QueryClientProvider` → `GlobalDataProvider` → `WalletBridge` → `MathJaxContext` → `RouterProvider`
+
+### Solana Integration
+
+The app runs on Solana (devnet by default, localnet and mainnet also supported):
+- `@solana/kit` for type-safe RPC interactions (`createSolanaRpc`)
+- `@solana/wallet-adapter-react` for wallet connection (Phantom, Solflare, Backpack via Wallet Standard auto-registration)
+- `@ar.io/sdk` provides `SolanaARIOReadable` and `SolanaARIOWriteable` for ar.io network interactions on Solana
+- Four Solana program IDs configured via env vars: `VITE_ARIO_CORE_PROGRAM_ID`, `VITE_ARIO_GAR_PROGRAM_ID`, `VITE_ARIO_ARNS_PROGRAM_ID`, `VITE_ARIO_ANT_PROGRAM_ID`
+- RPC endpoint set via `VITE_SOLANA_RPC_URL` (see `.env.local` for devnet, `.env.localnet` for localnet)
+- `WalletBridge` (`/src/components/WalletBridge.tsx`) bridges the Solana wallet adapter to the ar.io SDK's signer interface
+- `walletAdapterBridge.ts` (`/src/utils/walletAdapterBridge.ts`) converts wallet-adapter signers to `@solana/kit`-compatible signers
 
 ### State Management
 
 - **Zustand** for global state:
-  - `useGlobalState` (`/src/store/globalState.ts`) - wallet info, SDK instances, current epoch, block height, theme
-  - `useSettings` (`/src/store/settings.ts`) - user-configurable settings (AO CU URL, ARIO process ID)
+  - `useGlobalState` (`/src/store/globalState.ts`) - wallet info, SDK instances (`arIOReadSDK`, `arIOWriteableSDK`), Solana RPC instance, current epoch, Solana slot, theme
+  - `useSettings` (`/src/store/settings.ts`) - user-configurable settings (Solana RPC URL, program IDs, Arweave GQL URL, sidebar state); persisted to localStorage with smart merge to prevent stale localhost URLs
   - `useColumnPreferences` (`/src/store/columnPreferences.ts`) - table column visibility
-- **React Query** for server state with 5-minute default cache time
-- **IndexedDB** (via Dexie) for persistent caching of observations and epochs (`/src/store/db.ts`)
+- **React Query** for server state; custom `queryKeyHashFn` handles non-serializable Solana `Connection` objects in query keys
+- **IndexedDB** (via Dexie) for persistent caching of observations and epochs (`/src/store/db.ts`); database name derived from network tier (solana-devnet, solana-localnet, solana-mainnet)
 
 ### Data Fetching Pattern
 
-45+ custom hooks in `/src/hooks/` follow this pattern:
+Custom hooks in `/src/hooks/` follow this pattern:
 
 ```typescript
 const useDataHook = (params) => {
@@ -70,27 +84,11 @@ const useDataHook = (params) => {
 };
 ```
 
-### SDK Integration
-
-- Uses `@ar.io/sdk` for all ar.io network interactions
-- `arIOReadSDK` for read operations (available without wallet)
-- `arIOWriteableSDK` for write operations (requires connected wallet with signer)
-- SDKs are reinstantiated when settings change (AO CU URL or ARIO process ID)
-
-### Multi-Wallet Architecture
-
-- Supports Wander (Arweave), MetaMask (Ethereum), and Beacon wallets
-- Wallet connectors in `/src/services/wallets/` implement `NetworkPortalWalletConnector` interface
-- `WalletProvider` component handles wallet connection lifecycle and events
-- Wallet type persisted in localStorage
-- Wagmi config handles Ethereum chain interactions (mainnet only)
-
 ### App Initialization
 
 `GlobalDataProvider` handles app-wide data initialization:
 - Fetches current epoch and ticker on load
-- Updates block height every 2 minutes
-- Monitors AO CU URL for congestion (5s threshold)
+- Updates Solana slot periodically
 - Cleans up stale IndexedDB cache
 
 ### Routing
@@ -112,9 +110,9 @@ const useDataHook = (params) => {
 - `/src/components/` - Reusable UI components (flat structure with `/forms`, `/modals`, `/panels`, `/charts` subdirs)
 - `/src/hooks/` - Data fetching and business logic hooks
 - `/src/pages/` - Route page components (one directory per page with `index.tsx`)
-- `/src/services/` - External service integrations (Sentry, wallet connectors)
+- `/src/services/` - External service integrations (Sentry)
 - `/src/store/` - Zustand state management
-- `/src/utils/` - Helper functions
+- `/src/utils/` - Helper functions (includes `walletAdapterBridge.ts` for Solana signer conversion)
 - `/tokens/` - Design token definitions (primitives.json consumed by Tailwind config)
 - `/tests/` - Test files (some also co-located in `/src/`)
 
@@ -130,4 +128,4 @@ const useDataHook = (params) => {
 - Environment variables use `VITE_` prefix
 - Pre-commit hooks run Biome via Husky
 - CI/CD deploys to GitHub Pages (staging) and Arweave (production)
-- Tailwind CSS with custom design tokens in `/tokens/`, Rubik font, dark mode support
+- Tailwind CSS with custom design tokens in `/tokens/`, Rubik font, dark mode via `selector` strategy

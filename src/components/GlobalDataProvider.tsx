@@ -49,7 +49,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   useEffect(() => {
     const update = async () => {
       setCurrentEpoch(undefined);
-      setTicker(undefined);
+      setTicker('');
       logEpochFetchContext('start');
 
       try {

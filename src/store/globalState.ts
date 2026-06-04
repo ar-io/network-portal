@@ -36,7 +36,7 @@ type GlobalState = {
 type GlobalStateActions = {
   setTheme: (theme: ThemeType) => void;
   setSolanaSlot: (slot: number) => void;
-  setCurrentEpoch: (currentEpoch: EpochData) => void;
+  setCurrentEpoch: (currentEpoch?: EpochData) => void;
   updateWallet: (walletAddress?: AoAddress) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
@@ -162,7 +162,7 @@ class GlobalStateActionBase implements GlobalStateActions {
     this.set({ solanaSlot });
   };
 
-  setCurrentEpoch = (currentEpoch: EpochData) => {
+  setCurrentEpoch = (currentEpoch?: EpochData) => {
     this.set({ currentEpoch });
   };
 

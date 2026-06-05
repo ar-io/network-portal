@@ -23,24 +23,20 @@ const useDelegateStakes = (address?: string) => {
         withdrawals: [],
       };
 
-      let cursor: string | undefined;
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const pageResult = await arIOReadSDK.getDelegations({
+        address,
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-      do {
-        const pageResult = await arIOReadSDK.getDelegations({
-          address,
-          cursor,
-          limit: 100,
-        });
-
-        pageResult.items.forEach((d) => {
-          if (d.type === 'stake') {
-            retVal.stakes.push(d);
-          } else {
-            retVal.withdrawals.push(d);
-          }
-        });
-        cursor = pageResult.nextCursor;
-      } while (cursor !== undefined);
+      pageResult.items.forEach((d) => {
+        if (d.type === 'stake') {
+          retVal.stakes.push(d);
+        } else {
+          retVal.withdrawals.push(d);
+        }
+      });
 
       return retVal;
     },

@@ -39,24 +39,15 @@ const usePrefetchBalances = (_options: UsePrefetchBalancesOptions = {}) => {
         await queryClient.prefetchQuery({
           queryKey,
           queryFn: async () => {
-            const allBalances: any[] = [];
-            let hasNextPage = true;
-            let cursor: string | undefined;
-            const limit = 1000;
+            // The SDK paginates in memory, so a single call fetches the full
+            // set with exactly one chain sweep.
+            const result = await arIOReadSDK.getBalances({
+              limit: Number.MAX_SAFE_INTEGER,
+              sortBy: targetSortBy,
+              sortOrder: targetSortOrder,
+            });
 
-            // Fetch all balances paginated with the target sort
-            while (hasNextPage) {
-              const result = await arIOReadSDK.getBalances({
-                cursor,
-                limit,
-                sortBy: targetSortBy,
-                sortOrder: targetSortOrder,
-              });
-
-              allBalances.push(...result.items);
-              hasNextPage = result.hasMore;
-              cursor = result.nextCursor;
-            }
+            const allBalances: any[] = [...result.items];
 
             // Convert mARIO to ARIO
             return allBalances.map((item) => ({

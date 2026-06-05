@@ -13,24 +13,13 @@ const useAllDelegates = () => {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      const allDelegates: AllDelegates[] = [];
-      let hasNextPage = true;
-      let cursor: string | undefined;
-      const limit = 1000;
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const result = await arIOReadSDK.getAllDelegates({
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-      // Fetch all delegates paginated 1k at a time
-      while (hasNextPage) {
-        const result = await arIOReadSDK.getAllDelegates({
-          cursor,
-          limit,
-        });
-
-        allDelegates.push(...result.items);
-        hasNextPage = result.hasMore;
-        cursor = result.nextCursor;
-      }
-
-      return allDelegates;
+      return result.items;
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!arIOReadSDK,

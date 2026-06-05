@@ -13,21 +13,14 @@ const useGatewayDelegateStakes = (address?: string) => {
         throw new Error('Address is not set');
       }
 
-      let cursor: string | undefined;
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const pageResult = await arIOReadSDK.getGatewayDelegates({
+        address,
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-      let results: Array<GatewayDelegateWithAddress> = [];
-
-      do {
-        const pageResult = await arIOReadSDK.getGatewayDelegates({
-          address,
-          cursor,
-          limit: 100,
-        });
-
-        results = results.concat(pageResult.items);
-
-        cursor = pageResult.nextCursor;
-      } while (cursor !== undefined);
+      const results: Array<GatewayDelegateWithAddress> = pageResult.items;
 
       return results.filter((delegate) => delegate.delegatedStake > 0);
     },

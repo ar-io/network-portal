@@ -20,36 +20,28 @@ const useAllVaults = () => {
       }
 
       const vaultsByAddress = new Map<string, VaultsSummary>();
-      let hasNextPage = true;
-      let cursor: string | undefined;
-      const limit = 1000;
 
-      // Fetch all vaults paginated
-      while (hasNextPage) {
-        const result = await arIOReadSDK.getVaults({
-          cursor,
-          limit,
-        });
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const result = await arIOReadSDK.getVaults({
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-        // Process each vault
-        result.items.forEach((vault: WalletVault) => {
-          const existing = vaultsByAddress.get(vault.address) || {
-            address: vault.address,
-            vaultCount: 0,
-            totalVaultBalance: 0,
-          };
+      // Process each vault
+      result.items.forEach((vault: WalletVault) => {
+        const existing = vaultsByAddress.get(vault.address) || {
+          address: vault.address,
+          vaultCount: 0,
+          totalVaultBalance: 0,
+        };
 
-          existing.vaultCount += 1;
-          existing.totalVaultBalance += new mARIOToken(vault.balance)
-            .toARIO()
-            .valueOf();
+        existing.vaultCount += 1;
+        existing.totalVaultBalance += new mARIOToken(vault.balance)
+          .toARIO()
+          .valueOf();
 
-          vaultsByAddress.set(vault.address, existing);
-        });
-
-        hasNextPage = result.hasMore;
-        cursor = result.nextCursor;
-      }
+        vaultsByAddress.set(vault.address, existing);
+      });
 
       return vaultsByAddress;
     },

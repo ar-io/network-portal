@@ -13,23 +13,14 @@ const useGatewayVaults = (address?: string) => {
         throw new Error('Address is not set');
       }
 
-      let cursor: string | undefined;
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const pageResult = await arIOReadSDK.getGatewayVaults({
+        address,
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-      let results: Array<GatewayVault> = [];
-
-      do {
-        const pageResult = await arIOReadSDK.getGatewayVaults({
-          address,
-          cursor,
-          limit: 100,
-        });
-
-        results = results.concat(pageResult.items);
-
-        cursor = pageResult.nextCursor;
-      } while (cursor !== undefined);
-
-      return results;
+      return pageResult.items as Array<GatewayVault>;
     },
     staleTime: Infinity,
     enabled: !!address && !!arIOReadSDK,

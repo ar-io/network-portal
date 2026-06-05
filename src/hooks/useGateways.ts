@@ -9,16 +9,16 @@ const useGateways = () => {
   const fetchAllGateways = async (
     arIOReadSDK: ARIORead,
   ): Promise<Record<string, Gateway>> => {
-    let cursor: string | undefined;
     const gateways: Record<string, Gateway> = {};
 
-    do {
-      const pageResult = await arIOReadSDK.getGateways({ cursor, limit: 1000 });
-      pageResult.items.forEach((gateway) => {
-        gateways[gateway.gatewayAddress] = gateway;
-      });
-      cursor = pageResult.nextCursor;
-    } while (cursor !== undefined);
+    // The SDK paginates in memory, so a single call fetches the full set
+    // with exactly one chain sweep.
+    const pageResult = await arIOReadSDK.getGateways({
+      limit: Number.MAX_SAFE_INTEGER,
+    });
+    pageResult.items.forEach((gateway) => {
+      gateways[gateway.gatewayAddress] = gateway;
+    });
 
     return gateways;
   };

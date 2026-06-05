@@ -20,10 +20,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@4.0.0-alpha.3":
-  version "4.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.0-alpha.3.tgz#4269bfc600cfbcf578eb710a18ccf834996b8191"
-  integrity sha512-1Llcb3P8rDQiVH2vMHgYlVDlLKa3/kwoBzgLzNisLguKdpWeC4BbSwQdAq5ZVu2Tjuhrp4hFwdNJ5WcwRdElJA==
+"@ar.io/sdk@4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.1.tgz#a75daa0c9df11f2a1e664deb954f04f377377050"
+  integrity sha512-KnfwwTdau+TE+uA2SAVrpCEPKvWidKcLpyLS6VxeJKBCNYu+dPdZFJ9b1HWH4Mll4e9cZG4RzG3Wv8Vv8CVsOA==
   dependencies:
     "@ar.io/solana-contracts" "1.0.0"
     "@noble/hashes" "^1.8.0"

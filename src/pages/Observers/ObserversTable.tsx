@@ -73,6 +73,12 @@ const ObserversTable = () => {
     // Pre-calculate failure summaries for efficiency
     const failureSummaryEntries = Object.values(observations.failureSummaries);
 
+    // Compute total composite weight from all gateways for normalization
+    const totalCompositeWeight = Object.values(gateways).reduce(
+      (sum, gw) => sum + (gw.weights?.compositeWeight ?? 0),
+      0,
+    );
+
     const observersTableData: Array<TableData> = observers.map((observer) => {
       const gateway = gateways[observer.gatewayAddress];
       const submitted = observations.reports[observer.observerAddress];
@@ -91,12 +97,17 @@ const ObserversTable = () => {
           )
         : undefined;
 
+      const ncw =
+        observer.compositeWeight && totalCompositeWeight > 0
+          ? observer.compositeWeight / totalCompositeWeight
+          : 0;
+
       return {
         label: gateway.settings.label,
         domain: gateway.settings.fqdn,
         gatewayAddress: observer.gatewayAddress,
         observerAddress: observer.observerAddress,
-        ncw: observer.normalizedCompositeWeight,
+        ncw,
         observedEpochs: gateway.stats.observedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
         prescribedEpochs: gateway.stats.prescribedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
         successRatio:

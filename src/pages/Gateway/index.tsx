@@ -27,6 +27,7 @@ import { WRITE_OPTIONS, log } from '@src/constants';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGateway from '@src/hooks/useGateway';
 import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
+import useGateways from '@src/hooks/useGateways';
 import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -65,6 +66,7 @@ const Gateway = () => {
       : undefined,
   });
 
+  const { data: allGateways } = useGateways();
   const { data: epochSettings } = useEpochSettings();
 
   const [editing, setEditing] = useState(false);
@@ -93,6 +95,18 @@ const Gateway = () => {
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking === true;
 
+  const totalCompositeWeight = allGateways
+    ? Object.values(allGateways).reduce(
+        (sum, gw) => sum + (gw.weights?.compositeWeight ?? 0),
+        0,
+      )
+    : 0;
+
+  const computedNormalizedWeight =
+    gateway?.weights?.compositeWeight && totalCompositeWeight > 0
+      ? gateway.weights.compositeWeight / totalCompositeWeight
+      : 0;
+
   const weightFields: Array<[string, number | undefined]> = [
     ['Stake', gateway?.weights?.stakeWeight],
     ['Tenure', gateway?.weights?.tenureWeight],
@@ -108,7 +122,7 @@ const Gateway = () => {
         gateway?.weights?.observerRewardRatioWeight,
     ],
     ['Composite', gateway?.weights?.compositeWeight],
-    ['Normalized', gateway?.weights?.normalizedCompositeWeight],
+    ['Normalized', computedNormalizedWeight],
   ];
 
   const egressPricePerGB =

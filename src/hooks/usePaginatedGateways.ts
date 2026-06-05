@@ -40,53 +40,35 @@ const usePaginatedGateways = (options: PageBasedOptions = {}) => {
     const safeLimit =
       Number.isFinite(limit) && limit > 0 && limit <= 1000 ? limit : 1000;
     const safePage = Number.isFinite(page) && page > 0 ? page : 1;
-    let currentCursor: string | undefined;
-    let currentPage = 1;
 
-    // If not on page 1, we need to skip to the correct page
-    while (currentPage < page) {
-      const pageResult = await arIOReadSDK.getGateways({
-        cursor: currentCursor,
-        limit: safeLimit,
-        sortBy: sortBy as any, // Type assertion needed for SDK
-        sortOrder,
-        filters,
-      });
-
-      if (pageResult.nextCursor) {
-        currentCursor = pageResult.nextCursor;
-        currentPage++;
-      } else {
-        // No more pages available
-        return {
-          items: [],
-          limit: safeLimit,
-          totalItems: pageResult.totalItems,
-          sortOrder: sortOrder as 'asc' | 'desc',
-          hasMore: false,
-          currentPage: safePage,
-          totalPages: Math.ceil(pageResult.totalItems / safeLimit),
-          hasNextPage: false,
-        };
-      }
-    }
-
-    // Fetch the target page
-    const pageResult = await arIOReadSDK.getGateways({
-      cursor: currentCursor,
-      limit: safeLimit,
+    // The SDK fetches the entire dataset and paginates in memory, so we fetch
+    // everything in a single chain sweep and slice the requested page locally.
+    const fullResult = await arIOReadSDK.getGateways({
+      limit: Number.MAX_SAFE_INTEGER,
       sortBy: sortBy as any, // Type assertion needed for SDK
       sortOrder,
       filters,
     });
 
-    const totalPages = Math.ceil(pageResult.totalItems / limit);
+    const totalItems = fullResult.totalItems ?? fullResult.items.length;
+    const totalPages = Math.ceil(totalItems / safeLimit);
+
+    const startIndex = (safePage - 1) * safeLimit;
+    const pageItems = fullResult.items.slice(
+      startIndex,
+      startIndex + safeLimit,
+    );
+    const hasNextPage = safePage < totalPages;
 
     return {
-      ...pageResult,
-      currentPage: page,
+      items: pageItems,
+      limit: safeLimit,
+      totalItems,
+      sortOrder: sortOrder as 'asc' | 'desc',
+      hasMore: hasNextPage,
+      currentPage: safePage,
       totalPages,
-      hasNextPage: !!pageResult.nextCursor,
+      hasNextPage,
     };
   };
 

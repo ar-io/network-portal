@@ -49,24 +49,15 @@ const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      const allGateways: GatewayWithAddress[] = [];
-      let hasNextPage = true;
-      let cursor: string | undefined;
-      const limit = 1000;
+      // The SDK fetches the entire dataset and paginates in memory, so a
+      // single call requesting everything performs exactly one chain sweep.
+      const result = await arIOReadSDK.getGateways({
+        limit: Number.MAX_SAFE_INTEGER,
+        sortBy: sortBy as any,
+        sortOrder,
+      });
 
-      // Fetch all gateways paginated 1k at a time with sorting
-      while (hasNextPage) {
-        const result = await arIOReadSDK.getGateways({
-          cursor,
-          limit,
-          sortBy: sortBy as any,
-          sortOrder,
-        });
-
-        allGateways.push(...result.items);
-        hasNextPage = result.hasMore;
-        cursor = result.nextCursor;
-      }
+      const allGateways: GatewayWithAddress[] = [...result.items];
 
       allGateways.sort((a, b) => {
         const valueA =

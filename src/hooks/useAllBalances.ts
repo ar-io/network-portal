@@ -23,24 +23,15 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      const allBalances: BalanceWithAddress[] = [];
-      let hasNextPage = true;
-      let cursor: string | undefined;
-      const limit = 1000;
+      // The SDK fetches the entire dataset and paginates in memory, so a
+      // single call requesting everything performs exactly one chain sweep.
+      const result = await arIOReadSDK.getBalances({
+        limit: Number.MAX_SAFE_INTEGER,
+        sortBy,
+        sortOrder,
+      });
 
-      // Fetch all balances paginated 1k at a time with sorting
-      while (hasNextPage) {
-        const result = await arIOReadSDK.getBalances({
-          cursor,
-          limit,
-          sortBy,
-          sortOrder,
-        });
-
-        allBalances.push(...result.items);
-        hasNextPage = result.hasMore;
-        cursor = result.nextCursor;
-      }
+      const allBalances: BalanceWithAddress[] = [...result.items];
 
       allBalances.sort((a, b) => {
         const valueA = sortBy === 'address' ? a.address : a.balance;

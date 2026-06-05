@@ -11,16 +11,13 @@ const useVaults = () => {
     queryFn: async () => {
       if (!arioReadSDK) throw new Error('arIOReadSDK is not initialized');
 
-      let cursor: string | undefined;
-      let vaults: Array<WalletVault> = [];
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const pageResult = await arioReadSDK.getVaults({
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-      do {
-        const pageResult = await arioReadSDK.getVaults({ cursor, limit: 1000 });
-        vaults = vaults.concat(pageResult.items);
-        cursor = pageResult.nextCursor;
-      } while (cursor !== undefined);
-
-      return vaults;
+      return pageResult.items as Array<WalletVault>;
     },
     enabled: !!arioReadSDK,
     staleTime: Infinity,

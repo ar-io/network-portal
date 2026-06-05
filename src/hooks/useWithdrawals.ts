@@ -13,21 +13,14 @@ const useWithdrawals = (address?: string) => {
         throw new Error('Address is not set');
       }
 
-      const withdrawals: Array<UserWithdrawal> = [];
-      let cursor: string | undefined;
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const pageResult = await arIOReadSDK.getWithdrawals({
+        address,
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-      do {
-        const pageResult = await arIOReadSDK.getWithdrawals({
-          address,
-          cursor,
-          limit: 100,
-        });
-
-        withdrawals.push(...pageResult.items);
-        cursor = pageResult.nextCursor;
-      } while (cursor !== undefined);
-
-      return withdrawals;
+      return pageResult.items;
     },
     enabled: !!address && !!arIOReadSDK,
     staleTime: 5 * 60 * 1000,

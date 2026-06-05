@@ -1,10 +1,15 @@
 import {
   BRIDGE_BALANCE_ADDRESS,
   DEFAULT_ARWEAVE_GQL_ENDPOINT,
-  SOLANA_ANT_PROGRAM_ID,
-  SOLANA_ARNS_PROGRAM_ID,
-  SOLANA_CORE_PROGRAM_ID,
-  SOLANA_GAR_PROGRAM_ID,
+  DEVNET_SOLANA_ANT_PROGRAM_ID,
+  DEVNET_SOLANA_ARNS_PROGRAM_ID,
+  DEVNET_SOLANA_CORE_PROGRAM_ID,
+  DEVNET_SOLANA_GAR_PROGRAM_ID,
+  MAINNET_SOLANA_ANT_PROGRAM_ID,
+  MAINNET_SOLANA_ARNS_PROGRAM_ID,
+  MAINNET_SOLANA_CORE_PROGRAM_ID,
+  MAINNET_SOLANA_GAR_PROGRAM_ID,
+  SOLANA_MAINNET_RPC_URL,
   SOLANA_RPC_URL,
 } from '@src/constants';
 import { create } from 'zustand';
@@ -17,6 +22,8 @@ type SolanaAddressSettings = {
   solanaAntProgramId: string;
   bridgeBalanceAddress: string;
 };
+
+type SolanaNetworkTier = 'localnet' | 'mainnet' | 'devnet' | 'testnet';
 
 type Settings = {
   solanaRpcUrl: string;
@@ -36,13 +43,54 @@ const SOLANA_ADDRESS_SETTING_KEYS: Array<keyof SolanaAddressSettings> = [
   'bridgeBalanceAddress',
 ];
 
-const getDefaultSolanaAddressSettings = (): SolanaAddressSettings => ({
-  solanaCoreProgramId: SOLANA_CORE_PROGRAM_ID ?? '',
-  solanaGarProgramId: SOLANA_GAR_PROGRAM_ID ?? '',
-  solanaArnsProgramId: SOLANA_ARNS_PROGRAM_ID ?? '',
-  solanaAntProgramId: SOLANA_ANT_PROGRAM_ID ?? '',
-  bridgeBalanceAddress: BRIDGE_BALANCE_ADDRESS,
-});
+const getNetworkTierFromRpcUrl = (rpcUrl: string): SolanaNetworkTier => {
+  const inferFromText = (value: string) => {
+    const lowerValue = value.toLowerCase();
+
+    if (lowerValue.includes('localhost') || lowerValue.includes('127.0.0.1')) {
+      return 'localnet';
+    }
+
+    if (lowerValue.includes('devnet')) {
+      return 'devnet';
+    }
+
+    if (lowerValue.includes('testnet')) {
+      return 'testnet';
+    }
+
+    return 'mainnet';
+  };
+
+  try {
+    const parsedUrl = new URL(rpcUrl);
+    return inferFromText(`${parsedUrl.hostname}${parsedUrl.pathname}`);
+  } catch {
+    return inferFromText(rpcUrl);
+  }
+};
+
+const getDefaultSolanaAddressSettings = (
+  networkTier: SolanaNetworkTier,
+): SolanaAddressSettings => {
+  if (networkTier === 'mainnet') {
+    return {
+      solanaCoreProgramId: MAINNET_SOLANA_CORE_PROGRAM_ID,
+      solanaGarProgramId: MAINNET_SOLANA_GAR_PROGRAM_ID,
+      solanaArnsProgramId: MAINNET_SOLANA_ARNS_PROGRAM_ID,
+      solanaAntProgramId: MAINNET_SOLANA_ANT_PROGRAM_ID,
+      bridgeBalanceAddress: BRIDGE_BALANCE_ADDRESS,
+    };
+  }
+
+  return {
+    solanaCoreProgramId: DEVNET_SOLANA_CORE_PROGRAM_ID ?? '',
+    solanaGarProgramId: DEVNET_SOLANA_GAR_PROGRAM_ID ?? '',
+    solanaArnsProgramId: DEVNET_SOLANA_ARNS_PROGRAM_ID ?? '',
+    solanaAntProgramId: DEVNET_SOLANA_ANT_PROGRAM_ID ?? '',
+    bridgeBalanceAddress: BRIDGE_BALANCE_ADDRESS,
+  };
+};
 
 const getSolanaSettingsNetworkKey = (rpcUrl: string): string => {
   const normalizedRpcUrl = rpcUrl.trim();
@@ -57,9 +105,12 @@ const getSolanaSettingsNetworkKey = (rpcUrl: string): string => {
 const getSolanaAddressSettingsForNetwork = (
   state: Partial<Settings>,
   networkKey: string,
+  rpcUrl: string,
   includeTopLevelFallback = false,
 ): SolanaAddressSettings => {
-  const defaults = getDefaultSolanaAddressSettings();
+  const defaults = getDefaultSolanaAddressSettings(
+    getNetworkTierFromRpcUrl(rpcUrl),
+  );
   const networkSettings =
     state.solanaAddressSettingsByNetwork?.[networkKey] ?? {};
 
@@ -96,11 +147,13 @@ const getSolanaAddressSettingsPatch = (
 };
 
 const DEFAULT_SETTINGS: Settings = {
-  solanaRpcUrl: SOLANA_RPC_URL,
+  solanaRpcUrl: SOLANA_MAINNET_RPC_URL,
   arweaveGqlUrl: DEFAULT_ARWEAVE_GQL_ENDPOINT,
   sidebarOpen: true,
   solanaAddressSettingsByNetwork: {},
-  ...getDefaultSolanaAddressSettings(),
+  ...getDefaultSolanaAddressSettings(
+    getNetworkTierFromRpcUrl(SOLANA_MAINNET_RPC_URL),
+  ),
 };
 
 const isLocalRpcUrl = (rpcUrl: string | undefined): boolean => {
@@ -143,10 +196,13 @@ export const useSettings = create<Settings>()(
           mergedState.solanaRpcUrl,
         );
         const solanaAddressSettings = networkTierChanged
-          ? getDefaultSolanaAddressSettings()
+          ? getDefaultSolanaAddressSettings(
+              getNetworkTierFromRpcUrl(SOLANA_RPC_URL),
+            )
           : getSolanaAddressSettingsForNetwork(
               persistedSettings,
               networkKey,
+              mergedState.solanaRpcUrl,
               true,
             );
 
@@ -180,7 +236,11 @@ export const updateSettings = (settings: Partial<Settings>) => {
 
     return {
       ...(settings.solanaRpcUrl
-        ? getSolanaAddressSettingsForNetwork(currentState, nextNetworkKey)
+        ? getSolanaAddressSettingsForNetwork(
+            currentState,
+            nextNetworkKey,
+            nextSolanaRpcUrl,
+          )
         : {}),
       ...settings,
       solanaAddressSettingsByNetwork: {

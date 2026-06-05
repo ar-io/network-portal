@@ -63,11 +63,12 @@ const RedelegateModal = ({
           (gateway) =>
             gateway.status === 'joined' &&
             gateway.settings.allowDelegatedStaking &&
-            gateway.gatewayAddress !== sourceGateway.gatewayAddress,
+            gateway.gatewayAddress !== sourceGateway.gatewayAddress &&
+            gateway.gatewayAddress !== walletAddress?.toString(),
         );
       setFilteredGateways(filteredGateways);
     }
-  }, [gateways, sourceGateway.gatewayAddress]);
+  }, [gateways, sourceGateway.gatewayAddress, walletAddress]);
 
   useEffect(() => {
     if (targetGateway && walletAddress) {

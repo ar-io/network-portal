@@ -1,10 +1,15 @@
 import {
   BRIDGE_BALANCE_ADDRESS,
   DEFAULT_ARWEAVE_GQL_ENDPOINT,
-  SOLANA_ANT_PROGRAM_ID,
-  SOLANA_ARNS_PROGRAM_ID,
-  SOLANA_CORE_PROGRAM_ID,
-  SOLANA_GAR_PROGRAM_ID,
+  DEVNET_SOLANA_ANT_PROGRAM_ID,
+  DEVNET_SOLANA_ARNS_PROGRAM_ID,
+  DEVNET_SOLANA_CORE_PROGRAM_ID,
+  DEVNET_SOLANA_GAR_PROGRAM_ID,
+  MAINNET_SOLANA_ANT_PROGRAM_ID,
+  MAINNET_SOLANA_ARNS_PROGRAM_ID,
+  MAINNET_SOLANA_CORE_PROGRAM_ID,
+  MAINNET_SOLANA_GAR_PROGRAM_ID,
+  SOLANA_MAINNET_RPC_URL,
   SOLANA_RPC_URL,
 } from '@src/constants';
 import { updateSettings, useSettings } from '@src/store';
@@ -29,6 +34,8 @@ type SolanaAddressSettings = {
   bridgeBalanceAddress: string;
 };
 
+type SolanaNetworkTier = 'localnet' | 'mainnet' | 'devnet' | 'testnet';
+
 const isValidOptionalSolanaAddress = (value: string): boolean => {
   const trimmed = value.trim();
   return trimmed === '' || isValidSolanaAddress(trimmed);
@@ -51,25 +58,25 @@ const SOLANA_ADDRESS_FIELDS: Array<{
   {
     key: 'solanaCoreProgramId',
     label: 'Solana Core Program ID',
-    defaultValue: SOLANA_CORE_PROGRAM_ID ?? '',
+    defaultValue: DEVNET_SOLANA_CORE_PROGRAM_ID ?? '',
     validation: 'solanaOptional',
   },
   {
     key: 'solanaGarProgramId',
     label: 'Solana GAR Program ID',
-    defaultValue: SOLANA_GAR_PROGRAM_ID ?? '',
+    defaultValue: DEVNET_SOLANA_GAR_PROGRAM_ID ?? '',
     validation: 'solanaOptional',
   },
   {
     key: 'solanaArnsProgramId',
     label: 'Solana ARNS Program ID',
-    defaultValue: SOLANA_ARNS_PROGRAM_ID ?? '',
+    defaultValue: DEVNET_SOLANA_ARNS_PROGRAM_ID ?? '',
     validation: 'solanaOptional',
   },
   {
     key: 'solanaAntProgramId',
     label: 'Solana ANT Program ID',
-    defaultValue: SOLANA_ANT_PROGRAM_ID ?? '',
+    defaultValue: DEVNET_SOLANA_ANT_PROGRAM_ID ?? '',
     validation: 'solanaOptional',
   },
   {
@@ -80,13 +87,57 @@ const SOLANA_ADDRESS_FIELDS: Array<{
   },
 ];
 
-const getDefaultSolanaAddressSettings = (): SolanaAddressSettings => ({
-  solanaCoreProgramId: SOLANA_CORE_PROGRAM_ID ?? '',
-  solanaGarProgramId: SOLANA_GAR_PROGRAM_ID ?? '',
-  solanaArnsProgramId: SOLANA_ARNS_PROGRAM_ID ?? '',
-  solanaAntProgramId: SOLANA_ANT_PROGRAM_ID ?? '',
+const getDevnetSolanaAddressSettings = (): SolanaAddressSettings => ({
+  solanaCoreProgramId: DEVNET_SOLANA_CORE_PROGRAM_ID ?? '',
+  solanaGarProgramId: DEVNET_SOLANA_GAR_PROGRAM_ID ?? '',
+  solanaArnsProgramId: DEVNET_SOLANA_ARNS_PROGRAM_ID ?? '',
+  solanaAntProgramId: DEVNET_SOLANA_ANT_PROGRAM_ID ?? '',
   bridgeBalanceAddress: BRIDGE_BALANCE_ADDRESS,
 });
+
+const getMainnetSolanaAddressSettings = (): SolanaAddressSettings => ({
+  solanaCoreProgramId: MAINNET_SOLANA_CORE_PROGRAM_ID,
+  solanaGarProgramId: MAINNET_SOLANA_GAR_PROGRAM_ID,
+  solanaArnsProgramId: MAINNET_SOLANA_ARNS_PROGRAM_ID,
+  solanaAntProgramId: MAINNET_SOLANA_ANT_PROGRAM_ID,
+  bridgeBalanceAddress: BRIDGE_BALANCE_ADDRESS,
+});
+
+const getNetworkTierFromRpcUrl = (rpcUrl: string): SolanaNetworkTier => {
+  const inferFromText = (value: string) => {
+    const lowerValue = value.toLowerCase();
+
+    if (lowerValue.includes('localhost') || lowerValue.includes('127.0.0.1')) {
+      return 'localnet';
+    }
+
+    if (lowerValue.includes('devnet')) {
+      return 'devnet';
+    }
+
+    if (lowerValue.includes('testnet')) {
+      return 'testnet';
+    }
+
+    return 'mainnet';
+  };
+
+  try {
+    const parsedUrl = new URL(rpcUrl);
+    return inferFromText(`${parsedUrl.hostname}${parsedUrl.pathname}`);
+  } catch {
+    return inferFromText(rpcUrl);
+  }
+};
+
+const getDefaultSolanaAddressSettingsForRpcUrl = (
+  rpcUrl: string,
+): SolanaAddressSettings => {
+  const networkTier = getNetworkTierFromRpcUrl(rpcUrl);
+  return networkTier === 'mainnet'
+    ? getMainnetSolanaAddressSettings()
+    : getDevnetSolanaAddressSettings();
+};
 
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   const solanaRpcUrl = useSettings((state) => state.solanaRpcUrl);
@@ -135,6 +186,23 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
     },
   );
 
+  const activeNetworkTier = getNetworkTierFromRpcUrl(solanaRpcUrl);
+
+  const switchNetwork = (network: 'devnet' | 'mainnet') => {
+    const nextRpcUrl =
+      network === 'mainnet' ? SOLANA_MAINNET_RPC_URL : SOLANA_RPC_URL;
+    const nextAddressSettings =
+      getDefaultSolanaAddressSettingsForRpcUrl(nextRpcUrl);
+
+    updateSettings({
+      solanaRpcUrl: nextRpcUrl,
+      ...nextAddressSettings,
+    });
+
+    setLocalRpcUrl(nextRpcUrl);
+    setLocalSolanaAddressSettings(nextAddressSettings);
+  };
+
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
       <div className="h-[42rem] w-[calc(100vw-2rem)] text-left lg:w-[28.4375rem]">
@@ -144,16 +212,38 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
           <div className="mt-4 flex grow flex-col gap-6 overflow-y-auto pr-1 text-sm text-mid scrollbar">
             <div className="flex flex-col gap-2">
               <div className="flex items-center">
-                <div className="grow">Solana RPC URL</div>
+                <div className="grow">Network</div>
+                <div className="text-xs text-low">
+                  Active:{' '}
+                  {activeNetworkTier === 'mainnet' ? 'Mainnet' : 'Devnet'}
+                </div>
+              </div>
 
+              <div className="flex items-center gap-2">
                 <button
-                  className="rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0"
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
                   onClick={() => {
-                    setLocalRpcUrl(SOLANA_RPC_URL);
+                    switchNetwork('mainnet');
                   }}
+                  disabled={activeNetworkTier === 'mainnet'}
                 >
-                  Reset to Default
+                  Switch to Mainnet
                 </button>
+                <button
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
+                  onClick={() => {
+                    switchNetwork('devnet');
+                  }}
+                  disabled={activeNetworkTier === 'devnet'}
+                >
+                  Switch to Devnet
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center">
+                <div className="grow">Solana RPC URL</div>
               </div>
               <div className="flex items-center">
                 <input
@@ -186,9 +276,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                 <button
                   className="rounded border border-grey-500 bg-streak-up px-4 py-2 text-xs text-containerL0"
                   onClick={() => {
-                    setLocalSolanaAddressSettings(
-                      getDefaultSolanaAddressSettings(),
-                    );
+                    switchNetwork('mainnet');
                   }}
                 >
                   Reset to Defaults

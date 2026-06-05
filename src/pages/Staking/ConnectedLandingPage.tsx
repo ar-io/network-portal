@@ -89,7 +89,9 @@ const ConnectedLandingPage = () => {
             ticker={ticker}
           />
         ))}
-        <StakingRewardsCard walletAddress={walletAddress?.toString()} />
+        {/* 
+          TODO: re-enable staking rewards when data is populated
+        <StakingRewardsCard walletAddress={walletAddress?.toString()} /> */}
       </div>
       <MyStakesTable />
       <DelegateStake />

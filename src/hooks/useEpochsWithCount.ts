@@ -2,7 +2,6 @@ import { log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { getEpoch } from '@src/store/db';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
-import { showErrorToast } from '@src/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 
 /** Returns last epochCount epochs */
@@ -41,9 +40,6 @@ const useEpochsWithCount = (epochCount: number) => {
               log.error(
                 `[useEpochsWithCount] Unexpected error while retrieving epoch ${epochIndex}: ${message}`,
                 error,
-              );
-              showErrorToast(
-                `Unable to retrieve epoch data for epoch ${epochIndex}.`,
               );
               return undefined;
             }),

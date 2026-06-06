@@ -20,23 +20,6 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.1.tgz#a75daa0c9df11f2a1e664deb954f04f377377050"
-  integrity sha512-KnfwwTdau+TE+uA2SAVrpCEPKvWidKcLpyLS6VxeJKBCNYu+dPdZFJ9b1HWH4Mll4e9cZG4RzG3Wv8Vv8CVsOA==
-  dependencies:
-    "@ar.io/solana-contracts" "1.0.0"
-    "@noble/hashes" "^1.8.0"
-    "@solana-program/address-lookup-table" "^0.11.0"
-    "@solana-program/compute-budget" "^0.15.0"
-    "@solana-program/token" "^0.13.0"
-    "@solana/kit" "^6.8.0"
-    bs58 "^6.0.0"
-    commander "^12.1.0"
-    opossum "^9.0.0"
-    prompts "^2.4.2"
-    zod "^3.25.76"
-
 "@ar.io/sdk@^3.10.1":
   version "3.10.1"
   resolved "https://registry.npmjs.org/@ar.io/sdk/-/sdk-3.10.1.tgz#f5c377e6dca428d6e6127842289817b3dd4b116f"
@@ -53,6 +36,23 @@
     prompts "^2.4.2"
     winston "^3.13.0"
     zod "^3.23.8"
+
+"@ar.io/sdk@^4.0.2-alpha.2":
+  version "4.0.2-alpha.2"
+  resolved "https://registry.npmjs.org/@ar.io/sdk/-/sdk-4.0.2-alpha.2.tgz#24037b7345690f0d3acaacce03a5d5dc466f169c"
+  integrity sha512-QtQjKK+6hicAVR91eqhIIdvyM/Hf1/VjrkrKNUzIqQ6vOY4QWlI8YOLZOjHWyNfU0OW540YxJY4lMESOHZufxg==
+  dependencies:
+    "@ar.io/solana-contracts" "1.0.0"
+    "@noble/hashes" "^1.8.0"
+    "@solana-program/address-lookup-table" "^0.11.0"
+    "@solana-program/compute-budget" "^0.15.0"
+    "@solana-program/token" "^0.13.0"
+    "@solana/kit" "^6.8.0"
+    bs58 "^6.0.0"
+    commander "^12.1.0"
+    opossum "^9.0.0"
+    prompts "^2.4.2"
+    zod "^3.25.76"
 
 "@ar.io/solana-contracts@1.0.0":
   version "1.0.0"

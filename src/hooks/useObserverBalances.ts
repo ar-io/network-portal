@@ -1,29 +1,30 @@
-import { AR } from '@src/constants';
+import { address } from '@solana/kit';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
-export type ObserverBalances = { ar: number; turboCredits: number };
+// Constant from @solana/web3.js - 1 billion lamports per SOL
+const LAMPORTS_PER_SOL = 1000000000;
+
+export type ObserverBalances = { sol: number; turboCredits: number };
 
 const TURBO_API_URL = 'https://turbo.ardrive.io';
 
 const useObserverBalances = (observerAddress?: string) => {
-  const arweave = useGlobalState((state) => state.arweave);
-  const blockHeight = useGlobalState((state) => state.blockHeight);
+  const rpc = useGlobalState((state) => state.rpc);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery<ObserverBalances>({
-    queryKey: ['observerBalances', observerAddress, blockHeight],
+    queryKey: ['observerBalances', observerAddress, solanaRpcUrl],
     queryFn: async () => {
-      if (!observerAddress || !arweave) {
-        throw new Error(
-          'Observer address or arweave client is not initialized',
-        );
+      if (!observerAddress || !rpc) {
+        throw new Error('Observer address or rpc is not initialized');
       }
 
-      // Get AR balance
-      const winstonBalance = await arweave.wallets.getBalance(observerAddress);
-      const arBalance = +AR.winstonToAr(winstonBalance);
+      const balanceResult = await rpc
+        .getBalance(address(observerAddress))
+        .send();
+      const solBalance = Number(balanceResult.value) / LAMPORTS_PER_SOL;
 
-      // Get Turbo credits balance
       try {
         const response = await fetch(
           `${TURBO_API_URL}/v1/account/balance?address=${observerAddress}`,
@@ -39,22 +40,16 @@ const useObserverBalances = (observerAddress?: string) => {
         }
 
         const data = await response.json();
-        // Convert winston to AR for consistency
-        const turboCredits = +AR.winstonToAr(data.balance || '0');
+        const turboCredits = (data.balance || 0) / 1e12;
 
-        return { ar: arBalance, turboCredits };
+        return { sol: solBalance, turboCredits };
       } catch (error) {
         console.error('Error fetching Turbo balance:', error);
-        // Return 0 for turboCredits if there's an error
-        return { ar: arBalance, turboCredits: 0 };
+        return { sol: solBalance, turboCredits: 0 };
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled:
-      !!observerAddress &&
-      !!arweave &&
-      typeof window !== 'undefined' &&
-      'arweaveWallet' in window,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!observerAddress && !!rpc,
   });
 
   return res;

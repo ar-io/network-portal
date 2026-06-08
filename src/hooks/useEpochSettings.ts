@@ -1,16 +1,27 @@
-import { AoEpochSettings } from '@ar.io/sdk/web';
+import { EpochSettings } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
+import { useSettings } from '@src/store/settings';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 
 /** Use shouldFetch to optimize whether to fetch or not.  */
 const useEpochSettings = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
+  const solanaCoreProgramId = useSettings((state) => state.solanaCoreProgramId);
+  const solanaGarProgramId = useSettings((state) => state.solanaGarProgramId);
+  const solanaArnsProgramId = useSettings((state) => state.solanaArnsProgramId);
 
   const queryResults = useQuery<
-    AoEpochSettings & { hasEpochZeroStarted: boolean }
+    EpochSettings & { hasEpochZeroStarted: boolean }
   >({
-    queryKey: ['epochSettings', arIOReadSDK],
+    queryKey: [
+      'epochSettings',
+      solanaRpcUrl,
+      solanaCoreProgramId,
+      solanaGarProgramId,
+      solanaArnsProgramId,
+    ],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK not available');

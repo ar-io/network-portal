@@ -9,6 +9,7 @@ import {
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StartGatewayModal from '@src/components/modals/StartGatewayModal';
 import { GatewayStatus, useGatewayInfo } from '@src/hooks/useGatewayInfo';
+import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
 import useObservers from '@src/hooks/useObservers';
 import { useGlobalState } from '@src/store';
@@ -33,12 +34,25 @@ const Banner = () => {
 
   const { data: observers } = useObservers(currentEpoch);
   const { data: observations } = useObservations(currentEpoch);
+  const { data: allGateways } = useGateways();
 
   const { gateway, gatewayStatus } = useGatewayInfo();
 
   const myObserver = observers?.find(
     (obs) => obs.gatewayAddress === walletAddress?.toString(),
   );
+
+  const totalCompositeWeight = allGateways
+    ? Object.values(allGateways).reduce(
+        (sum, gw) => sum + (gw.weights?.compositeWeight ?? 0),
+        0,
+      )
+    : 0;
+
+  const myNormalizedWeight =
+    myObserver?.compositeWeight && totalCompositeWeight > 0
+      ? myObserver.compositeWeight / totalCompositeWeight
+      : 0;
   const prescribed = myObserver !== undefined;
 
   const prescribedStatus = prescribed
@@ -136,9 +150,7 @@ const Banner = () => {
                   <InfoSection
                     label="Observation Chance"
                     value={
-                      myObserver
-                        ? formatPercentage(myObserver.normalizedCompositeWeight)
-                        : 'N/A'
+                      myObserver ? formatPercentage(myNormalizedWeight) : 'N/A'
                     }
                   />
                   <InfoSection

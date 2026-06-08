@@ -1,4 +1,4 @@
-import { AoGateway, mARIOToken } from '@ar.io/sdk/web';
+import { Gateway, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -15,13 +15,12 @@ const WithdrawAllModal = ({
   activeStakes,
 }: {
   onClose: () => void;
-  activeStakes: { owner: string; delegatedStake: number; gateway: AoGateway }[];
+  activeStakes: { owner: string; delegatedStake: number; gateway: Gateway }[];
 }) => {
   const queryClient = useQueryClient();
 
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
@@ -69,8 +68,12 @@ const WithdrawAllModal = ({
           queryKey: ['delegateStakes'],
           refetchType: 'all',
         });
+        queryClient.invalidateQueries({
+          queryKey: ['balances'],
+          refetchType: 'all',
+        });
 
-        setShowSuccessModal(true);
+        onClose();
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {
@@ -143,16 +146,6 @@ const WithdrawAllModal = ({
           onClose={() => setShowBlockingMessageModal(false)}
           message="Sign the following data with your wallet to proceed."
         ></BlockingMessageModal>
-      )}
-      {showSuccessModal && (
-        <SuccessModal
-          onClose={() => {
-            setShowSuccessModal(false);
-            onClose();
-          }}
-          title="Congratulations"
-          bodyText="You have successfully withdrawn all stakes."
-        />
       )}
     </>
   );

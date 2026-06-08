@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
@@ -118,7 +118,7 @@ const DelegateStake = () => {
     const joinedGatewayCount = delegateEnabledGateways.length;
 
     const processedData: Array<TableData> = delegateEnabledGateways.map(
-      (gateway: AoGatewayWithAddress) => {
+      (gateway: GatewayWithAddress) => {
         const passedEpochCount = gateway.stats.passedEpochCount;
         const totalEpochCount = gateway.stats.totalEpochCount;
 

@@ -1,7 +1,7 @@
 /* eslint-disable tailwindcss/classnames-order */
 import {
   ARIOToken,
-  AoUpdateGatewaySettingsParams,
+  UpdateGatewaySettingsParams,
   mARIOToken,
 } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
@@ -27,6 +27,7 @@ import { WRITE_OPTIONS, log } from '@src/constants';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGateway from '@src/hooks/useGateway';
 import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
+import useGateways from '@src/hooks/useGateways';
 import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
@@ -65,6 +66,7 @@ const Gateway = () => {
       : undefined,
   });
 
+  const { data: allGateways } = useGateways();
   const { data: epochSettings } = useEpochSettings();
 
   const [editing, setEditing] = useState(false);
@@ -88,10 +90,22 @@ const Gateway = () => {
 
   const hasLowBalance =
     observerBalances &&
-    observerBalances.ar < 0.01 &&
+    observerBalances.sol < 0.01 &&
     observerBalances.turboCredits < 0.01;
 
   const delegatedStakingEnabled = formState.allowDelegatedStaking === true;
+
+  const totalCompositeWeight = allGateways
+    ? Object.values(allGateways).reduce(
+        (sum, gw) => sum + (gw.weights?.compositeWeight ?? 0),
+        0,
+      )
+    : 0;
+
+  const computedNormalizedWeight =
+    gateway?.weights?.compositeWeight && totalCompositeWeight > 0
+      ? gateway.weights.compositeWeight / totalCompositeWeight
+      : 0;
 
   const weightFields: Array<[string, number | undefined]> = [
     ['Stake', gateway?.weights?.stakeWeight],
@@ -108,7 +122,7 @@ const Gateway = () => {
         gateway?.weights?.observerRewardRatioWeight,
     ],
     ['Composite', gateway?.weights?.compositeWeight],
-    ['Normalized', gateway?.weights?.normalizedCompositeWeight],
+    ['Normalized', computedNormalizedWeight],
   ];
 
   const egressPricePerGB =
@@ -211,11 +225,6 @@ const Gateway = () => {
       validateProperty: validateString('Note', 1, 256),
     },
     {
-      formPropertyName: 'autoStake',
-      label: 'Reward Auto Stake:',
-      rowType: RowType.SINGLE,
-    },
-    {
       formPropertyName: 'allowDelegatedStaking',
       label: 'Delegated Staking:',
       rowType: RowType.SINGLE,
@@ -257,7 +266,6 @@ const Gateway = () => {
       properties: gateway.settings.properties || '',
       status: gateway.status || '',
       note: gateway.settings.note || '',
-      autoStake: gateway.settings.autoStake || false,
       allowDelegatedStaking: gateway?.settings.allowDelegatedStaking || false,
       delegateRewardShareRatio:
         (gateway.settings.delegateRewardShareRatio || 0) + '',
@@ -290,7 +298,7 @@ const Gateway = () => {
         {} as Record<string, string | number | boolean>,
       );
 
-      const updateGatewaySettingsParams: AoUpdateGatewaySettingsParams = {
+      const updateGatewaySettingsParams: UpdateGatewaySettingsParams = {
         allowDelegatedStaking: changed.allowDelegatedStaking as boolean,
         delegateRewardShareRatio:
           formState.allowDelegatedStaking && changed.delegateRewardShareRatio
@@ -306,7 +314,6 @@ const Gateway = () => {
             : undefined,
         note: changed.note as string,
         properties: changed.properties as string,
-        autoStake: changed.autoStake as boolean,
         observerAddress: changed.observerAddress as string,
       };
 
@@ -360,8 +367,8 @@ const Gateway = () => {
             <div className="mt-1 text-sm">
               <ul>
                 <li>
-                  Observer AR and Turbo Credit balance is low. Please add more
-                  AR or Turbo Credits to the observer wallet.
+                  Observer SOL and Turbo Credit balance is low. Please add more
+                  SOL or Turbo Credits to the observer wallet.
                 </li>
               </ul>
             </div>

@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk/web';
+import { Gateway } from '@ar.io/sdk/web';
 import Button from '@src/components/Button';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
@@ -13,7 +13,7 @@ const ReportHeader = ({
   gateway,
   reportData,
 }: {
-  gateway?: AoGateway | null;
+  gateway?: Gateway | null;
   reportData?: ReportData;
 }) => {
   const params = useParams();

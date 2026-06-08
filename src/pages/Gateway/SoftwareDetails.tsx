@@ -1,9 +1,9 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { GatewayWithAddress } from '@ar.io/sdk/web';
 import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
 import { useEffect, useState } from 'react';
 import StatsBox from './StatsBox';
 
-const SoftwareDetails = ({ gateway }: { gateway?: AoGatewayWithAddress }) => {
+const SoftwareDetails = ({ gateway }: { gateway?: GatewayWithAddress }) => {
   const [bundlers, setBundlers] = useState<string[]>();
 
   const gatewayAddress = gateway

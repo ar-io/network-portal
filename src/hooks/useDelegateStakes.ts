@@ -1,17 +1,18 @@
-import { AoStakeDelegation, AoVaultDelegation } from '@ar.io/sdk/web';
+import { StakeDelegation, VaultDelegation } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 type DelegateStakes = {
-  stakes: Array<AoStakeDelegation>;
-  withdrawals: Array<AoVaultDelegation>;
+  stakes: Array<StakeDelegation>;
+  withdrawals: Array<VaultDelegation>;
 };
 
 const useDelegateStakes = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery<DelegateStakes>({
-    queryKey: ['delegateStakes', arIOReadSDK, address],
+    queryKey: ['delegateStakes', solanaRpcUrl, address],
     queryFn: async () => {
       if (!address) {
         throw new Error('Address is not set');
@@ -22,24 +23,20 @@ const useDelegateStakes = (address?: string) => {
         withdrawals: [],
       };
 
-      let cursor: string | undefined;
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const pageResult = await arIOReadSDK.getDelegations({
+        address,
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-      do {
-        const pageResult = await arIOReadSDK.getDelegations({
-          address,
-          cursor,
-          limit: 100,
-        });
-
-        pageResult.items.forEach((d) => {
-          if (d.type === 'stake') {
-            retVal.stakes.push(d);
-          } else {
-            retVal.withdrawals.push(d);
-          }
-        });
-        cursor = pageResult.nextCursor;
-      } while (cursor !== undefined);
+      pageResult.items.forEach((d) => {
+        if (d.type === 'stake') {
+          retVal.stakes.push(d);
+        } else {
+          retVal.withdrawals.push(d);
+        }
+      });
 
       return retVal;
     },

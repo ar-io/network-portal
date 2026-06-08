@@ -1,6 +1,6 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { GatewayWithAddress } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
-import { isValidAoAddress } from '@src/utils';
+import { isValidSolanaAddress } from '@src/utils';
 import { useQuery } from '@tanstack/react-query';
 
 const useGateway = ({
@@ -9,9 +9,10 @@ const useGateway = ({
   ownerWalletAddress?: string;
 }) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const queryResults = useQuery({
-    queryKey: ['gateway', ownerWalletAddress || '', arIOReadSDK],
+    queryKey: ['gateway', ownerWalletAddress || '', solanaRpcUrl],
     queryFn: () => {
       if (ownerWalletAddress === undefined) {
         return Promise.reject(
@@ -19,10 +20,10 @@ const useGateway = ({
         );
       }
 
-      if (!isValidAoAddress(ownerWalletAddress)) {
+      if (!isValidSolanaAddress(ownerWalletAddress)) {
         return Promise.reject(
           new Error(
-            `Error: Unable to find gateway. '${ownerWalletAddress}' is not a valid AO wallet address.`,
+            `Error: Unable to find gateway. '${ownerWalletAddress}' is not a valid Solana wallet address.`,
           ),
         );
       }
@@ -35,7 +36,7 @@ const useGateway = ({
               ? ({
                   ...gateway,
                   gatewayAddress: ownerWalletAddress,
-                } as AoGatewayWithAddress)
+                } as GatewayWithAddress)
               : null;
           });
       }

@@ -14,9 +14,10 @@ export type ArNSStats = {
 const useArNSStats = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery<ArNSStats>({
-    queryKey: ['arNSStats', arioReadSDK, currentEpoch],
+    queryKey: ['arNSStats', solanaRpcUrl, currentEpoch?.epochIndex],
     queryFn: async () => {
       if (!arioReadSDK) throw new Error('arIOReadSDK not initialized');
       if (!currentEpoch) throw new Error('currentEpoch not initialized');

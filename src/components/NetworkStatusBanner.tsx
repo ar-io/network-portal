@@ -1,9 +1,7 @@
-import { useGlobalState } from '@src/store';
 import { useEffect, useState } from 'react';
 
 function NetworkStatusBanner() {
   const [online, setOnline] = useState(navigator.onLine);
-  const aoCongested = useGlobalState((state) => state.aoCongested);
 
   const [statusMessage, setStatusMessage] = useState('');
 
@@ -22,14 +20,10 @@ function NetworkStatusBanner() {
     if (!online) {
       setStatusMessage(`We can't connect to the Internet. Please check your connection
             and try again.`);
-    } else if (aoCongested) {
-      setStatusMessage(
-        'The AO network is experiencing congestion, load times may be longer than usual.',
-      );
     } else {
       setStatusMessage('');
     }
-  }, [online, aoCongested]);
+  }, [online]);
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { ARIOToken, AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import useGateways from '@src/hooks/useGateways';
@@ -23,7 +23,7 @@ const OperatorStakingModal = ({
 }: {
   open: boolean;
   onClose: () => void;
-  gateway: AoGatewayWithAddress;
+  gateway: GatewayWithAddress;
 }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);

@@ -3,6 +3,7 @@ import BalanceFragmentationChart from '@src/components/charts/BalanceFragmentati
 import MyBalancesPanel from '@src/components/panels/MyBalancesPanel';
 import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useGlobalState } from '@src/store';
+import ClaimableRewardsSection from '../Dashboard/ClaimableRewardsSection';
 import BalancesTable from './BalancesTable';
 
 const Balances = () => {
@@ -22,6 +23,7 @@ const Balances = () => {
             <NetworkStatsPanel />
             {walletAddress && <MyBalancesPanel />}
           </div>
+          {walletAddress && <ClaimableRewardsSection />}
           <BalancesTable />
         </div>
       </div>

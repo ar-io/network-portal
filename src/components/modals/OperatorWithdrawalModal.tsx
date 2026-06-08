@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { Label, Radio, RadioGroup } from '@headlessui/react';
 import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
@@ -19,7 +19,7 @@ const OperatorStakingModal = ({
 }: {
   open: boolean;
   onClose: () => void;
-  gateway: AoGatewayWithAddress;
+  gateway: GatewayWithAddress;
 }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
@@ -179,7 +179,7 @@ const OperatorStakingModal = ({
                     <Label>Standard Withdrawal</Label>
                   </div>
                   <p className="pl-6 text-left text-xs text-mid">
-                    90 day withdrawal period with no fees.
+                    30 day withdrawal period with no fees.
                   </p>
                 </div>
               </Radio>

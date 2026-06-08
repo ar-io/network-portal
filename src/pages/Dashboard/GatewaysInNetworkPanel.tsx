@@ -162,19 +162,19 @@ const GatewaysInNetworkPanel = ({
               dot={(props) => {
                 // eslint-disable-next-line react/prop-types
                 const { cx, cy, index } = props;
-                if (index === activeIndex) {
-                  return (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={4}
-                      stroke="#ffffff"
-                      strokeWidth={2}
-                      fill="#E19EE5"
-                    />
-                  );
-                }
-                return <></>;
+                const isActive = index === activeIndex;
+
+                return (
+                  <circle
+                    key={`gateway-dot-${index}`}
+                    cx={cx}
+                    cy={cy}
+                    r={isActive ? 4 : 0}
+                    stroke={isActive ? '#ffffff' : 'transparent'}
+                    strokeWidth={isActive ? 2 : 0}
+                    fill={isActive ? '#E19EE5' : 'transparent'}
+                  />
+                );
               }}
             />
           </AreaChart>

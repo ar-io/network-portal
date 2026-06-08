@@ -1,29 +1,30 @@
-import { AoARIORead, AoGateway } from '@ar.io/sdk/web';
+import { ARIORead, Gateway } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 const useGateways = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const fetchAllGateways = async (
-    arIOReadSDK: AoARIORead,
-  ): Promise<Record<string, AoGateway>> => {
-    let cursor: string | undefined;
-    const gateways: Record<string, AoGateway> = {};
+    arIOReadSDK: ARIORead,
+  ): Promise<Record<string, Gateway>> => {
+    const gateways: Record<string, Gateway> = {};
 
-    do {
-      const pageResult = await arIOReadSDK.getGateways({ cursor, limit: 1000 });
-      pageResult.items.forEach((gateway) => {
-        gateways[gateway.gatewayAddress] = gateway;
-      });
-      cursor = pageResult.nextCursor;
-    } while (cursor !== undefined);
+    // The SDK paginates in memory, so a single call fetches the full set
+    // with exactly one chain sweep.
+    const pageResult = await arIOReadSDK.getGateways({
+      limit: Number.MAX_SAFE_INTEGER,
+    });
+    pageResult.items.forEach((gateway) => {
+      gateways[gateway.gatewayAddress] = gateway;
+    });
 
     return gateways;
   };
 
   const queryResults = useQuery({
-    queryKey: ['gateways', arIOReadSDK],
+    queryKey: ['gateways', solanaRpcUrl],
     queryFn: () => {
       if (arIOReadSDK) {
         return fetchAllGateways(arIOReadSDK);

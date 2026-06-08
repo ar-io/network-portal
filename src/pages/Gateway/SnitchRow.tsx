@@ -1,4 +1,4 @@
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { GatewayWithAddress } from '@ar.io/sdk/web';
 import Button from '@src/components/Button';
 import Dropdown from '@src/components/Dropdown';
 import Placeholder from '@src/components/Placeholder';
@@ -17,7 +17,7 @@ type ReportedOnByEntry = {
 const ReportedOnByCard = ({
   gateway,
 }: {
-  gateway?: AoGatewayWithAddress | null;
+  gateway?: GatewayWithAddress | null;
 }) => {
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
@@ -168,7 +168,7 @@ const ReportedOnByCard = ({
 const ReportedOnCard = ({
   gateway,
 }: {
-  gateway?: AoGatewayWithAddress | null;
+  gateway?: GatewayWithAddress | null;
 }) => {
   const { data: epochs } = useEpochs();
   const [selectedEpochIndex, setSelectedEpochIndex] = useState(0);
@@ -291,7 +291,7 @@ const ReportedOnCard = ({
   );
 };
 
-const SnitchRow = ({ gateway }: { gateway?: AoGatewayWithAddress | null }) => {
+const SnitchRow = ({ gateway }: { gateway?: GatewayWithAddress | null }) => {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <ReportedOnByCard gateway={gateway} />

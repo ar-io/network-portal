@@ -1,6 +1,6 @@
 /* Based on code by elliotsayes from https://github.com/elliotsayes/gateway-explorer */
 
-import { AoGatewayWithAddress } from '@ar.io/sdk/web';
+import { GatewayWithAddress } from '@ar.io/sdk/web';
 import {
   NAME_PASS_THRESHOLD,
   REFERENCE_GATEWAY_FQDN,
@@ -21,7 +21,7 @@ const gatewayRequest = ky.create({
 });
 
 export const assessOwnership = async (
-  gateway: AoGatewayWithAddress,
+  gateway: GatewayWithAddress,
 ): Promise<OwnershipAssessment> => {
   try {
     const res = await gatewayRequest.get(
@@ -105,7 +105,7 @@ const fetchArnsData = async (arnsNameURL: string) => {
 };
 
 const assessArNSName = async (
-  gateway: AoGatewayWithAddress,
+  gateway: GatewayWithAddress,
   arnsName: string,
 ): Promise<[string, ArNSAssessment]> => {
   const referenceURL = `https://${arnsName}.${REFERENCE_GATEWAY_FQDN}:443`;
@@ -150,7 +150,7 @@ const assessArNSName = async (
 };
 
 export const performAssessment = async (
-  gateway: AoGatewayWithAddress,
+  gateway: GatewayWithAddress,
   prescribedNames: string[],
   chosenNames: string[],
 ): Promise<Assessment> => {

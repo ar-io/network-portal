@@ -1,5 +1,5 @@
 import { FQDN_REGEX } from '@ar.io/sdk/web';
-import { isArweaveTransactionID, isValidAoAddress } from '@src/utils';
+import { isArweaveTransactionID, isValidSolanaAddress } from '@src/utils';
 
 /* Higher-order functions that return a FormValidationFunction for use with FormRowDefs */
 
@@ -31,8 +31,8 @@ export const validateWalletAddress = (
   propertyName: string,
 ): FormValidationFunction => {
   return (v: string) => {
-    return v.trim() === '' || !isValidAoAddress(v)
-      ? `${propertyName} is required and must be a wallet address.`
+    return v.trim() === '' || !isValidSolanaAddress(v)
+      ? `${propertyName} is required and must be a valid Solana wallet address.`
       : undefined;
   };
 };

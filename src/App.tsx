@@ -1,7 +1,12 @@
 import '@fontsource/rubik';
 import { wrapCreateBrowserRouter } from '@sentry/react';
+import {
+  ConnectionProvider,
+  WalletProvider as SolanaWalletProvider,
+} from '@solana/wallet-adapter-react';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import {
   Navigate,
   Route,
@@ -11,18 +16,17 @@ import {
 } from 'react-router-dom';
 
 import { MathJaxContext } from 'better-react-mathjax';
-import { http, WagmiProvider, createConfig } from 'wagmi';
-import { mainnet } from 'wagmi/chains';
-import { metaMask } from 'wagmi/connectors';
 import GlobalDataProvider from './components/GlobalDataProvider';
-import WalletProvider from './components/WalletProvider';
+import WalletBridge from './components/WalletBridge';
 import AppRouterLayout from './layout/AppRouterLayout';
 import Dashboard from './pages/Dashboard';
 import Loading from './pages/Loading';
 import NotFound from './pages/NotFound';
+import { useSettings } from './store';
+
+import '@solana/wallet-adapter-react-ui/styles.css';
 
 // Main Pages
-// const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Gateways = React.lazy(() => import('./pages/Gateways'));
 const Gateway = React.lazy(() => import('./pages/Gateway'));
 const Staking = React.lazy(() => import('./pages/Staking'));
@@ -40,27 +44,54 @@ const Observe = React.lazy(() => import('./pages/Observe'));
 
 const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createHashRouter);
 
-const queryClient = new QueryClient();
+/**
+ * The Solana SDK instance (`SolanaARIOReadable`) is used in React Query keys
+ * across all hooks so queries invalidate when the RPC endpoint changes.
+ * `JSON.stringify` chokes on the `Connection` object (circular refs), so we
+ * provide a safe hash function that replaces non-serializable values with a
+ * stable identity string.
+ */
+function safeQueryKeyHashFn(queryKey: readonly unknown[]): string {
+  return JSON.stringify(
+    queryKey,
+    (() => {
+      const seen = new WeakSet();
+      return (_key: string, value: unknown) => {
+        if (typeof value === 'object' && value !== null) {
+          // Use rpcEndpoint as stable identity for Connection objects
+          if (
+            'rpcEndpoint' in value &&
+            typeof (value as any).rpcEndpoint === 'string'
+          ) {
+            return (value as any).rpcEndpoint;
+          }
+          if (seen.has(value)) return '[circular]';
+          seen.add(value);
+        }
+        return value;
+      };
+    })(),
+  );
+}
 
-// Wagmi setup
-const config = createConfig({
-  chains: [mainnet],
-  connectors: [
-    metaMask({
-      extensionOnly: true,
-      injectProvider: false,
-      dappMetadata: {
-        name: 'Network Portal by ar.io',
-        iconUrl: './favicon.svg',
-      },
-    }),
-  ],
-  transports: {
-    [mainnet.id]: http(),
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryKeyHashFn: safeQueryKeyHashFn,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
   },
 });
 
 function App() {
+  const solanaRpcUrl = useSettings((state) => state.solanaRpcUrl);
+  // Empty array: modern wallets (Phantom ≥1.3, Solflare, Backpack) self-register
+  // via the Wallet Standard protocol. Explicitly providing PhantomWalletAdapter
+  // causes a duplicate-registration console warning.
+  const wallets = useMemo(() => [], []);
+
   const router = sentryCreateBrowserRouter(
     createRoutesFromElements(
       <Route element={<AppRouterLayout />} errorElement={<NotFound />}>
@@ -169,17 +200,21 @@ function App() {
   );
 
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <GlobalDataProvider>
-          <WalletProvider>
-            <MathJaxContext>
-              <RouterProvider router={router} />
-            </MathJaxContext>
-          </WalletProvider>
-        </GlobalDataProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <ConnectionProvider endpoint={solanaRpcUrl}>
+      <SolanaWalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <QueryClientProvider client={queryClient}>
+            <GlobalDataProvider>
+              <WalletBridge>
+                <MathJaxContext>
+                  <RouterProvider router={router} />
+                </MathJaxContext>
+              </WalletBridge>
+            </GlobalDataProvider>
+          </QueryClientProvider>
+        </WalletModalProvider>
+      </SolanaWalletProvider>
+    </ConnectionProvider>
   );
 }
 

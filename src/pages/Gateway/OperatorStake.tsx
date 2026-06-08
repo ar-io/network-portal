@@ -1,4 +1,4 @@
-import { ARIOToken, AoGatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { ARIOToken, GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
@@ -20,7 +20,7 @@ import { InfoIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 type OperatorStakeProps = {
-  gateway?: AoGatewayWithAddress | null;
+  gateway?: GatewayWithAddress | null;
   walletAddress?: string;
 };
 
@@ -48,9 +48,16 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
 
   useEffect(() => {
     if (gateways && gateway && protocolBalance) {
+      const totalGateways = Object.values(gateways).filter(
+        (g) => g.status === 'joined',
+      ).length;
+      if (totalGateways === 0) {
+        setEAY(undefined);
+        return;
+      }
       const rewards = calculateOperatorRewards(
         new mARIOToken(protocolBalance).toARIO(),
-        Object.values(gateways).filter((g) => g.status === 'joined').length,
+        totalGateways,
         gateway,
         new mARIOToken(gateway.operatorStake).toARIO(),
       );

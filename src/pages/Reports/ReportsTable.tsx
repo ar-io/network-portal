@@ -1,4 +1,4 @@
-import { AoGateway } from '@ar.io/sdk/web';
+import { Gateway } from '@ar.io/sdk/web';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
 import TableView from '@src/components/TableView';
@@ -19,7 +19,7 @@ const ReportsTable = ({
   gateway,
 }: {
   ownerId: string;
-  gateway: AoGateway;
+  gateway: Gateway;
 }) => {
   const navigate = useNavigate();
 

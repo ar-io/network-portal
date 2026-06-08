@@ -16,7 +16,7 @@ const StakingInfoBanner = () => {
         </div>
       </div>
       <a
-        href="https://docs.ar.io/learn/token/staking/#how-delegated-staking-works"
+        href="https://docs.ar.io/learn/oip/staking#delegated-staking"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-1 text-sm font-medium text-primary hover:text-high transition-colors shrink-0"

@@ -2,7 +2,7 @@ import { ARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
-import { isValidAoAddress } from '@src/utils';
+import { getTransactionExplorerUrl, isValidSolanaAddress } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -31,12 +31,14 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
       return;
     }
 
+    const normalizedRecipient = recipient.trim();
+
     setShowBlockingMessageModal(true);
     try {
       const mArio = new ARIOToken(+amount).toMARIO();
       const { id: txID } = await arIOWriteableSDK.transfer(
         {
-          target: recipient,
+          target: normalizedRecipient,
           qty: mArio,
         },
         WRITE_OPTIONS,
@@ -64,8 +66,10 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
 
   useEffect(() => {
     const arioBalance = balances?.ario ?? 0;
+    const normalizedRecipient = recipient.trim();
     const hasRecipientError =
-      !isValidAoAddress(recipient) && recipient.length > 0;
+      !isValidSolanaAddress(normalizedRecipient) &&
+      normalizedRecipient.length > 0;
     const hasAmountError = isNaN(+amount) || +amount > arioBalance;
     setRecipientError(hasRecipientError ? 'Invalid address' : undefined);
     setAmountError(
@@ -79,7 +83,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
     setFormValid(
       !hasRecipientError &&
         !hasAmountError &&
-        recipient.length > 0 &&
+        normalizedRecipient.length > 0 &&
         +amount > 0,
     );
   }, [amount, balances, balances?.ario, recipient]);
@@ -97,7 +101,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
                 type="text"
                 onChange={(e) => setRecipient(e.target.value)}
                 className={`h-7 w-full rounded-md border ${recipientError ? 'border-red-600' : 'border-grey-700'} bg-grey-1000 px-4 py-6 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high`}
-                placeholder="Enter Arweave or ETH Wallet Address"
+                placeholder="Enter Solana Wallet Address"
                 value={recipient}
               />
             </div>
@@ -176,11 +180,12 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
                   <div>Transaction ID:</div>
                   <button
                     className="flex items-center justify-center break-all"
-                    title="View transaction on AR.IO Scan"
+                    title="View transaction on Solana Explorer"
                     onClick={async () => {
                       window.open(
-                        `https://scan.ar.io/#/message/${txid}`,
+                        getTransactionExplorerUrl(txid!),
                         '_blank',
+                        'noopener,noreferrer',
                       );
                     }}
                   >

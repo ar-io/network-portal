@@ -54,22 +54,22 @@ describe('Form Validation Functions', () => {
 
     it('should fail for empty string', () => {
       expect(validator('')).toEqual(
-        'Wallet Address is required and must be a wallet address.',
+        'Wallet Address is required and must be a valid Solana wallet address.',
       );
     });
 
     it('should pass for valid wallet address', () => {
       expect(
-        validator('_NctcA2sRy1-J4OmIQZbYFPM17piNcbdBPH2ncX2RL8'),
+        validator('So11111111111111111111111111111111111111112'),
       ).toBeUndefined();
     });
 
     it('should fail for invalid wallet address', () => {
-      expect(validator('_NctcA2sRy1-J4OmIQZbYFPM17piNcbdBPH2ncX2RL')).toEqual(
-        'Wallet Address is required and must be a wallet address.',
+      expect(validator('_NctcA2sRy1-J4OmIQZbYFPM17piNcbdBPH2ncX2RL8')).toEqual(
+        'Wallet Address is required and must be a valid Solana wallet address.',
       );
       expect(validator('invalid_address')).toEqual(
-        'Wallet Address is required and must be a wallet address.',
+        'Wallet Address is required and must be a valid Solana wallet address.',
       );
     });
   });

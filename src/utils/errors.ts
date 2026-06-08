@@ -13,27 +13,6 @@ export class ValidationError extends NotificationOnlyError {
   }
 }
 
-export class WanderError extends NotificationOnlyError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'Wander';
-  }
-}
-
-export class MetamaskError extends NotificationOnlyError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'Metamask';
-  }
-}
-
-export class BeaconError extends NotificationOnlyError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'Beacon';
-  }
-}
-
 export class InsufficientFundsError extends NotificationOnlyError {
   constructor(message: string) {
     super(message);

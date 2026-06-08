@@ -11,6 +11,14 @@ yarn
 yarn dev
 ```
 
+`yarn dev` defaults to Solana devnet via `.env.local`.
+
+For localnet, run:
+
+```shell
+yarn dev:localnet
+```
+
 ### Build
 
 ```shell

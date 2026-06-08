@@ -1,34 +1,26 @@
-import { AoGatewayVault } from '@ar.io/sdk/web';
+import { GatewayVault } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 
 const useGatewayVaults = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const res = useQuery({
-    queryKey: ['gatewayVaults', address, arIOReadSDK],
+    queryKey: ['gatewayVaults', address, solanaRpcUrl],
     queryFn: async () => {
       if (!address) {
         throw new Error('Address is not set');
       }
 
-      let cursor: string | undefined;
+      // The SDK paginates in memory, so a single call fetches the full set
+      // with exactly one chain sweep.
+      const pageResult = await arIOReadSDK.getGatewayVaults({
+        address,
+        limit: Number.MAX_SAFE_INTEGER,
+      });
 
-      let results: Array<AoGatewayVault> = [];
-
-      do {
-        const pageResult = await arIOReadSDK.getGatewayVaults({
-          address,
-          cursor,
-          limit: 100,
-        });
-
-        results = results.concat(pageResult.items);
-
-        cursor = pageResult.nextCursor;
-      } while (cursor !== undefined);
-
-      return results;
+      return pageResult.items as Array<GatewayVault>;
     },
     staleTime: Infinity,
     enabled: !!address && !!arIOReadSDK,

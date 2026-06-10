@@ -20,6 +20,21 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
+"@ar.io/sdk@../ar-io-sdk":
+  version "4.0.2-alpha.6"
+  dependencies:
+    "@ar.io/solana-contracts" "1.0.1"
+    "@noble/hashes" "^1.8.0"
+    "@solana-program/address-lookup-table" "^0.11.0"
+    "@solana-program/compute-budget" "^0.15.0"
+    "@solana-program/token" "^0.13.0"
+    "@solana/kit" "^6.8.0"
+    bs58 "^6.0.0"
+    commander "^12.1.0"
+    opossum "^9.0.0"
+    prompts "^2.4.2"
+    zod "^3.25.76"
+
 "@ar.io/sdk@4.0.2-alpha.4":
   version "4.0.2-alpha.4"
   resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.2-alpha.4.tgz#6c42a19a26f3de3d7e2ea298e8d58f2f4b422a95"
@@ -58,6 +73,14 @@
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@ar.io/solana-contracts/-/solana-contracts-1.0.0.tgz#56ec1354542991899c5d641a8221ee2b33b8b99d"
   integrity sha512-/rmxIyViK9USkedcn4zrHWkg+tGBE160PSbJ2xwEcugtXDSOf5Cc0E6R8YoG7HT5oKkU0QY1QEeSeVvcYgMYBQ==
+  dependencies:
+    "@noble/hashes" "^1.5.0"
+    bs58 "^6.0.0"
+
+"@ar.io/solana-contracts@1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/@ar.io/solana-contracts/-/solana-contracts-1.0.1.tgz#1a16958d54540222b77def81d5d39e7402b8b69c"
+  integrity sha512-zD7OepkzzWb1SIHRDxSo3y+dzRh9gu+43eI2DBJLtQ+7EkT3Py8v9kHQ40UcRC8CReHHTO74RDty6Hwx5JYVGA==
   dependencies:
     "@noble/hashes" "^1.5.0"
     bs58 "^6.0.0"

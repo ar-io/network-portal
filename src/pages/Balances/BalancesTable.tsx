@@ -82,8 +82,8 @@ const BalancesTable = () => {
     sortOrder: apiSortOrder,
   });
   const { data: vaultsByAddress, isLoading: vaultsLoading } = useAllVaults();
-  const { data: allGateways } = useAllGateways();
-  const { data: allDelegates } = useAllDelegates();
+  const { data: allGateways, isLoading: gatewaysLoading } = useAllGateways();
+  const { data: allDelegates, isLoading: delegatesLoading } = useAllDelegates();
   const { prefetchNextSort } = usePrefetchBalances();
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [isProcessingData, setIsProcessingData] = useState(true);
@@ -261,6 +261,9 @@ const BalancesTable = () => {
         header: `Staked ${ticker}`,
         enableSorting: false,
         cell: ({ row }) => {
+          if (gatewaysLoading) {
+            return <Placeholder className="h-4 w-12" />;
+          }
           const stake = row.getValue('operatorStake') as number;
           return stake > 0 ? formatWithCommas(stake) : '-';
         },
@@ -270,6 +273,9 @@ const BalancesTable = () => {
         header: `Delegated ${ticker}`,
         enableSorting: false,
         cell: ({ row }) => {
+          if (delegatesLoading) {
+            return <Placeholder className="h-4 w-12" />;
+          }
           const delegated = row.getValue('delegatedStake') as number;
           return delegated > 0 ? formatWithCommas(delegated) : '-';
         },
@@ -326,7 +332,7 @@ const BalancesTable = () => {
         },
       }),
     ],
-    [ticker, vaultsLoading],
+    [ticker, vaultsLoading, gatewaysLoading, delegatesLoading],
   );
 
   const isLoading = balancesLoading || isProcessingData;

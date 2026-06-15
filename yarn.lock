@@ -20,38 +20,6 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@ar.io/sdk@../ar-io-sdk":
-  version "4.0.2-alpha.6"
-  dependencies:
-    "@ar.io/solana-contracts" "1.0.1"
-    "@noble/hashes" "^1.8.0"
-    "@solana-program/address-lookup-table" "^0.11.0"
-    "@solana-program/compute-budget" "^0.15.0"
-    "@solana-program/token" "^0.13.0"
-    "@solana/kit" "^6.8.0"
-    bs58 "^6.0.0"
-    commander "^12.1.0"
-    opossum "^9.0.0"
-    prompts "^2.4.2"
-    zod "^3.25.76"
-
-"@ar.io/sdk@4.0.2-alpha.4":
-  version "4.0.2-alpha.4"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.2-alpha.4.tgz#6c42a19a26f3de3d7e2ea298e8d58f2f4b422a95"
-  integrity sha512-ZpvZ94JgJ9O8oAnT7U8YlivRGhW58m3OeKDF8ZphjdmYpRJsOCyh8VFI3N++nXp5SA8qDgl1jktP+mCZ7RtjwA==
-  dependencies:
-    "@ar.io/solana-contracts" "1.0.0"
-    "@noble/hashes" "^1.8.0"
-    "@solana-program/address-lookup-table" "^0.11.0"
-    "@solana-program/compute-budget" "^0.15.0"
-    "@solana-program/token" "^0.13.0"
-    "@solana/kit" "^6.8.0"
-    bs58 "^6.0.0"
-    commander "^12.1.0"
-    opossum "^9.0.0"
-    prompts "^2.4.2"
-    zod "^3.25.76"
-
 "@ar.io/sdk@^3.10.1":
   version "3.10.1"
   resolved "https://registry.npmjs.org/@ar.io/sdk/-/sdk-3.10.1.tgz#f5c377e6dca428d6e6127842289817b3dd4b116f"
@@ -69,13 +37,22 @@
     winston "^3.13.0"
     zod "^3.23.8"
 
-"@ar.io/solana-contracts@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@ar.io/solana-contracts/-/solana-contracts-1.0.0.tgz#56ec1354542991899c5d641a8221ee2b33b8b99d"
-  integrity sha512-/rmxIyViK9USkedcn4zrHWkg+tGBE160PSbJ2xwEcugtXDSOf5Cc0E6R8YoG7HT5oKkU0QY1QEeSeVvcYgMYBQ==
+"@ar.io/sdk@^4.0.2-alpha.7":
+  version "4.0.2-alpha.7"
+  resolved "https://registry.npmjs.org/@ar.io/sdk/-/sdk-4.0.2-alpha.7.tgz#a04a5ee3f0b6cdea2d1efa1b2963abfd99326d0c"
+  integrity sha512-R04oMiSSWyEIviEnznq3leHpWFySB8GtQQgDPkHaXULQaS5KZAUIg0Qnq+uUP1wvklXFv3nwLuaYtNTOoeQl4A==
   dependencies:
-    "@noble/hashes" "^1.5.0"
+    "@ar.io/solana-contracts" "1.0.1"
+    "@noble/hashes" "^1.8.0"
+    "@solana-program/address-lookup-table" "^0.11.0"
+    "@solana-program/compute-budget" "^0.15.0"
+    "@solana-program/token" "^0.13.0"
+    "@solana/kit" "^6.8.0"
     bs58 "^6.0.0"
+    commander "^12.1.0"
+    opossum "^9.0.0"
+    prompts "^2.4.2"
+    zod "^3.25.76"
 
 "@ar.io/solana-contracts@1.0.1":
   version "1.0.1"

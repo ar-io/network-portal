@@ -69,12 +69,11 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
-      - name: Install, Build, and Deploy 🔧
+      - name: Install and Build 🔧
         run: |
           yarn install --frozen-lockfile
-          yarn deploy
+          yarn build
         env:
-          # FOR BUILD
           VITE_NODE_ENV: production
           VITE_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           VITE_SENTRY_RELEASE: ${{ github.sha }}
@@ -85,6 +84,12 @@ jobs:
           VITE_SENTRY_DSN_PROJECT_ID: ${{ secrets.SENTRY_DSN_PROJECT_ID }}
           VITE_GITHUB_HASH: ${{ github.sha }}
           VITE_ARIO_PROCESS_ID: ${{ vars.VITE_ARIO_PROCESS_ID }}
-          VITE_ARNS_NAME: ${{ vars.ARNS_NAME }}
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
           VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}
+
+      - name: Deploy to Arweave
+        uses: ar-io/ar-io-deploy@v1
+        with:
+          deploy-key: ${{ secrets.DEPLOY_KEY }}
+          arns-key: ${{ secrets.ARNS_KEY }}
+          arns-name: ${{ vars.ARNS_NAME }}
+          deploy-folder: ./dist

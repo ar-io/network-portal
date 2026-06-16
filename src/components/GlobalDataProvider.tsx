@@ -6,7 +6,7 @@ import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect } from 'react';
 
-const TWO_MINUTES = 120000;
+const TWO_MINUTES = 120_000;
 
 const isEpochUnavailableError = (errorMessage: string): boolean => {
   const lowerMessage = errorMessage.toLowerCase();
@@ -47,10 +47,12 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   };
 
   useEffect(() => {
-    const update = async () => {
-      setCurrentEpoch(undefined);
-      setTicker('');
-      logEpochFetchContext('start');
+    const fetchEpoch = async (isInitial: boolean) => {
+      if (isInitial) {
+        setCurrentEpoch(undefined);
+        setTicker('');
+        logEpochFetchContext('start');
+      }
 
       try {
         const { Ticker } = await arioReadSDK.getInfo();
@@ -64,41 +66,39 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       }
 
       try {
-        const currentEpoch = await arioReadSDK.getCurrentEpoch();
+        const epoch = await arioReadSDK.getCurrentEpoch();
 
         log.info('[GlobalDataProvider] getCurrentEpoch response received', {
           rpcUrl: solanaRpcUrl,
-          responseType: Array.isArray(currentEpoch)
-            ? 'array'
-            : typeof currentEpoch,
+          responseType: Array.isArray(epoch) ? 'array' : typeof epoch,
           hasEpochIndex:
-            !Array.isArray(currentEpoch) &&
-            typeof currentEpoch === 'object' &&
-            currentEpoch !== null &&
-            'epochIndex' in currentEpoch,
-          responsePreview: Array.isArray(currentEpoch)
-            ? currentEpoch.slice(0, 3)
-            : currentEpoch,
+            !Array.isArray(epoch) &&
+            typeof epoch === 'object' &&
+            epoch !== null &&
+            'epochIndex' in epoch,
+          responsePreview: Array.isArray(epoch) ? epoch.slice(0, 3) : epoch,
         });
 
-        if (Array.isArray(currentEpoch)) {
+        if (Array.isArray(epoch)) {
           log.error(
             '[GlobalDataProvider] Error fetching current epoch: unexpected array response',
             {
               rpcUrl: solanaRpcUrl,
-              responseLength: currentEpoch.length,
-              responsePreview: currentEpoch.slice(0, 3),
+              responseLength: epoch.length,
+              responsePreview: epoch.slice(0, 3),
             },
           );
-          showErrorToast(
-            'Error fetching current epoch. Application may not function as expected.',
-          );
+          if (isInitial) {
+            showErrorToast(
+              'Error fetching current epoch. Application may not function as expected.',
+            );
+          }
           return;
         }
         log.info(
-          `[GlobalDataProvider] Current epoch loaded: ${currentEpoch.epochIndex} (RPC: ${solanaRpcUrl})`,
+          `[GlobalDataProvider] Current epoch loaded: ${epoch.epochIndex} (RPC: ${solanaRpcUrl})`,
         );
-        setCurrentEpoch(currentEpoch);
+        setCurrentEpoch(epoch);
       } catch (error) {
         const errorMessage = getErrorMessage(error);
 
@@ -118,13 +118,17 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           errorMessage,
           error,
         });
-        showErrorToast(
-          'Error fetching current epoch. Application may not function as expected.',
-        );
+        if (isInitial) {
+          showErrorToast(
+            'Error fetching current epoch. Application may not function as expected.',
+          );
+        }
       }
     };
 
-    update();
+    fetchEpoch(true);
+    const interval = setInterval(() => fetchEpoch(false), TWO_MINUTES);
+    return () => clearInterval(interval);
   }, [arioReadSDK, queryClient, setCurrentEpoch, setTicker, solanaRpcUrl]);
 
   useEffect(() => {

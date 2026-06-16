@@ -58,7 +58,7 @@ const useEpochs = () => {
       return [startEpoch, ...availableEpochs];
     },
     enabled: !!arIOReadSDK && startEpoch !== undefined,
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 5 * 60 * 1000, // 5 minutes — epoch list needs to refresh at the boundary
   });
 
   return queryResults;

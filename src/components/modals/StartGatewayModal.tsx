@@ -1,11 +1,14 @@
 import { ARIOToken, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
+import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import GasEstimateRows from '../GasEstimateRows';
 import FormRow, { RowType } from '../forms/FormRow';
 import { FormRowDef, isFormValid } from '../forms/formData';
 import {
@@ -53,6 +56,19 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
     useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Joining deposits rent for the gateway + observer-lookup accounts
+  // (~0.0094 SOL) on top of the transaction fee — quote it and gate the
+  // confirm on the wallet holding that much.
+  const { data: gasEstimate, isLoading: isLoadingGas } = useGarGasEstimate({
+    workflow: 'join-network',
+    fromAddress: walletAddress?.toString(),
+  });
+  const { data: balances } = useBalances(walletAddress);
+  const insufficientSol =
+    !!gasEstimate &&
+    balances !== undefined &&
+    balances.sol * 1_000_000_000 < gasEstimate.totalLamports;
 
   useEffect(() => {
     setFormState((currentState) => {
@@ -260,6 +276,13 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
             );
           })}
         </div>
+        <div className="mt-6 flex flex-col gap-1">
+          <GasEstimateRows
+            gasEstimate={gasEstimate}
+            isLoading={isLoadingGas}
+            insufficientSol={insufficientSol}
+          />
+        </div>
         <div className="mt-8 flex w-full grow justify-end gap-[.6875rem]">
           <Button
             className="w-[6.25rem]"
@@ -270,7 +293,8 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
           />
           <div
             className={
-              isFormValid({ formRowDefs, formValues: formState })
+              isFormValid({ formRowDefs, formValues: formState }) &&
+              !insufficientSol
                 ? undefined
                 : 'pointer-events-none opacity-30'
             }

@@ -11,7 +11,6 @@ import StartGatewayModal from '@src/components/modals/StartGatewayModal';
 import { GatewayStatus, useGatewayInfo } from '@src/hooks/useGatewayInfo';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
-import useObservers from '@src/hooks/useObservers';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatPercentage } from '@src/utils';
 import { useState } from 'react';
@@ -32,13 +31,12 @@ const Banner = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
-  const { data: observers } = useObservers(currentEpoch);
   const { data: observations } = useObservations(currentEpoch);
   const { data: allGateways } = useGateways();
 
   const { gateway, gatewayStatus } = useGatewayInfo();
 
-  const myObserver = observers?.find(
+  const myObserver = currentEpoch?.prescribedObservers?.find(
     (obs) => obs.gatewayAddress === walletAddress?.toString(),
   );
 

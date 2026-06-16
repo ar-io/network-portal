@@ -211,7 +211,7 @@ const ObserversTable = () => {
       header: 'Failed Gateways',
       sortDescFirst: true,
       cell: ({ row }) =>
-        row.original.failedGateways ||
+        row.original.failedGateways ??
         (selectedEpochIndex === 0 ? 'Pending' : 'N/A'),
     }),
   ];

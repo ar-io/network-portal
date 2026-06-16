@@ -15,7 +15,8 @@ const useObservations = (epoch?: EpochData) => {
       throw new Error('arIOReadSDK or currentEpoch not available');
     },
     enabled: !!arIOReadSDK && !!epoch,
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 2 * 60 * 1000, // 2 minutes — observations update as observers submit during an epoch
+    refetchInterval: 2 * 60 * 1000,
   });
 
   return queryResults;

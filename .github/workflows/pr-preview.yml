@@ -36,12 +36,14 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build Next.js application
+      - name: Build application
         run: yarn build
 
-      - uses: permaweb/permaweb-deploy@v0.0.2
+      - name: Deploy PR preview
+        uses: ar-io/ar-io-deploy@v1
         with:
           deploy-key: ${{ secrets.DEPLOY_KEY }}
+          arns-key: ${{ secrets.ARNS_KEY }}
           arns-name: ${{ secrets.ARNS_NAME }}
           preview: "true"
           github-token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,7 @@
 import { ARIOToken, GatewayWithAddress } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
+import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import { useGlobalState } from '@src/store';
 import { AoAddress, WithdrawalType } from '@src/types';
 import {
@@ -13,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import GasEstimateRows from '../GasEstimateRows';
 import LabelValueRow from '../LabelValueRow';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
@@ -42,6 +45,23 @@ const ReviewWithdrawalModal = ({
 }) => {
   const queryClient = useQueryClient();
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+
+  // A decrease deposits rent for the new withdrawal vault (refunded when
+  // claimed); the expedited path sends a second transaction that closes
+  // the vault immediately, so its rent round-trips back.
+  const { data: gasEstimate, isLoading: isLoadingGas } = useGarGasEstimate({
+    workflow:
+      gateway.gatewayAddress === walletAddress.toString()
+        ? 'decrease-operator-stake'
+        : 'decrease-delegate-stake',
+    fromAddress: walletAddress.toString(),
+    instant: withdrawalType === 'expedited',
+  });
+  const { data: balances } = useBalances(walletAddress);
+  const insufficientSol =
+    !!gasEstimate &&
+    balances !== undefined &&
+    balances.sol * 1_000_000_000 < gasEstimate.totalLamports;
 
   const [txid, setTxid] = useState<string>();
 
@@ -180,6 +200,12 @@ const ReviewWithdrawalModal = ({
                 />
               </>
             )}
+
+            <GasEstimateRows
+              gasEstimate={gasEstimate}
+              isLoading={isLoadingGas}
+              insufficientSol={insufficientSol}
+            />
           </div>
 
           <div className="flex size-full flex-col bg-containerL0 px-8 pb-2 pt-6">
@@ -199,15 +225,21 @@ const ReviewWithdrawalModal = ({
 
             <div
               className={
-                termsAccepted ? undefined : 'pointer-events-none opacity-30'
+                termsAccepted && !insufficientSol
+                  ? undefined
+                  : 'pointer-events-none opacity-30'
               }
             >
               <Button
                 className="h-[3.25rem] w-full"
                 onClick={submitForm}
                 buttonType={ButtonType.PRIMARY}
-                title={`Withdraw ${ticker}`}
-                text={`Withdraw ${ticker}`}
+                title={
+                  insufficientSol ? 'Insufficient SOL' : `Withdraw ${ticker}`
+                }
+                text={
+                  insufficientSol ? 'Insufficient SOL' : `Withdraw ${ticker}`
+                }
               />
             </div>
             <div>

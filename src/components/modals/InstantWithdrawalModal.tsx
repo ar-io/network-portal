@@ -1,5 +1,6 @@
 import { Gateway, VaultData, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
+import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import { useGlobalState } from '@src/store';
 import {
   formatAddress,
@@ -12,6 +13,7 @@ import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import GasEstimateRows from '../GasEstimateRows';
 import LabelValueRow from '../LabelValueRow';
 import Tooltip from '../Tooltip';
 import { InfoIcon, LinkArrowIcon } from '../icons';
@@ -44,6 +46,14 @@ const InstantWithdrawalModal = ({
   const [txid, setTxid] = useState<string>();
 
   const [confirmText, setConfirmText] = useState('');
+
+  // Closing the withdrawal vault refunds its rent deposit to the wallet —
+  // quoted live from the vault account.
+  const { data: gasEstimate, isLoading: isLoadingGas } = useGarGasEstimate({
+    workflow: 'instant-withdrawal',
+    fromAddress: walletAddress?.toString(),
+    vaultId,
+  });
 
   const [calculatedFeeAndAmountReturning, setCalculatedFeeAndAmountReturning] =
     useState<{ penaltyRate: number; fee: number; amountReturning: number }>();
@@ -186,6 +196,11 @@ const InstantWithdrawalModal = ({
                   ? `${formatWithCommas(calculatedFeeAndAmountReturning.amountReturning)} ${ticker}`
                   : ''
               }
+            />
+
+            <GasEstimateRows
+              gasEstimate={gasEstimate}
+              isLoading={isLoadingGas}
             />
           </div>
 

@@ -1,7 +1,7 @@
 {
   "name": "@ar-io/network-portal",
   "private": true,
-  "version": "2.0.0-solana.2",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "build": "yarn clean && tsc --build tsconfig.build.json && cross-env NODE_OPTIONS=--max-old-space-size=32768 vite build",
@@ -17,10 +17,10 @@
     "prepare": "husky || true",
     "pre-commit": "lint-staged",
     "vis": "yarn vite-bundle-visualizer",
-    "deploy": "yarn build && permaweb-deploy --arns-name ${VITE_ARNS_NAME}"
+    "deploy": "yarn build && ario-deploy deploy --arns-name ${VITE_ARNS_NAME}"
   },
   "dependencies": {
-    "@ar.io/sdk": "4.0.2-alpha.4",
+    "@ar.io/sdk": "^4.0.2-alpha.7",
     "@fontsource/rubik": "^5.0.19",
     "@headlessui/react": "^2.2.0",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
@@ -82,7 +82,7 @@
     "lint-staged": "^15.2.2",
     "lodash": "^4.17.21",
     "nyc": "^15.1.0",
-    "permaweb-deploy": "^2.1.0",
+    "@ar.io/deploy": "^1.0.0",
     "postcss": "^8.4.35",
     "rimraf": "^5.0.5",
     "tailwind-scrollbar": "^3.1.0",

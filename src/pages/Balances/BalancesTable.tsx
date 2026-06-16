@@ -1,13 +1,17 @@
+import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import ColumnSelector from '@src/components/ColumnSelector';
 import Placeholder from '@src/components/Placeholder';
 import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import { CaretDoubleRightIcon, CaretRightIcon } from '@src/components/icons';
 import useAllBalances from '@src/hooks/useAllBalances';
+import useAllDelegates from '@src/hooks/useAllDelegates';
+import useAllGateways from '@src/hooks/useAllGateways';
 import useAllVaults from '@src/hooks/useAllVaults';
 import usePrefetchBalances from '@src/hooks/usePrefetchBalances';
 import { useGlobalState, useSettings } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
+import { isSolanaAddress } from '@src/utils/solanaAddress';
 import {
   ColumnDef,
   SortingState,
@@ -23,6 +27,8 @@ interface TableData {
   liquidBalance: number;
   vaultCount: number;
   vaultBalance: number;
+  operatorStake: number;
+  delegatedStake: number;
   totalBalance: number;
   percentageOfSupply: number;
   isProtocol: boolean;
@@ -76,6 +82,8 @@ const BalancesTable = () => {
     sortOrder: apiSortOrder,
   });
   const { data: vaultsByAddress, isLoading: vaultsLoading } = useAllVaults();
+  const { data: allGateways, isLoading: gatewaysLoading } = useAllGateways();
+  const { data: allDelegates, isLoading: delegatesLoading } = useAllDelegates();
   const { prefetchNextSort } = usePrefetchBalances();
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [isProcessingData, setIsProcessingData] = useState(true);
@@ -85,32 +93,99 @@ const BalancesTable = () => {
       return;
     }
 
-    const enrichedData: TableData[] = allBalances
-      .filter((balance) => balance.address !== bridgeBalanceAddress)
-      .map((balance, index) => {
-        const vaultData = vaultsByAddress?.get(balance.address) || {
-          vaultCount: 0,
-          totalVaultBalance: 0,
-        };
+    const toArio = (mario: number) => new mARIOToken(mario).toARIO().valueOf();
 
-        const totalBalance = balance.arioBalance + vaultData.totalVaultBalance;
+    // Per-bucket maps, all in ARIO, keyed by wallet address. getBalances()
+    // only returns token accounts with amount > 0, so a wallet holding ARIO
+    // entirely in vaults / operator stake / delegations never appears in
+    // `allBalances` and would otherwise be invisible / unsearchable here.
+    const liquidByAddress = new Map<string, number>();
+    for (const balance of allBalances) {
+      if (balance.address === bridgeBalanceAddress) continue;
+      liquidByAddress.set(balance.address, balance.arioBalance);
+    }
 
-        return {
-          rank: index + 1,
-          address: balance.address,
-          liquidBalance: balance.arioBalance,
-          vaultCount: vaultData.vaultCount,
-          vaultBalance: vaultData.totalVaultBalance,
-          totalBalance: totalBalance,
-          percentageOfSupply: totalBalance / 1_000_000_000,
-          isProtocol: false,
-        };
-      })
-      .map((item, index) => ({ ...item, rank: index + 1 }));
+    const stakeByAddress = new Map<string, number>();
+    if (allGateways) {
+      for (const gateway of allGateways) {
+        if (gateway.gatewayAddress === bridgeBalanceAddress) continue;
+        const stake = toArio(gateway.operatorStake);
+        if (stake > 0) stakeByAddress.set(gateway.gatewayAddress, stake);
+      }
+    }
 
-    setTableData(enrichedData);
+    const delegatedByAddress = new Map<string, number>();
+    if (allDelegates) {
+      for (const delegate of allDelegates) {
+        if (
+          delegate.address === bridgeBalanceAddress ||
+          delegate.delegatedStake <= 0
+        ) {
+          continue;
+        }
+        delegatedByAddress.set(
+          delegate.address,
+          (delegatedByAddress.get(delegate.address) ?? 0) +
+            toArio(delegate.delegatedStake),
+        );
+      }
+    }
+
+    // Union of every wallet holding ARIO in ANY custody type.
+    const addresses = new Set<string>([
+      ...liquidByAddress.keys(),
+      ...(vaultsByAddress?.keys() ?? []),
+      ...stakeByAddress.keys(),
+      ...delegatedByAddress.keys(),
+    ]);
+
+    const rows: TableData[] = [];
+    for (const address of addresses) {
+      const liquidBalance = liquidByAddress.get(address) ?? 0;
+      const vaultData = vaultsByAddress?.get(address);
+      const vaultBalance = vaultData?.totalVaultBalance ?? 0;
+      const operatorStake = stakeByAddress.get(address) ?? 0;
+      const delegatedStake = delegatedByAddress.get(address) ?? 0;
+      const totalBalance =
+        liquidBalance + vaultBalance + operatorStake + delegatedStake;
+      rows.push({
+        rank: 0,
+        address,
+        liquidBalance,
+        vaultCount: vaultData?.vaultCount ?? 0,
+        vaultBalance,
+        operatorStake,
+        delegatedStake,
+        totalBalance,
+        percentageOfSupply: totalBalance / 1_000_000_000,
+        isProtocol: false,
+      });
+    }
+
+    // Sort on the active column (mirroring useAllBalances), then assign ranks.
+    rows.sort((a, b) => {
+      if (sortColumn === 'address') {
+        const comparison = a.address.localeCompare(b.address);
+        return sortDesc ? -comparison : comparison;
+      }
+      const comparison = a.liquidBalance - b.liquidBalance;
+      return sortDesc ? -comparison : comparison;
+    });
+    rows.forEach((row, index) => {
+      row.rank = index + 1;
+    });
+
+    setTableData(rows);
     setIsProcessingData(false);
-  }, [allBalances, bridgeBalanceAddress, vaultsByAddress]);
+  }, [
+    allBalances,
+    bridgeBalanceAddress,
+    vaultsByAddress,
+    allGateways,
+    allDelegates,
+    sortColumn,
+    sortDesc,
+  ]);
 
   // Prefetch other sort combinations when data loads
   useEffect(() => {
@@ -181,6 +256,30 @@ const BalancesTable = () => {
           return balance > 0 ? formatWithCommas(balance) : '-';
         },
       }),
+      columnHelper.accessor('operatorStake', {
+        id: 'operatorStake',
+        header: `Staked ${ticker}`,
+        enableSorting: false,
+        cell: ({ row }) => {
+          if (gatewaysLoading) {
+            return <Placeholder className="h-4 w-12" />;
+          }
+          const stake = row.getValue('operatorStake') as number;
+          return stake > 0 ? formatWithCommas(stake) : '-';
+        },
+      }),
+      columnHelper.accessor('delegatedStake', {
+        id: 'delegatedStake',
+        header: `Delegated ${ticker}`,
+        enableSorting: false,
+        cell: ({ row }) => {
+          if (delegatesLoading) {
+            return <Placeholder className="h-4 w-12" />;
+          }
+          const delegated = row.getValue('delegatedStake') as number;
+          return delegated > 0 ? formatWithCommas(delegated) : '-';
+        },
+      }),
       columnHelper.accessor('totalBalance', {
         id: 'totalBalance',
         header: `Total ${ticker}`,
@@ -233,7 +332,7 @@ const BalancesTable = () => {
         },
       }),
     ],
-    [ticker, vaultsLoading],
+    [ticker, vaultsLoading, gatewaysLoading, delegatesLoading],
   );
 
   const isLoading = balancesLoading || isProcessingData;
@@ -260,9 +359,23 @@ const BalancesTable = () => {
               placeholder="Search address..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                const term = searchTerm.trim();
+                if (e.key === 'Enter' && isSolanaAddress(term)) {
+                  navigate(`/balances/${term}`);
+                }
+              }}
               className="w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
             />
           </div>
+          {isSolanaAddress(debouncedSearchTerm) && (
+            <button
+              onClick={() => navigate(`/balances/${debouncedSearchTerm}`)}
+              className="whitespace-nowrap text-sm text-primary hover:underline"
+            >
+              View this address →
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-4">
           {totalPages > 1 && (

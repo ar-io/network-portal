@@ -47,6 +47,17 @@ export const formatWithCommas = (num: number) => {
   return COMMA_NUMBER_FORMAT.format(num);
 };
 
+/**
+ * Format a lamport amount as SOL for display (1 SOL = 1e9 lamports),
+ * rounded to the nearest 5th decimal (0.00000).
+ */
+export const formatSolFromLamports = (lamports: number) => {
+  return (lamports / 1_000_000_000).toLocaleString('en-US', {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5,
+  });
+};
+
 /** Format number in range 0-1 to percentage (0 - 100%) string. */
 export const formatPercentage = (num: number) => {
   return `${(num * 100).toFixed(2)}%`;

@@ -1,5 +1,7 @@
 import { ARIOToken, GatewayWithAddress } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
+import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
@@ -12,6 +14,7 @@ import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import GasEstimateRows from '../GasEstimateRows';
 import LabelValueRow from '../LabelValueRow';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
@@ -58,8 +61,23 @@ const ReviewRedelegateModal = ({
 
   const totalRedelegatedStake = amountToRedelegate.valueOf() - fee;
 
+  // First-time delegation to the target gateway also deposits rent for the
+  // new Delegation account (plus the redelegation fee-tracking record).
+  const { data: gasEstimate, isLoading: isLoadingGas } = useGarGasEstimate({
+    workflow: 'redelegate-stake',
+    fromAddress: walletAddress.toString(),
+    gatewayAddress: targetGateway.gatewayAddress,
+  });
+  const { data: balances } = useBalances(walletAddress);
+  const insufficientSol =
+    !!gasEstimate &&
+    balances !== undefined &&
+    balances.sol * 1_000_000_000 < gasEstimate.totalLamports;
+
   const isDisabled =
-    showBlockingMessageModal || (hasFee && confirmationInput !== 'CONFIRM');
+    showBlockingMessageModal ||
+    insufficientSol ||
+    (hasFee && confirmationInput !== 'CONFIRM');
 
   const submitForm = async () => {
     if (isDisabled) return;
@@ -180,6 +198,12 @@ const ReviewRedelegateModal = ({
               label="New Total Stake:"
               value={`${formatWithCommas(newTotalStake)} ${ticker}`}
             />
+
+            <GasEstimateRows
+              gasEstimate={gasEstimate}
+              isLoading={isLoadingGas}
+              insufficientSol={insufficientSol}
+            />
           </div>
 
           <div className="px-8 pb-6 text-left">
@@ -213,27 +237,24 @@ const ReviewRedelegateModal = ({
                 />
               </div>
             )}
-            <div
-              className={
-                showBlockingMessageModal ||
-                (hasFee && confirmationInput !== 'CONFIRM')
-                  ? 'pointer-events-none opacity-30'
-                  : ''
-              }
-            >
+            <div className={isDisabled ? 'pointer-events-none opacity-30' : ''}>
               <Button
                 className="h-12 w-full"
                 onClick={submitForm}
                 buttonType={ButtonType.PRIMARY}
                 title={
-                  hasFee && confirmationInput !== 'CONFIRM'
-                    ? 'Please type CONFIRM to acknowledge the fee and continue'
-                    : `Redelegate ${ticker}`
+                  insufficientSol
+                    ? 'Insufficient SOL'
+                    : hasFee && confirmationInput !== 'CONFIRM'
+                      ? 'Please type CONFIRM to acknowledge the fee and continue'
+                      : `Redelegate ${ticker}`
                 }
                 text={
                   showBlockingMessageModal
                     ? 'Processing...'
-                    : `Redelegate ${ticker}`
+                    : insufficientSol
+                      ? 'Insufficient SOL'
+                      : `Redelegate ${ticker}`
                 }
               />
             </div>

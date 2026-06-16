@@ -1,10 +1,12 @@
 import { WRITE_OPTIONS } from '@src/constants';
+import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import { useGlobalState } from '@src/store';
 import { getTransactionExplorerUrl } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import GasEstimateRows from '../GasEstimateRows';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
@@ -32,6 +34,13 @@ const CancelWithdrawalModal = ({
   const [confirmText, setConfirmText] = useState('');
 
   const termsAccepted = confirmText === 'CONFIRM';
+
+  // Cancelling closes the withdrawal vault — its rent deposit comes back.
+  const { data: gasEstimate, isLoading: isLoadingGas } = useGarGasEstimate({
+    workflow: 'cancel-withdrawal',
+    fromAddress: walletAddress?.toString(),
+    vaultId,
+  });
 
   const processCancelWithdrawal = async () => {
     if (walletAddress && arIOWriteableSDK) {
@@ -81,6 +90,12 @@ const CancelWithdrawalModal = ({
                 ? 'your'
                 : 'the original'}{' '}
               gateway. This action cannot be undone.
+            </div>
+            <div className="mt-4 flex flex-col gap-1">
+              <GasEstimateRows
+                gasEstimate={gasEstimate}
+                isLoading={isLoadingGas}
+              />
             </div>
           </div>
 

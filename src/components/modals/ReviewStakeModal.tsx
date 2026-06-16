@@ -1,5 +1,7 @@
 import { ARIOToken, GatewayWithAddress } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
+import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
 import {
@@ -11,6 +13,7 @@ import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import GasEstimateRows from '../GasEstimateRows';
 import LabelValueRow from '../LabelValueRow';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
@@ -35,6 +38,20 @@ const ReviewStakeModal = ({
 }) => {
   const queryClient = useQueryClient();
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+
+  // Operator top-ups mutate in place (fees only); a first-time delegation
+  // to this gateway also deposits rent for the Delegation account.
+  const isOperator = gateway.gatewayAddress === walletAddress.toString();
+  const { data: gasEstimate, isLoading: isLoadingGas } = useGarGasEstimate({
+    workflow: isOperator ? 'increase-operator-stake' : 'delegate-stake',
+    fromAddress: walletAddress.toString(),
+    gatewayAddress: gateway.gatewayAddress,
+  });
+  const { data: balances } = useBalances(walletAddress);
+  const insufficientSol =
+    !!gasEstimate &&
+    balances !== undefined &&
+    balances.sol * 1_000_000_000 < gasEstimate.totalLamports;
 
   const [txid, setTxid] = useState<string>();
 
@@ -132,6 +149,12 @@ const ReviewStakeModal = ({
               label="Amount:"
               value={`${formatWithCommas(amountToStake)} ${ticker}`}
             />
+
+            <GasEstimateRows
+              gasEstimate={gasEstimate}
+              isLoading={isLoadingGas}
+              insufficientSol={insufficientSol}
+            />
           </div>
 
           <div className="px-8 pb-6 text-left">
@@ -140,11 +163,13 @@ const ReviewStakeModal = ({
 
           <div className="flex size-full flex-col bg-containerL0 px-8 pb-2 pt-6">
             <Button
-              className="h-[3.25rem] w-full"
+              className={`h-[3.25rem] w-full ${
+                insufficientSol ? 'pointer-events-none opacity-30' : ''
+              }`}
               onClick={submitForm}
               buttonType={ButtonType.PRIMARY}
-              title={`Stake ${ticker}`}
-              text={`Stake ${ticker}`}
+              title={insufficientSol ? 'Insufficient SOL' : `Stake ${ticker}`}
+              text={insufficientSol ? 'Insufficient SOL' : `Stake ${ticker}`}
             />
             <div>
               <button className="h-[3.25rem] p-4 text-sm" onClick={onClose}>

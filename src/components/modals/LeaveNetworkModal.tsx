@@ -1,5 +1,7 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
+import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas, getTransactionExplorerUrl } from '@src/utils';
@@ -7,6 +9,7 @@ import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import GasEstimateRows from '../GasEstimateRows';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
@@ -30,6 +33,18 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
   const termsAccepted = leaveNetworkText === 'LEAVE NETWORK';
 
   const { data: gatewayRegistrySettings } = useGatewayRegistrySettings();
+
+  // Leaving creates the exit withdrawal vault(s) — rent deposits that come
+  // back when the vaults are eventually claimed.
+  const { data: gasEstimate, isLoading: isLoadingGas } = useGarGasEstimate({
+    workflow: 'leave-network',
+    fromAddress: walletAddress?.toString(),
+  });
+  const { data: balances } = useBalances(walletAddress);
+  const insufficientSol =
+    !!gasEstimate &&
+    balances !== undefined &&
+    balances.sol * 1_000_000_000 < gasEstimate.totalLamports;
 
   const minOperatorStake = useMemo(() => {
     return gatewayRegistrySettings
@@ -102,6 +117,13 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
                 eligible for protocol rewards or observation duties.
               </li>
             </ul>
+            <div className="mt-6 flex flex-col gap-1">
+              <GasEstimateRows
+                gasEstimate={gasEstimate}
+                isLoading={isLoadingGas}
+                insufficientSol={insufficientSol}
+              />
+            </div>
           </div>
 
           <div className="bg-containerL0 px-8 pb-8 pt-6">
@@ -124,9 +146,13 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
               <Button
                 onClick={processLeaveNetwork}
                 buttonType={ButtonType.PRIMARY}
-                title="Leave Network"
-                text={<div className="py-2">Leave Network</div>}
-                className={`w-full ${!termsAccepted && 'pointer-events-none opacity-30'}`}
+                title={insufficientSol ? 'Insufficient SOL' : 'Leave Network'}
+                text={
+                  <div className="py-2">
+                    {insufficientSol ? 'Insufficient SOL' : 'Leave Network'}
+                  </div>
+                }
+                className={`w-full ${(!termsAccepted || insufficientSol) && 'pointer-events-none opacity-30'}`}
               />
             </div>
           </div>

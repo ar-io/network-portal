@@ -55,16 +55,19 @@ const Banner = () => {
       : 0;
   const prescribed = myObserver !== undefined;
 
+  // `observations.reports` and `failureSummaries[]` are keyed by the OBSERVER
+  // address, not the gateway address (they differ when a gateway operates under a
+  // separate observer wallet). Matches ObserversTable's authoritative usage.
   const prescribedStatus = prescribed
-    ? observations?.reports[walletAddress?.toString() || '']
+    ? observations?.reports[myObserver?.observerAddress ?? '']
       ? 'Prescribed - Report Submitted'
       : 'Prescribed - Report Pending'
     : 'Not prescribed for this epoch';
 
   const numFailedGatewaysFound = myObserver
-    ? observations?.reports[myObserver.gatewayAddress]
+    ? observations?.reports[myObserver.observerAddress]
       ? Object.values(observations.failureSummaries).reduce((acc, summary) => {
-          return acc + (summary.includes(myObserver.gatewayAddress) ? 1 : 0);
+          return acc + (summary.includes(myObserver.observerAddress) ? 1 : 0);
         }, 0)
       : 'Pending'
     : 'N/A';

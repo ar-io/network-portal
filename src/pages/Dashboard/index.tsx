@@ -9,8 +9,8 @@ import ObserverPerformancePanel from './ObserverPerformancePanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
-  const [_epochCount, _setEpochCount] = useState(7); // Default to 1 week
-  const [_hoveredEpochIndex, _setHoveredEpochIndex] = useState<number | null>(
+  const [epochCount, setEpochCount] = useState(7); // Default to 1 week
+  const [hoveredEpochIndex, setHoveredEpochIndex] = useState<number | null>(
     null,
   );
 
@@ -40,7 +40,7 @@ const Dashboard = () => {
             <div className="col-span-1 md:col-span-2">
               <NetworkStatsPanel />
             </div>
-            {/* <div className="col-span-1 md:col-span-2">
+            <div className="col-span-1 md:col-span-2">
               <ObserverPerformancePanel
                 epochCount={epochCount}
                 onEpochCountChange={setEpochCount}
@@ -48,7 +48,7 @@ const Dashboard = () => {
                 onEpochHover={setHoveredEpochIndex}
               />
             </div>
-            <div className="col-span-1 md:col-span-2">
+            {/* <div className="col-span-1 md:col-span-2">
               <ArNSStatsPanel
                 epochCount={epochCount}
                 onEpochCountChange={setEpochCount}

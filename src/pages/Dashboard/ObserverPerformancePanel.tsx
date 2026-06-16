@@ -98,6 +98,13 @@ const ObserverPerformancePanel = ({
   const reportsCount = currentEpoch
     ? Object.keys(currentEpoch.observations.reports).length
     : undefined;
+  // Denominator = the live prescribed-observer count for the current epoch, not a
+  // hardcoded 50 — keeps the ratio correct if prescription size ever changes or
+  // the network prescribes a different count. (Historical epochs already use the
+  // dynamic value via useObserversWithCount.)
+  const prescribedCount = currentEpoch
+    ? currentEpoch.prescribedObservers.length
+    : undefined;
 
   return (
     <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 overflow-hidden h-full min-h-64">
@@ -212,8 +219,8 @@ const ObserverPerformancePanel = ({
                   <div className="text-[2.625rem] font-bold text-high leading-none">
                     {hoveredData ? (
                       hoveredData.performancePercentage.toFixed(2) + '%'
-                    ) : reportsCount !== undefined ? (
-                      ((100 * reportsCount) / 50).toFixed(2) + '%'
+                    ) : reportsCount !== undefined && prescribedCount ? (
+                      ((100 * reportsCount) / prescribedCount).toFixed(2) + '%'
                     ) : (
                       <Placeholder />
                     )}
@@ -239,9 +246,11 @@ const ObserverPerformancePanel = ({
                     </div>
                     <div>observations submitted</div>
                   </>
-                ) : reportsCount !== undefined ? (
+                ) : reportsCount !== undefined && prescribedCount ? (
                   <>
-                    <div>{reportsCount}/50</div>
+                    <div>
+                      {reportsCount}/{prescribedCount}
+                    </div>
                     <div>observations submitted</div>
                   </>
                 ) : (

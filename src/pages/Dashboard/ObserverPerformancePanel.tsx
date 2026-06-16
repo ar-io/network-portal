@@ -4,6 +4,7 @@ import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
 import { BinocularsIcon } from '@src/components/icons';
 import useEpochSettings from '@src/hooks/useEpochSettings';
+import useObservations from '@src/hooks/useObservations';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
 import { useGlobalState } from '@src/store';
 import { useEffect, useState } from 'react';
@@ -95,8 +96,9 @@ const ObserverPerformancePanel = ({
     }
   }, [hoveredEpochIndex, historicalObserverStats, hoveredData]);
 
-  const reportsCount = currentEpoch
-    ? Object.keys(currentEpoch.observations.reports).length
+  const { data: observations } = useObservations(currentEpoch);
+  const reportsCount = observations
+    ? Object.keys(observations.reports).length
     : undefined;
   // Denominator = the live prescribed-observer count for the current epoch, not a
   // hardcoded 50 — keeps the ratio correct if prescription size ever changes or

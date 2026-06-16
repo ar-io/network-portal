@@ -4,6 +4,7 @@ import Dropdown from '@src/components/Dropdown';
 import Placeholder from '@src/components/Placeholder';
 import { StatsArrowIcon } from '@src/components/icons';
 import useEpochs from '@src/hooks/useEpochs';
+import useObservations from '@src/hooks/useObservations';
 import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
 import { CheckCircleIcon, NotebookText, XCircleIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -28,24 +29,20 @@ const ReportedOnByCard = ({
   const observerToGatewayMap = useObserverToGatewayMap();
   const navigate = useNavigate();
 
+  const selectedEpoch = epochs?.[selectedEpochIndex];
+  const { data: observations } = useObservations(selectedEpoch);
+
   useEffect(() => {
-    if (epochs) {
-      const selectedEpoch = epochs[selectedEpochIndex];
-      setTotalReportsForEpoch(
-        selectedEpoch?.observations?.reports
-          ? Object.keys(selectedEpoch?.observations?.reports).length
-          : 0,
-      );
+    if (observations) {
+      setTotalReportsForEpoch(Object.keys(observations.reports).length);
 
       if (gateway) {
         const observers =
-          selectedEpoch?.observations.failureSummaries[
-            gateway.gatewayAddress
-          ] || [];
+          observations.failureSummaries[gateway.gatewayAddress] || [];
         const entries = observers.map<ReportedOnByEntry>((observerId) => {
           return {
             observerId,
-            reportId: selectedEpoch?.observations.reports[observerId],
+            reportId: observations.reports[observerId],
           };
         });
         setFailureObservers(entries);
@@ -55,7 +52,7 @@ const ReportedOnByCard = ({
     } else {
       setFailureObservers([]);
     }
-  }, [epochs, gateway, selectedEpochIndex]);
+  }, [observations, gateway]);
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
@@ -179,14 +176,15 @@ const ReportedOnCard = ({
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (epochs) {
-      const selectedEpoch = epochs[selectedEpochIndex];
+  const selectedEpoch = epochs?.[selectedEpochIndex];
+  const { data: observations } = useObservations(selectedEpoch);
 
-      if (gateway && selectedEpoch) {
+  useEffect(() => {
+    if (selectedEpoch && observations) {
+      if (gateway) {
         const address = gateway.observerAddress;
 
-        setReportId(selectedEpoch.observations.reports[address]);
+        setReportId(observations.reports[address]);
 
         setSelectedForObservation(
           selectedEpoch.prescribedObservers?.find(
@@ -194,14 +192,15 @@ const ReportedOnCard = ({
           ) !== undefined,
         );
 
-        const snitchedOn = Object.entries(
-          selectedEpoch.observations.failureSummaries,
-        ).reduce((acc, [gatewayAddress, reportedBy]) => {
-          if (reportedBy.includes(address)) {
-            acc.push(gatewayAddress);
-          }
-          return acc;
-        }, [] as string[]);
+        const snitchedOn = Object.entries(observations.failureSummaries).reduce(
+          (acc, [gatewayAddress, reportedBy]) => {
+            if (reportedBy.includes(address)) {
+              acc.push(gatewayAddress);
+            }
+            return acc;
+          },
+          [] as string[],
+        );
         setSnitchedOn(snitchedOn);
       } else {
         setSelectedForObservation(undefined);
@@ -211,7 +210,7 @@ const ReportedOnCard = ({
       setSelectedForObservation(undefined);
       setSnitchedOn([]);
     }
-  }, [epochs, gateway, selectedEpochIndex]);
+  }, [selectedEpoch, observations, gateway]);
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">

@@ -142,9 +142,6 @@ const useObservations = (epoch?: EpochData) => {
       );
     },
     enabled: !!rpc && !!arIOReadSDK && !!garProgram && !!epoch,
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
-    refetchOnWindowFocus: true,
   });
 
   return queryResults;

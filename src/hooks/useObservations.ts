@@ -7,25 +7,20 @@ import { useQuery } from '@tanstack/react-query';
  * Observation discriminator from @ar.io/solana-contracts/gar.
  * Hardcoded here so the portal can make its own getProgramAccounts call
  * with base64 encoding, bypassing the SDK's base58 memcmp filters which
- * silently return empty in browser-bundled environments.
+ * silently return empty in Vite's dev server (the pre-bundled SDK ignores
+ * node_modules updates). Production builds via `yarn build` use the
+ * fixed SDK directly, but for dev we need this workaround.
  */
 const OBSERVATION_DISCRIMINATOR = new Uint8Array([
   0x6d, 0xbe, 0xbe, 0x5f, 0x1c, 0xac, 0xf3, 0x4a,
 ]);
 
-interface ObservationData {
+export interface ObservationData {
   reports: Record<string, string>;
   failureSummaries: Record<string, string[]>;
 }
 
-/**
- * Fetch observations for an epoch directly via getProgramAccounts with
- * base64-encoded memcmp filters, then deserialize using the SDK's own
- * deserializeObservation. The SDK's getObservations uses base58 encoding
- * for memcmp filters which breaks in browser environments when multiple
- * filters are combined.
- */
-async function fetchObservationsDirect(
+export async function fetchObservationsDirect(
   rpc: any,
   arIOReadSDK: any,
   garProgram: string,
@@ -62,12 +57,11 @@ async function fetchObservationsDirect(
   const reports: Record<string, string> = {};
   const failureSummaries: Record<string, string[]> = {};
 
-  // Fetch gateway registry address list for bitmap→address mapping
   let gatewayAddresses: string[] = [];
   try {
     gatewayAddresses = await arIOReadSDK.getRegistryGatewayAddresses();
   } catch {
-    // Fall back to empty — failure summaries won't be populated
+    // Fall back to empty
   }
 
   const { getObservationDecoder } = await import('@ar.io/solana-contracts/gar');
@@ -82,9 +76,7 @@ async function fetchObservationsDirect(
       const data = Buffer.from(raw, 'base64');
 
       const d = decoder.decode(new Uint8Array(data));
-      // d.observer is already a decoded Address string
       const observer = d.observer as string;
-      // base64url from raw bytes without Buffer.toString('base64url')
       const reportB64 = Buffer.from(d.reportTxId as any).toString('base64');
       const reportTxId = reportB64
         .replace(/\+/g, '-')
@@ -93,7 +85,6 @@ async function fetchObservationsDirect(
 
       reports[observer] = reportTxId;
 
-      // Parse gateway_results bitmap: bit set (1) = passed, clear (0) = failed
       const gatewayResults = new Uint8Array(d.gatewayResults as any);
       const gatewayCount = d.gatewayCount as number;
       for (let i = 0; i < gatewayCount && i < gatewayAddresses.length; i++) {
@@ -109,13 +100,9 @@ async function fetchObservationsDirect(
         }
       }
     } catch (e) {
-      console.error('[useObservations] deserialize error:', e);
+      log.error('[useObservations] deserialize error:', e);
     }
   }
-
-  log.info(
-    `[useObservations] epoch=${epochIndex}: ${Object.keys(reports).length} reports via direct getProgramAccounts`,
-  );
 
   return { reports, failureSummaries };
 }
@@ -123,8 +110,6 @@ async function fetchObservationsDirect(
 const useObservations = (epoch?: EpochData) => {
   const rpc = useGlobalState((state) => state.rpc);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
-
-  // Read the GAR program ID from the SDK instance to stay in sync with settings
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const garProgram = (arIOReadSDK as any)?.garProgram as string | undefined;
 

@@ -1,6 +1,11 @@
+import { log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { useQuery } from '@tanstack/react-query';
 import useEpochsWithCount from './useEpochsWithCount';
+
+const OBSERVATION_DISCRIMINATOR = new Uint8Array([
+  0x6d, 0xbe, 0xbe, 0x5f, 0x1c, 0xac, 0xf3, 0x4a,
+]);
 
 export type ObserverHistoricalStats = {
   epochIndex: number;
@@ -9,8 +14,53 @@ export type ObserverHistoricalStats = {
   prescribedObservers: number;
 };
 
+/**
+ * Count observation PDAs for a given epoch. Uses dataSlice to fetch
+ * only account keys (no data), minimizing response size.
+ */
+async function countObservationsForEpoch(
+  rpc: any,
+  garProgram: string,
+  epochIndex: number,
+): Promise<number> {
+  const discBytes = btoa(String.fromCharCode(...OBSERVATION_DISCRIMINATOR));
+  const epochBuf = new Uint8Array(8);
+  new DataView(epochBuf.buffer).setBigUint64(0, BigInt(epochIndex), true);
+  const epochBytes = btoa(String.fromCharCode(...epochBuf));
+
+  try {
+    const accounts = await rpc
+      .getProgramAccounts(garProgram as any, {
+        encoding: 'base64',
+        dataSlice: { offset: 0, length: 0 },
+        filters: [
+          {
+            memcmp: {
+              offset: 0n,
+              bytes: discBytes,
+              encoding: 'base64',
+            },
+          },
+          {
+            memcmp: {
+              offset: 8n,
+              bytes: epochBytes,
+              encoding: 'base64',
+            },
+          },
+        ],
+      })
+      .send();
+    return accounts.length;
+  } catch {
+    return 0;
+  }
+}
+
 const useObserversWithCount = (epochCount: number) => {
-  const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const rpc = useGlobalState((state) => state.rpc);
+  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const garProgram = (arIOReadSDK as any)?.garProgram as string | undefined;
   const { data: epochs } = useEpochsWithCount(epochCount);
 
   const res = useQuery<Array<ObserverHistoricalStats>>({
@@ -19,37 +69,47 @@ const useObserversWithCount = (epochCount: number) => {
       epochs?.length,
       epochs?.[0]?.epochIndex,
       epochCount,
+      garProgram,
     ],
-    queryFn: () => {
-      if (!arioReadSDK || !epochs) {
-        throw new Error('arIOReadSDK not initialized or epochs not available');
+    queryFn: async () => {
+      if (!rpc || !garProgram || !epochs) {
+        throw new Error('rpc, garProgram, or epochs not available');
       }
 
-      const epochsWithObservations = epochs
-        .filter((epoch) => epoch && epoch.observations)
+      const available = epochs
+        .filter((epoch) => epoch !== undefined)
         .sort((a, b) => a!.epochIndex - b!.epochIndex);
 
-      return epochsWithObservations.map((epoch) => {
-        if (!epoch || !epoch.observations)
-          throw new Error('Epoch or observations not available');
+      const results = await Promise.all(
+        available.map(async (epoch) => {
+          const prescribedObservers = epoch!.prescribedObservers.length;
+          const reportsCount = await countObservationsForEpoch(
+            rpc,
+            garProgram,
+            epoch!.epochIndex,
+          );
+          const performancePercentage =
+            prescribedObservers > 0
+              ? (reportsCount / prescribedObservers) * 100
+              : 0;
 
-        const reportsCount = Object.keys(epoch.observations.reports).length;
-        const prescribedObservers = epoch.prescribedObservers.length;
-        const performancePercentage =
-          prescribedObservers > 0
-            ? (reportsCount / prescribedObservers) * 100
-            : 0;
+          return {
+            epochIndex: epoch!.epochIndex,
+            reportsCount,
+            performancePercentage,
+            prescribedObservers,
+          };
+        }),
+      );
 
-        return {
-          epochIndex: epoch.epochIndex,
-          reportsCount,
-          performancePercentage,
-          prescribedObservers,
-        };
-      });
+      log.info(
+        `[useObserversWithCount] ${results.length} epochs, reports: ${results.map((r) => `${r.epochIndex}:${r.reportsCount}`).join(', ')}`,
+      );
+
+      return results;
     },
-    enabled: !!arioReadSDK && !!epochs,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!rpc && !!garProgram && !!epochs,
+    staleTime: 5 * 60 * 1000,
   });
   return res;
 };

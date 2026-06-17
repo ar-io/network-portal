@@ -47,12 +47,10 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   };
 
   useEffect(() => {
-    const fetchEpoch = async (isInitial: boolean) => {
-      if (isInitial) {
-        setCurrentEpoch(undefined);
-        setTicker('');
-        logEpochFetchContext('start');
-      }
+    const loadCurrentEpoch = async () => {
+      setCurrentEpoch(undefined);
+      setTicker('');
+      logEpochFetchContext('start');
 
       try {
         const { Ticker } = await arioReadSDK.getInfo();
@@ -88,11 +86,9 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
               responsePreview: epoch.slice(0, 3),
             },
           );
-          if (isInitial) {
-            showErrorToast(
-              'Error fetching current epoch. Application may not function as expected.',
-            );
-          }
+          showErrorToast(
+            'Error fetching current epoch. Application may not function as expected.',
+          );
           return;
         }
         log.info(
@@ -118,16 +114,40 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           errorMessage,
           error,
         });
-        if (isInitial) {
-          showErrorToast(
-            'Error fetching current epoch. Application may not function as expected.',
-          );
-        }
+        showErrorToast(
+          'Error fetching current epoch. Application may not function as expected.',
+        );
       }
     };
 
-    fetchEpoch(true);
-    const interval = setInterval(() => fetchEpoch(false), TWO_MINUTES);
+    // Lightweight poll: check the epoch index via getEpochSettings (1 RPC call)
+    // and only do the full getCurrentEpoch (~55 RPC calls) when the epoch
+    // transitions. Observations refresh independently via useObservations.
+    const pollEpochTransition = async () => {
+      try {
+        const currentIndex = useGlobalState.getState().currentEpoch?.epochIndex;
+        if (currentIndex === undefined) return;
+
+        const settings = await arioReadSDK.getEpochSettings();
+        // SDK's resolveEpochIndex returns currentEpochIndex - 1 (see io-readable.ts)
+        const liveIndex = Math.max(0, (settings as any).currentEpochIndex - 1);
+
+        if (liveIndex !== currentIndex) {
+          log.info(
+            `[GlobalDataProvider] Epoch transition detected: ${currentIndex} → ${liveIndex}`,
+          );
+          const epoch = await arioReadSDK.getCurrentEpoch();
+          if (!Array.isArray(epoch)) {
+            setCurrentEpoch(epoch);
+          }
+        }
+      } catch (error) {
+        log.error('[GlobalDataProvider] Error polling epoch transition', error);
+      }
+    };
+
+    loadCurrentEpoch();
+    const interval = setInterval(pollEpochTransition, TWO_MINUTES);
     return () => clearInterval(interval);
   }, [arioReadSDK, queryClient, setCurrentEpoch, setTicker, solanaRpcUrl]);
 

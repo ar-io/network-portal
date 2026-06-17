@@ -1,21 +1,44 @@
-import Button from '@src/components/Button';
 import EpochSelector from '@src/components/EpochSelector';
 import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
-import { BinocularsIcon } from '@src/components/icons';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useObservations from '@src/hooks/useObservations';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
 import { useGlobalState } from '@src/store';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Area,
   AreaChart,
-  Tooltip as RechartsTooltip,
+  CartesianGrid,
   ResponsiveContainer,
+  Tooltip,
+  TooltipProps,
+  XAxis,
   YAxis,
 } from 'recharts';
+import {
+  NameType,
+  ValueType,
+} from 'recharts/types/component/DefaultTooltipContent';
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: TooltipProps<ValueType, NameType>) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
+        <p>{`Epoch ${label}`}</p>
+        <p>{`Performance: ${Number(payload[0].value).toFixed(2)}%`}</p>
+        <p>{`Submitted: ${data.reportsCount}/${data.prescribedObservers}`}</p>
+      </div>
+    );
+  }
+
+  return null;
+};
 
 interface ObserverPerformancePanelProps {
   epochCount: number;
@@ -30,241 +53,195 @@ const ObserverPerformancePanel = ({
   hoveredEpochIndex,
   onEpochHover,
 }: ObserverPerformancePanelProps) => {
-  const _navigate = useNavigate();
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const { data: epochSettings } = useEpochSettings();
   const { data: historicalObserverStats } = useObserversWithCount(epochCount);
-  const [hoveredData, setHoveredData] = useState<{
-    epochIndex: number;
-    performancePercentage: number;
-    reportsCount: number;
-    prescribedObservers: number;
-  } | null>(null);
+
+  const [activeIndex, setActiveIndex] = useState<number>();
   const [percentageChange, setPercentageChange] = useState<number>();
 
+  // Sync active index with external hover or default to latest
   useEffect(() => {
-    if (!historicalObserverStats || historicalObserverStats.length < 2) {
-      setPercentageChange(undefined);
-      return;
+    if (historicalObserverStats) {
+      if (hoveredEpochIndex !== null && hoveredEpochIndex !== undefined) {
+        const index = historicalObserverStats.findIndex(
+          (item) => item.epochIndex === hoveredEpochIndex,
+        );
+        setActiveIndex(index >= 0 ? index : historicalObserverStats.length - 1);
+      } else {
+        setActiveIndex(historicalObserverStats.length - 1);
+      }
     }
+  }, [historicalObserverStats, hoveredEpochIndex]);
 
-    if (hoveredData) {
-      // When hovering, calculate based on hovered data
-      const hoveredIndex = historicalObserverStats.findIndex(
-        (item) => item.epochIndex === hoveredData.epochIndex,
-      );
-
-      if (hoveredIndex > 0) {
-        const currentPerformance = hoveredData.performancePercentage;
-        const previousPerformance =
-          historicalObserverStats[hoveredIndex - 1].performancePercentage;
-
-        const change = currentPerformance - previousPerformance;
-        setPercentageChange(change);
+  // Compute percentage change vs previous epoch
+  useEffect(() => {
+    if (
+      !activeIndex ||
+      !historicalObserverStats ||
+      !historicalObserverStats[activeIndex]
+    ) {
+      setPercentageChange(undefined);
+    } else {
+      const current =
+        historicalObserverStats[activeIndex].performancePercentage;
+      const previous =
+        historicalObserverStats[activeIndex - 1]?.performancePercentage;
+      if (previous !== undefined) {
+        setPercentageChange(current - previous);
       } else {
         setPercentageChange(undefined);
       }
-    } else {
-      // Default to showing last performance vs previous
-      const lastIndex = historicalObserverStats.length - 1;
-      const secondLastIndex = lastIndex - 1;
-
-      const currentPerformance =
-        historicalObserverStats[lastIndex].performancePercentage;
-      const previousPerformance =
-        historicalObserverStats[secondLastIndex].performancePercentage;
-
-      const change = currentPerformance - previousPerformance;
-      setPercentageChange(change);
     }
-  }, [historicalObserverStats, hoveredData]);
-
-  // Update hover data when external hover changes
-  useEffect(() => {
-    if (hoveredEpochIndex !== null && historicalObserverStats) {
-      const data = historicalObserverStats.find(
-        (item) => item.epochIndex === hoveredEpochIndex,
-      );
-      if (
-        data &&
-        (!hoveredData || hoveredData.epochIndex !== hoveredEpochIndex)
-      ) {
-        setHoveredData(data);
-      }
-    } else if (hoveredEpochIndex === null && hoveredData) {
-      setHoveredData(null);
-    }
-  }, [hoveredEpochIndex, historicalObserverStats, hoveredData]);
+  }, [activeIndex, historicalObserverStats]);
 
   const { data: observations } = useObservations(currentEpoch);
   const reportsCount = observations
     ? Object.keys(observations.reports).length
     : undefined;
-  // Denominator = the live prescribed-observer count for the current epoch, not a
-  // hardcoded 50 — keeps the ratio correct if prescription size ever changes or
-  // the network prescribes a different count. (Historical epochs already use the
-  // dynamic value via useObserversWithCount.)
   const prescribedCount = currentEpoch
     ? currentEpoch.prescribedObservers.length
     : undefined;
 
+  // Display value: hovered historical data or current epoch live data
+  const displayPercentage =
+    activeIndex !== undefined && historicalObserverStats?.[activeIndex]
+      ? historicalObserverStats[activeIndex].performancePercentage.toFixed(2) +
+        '%'
+      : reportsCount !== undefined && prescribedCount !== undefined
+        ? ((100 * reportsCount) / prescribedCount).toFixed(2) + '%'
+        : undefined;
+
+  const displaySubmitted =
+    activeIndex !== undefined && historicalObserverStats?.[activeIndex]
+      ? `${historicalObserverStats[activeIndex].reportsCount}/${historicalObserverStats[activeIndex].prescribedObservers}`
+      : reportsCount !== undefined && prescribedCount !== undefined
+        ? `${reportsCount}/${prescribedCount}`
+        : undefined;
+
   return (
-    <div className="relative flex flex-col rounded-xl border border-grey-500 px-6 py-5 overflow-hidden h-full min-h-64">
-      {/* Background Chart */}
-      {historicalObserverStats && historicalObserverStats.length >= 2 && (
-        <div className="absolute inset-0 top-16">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={historicalObserverStats}
-              margin={{ top: 10, right: 0, bottom: 10, left: 0 }}
-              onMouseMove={(state) => {
-                if (state?.activePayload?.[0]?.payload) {
-                  const payload = state.activePayload[0].payload;
-                  setHoveredData(payload);
-                  if (onEpochHover) {
-                    onEpochHover(payload.epochIndex);
-                  }
-                }
-              }}
-              onMouseLeave={() => {
-                setHoveredData(null);
-                if (onEpochHover) {
-                  onEpochHover(null);
-                }
-              }}
-            >
-              <defs>
-                <linearGradient
-                  id="observerPerformanceGradient"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="5%" stopColor="#E19EE5" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#E19EE5" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <YAxis axisLine={false} tickLine={false} tick={false} width={0} />
-              <RechartsTooltip content={() => null} cursor={false} />
-              <Area
-                type="monotone"
-                dataKey="performancePercentage"
-                stroke="#E19EE5"
-                strokeWidth={2}
-                strokeOpacity={0.2}
-                fillOpacity={0.2}
-                fill="url(#observerPerformanceGradient)"
-                dot={(props) => {
-                  // eslint-disable-next-line react/prop-types
-                  const { cx, cy, payload, index } = props;
-                  const isActive =
-                    !!hoveredData &&
-                    !!payload &&
-                    payload.epochIndex === hoveredData.epochIndex;
-
-                  return (
-                    <circle
-                      key={`observer-dot-${index}`}
-                      cx={cx}
-                      cy={cy}
-                      r={isActive ? 4 : 0}
-                      fill={isActive ? '#E19EE5' : 'transparent'}
-                      stroke={isActive ? '#ffffff' : 'transparent'}
-                      strokeWidth={isActive ? 2 : 0}
-                    />
-                  );
-                }}
-                activeDot={{
-                  r: 4,
-                  fill: '#E19EE5',
-                  stroke: '#ffffff',
-                  strokeWidth: 2,
-                }}
+    <div className="flex h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid lg:min-w-[22rem]">
+      <div className="flex items-center justify-between px-6 pt-5">
+        <span className="text-mid">Observer Performance</span>
+        <EpochSelector value={epochCount} onChange={onEpochCountChange} />
+      </div>
+      <div className="flex items-end justify-between px-6">
+        <div className="flex gap-2">
+          <div className="py-4 text-[2.625rem] font-bold leading-none text-high">
+            {displayPercentage ?? <Placeholder />}
+          </div>
+          {percentageChange !== undefined && (
+            <div className="flex h-full flex-col justify-end pb-5">
+              <Streak
+                streak={percentageChange}
+                fixedDigits={2}
+                rightLabel="%"
               />
-            </AreaChart>
-          </ResponsiveContainer>
+            </div>
+          )}
         </div>
-      )}
+        <div className="pb-5 text-right text-xs">
+          {displaySubmitted ? (
+            <>
+              <div>{displaySubmitted}</div>
+              <div>observations submitted</div>
+            </>
+          ) : (
+            <Placeholder />
+          )}
+        </div>
+      </div>
+      {historicalObserverStats && historicalObserverStats.length >= 2 ? (
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          className="mb-5 mt-2 pr-6 text-xs"
+        >
+          <AreaChart
+            data={historicalObserverStats}
+            margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+            onMouseMove={(state) => {
+              if (
+                state.isTooltipActive &&
+                state.activeTooltipIndex !== undefined &&
+                historicalObserverStats
+              ) {
+                const epochData =
+                  historicalObserverStats[state.activeTooltipIndex];
+                if (epochData && onEpochHover) {
+                  onEpochHover(epochData.epochIndex);
+                }
+              }
+            }}
+            onMouseLeave={() => {
+              if (onEpochHover) {
+                onEpochHover(null);
+              }
+            }}
+          >
+            <defs>
+              <linearGradient
+                id="observerPerformanceGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop offset="5%" stopColor="#E19EE5" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#E19EE5" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#ffffff33"
+              vertical={false}
+            />
+            <XAxis dataKey="epochIndex" tickLine={false} />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `${v}%`}
+              domain={[0, 100]}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={false} />
+            <Area
+              type="monotone"
+              dataKey="performancePercentage"
+              stroke="#E19EE5"
+              strokeWidth={2}
+              strokeOpacity={0.2}
+              fillOpacity={0.2}
+              fill="url(#observerPerformanceGradient)"
+              dot={(props) => {
+                const { cx, cy, index } = props;
+                const isActive = index === activeIndex;
 
-      {/* Insufficient data message */}
-      {historicalObserverStats && historicalObserverStats.length === 1 && (
-        <div className="absolute bottom-2 right-2 text-xs text-low opacity-50 pointer-events-none">
+                return (
+                  <circle
+                    key={`observer-dot-${index}`}
+                    cx={cx}
+                    cy={cy}
+                    r={isActive ? 4 : 0}
+                    stroke={isActive ? '#ffffff' : 'transparent'}
+                    strokeWidth={isActive ? 2 : 0}
+                    fill={isActive ? '#E19EE5' : 'transparent'}
+                  />
+                );
+              }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      ) : epochSettings && !epochSettings.hasEpochZeroStarted ? (
+        <div className="m-auto pb-12 text-sm italic text-low">
+          Awaiting first epoch...
+        </div>
+      ) : historicalObserverStats && historicalObserverStats.length < 2 ? (
+        <div className="m-auto pb-12 text-sm italic text-low">
           Historical trend available soon
         </div>
+      ) : (
+        <Placeholder className="m-auto" />
       )}
-
-      {/* Main Content */}
-      <div className="relative z-10">
-        <div className="flex w-full items-center overflow-x-auto justify-between">
-          <div className="text-sm text-mid">Observer Performance</div>
-          <div className="flex items-center gap-3">
-            <EpochSelector value={epochCount} onChange={onEpochCountChange} />
-          </div>
-        </div>
-      </div>
-      <div className="absolute bottom-5 left-6 right-6 z-10 flex flex-col">
-        {epochSettings && !epochSettings.hasEpochZeroStarted ? (
-          <div className="flex grow items-center justify-center self-center text-center text-sm italic text-low">
-            Awaiting first epoch...
-          </div>
-        ) : (
-          <>
-            <div className="flex items-end justify-between">
-              <div className="flex flex-col">
-                {hoveredData && (
-                  <div className="text-xs text-mid mb-1">
-                    Epoch {hoveredData.epochIndex}
-                  </div>
-                )}
-                <div className="flex items-baseline gap-3">
-                  <div className="text-[2.625rem] font-bold text-high leading-none">
-                    {hoveredData ? (
-                      hoveredData.performancePercentage.toFixed(2) + '%'
-                    ) : reportsCount !== undefined &&
-                      prescribedCount !== undefined ? (
-                      ((100 * reportsCount) / prescribedCount).toFixed(2) + '%'
-                    ) : (
-                      <Placeholder />
-                    )}
-                  </div>
-                  <div className="min-w-[4rem]">
-                    {percentageChange !== undefined && (
-                      <Streak
-                        streak={percentageChange}
-                        fixedDigits={2}
-                        rightLabel="%"
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col items-end text-right text-xs text-mid">
-                <div className="grow" />
-                {hoveredData ? (
-                  <>
-                    <div>
-                      {hoveredData.reportsCount}/
-                      {hoveredData.prescribedObservers}
-                    </div>
-                    <div>observations submitted</div>
-                  </>
-                ) : reportsCount !== undefined &&
-                  prescribedCount !== undefined ? (
-                  <>
-                    <div>
-                      {reportsCount}/{prescribedCount}
-                    </div>
-                    <div>observations submitted</div>
-                  </>
-                ) : (
-                  <Placeholder />
-                )}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
     </div>
   );
 };

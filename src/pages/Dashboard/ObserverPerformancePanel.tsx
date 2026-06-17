@@ -221,7 +221,8 @@ const ObserverPerformancePanel = ({
                   <div className="text-[2.625rem] font-bold text-high leading-none">
                     {hoveredData ? (
                       hoveredData.performancePercentage.toFixed(2) + '%'
-                    ) : reportsCount !== undefined && prescribedCount ? (
+                    ) : reportsCount !== undefined &&
+                      prescribedCount !== undefined ? (
                       ((100 * reportsCount) / prescribedCount).toFixed(2) + '%'
                     ) : (
                       <Placeholder />
@@ -248,7 +249,8 @@ const ObserverPerformancePanel = ({
                     </div>
                     <div>observations submitted</div>
                   </>
-                ) : reportsCount !== undefined && prescribedCount ? (
+                ) : reportsCount !== undefined &&
+                  prescribedCount !== undefined ? (
                   <>
                     <div>
                       {reportsCount}/{prescribedCount}

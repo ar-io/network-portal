@@ -1,12 +1,109 @@
+import {
+  deserializeEpoch,
+  deserializeEpochSettingsFull,
+  getEpochPDA,
+  getEpochSettingsPDA,
+} from '@ar.io/sdk/solana';
+import { EpochData } from '@ar.io/sdk/web';
+import type { Commitment } from '@solana/kit';
+import { fetchEncodedAccount } from '@solana/kit';
 import { log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
+import { probeArIOGateway } from '@src/utils/arweaveUrl';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect } from 'react';
 
-const TWO_MINUTES = 120000;
+const DEFAULT_ADDRESS = '11111111111111111111111111111111';
+
+const secToMs = (n: number): number => n * 1000;
+
+/**
+ * Lightweight alternative to getCurrentEpoch() that fetches the epoch
+ * metadata in ~2-3 RPC calls instead of ~55. Reads the EpochSettings PDA
+ * to resolve the current epoch index, then reads the Epoch PDA directly.
+ * Builds the prescribedObservers list from the on-chain data WITHOUT
+ * making individual getGateway calls for each observer (weights can be
+ * looked up from useGateways when needed).
+ */
+async function fetchCurrentEpochLightweight(
+  rpc: any,
+  garProgram: string,
+  commitment: Commitment,
+): Promise<EpochData> {
+  // 1. Resolve current epoch index from EpochSettings (1 RPC call)
+  const [settingsPda] = await getEpochSettingsPDA(garProgram as any);
+  const settingsAccount = await fetchEncodedAccount(rpc, settingsPda, {
+    commitment,
+  });
+  if (!settingsAccount.exists) {
+    throw new Error('EpochSettings account not found');
+  }
+  const settings = deserializeEpochSettingsFull(
+    Buffer.from(settingsAccount.data),
+  );
+  const epochIndex = Math.max(0, settings.currentEpochIndex - 1);
+
+  // 2. Fetch the Epoch account (1 RPC call)
+  const [epochPda] = await getEpochPDA(epochIndex, garProgram as any);
+  const epochAccount = await fetchEncodedAccount(rpc, epochPda, {
+    commitment,
+  });
+  if (!epochAccount.exists) {
+    throw new Error(`Epoch ${epochIndex} not found`);
+  }
+  const epochData = deserializeEpoch(Buffer.from(epochAccount.data));
+
+  // 3. Build prescribed observers from the epoch account data (0 RPC calls)
+  const prescribedObservers = [];
+  for (let i = 0; i < epochData.observerCount; i++) {
+    const observerAddress = epochData.prescribedObservers[i] as string;
+    const gatewayAddress = epochData.prescribedObserverGateways[i] as string;
+    if (observerAddress === DEFAULT_ADDRESS) continue;
+
+    prescribedObservers.push({
+      gatewayAddress,
+      observerAddress,
+      stake: 0,
+      startTimestamp: 0,
+      stakeWeight: 0,
+      tenureWeight: 0,
+      gatewayRewardRatioWeight: 0,
+      observerRewardRatioWeight: 0,
+      gatewayPerformanceRatio: 0,
+      observerPerformanceRatio: 0,
+      compositeWeight: 0,
+      normalizedCompositeWeight: 0,
+    });
+  }
+
+  return {
+    epochIndex,
+    startHeight: 0,
+    startTimestamp: secToMs(epochData.startTimestamp),
+    endTimestamp: secToMs(epochData.endTimestamp),
+    distributionTimestamp: secToMs(epochData.endTimestamp),
+    observations: { reports: {}, failureSummaries: {} },
+    prescribedObservers,
+    prescribedNames: [],
+    distributions: {
+      totalEligibleGateways: epochData.activeGatewayCount,
+      totalEligibleRewards: epochData.totalEligibleRewards,
+      totalEligibleObserverReward:
+        epochData.perObserverReward * epochData.observerCount,
+      totalEligibleGatewayReward:
+        epochData.perGatewayReward * epochData.activeGatewayCount,
+    },
+    arnsStats: {
+      totalReturnedNames: 0,
+      totalActiveNames: 0,
+      totalGracePeriodNames: 0,
+      totalReservedNames: 0,
+    },
+  };
+}
 
 const isEpochUnavailableError = (errorMessage: string): boolean => {
   const lowerMessage = errorMessage.toLowerCase();
@@ -15,7 +112,6 @@ const isEpochUnavailableError = (errorMessage: string): boolean => {
 };
 
 const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
-  const setSolanaSlot = useGlobalState((state) => state.setSolanaSlot);
   const setCurrentEpoch = useGlobalState((state) => state.setCurrentEpoch);
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const setTicker = useGlobalState((state) => state.setTicker);
@@ -26,31 +122,14 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
   const queryClient = useQueryClient();
 
-  const logEpochFetchContext = (phase: string) => {
-    const sdkShape = arioReadSDK as unknown as {
-      coreProgram?: unknown;
-      garProgram?: unknown;
-      arnsProgram?: unknown;
-      antProgram?: unknown;
-      commitment?: unknown;
-    };
-
-    log.info(`[GlobalDataProvider] [${phase}] epoch fetch context`, {
-      rpcUrl: solanaRpcUrl,
-      dbName: networkPortalDB?.name,
-      sdkCommitment: String(sdkShape.commitment ?? 'unknown'),
-      coreProgram: String(sdkShape.coreProgram ?? 'unknown'),
-      garProgram: String(sdkShape.garProgram ?? 'unknown'),
-      arnsProgram: String(sdkShape.arnsProgram ?? 'unknown'),
-      antProgram: String(sdkShape.antProgram ?? 'unknown'),
-    });
-  };
-
   useEffect(() => {
-    const update = async () => {
+    const loadCurrentEpoch = async () => {
       setCurrentEpoch(undefined);
       setTicker('');
-      logEpochFetchContext('start');
+
+      const garProgram = (arioReadSDK as any)?.garProgram as string | undefined;
+      const commitment =
+        ((arioReadSDK as any)?.commitment as Commitment) ?? 'confirmed';
 
       try {
         const { Ticker } = await arioReadSDK.getInfo();
@@ -64,31 +143,22 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       }
 
       try {
-        const currentEpoch = await arioReadSDK.getCurrentEpoch();
+        let epoch: EpochData;
+        if (garProgram && rpc) {
+          // Lightweight path: 2-3 RPC calls instead of ~55
+          epoch = await fetchCurrentEpochLightweight(
+            rpc,
+            garProgram,
+            commitment,
+          );
+        } else {
+          // Fallback to SDK (e.g. if garProgram isn't accessible)
+          epoch = await arioReadSDK.getCurrentEpoch();
+        }
 
-        log.info('[GlobalDataProvider] getCurrentEpoch response received', {
-          rpcUrl: solanaRpcUrl,
-          responseType: Array.isArray(currentEpoch)
-            ? 'array'
-            : typeof currentEpoch,
-          hasEpochIndex:
-            !Array.isArray(currentEpoch) &&
-            typeof currentEpoch === 'object' &&
-            currentEpoch !== null &&
-            'epochIndex' in currentEpoch,
-          responsePreview: Array.isArray(currentEpoch)
-            ? currentEpoch.slice(0, 3)
-            : currentEpoch,
-        });
-
-        if (Array.isArray(currentEpoch)) {
+        if (Array.isArray(epoch)) {
           log.error(
             '[GlobalDataProvider] Error fetching current epoch: unexpected array response',
-            {
-              rpcUrl: solanaRpcUrl,
-              responseLength: currentEpoch.length,
-              responsePreview: currentEpoch.slice(0, 3),
-            },
           );
           showErrorToast(
             'Error fetching current epoch. Application may not function as expected.',
@@ -96,9 +166,9 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           return;
         }
         log.info(
-          `[GlobalDataProvider] Current epoch loaded: ${currentEpoch.epochIndex} (RPC: ${solanaRpcUrl})`,
+          `[GlobalDataProvider] Current epoch loaded: ${epoch.epochIndex} (RPC: ${solanaRpcUrl})`,
         );
-        setCurrentEpoch(currentEpoch);
+        setCurrentEpoch(epoch);
       } catch (error) {
         const errorMessage = getErrorMessage(error);
 
@@ -124,8 +194,8 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       }
     };
 
-    update();
-  }, [arioReadSDK, queryClient, setCurrentEpoch, setTicker, solanaRpcUrl]);
+    loadCurrentEpoch();
+  }, [arioReadSDK, rpc, queryClient, setCurrentEpoch, setTicker, solanaRpcUrl]);
 
   useEffect(() => {
     if (currentEpoch?.epochIndex && networkPortalDB) {
@@ -133,22 +203,12 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
     }
   }, [currentEpoch, networkPortalDB]);
 
+  // Probe whether the app is served from an ar.io gateway (fire-and-forget).
+  // The cached result is used by arweaveTxUrl() to decide between relative
+  // URLs and turbo-gateway.com.
   useEffect(() => {
-    const updateSlot = async () => {
-      try {
-        const slot = await rpc.getSlot().send();
-        setSolanaSlot(Number(slot));
-      } catch (error) {
-        log.error('Error fetching Solana slot', error);
-      }
-    };
-    updateSlot();
-    const interval = setInterval(updateSlot, TWO_MINUTES);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [rpc, setSolanaSlot]);
+    probeArIOGateway();
+  }, []);
 
   // Handle window resize
   useEffect(() => {

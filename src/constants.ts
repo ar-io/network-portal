@@ -19,7 +19,7 @@ export const SOLANA_RPC_URL =
   'https://frosty-hidden-bush.solana-devnet.quiknode.pro/d878601b7931461e8fd02c6a798cbda800da1762/';
 export const SOLANA_MAINNET_RPC_URL =
   import.meta.env.VITE_SOLANA_MAINNET_RPC_URL ??
-  'https://delicate-shy-paper.solana-mainnet.quiknode.pro/004c229c5eff941a67a8de64c6cdac7cf2a7e909/';
+  'https://hardworking-restless-sea.solana-mainnet.quiknode.pro/44d938fae3eb6735ec30d8979551827ff70227f5/';
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
 export const DEVNET_SOLANA_CORE_PROGRAM_ID =
@@ -39,10 +39,11 @@ export const MAINNET_SOLANA_ANT_PROGRAM_ID = String(MAINNET_PROGRAM_IDS.ant);
 export const DEFAULT_ARWEAVE_PROTOCOL =
   import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
-  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net';
+  import.meta.env.VITE_GATEWAY_HOST ?? 'turbo-gateway.com';
 
 export const DEFAULT_ARWEAVE_GQL_ENDPOINT =
-  import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ?? 'https://arweave.net/graphql';
+  import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ??
+  'https://arweave-search.goldsky.com/graphql';
 export const DEFAULT_ARWEAVE_PORT =
   Number(import.meta.env.VITE_GATEWAY_PORT) ?? 443;
 

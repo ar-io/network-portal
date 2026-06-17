@@ -30,7 +30,7 @@ const useGateways = () => {
         return fetchAllGateways(arIOReadSDK);
       }
     },
-    staleTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!arIOReadSDK,
   });
 

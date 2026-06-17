@@ -16,7 +16,6 @@ const useBalances = (walletAddress?: AoAddress) => {
 
   const res = useQuery<Balances>({
     queryKey: ['balances', walletAddress, solanaRpcUrl],
-    refetchInterval: 2 * 60 * 1000, // Refresh balances every 2 minutes
     queryFn: async () => {
       if (!walletAddress || !rpc || !arIOReadSDK) {
         throw new Error(

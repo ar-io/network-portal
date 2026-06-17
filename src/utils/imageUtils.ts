@@ -1,3 +1,5 @@
+import { arweaveTxUrl } from './arweaveUrl';
+
 /**
  * Converts an image reference (Arweave TX ID or HTTPS URL) to a full URL
  * @param imageRef - Either an Arweave transaction ID or a full HTTPS URL
@@ -10,21 +12,7 @@ export function getImageUrl(imageRef: string): string {
   }
 
   // Otherwise, treat it as an Arweave transaction ID
-  const hostname = window.location.hostname;
-
-  // Check if we're on a known ArNS gateway (but not localhost)
-  if (
-    (hostname.includes('.ar.io') ||
-      hostname.includes('.arweave.net') ||
-      hostname.includes('.permagate.io')) &&
-    !hostname.includes('localhost')
-  ) {
-    // Use relative URL for gateway access
-    return `/${imageRef}`;
-  }
-
-  // Fallback to arweave.net for centralized hosting
-  return `https://arweave.net/${imageRef}`;
+  return arweaveTxUrl(imageRef);
 }
 
 /**

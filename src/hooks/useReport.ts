@@ -1,10 +1,10 @@
-import { DEFAULT_ARWEAVE_HOST, DEFAULT_ARWEAVE_PROTOCOL } from '@src/constants';
+import { arweaveTxUrl } from '@src/utils/arweaveUrl';
 import { useQuery } from '@tanstack/react-query';
 import { gunzipSync, strFromU8 } from 'fflate';
 import ky from 'ky';
 
 export const downloadReport = async (reportId: string) => {
-  const reportURL = `${DEFAULT_ARWEAVE_PROTOCOL}://${DEFAULT_ARWEAVE_HOST}/${reportId}`;
+  const reportURL = arweaveTxUrl(reportId);
 
   const response = await ky.get(reportURL);
 

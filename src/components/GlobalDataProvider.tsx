@@ -6,8 +6,6 @@ import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect } from 'react';
 
-const TWO_MINUTES = 120_000;
-
 const isEpochUnavailableError = (errorMessage: string): boolean => {
   const lowerMessage = errorMessage.toLowerCase();
 
@@ -139,11 +137,6 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       }
     };
     updateSlot();
-    const interval = setInterval(updateSlot, TWO_MINUTES);
-
-    return () => {
-      clearInterval(interval);
-    };
   }, [rpc, setSolanaSlot]);
 
   // Handle window resize

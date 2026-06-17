@@ -13,11 +13,9 @@ const isEpochUnavailableError = (errorMessage: string): boolean => {
 };
 
 const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
-  const setSolanaSlot = useGlobalState((state) => state.setSolanaSlot);
   const setCurrentEpoch = useGlobalState((state) => state.setCurrentEpoch);
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const setTicker = useGlobalState((state) => state.setTicker);
-  const rpc = useGlobalState((state) => state.rpc);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const setIsMobile = useGlobalState((state) => state.setIsMobile);
@@ -126,18 +124,6 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       cleanupDbCache(networkPortalDB, currentEpoch.epochIndex);
     }
   }, [currentEpoch, networkPortalDB]);
-
-  useEffect(() => {
-    const updateSlot = async () => {
-      try {
-        const slot = await rpc.getSlot().send();
-        setSolanaSlot(Number(slot));
-      } catch (error) {
-        log.error('Error fetching Solana slot', error);
-      }
-    };
-    updateSlot();
-  }, [rpc, setSolanaSlot]);
 
   // Handle window resize
   useEffect(() => {

@@ -120,7 +120,7 @@ const ObserverPerformancePanel = ({
         : undefined;
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-grey-500 text-sm text-mid">
+    <div className="flex h-full min-h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid">
       <div className="flex items-center justify-between px-6 pt-5">
         <span className="text-mid">Observer Performance</span>
         <EpochSelector value={epochCount} onChange={onEpochCountChange} />
@@ -155,7 +155,7 @@ const ObserverPerformancePanel = ({
         <ResponsiveContainer
           width="100%"
           height="100%"
-          className="mb-5 mt-2 pr-6 text-xs"
+          className="mb-5 mt-2 min-h-0 flex-1 pr-6 text-xs"
         >
           <AreaChart
             data={historicalObserverStats}

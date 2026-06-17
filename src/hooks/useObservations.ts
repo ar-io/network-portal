@@ -15,12 +15,12 @@ const OBSERVATION_DISCRIMINATOR = new Uint8Array([
   0x6d, 0xbe, 0xbe, 0x5f, 0x1c, 0xac, 0xf3, 0x4a,
 ]);
 
-interface ObservationData {
+export interface ObservationData {
   reports: Record<string, string>;
   failureSummaries: Record<string, string[]>;
 }
 
-async function fetchObservationsDirect(
+export async function fetchObservationsDirect(
   rpc: any,
   arIOReadSDK: any,
   garProgram: string,

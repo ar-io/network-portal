@@ -120,7 +120,7 @@ const ObserverPerformancePanel = ({
         : undefined;
 
   return (
-    <div className="flex h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid lg:min-w-[22rem]">
+    <div className="flex h-full flex-col rounded-xl border border-grey-500 text-sm text-mid">
       <div className="flex items-center justify-between px-6 pt-5">
         <span className="text-mid">Observer Performance</span>
         <EpochSelector value={epochCount} onChange={onEpochCountChange} />

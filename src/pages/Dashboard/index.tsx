@@ -47,8 +47,8 @@ const Dashboard = () => {
                 hoveredEpochIndex={hoveredEpochIndex}
                 onEpochHover={setHoveredEpochIndex}
               />
-            </div>
-            <div className="col-span-1 md:col-span-2">
+            </div> */}
+            {/* <div className="col-span-1 md:col-span-2">
               <ArNSStatsPanel
                 epochCount={epochCount}
                 onEpochCountChange={setEpochCount}

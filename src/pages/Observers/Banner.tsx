@@ -11,7 +11,6 @@ import StartGatewayModal from '@src/components/modals/StartGatewayModal';
 import { GatewayStatus, useGatewayInfo } from '@src/hooks/useGatewayInfo';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
-import useObservers from '@src/hooks/useObservers';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatPercentage } from '@src/utils';
 import { useState } from 'react';
@@ -32,13 +31,12 @@ const Banner = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
-  const { data: observers } = useObservers(currentEpoch);
   const { data: observations } = useObservations(currentEpoch);
   const { data: allGateways } = useGateways();
 
   const { gateway, gatewayStatus } = useGatewayInfo();
 
-  const myObserver = observers?.find(
+  const myObserver = currentEpoch?.prescribedObservers?.find(
     (obs) => obs.gatewayAddress === walletAddress?.toString(),
   );
 
@@ -55,16 +53,19 @@ const Banner = () => {
       : 0;
   const prescribed = myObserver !== undefined;
 
+  // `observations.reports` and `failureSummaries[]` are keyed by the OBSERVER
+  // address, not the gateway address (they differ when a gateway operates under a
+  // separate observer wallet). Matches ObserversTable's authoritative usage.
   const prescribedStatus = prescribed
-    ? observations?.reports[walletAddress?.toString() || '']
+    ? observations?.reports[myObserver?.observerAddress ?? '']
       ? 'Prescribed - Report Submitted'
       : 'Prescribed - Report Pending'
     : 'Not prescribed for this epoch';
 
   const numFailedGatewaysFound = myObserver
-    ? observations?.reports[myObserver.gatewayAddress]
+    ? observations?.reports[myObserver.observerAddress]
       ? Object.values(observations.failureSummaries).reduce((acc, summary) => {
-          return acc + (summary.includes(myObserver.gatewayAddress) ? 1 : 0);
+          return acc + (summary.includes(myObserver.observerAddress) ? 1 : 0);
         }, 0)
       : 'Pending'
     : 'N/A';

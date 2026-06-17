@@ -4,6 +4,7 @@ import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
 import { BinocularsIcon } from '@src/components/icons';
 import useEpochSettings from '@src/hooks/useEpochSettings';
+import useObservations from '@src/hooks/useObservations';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
 import { useGlobalState } from '@src/store';
 import { useEffect, useState } from 'react';
@@ -95,8 +96,16 @@ const ObserverPerformancePanel = ({
     }
   }, [hoveredEpochIndex, historicalObserverStats, hoveredData]);
 
-  const reportsCount = currentEpoch
-    ? Object.keys(currentEpoch.observations.reports).length
+  const { data: observations } = useObservations(currentEpoch);
+  const reportsCount = observations
+    ? Object.keys(observations.reports).length
+    : undefined;
+  // Denominator = the live prescribed-observer count for the current epoch, not a
+  // hardcoded 50 — keeps the ratio correct if prescription size ever changes or
+  // the network prescribes a different count. (Historical epochs already use the
+  // dynamic value via useObserversWithCount.)
+  const prescribedCount = currentEpoch
+    ? currentEpoch.prescribedObservers.length
     : undefined;
 
   return (
@@ -212,8 +221,9 @@ const ObserverPerformancePanel = ({
                   <div className="text-[2.625rem] font-bold text-high leading-none">
                     {hoveredData ? (
                       hoveredData.performancePercentage.toFixed(2) + '%'
-                    ) : reportsCount !== undefined ? (
-                      ((100 * reportsCount) / 50).toFixed(2) + '%'
+                    ) : reportsCount !== undefined &&
+                      prescribedCount !== undefined ? (
+                      ((100 * reportsCount) / prescribedCount).toFixed(2) + '%'
                     ) : (
                       <Placeholder />
                     )}
@@ -239,9 +249,12 @@ const ObserverPerformancePanel = ({
                     </div>
                     <div>observations submitted</div>
                   </>
-                ) : reportsCount !== undefined ? (
+                ) : reportsCount !== undefined &&
+                  prescribedCount !== undefined ? (
                   <>
-                    <div>{reportsCount}/50</div>
+                    <div>
+                      {reportsCount}/{prescribedCount}
+                    </div>
                     <div>observations submitted</div>
                   </>
                 ) : (

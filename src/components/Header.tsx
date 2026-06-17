@@ -47,7 +47,6 @@ const HeaderItem = ({
 };
 
 const Header = () => {
-  const solanaSlot = useGlobalState((state) => state.solanaSlot);
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const epochCountdown = useEpochCountdown();
   const ticker = useGlobalState((state) => state.ticker);
@@ -80,11 +79,6 @@ const Header = () => {
           value={epochCountdown}
           label="NEXT EPOCH"
           loading={epochCountdown === undefined}
-        />
-        <HeaderItem
-          value={solanaSlot}
-          label="SOLANA SLOT"
-          loading={solanaSlot === undefined}
         />
         <HeaderItem
           value={

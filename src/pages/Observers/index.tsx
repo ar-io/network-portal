@@ -1,6 +1,7 @@
 import Header from '@src/components/Header';
 import Banner from './Banner';
 import ObserversTable from './ObserversTable';
+import PrescribedNamesBar from './PrescribedNamesBar';
 
 const Observers = () => {
   return (
@@ -11,6 +12,7 @@ const Observers = () => {
       <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
         <div className="mb-6 flex flex-col gap-6 pt-0">
           <Banner />
+          <PrescribedNamesBar />
           <ObserversTable />
         </div>
       </div>

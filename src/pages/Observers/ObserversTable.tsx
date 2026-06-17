@@ -12,7 +12,6 @@ import Tooltip from '@src/components/Tooltip';
 import useEpochs from '@src/hooks/useEpochs';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
-import useObservers from '@src/hooks/useObservers';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 
 interface TableData {
@@ -48,30 +47,22 @@ const ObserversTable = () => {
 
   const selectedEpoch = epochs?.[selectedEpochIndex];
 
-  const { isLoading, isError, data: observers } = useObservers(selectedEpoch);
-  const {
-    isLoading: observationsLoading,
-    isError: observationsError,
-    data: observations,
-  } = useObservations(selectedEpoch);
+  // Read prescribed observers directly from the epoch object (already fetched
+  // by useEpochs / getCurrentEpoch) instead of calling getPrescribedObservers
+  // which redundantly re-fetches the epoch + makes ~50 individual getGateway
+  // RPC calls for weights that are already on the epoch data.
+  const observers = selectedEpoch?.prescribedObservers;
+
+  const { isError: observationsError, data: observations } =
+    useObservations(selectedEpoch);
   const {
     isLoading: gatewaysLoading,
     isError: gatewaysError,
     data: gateways,
   } = useGateways();
 
-  const [observersTableData, setObserversTableData] = useState<
-    Array<TableData>
-  >([]);
-  const [isProcessingData, setIsProcessingData] = useState(true);
-
-  useEffect(() => {
-    if (!observers || !gateways || !observations) {
-      return;
-    }
-
-    // Pre-calculate failure summaries for efficiency
-    const failureSummaryEntries = Object.values(observations.failureSummaries);
+  const observersTableData = useMemo(() => {
+    if (!observers || !gateways) return [];
 
     // Compute total composite weight from all gateways for normalization
     const totalCompositeWeight = Object.values(gateways).reduce(
@@ -79,23 +70,31 @@ const ObserversTable = () => {
       0,
     );
 
-    const observersTableData: Array<TableData> = observers.map((observer) => {
+    // Pre-calculate failure summaries for efficiency
+    const failureSummaryEntries = observations
+      ? Object.values(observations.failureSummaries)
+      : [];
+
+    return observers.map((observer) => {
       const gateway = gateways[observer.gatewayAddress];
-      const submitted = observations.reports[observer.observerAddress];
 
-      const status = submitted
-        ? 'Submitted'
-        : selectedEpochIndex === 0
-          ? 'Pending'
-          : 'Did not report';
-
-      const numFailedGatewaysFound = submitted
-        ? failureSummaryEntries.reduce(
-            (count, summary) =>
-              count + (summary.includes(observer.observerAddress) ? 1 : 0),
-            0,
-          )
+      const submitted = observations?.reports[observer.observerAddress];
+      const status = observations
+        ? submitted
+          ? 'Submitted'
+          : selectedEpochIndex === 0
+            ? 'Pending'
+            : 'Did not report'
         : undefined;
+
+      const numFailedGatewaysFound =
+        observations && submitted
+          ? failureSummaryEntries.reduce(
+              (count, summary) =>
+                count + (summary.includes(observer.observerAddress) ? 1 : 0),
+              0,
+            )
+          : undefined;
 
       const ncw =
         observer.compositeWeight && totalCompositeWeight > 0
@@ -103,23 +102,21 @@ const ObserversTable = () => {
           : 0;
 
       return {
-        label: gateway.settings.label,
-        domain: gateway.settings.fqdn,
+        label: gateway?.settings.label ?? '',
+        domain: gateway?.settings.fqdn ?? '',
         gatewayAddress: observer.gatewayAddress,
         observerAddress: observer.observerAddress,
         ncw,
-        observedEpochs: gateway.stats.observedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
-        prescribedEpochs: gateway.stats.prescribedEpochCount + 1, // add one as the contract avoids divide by 0 by incrementing the numerator and denominator by 1 when computing performance ratio
+        observedEpochs: (gateway?.stats.observedEpochCount ?? 0) + 1,
+        prescribedEpochs: (gateway?.stats.prescribedEpochCount ?? 0) + 1,
         successRatio:
-          // there will be a period where old epoch notices have the old field, and new epoch notices have the new field, so check both
           observer.observerPerformanceRatio ||
           observer.observerRewardRatioWeight,
-        reportStatus: status,
+        reportStatus:
+          status ?? (selectedEpochIndex === 0 ? 'Pending' : 'Loading...'),
         failedGateways: numFailedGatewaysFound,
       };
     });
-    setObserversTableData(observersTableData);
-    setIsProcessingData(false);
   }, [observers, gateways, observations, selectedEpochIndex]);
 
   // Filter data by search term
@@ -211,13 +208,12 @@ const ObserversTable = () => {
       header: 'Failed Gateways',
       sortDescFirst: true,
       cell: ({ row }) =>
-        row.original.failedGateways ||
+        row.original.failedGateways ??
         (selectedEpochIndex === 0 ? 'Pending' : 'N/A'),
     }),
   ];
 
-  const tableIsLoading =
-    isLoading || gatewaysLoading || observationsLoading || isProcessingData;
+  const tableIsLoading = !observers || gatewaysLoading;
 
   return (
     <div>
@@ -260,7 +256,7 @@ const ObserversTable = () => {
         columns={columns}
         data={filteredData}
         isLoading={tableIsLoading}
-        isError={isError || gatewaysError || observationsError}
+        isError={gatewaysError || observationsError}
         noDataFoundText="No prescribed observers found."
         errorText="Unable to load observers."
         loadingRows={50}

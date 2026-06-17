@@ -123,7 +123,7 @@ const ObserverPerformancePanel = () => {
     : undefined;
 
   return (
-    <div className="flex h-full min-h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid">
+    <div className="flex h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid">
       <div className="flex items-center justify-between px-6 pt-5">
         <span className="text-mid">Observer Performance</span>
         <span className="text-xs text-low">Last 7 Epochs</span>

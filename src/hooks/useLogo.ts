@@ -2,6 +2,7 @@ import { ANT } from '@ar.io/sdk/web';
 import { address } from '@solana/kit';
 import { useGlobalState } from '@src/store';
 import { useSettings } from '@src/store';
+import { arweaveTxUrl } from '@src/utils/arweaveUrl';
 import { getOptionalSolanaAddress } from '@src/utils/solanaAddress';
 import { useQuery } from '@tanstack/react-query';
 
@@ -32,7 +33,7 @@ const useLogo = ({ primaryName }: { primaryName?: string }) => {
 
       const logoTxId = await antProcess.getLogo();
 
-      const imgSrc = `https://arweave.net/${logoTxId}`;
+      const imgSrc = arweaveTxUrl(logoTxId);
 
       return new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();

@@ -39,10 +39,11 @@ export const MAINNET_SOLANA_ANT_PROGRAM_ID = String(MAINNET_PROGRAM_IDS.ant);
 export const DEFAULT_ARWEAVE_PROTOCOL =
   import.meta.env.VITE_GATEWAY_PROTOCOL ?? 'https';
 export const DEFAULT_ARWEAVE_HOST =
-  import.meta.env.VITE_GATEWAY_HOST ?? 'arweave.net';
+  import.meta.env.VITE_GATEWAY_HOST ?? 'turbo-gateway.com';
 
 export const DEFAULT_ARWEAVE_GQL_ENDPOINT =
-  import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ?? 'https://arweave.net/graphql';
+  import.meta.env.VITE_ARWEAVE_GQL_ENDPOINT ??
+  'https://arweave-search.goldsky.com/graphql';
 export const DEFAULT_ARWEAVE_PORT =
   Number(import.meta.env.VITE_GATEWAY_PORT) ?? 443;
 

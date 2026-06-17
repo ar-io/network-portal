@@ -10,6 +10,7 @@ import { fetchEncodedAccount } from '@solana/kit';
 import { log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
+import { probeArIOGateway } from '@src/utils/arweaveUrl';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -201,6 +202,13 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
       cleanupDbCache(networkPortalDB, currentEpoch.epochIndex);
     }
   }, [currentEpoch, networkPortalDB]);
+
+  // Probe whether the app is served from an ar.io gateway (fire-and-forget).
+  // The cached result is used by arweaveTxUrl() to decide between relative
+  // URLs and turbo-gateway.com.
+  useEffect(() => {
+    probeArIOGateway();
+  }, []);
 
   // Handle window resize
   useEffect(() => {

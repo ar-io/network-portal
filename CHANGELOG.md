@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-06-17
+
+### Added
+
+- Live epoch observation data on Observers page (report status, failed gateways)
+- Prescribed ArNS names bar on Observers page
+- Observer Performance panel on Dashboard with proper chart layout
+- Gateway detection via /ar-io/info for relative Arweave data URLs
+
+### Fixed
+
+- Replace arweave.net with turbo-gateway.com for data fetching and goldsky for GraphQL
+- Fix observer address keying in Banner (use observerAddress, not gatewayAddress)
+- Fix failed gateways column showing "Pending" for 0 failures (nullish coalescing)
+- Work around SDK base58 memcmp browser bug with direct base64 RPC calls
+- Replace ~55 RPC call getCurrentEpoch with lightweight 2-call fetch
+- Remove all auto-polling intervals (slot, balances, observations)
+- Remove Solana slot display from header
+- Pin @ar.io/sdk to 4.0.2-alpha.9
+
+### Changed
+
+- Reduce staleTime on epoch/gateway/observer hooks from 1h to 5m
+- ObserversTable reads prescribedObservers from epoch data directly (eliminates ~55 redundant RPC calls)
+- SnitchRow and Dashboard panel use live useObservations hook instead of stale epoch object
+
 ## [2.1.0] - 2026-06-16
 
 ### Added

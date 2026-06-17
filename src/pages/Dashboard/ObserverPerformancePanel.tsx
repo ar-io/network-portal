@@ -1,11 +1,10 @@
-import EpochSelector from '@src/components/EpochSelector';
 import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useObservations from '@src/hooks/useObservations';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
 import { useGlobalState } from '@src/store';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -40,61 +39,14 @@ const CustomTooltip = ({
   return null;
 };
 
-interface ObserverPerformancePanelProps {
-  epochCount: number;
-  onEpochCountChange: (value: number) => void;
-  hoveredEpochIndex?: number | null;
-  onEpochHover?: (epochIndex: number | null) => void;
-}
+const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
-const ObserverPerformancePanel = ({
-  epochCount,
-  onEpochCountChange,
-  hoveredEpochIndex,
-  onEpochHover,
-}: ObserverPerformancePanelProps) => {
+const ObserverPerformancePanel = () => {
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const { data: epochSettings } = useEpochSettings();
-  const { data: historicalObserverStats } = useObserversWithCount(epochCount);
+  const { data: historicalObserverStats } = useObserversWithCount(EPOCH_COUNT);
 
-  const [activeIndex, setActiveIndex] = useState<number>();
-  const [percentageChange, setPercentageChange] = useState<number>();
-
-  // Sync active index with external hover or default to latest
-  useEffect(() => {
-    if (historicalObserverStats) {
-      if (hoveredEpochIndex !== null && hoveredEpochIndex !== undefined) {
-        const index = historicalObserverStats.findIndex(
-          (item) => item.epochIndex === hoveredEpochIndex,
-        );
-        setActiveIndex(index >= 0 ? index : historicalObserverStats.length - 1);
-      } else {
-        setActiveIndex(historicalObserverStats.length - 1);
-      }
-    }
-  }, [historicalObserverStats, hoveredEpochIndex]);
-
-  // Compute percentage change vs previous epoch
-  useEffect(() => {
-    if (
-      !activeIndex ||
-      !historicalObserverStats ||
-      !historicalObserverStats[activeIndex]
-    ) {
-      setPercentageChange(undefined);
-    } else {
-      const current =
-        historicalObserverStats[activeIndex].performancePercentage;
-      const previous =
-        historicalObserverStats[activeIndex - 1]?.performancePercentage;
-      if (previous !== undefined) {
-        setPercentageChange(current - previous);
-      } else {
-        setPercentageChange(undefined);
-      }
-    }
-  }, [activeIndex, historicalObserverStats]);
-
+  // Live observation data for the current epoch
   const { data: observations } = useObservations(currentEpoch);
   const reportsCount = observations
     ? Object.keys(observations.reports).length
@@ -103,27 +55,78 @@ const ObserverPerformancePanel = ({
     ? currentEpoch.prescribedObservers.length
     : undefined;
 
-  // Display value: hovered historical data or current epoch live data
-  const displayPercentage =
-    activeIndex !== undefined && historicalObserverStats?.[activeIndex]
-      ? historicalObserverStats[activeIndex].performancePercentage.toFixed(2) +
-        '%'
-      : reportsCount !== undefined && prescribedCount !== undefined
-        ? ((100 * reportsCount) / prescribedCount).toFixed(2) + '%'
-        : undefined;
+  // Patch the current epoch entry with live observation data from
+  // useObservations. The epoch object's embedded observations are empty
+  // (lightweight fetch doesn't populate them), so without this the
+  // current epoch always shows 0/50.
+  const chartData = useMemo(() => {
+    if (!historicalObserverStats) return undefined;
+    if (reportsCount === undefined || prescribedCount === undefined) {
+      return historicalObserverStats;
+    }
 
-  const displaySubmitted =
-    activeIndex !== undefined && historicalObserverStats?.[activeIndex]
-      ? `${historicalObserverStats[activeIndex].reportsCount}/${historicalObserverStats[activeIndex].prescribedObservers}`
-      : reportsCount !== undefined && prescribedCount !== undefined
-        ? `${reportsCount}/${prescribedCount}`
-        : undefined;
+    const patched = [...historicalObserverStats];
+    const lastIndex = patched.length - 1;
+    if (
+      lastIndex >= 0 &&
+      patched[lastIndex].epochIndex === currentEpoch?.epochIndex
+    ) {
+      patched[lastIndex] = {
+        ...patched[lastIndex],
+        reportsCount,
+        prescribedObservers: prescribedCount,
+        performancePercentage:
+          prescribedCount > 0 ? (reportsCount / prescribedCount) * 100 : 0,
+      };
+    }
+    return patched;
+  }, [
+    historicalObserverStats,
+    reportsCount,
+    prescribedCount,
+    currentEpoch?.epochIndex,
+  ]);
+
+  const [activeIndex, setActiveIndex] = useState<number>();
+  const [percentageChange, setPercentageChange] = useState<number>();
+
+  // Default to latest epoch
+  useEffect(() => {
+    if (chartData) {
+      setActiveIndex(chartData.length - 1);
+    }
+  }, [chartData]);
+
+  // Compute percentage change vs previous epoch
+  useEffect(() => {
+    if (!activeIndex || !chartData || !chartData[activeIndex]) {
+      setPercentageChange(undefined);
+    } else {
+      const current = chartData[activeIndex].performancePercentage;
+      const previous = chartData[activeIndex - 1]?.performancePercentage;
+      if (previous !== undefined) {
+        setPercentageChange(current - previous);
+      } else {
+        setPercentageChange(undefined);
+      }
+    }
+  }, [activeIndex, chartData]);
+
+  // Display value from the active (hovered or latest) data point
+  const activeData =
+    activeIndex !== undefined ? chartData?.[activeIndex] : undefined;
+  const displayPercentage = activeData
+    ? activeData.performancePercentage.toFixed(2) + '%'
+    : undefined;
+  const displaySubmitted = activeData
+    ? `${activeData.reportsCount}/${activeData.prescribedObservers}`
+    : undefined;
 
   return (
     <div className="flex h-full min-h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid">
       <div className="flex items-center justify-between px-6 pt-5">
         <span className="text-mid">Observer Performance</span>
-        <EpochSelector value={epochCount} onChange={onEpochCountChange} />
+        <span className="text-xs text-low">Last 7 Epochs</span>
       </div>
       <div className="flex items-end justify-between px-6">
         <div className="flex gap-2">
@@ -151,31 +154,30 @@ const ObserverPerformancePanel = ({
           )}
         </div>
       </div>
-      {historicalObserverStats && historicalObserverStats.length >= 2 ? (
+      {chartData && chartData.length >= 2 ? (
         <ResponsiveContainer
           width="100%"
           height="100%"
           className="mb-5 mt-2 min-h-0 flex-1 pr-6 text-xs"
         >
           <AreaChart
-            data={historicalObserverStats}
+            data={chartData}
             margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
             onMouseMove={(state) => {
               if (
                 state.isTooltipActive &&
                 state.activeTooltipIndex !== undefined &&
-                historicalObserverStats
+                chartData
               ) {
-                const epochData =
-                  historicalObserverStats[state.activeTooltipIndex];
-                if (epochData && onEpochHover) {
-                  onEpochHover(epochData.epochIndex);
+                const epochData = chartData[state.activeTooltipIndex];
+                if (epochData) {
+                  setActiveIndex(state.activeTooltipIndex);
                 }
               }
             }}
             onMouseLeave={() => {
-              if (onEpochHover) {
-                onEpochHover(null);
+              if (chartData) {
+                setActiveIndex(chartData.length - 1);
               }
             }}
           >
@@ -235,7 +237,7 @@ const ObserverPerformancePanel = ({
         <div className="m-auto pb-12 text-sm italic text-low">
           Awaiting first epoch...
         </div>
-      ) : historicalObserverStats && historicalObserverStats.length < 2 ? (
+      ) : chartData && chartData.length < 2 ? (
         <div className="m-auto pb-12 text-sm italic text-low">
           Historical trend available soon
         </div>

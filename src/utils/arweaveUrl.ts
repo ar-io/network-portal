@@ -17,9 +17,16 @@ export async function probeArIOGateway(): Promise<boolean> {
   try {
     const res = await fetch('/ar-io/info', {
       method: 'GET',
+      headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(3000),
     });
-    _isGateway = res.ok;
+    if (res.ok) {
+      const data = await res.json();
+      // Real ar.io gateways return JSON with a "wallet" field
+      _isGateway = typeof data?.wallet === 'string';
+    } else {
+      _isGateway = false;
+    }
   } catch {
     _isGateway = false;
   }

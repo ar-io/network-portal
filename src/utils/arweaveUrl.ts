@@ -46,15 +46,14 @@ export function isOnArIOGateway(): boolean {
 }
 
 /**
- * Returns the FQDN of the best reference gateway for ArNS resolution.
- * If the app is served from an ar.io gateway, uses that gateway (it
- * supports ArNS subdomains). Otherwise falls back to the configured
- * REFERENCE_GATEWAY_FQDN constant (default: turbo-gateway.com).
+ * Returns the FQDN of the reference gateway for ArNS subdomain resolution.
+ * Always returns the configured REFERENCE_GATEWAY_FQDN (default:
+ * turbo-gateway.com). We can't use the serving gateway's hostname here
+ * because the app may be accessed via an ArNS subdomain
+ * (e.g. portal.vilenarios.com) and stacking another subdomain on top
+ * (arns-name.portal.vilenarios.com) won't resolve correctly.
  */
 export function getReferenceGatewayFqdn(): string {
-  if (_isGateway) {
-    return window.location.hostname;
-  }
   return REFERENCE_GATEWAY_FQDN;
 }
 

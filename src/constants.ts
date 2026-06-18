@@ -75,7 +75,7 @@ export const OPERATOR_EAY_TOOLTIP_FORMULA =
 // OBSERVATION ASSESSMENT CONSTANTS
 export const NAME_PASS_THRESHOLD = 0.8;
 export const REFERENCE_GATEWAY_FQDN =
-  import.meta.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'ar-io.net';
+  import.meta.env.VITE_REFERENCE_GATEWAY_FQDN ?? 'turbo-gateway.com';
 
 export const REDELEGATION_FEE_TOOLTIP_TEXT =
   'Redelegation fees are assessed at 10% per redelegation performed since the last fee reset, up to 60%. Fees are reset when no redelegations are performed in the last 7 days.';

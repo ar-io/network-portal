@@ -1,4 +1,8 @@
-import { DEFAULT_ARWEAVE_HOST, DEFAULT_ARWEAVE_PROTOCOL } from '@src/constants';
+import {
+  DEFAULT_ARWEAVE_HOST,
+  DEFAULT_ARWEAVE_PROTOCOL,
+  REFERENCE_GATEWAY_FQDN,
+} from '@src/constants';
 
 /**
  * Cached result of the ar.io gateway check. Defaults to false (use
@@ -39,6 +43,18 @@ export async function probeArIOGateway(): Promise<boolean> {
  */
 export function isOnArIOGateway(): boolean {
   return _isGateway === true;
+}
+
+/**
+ * Returns the FQDN of the reference gateway for ArNS subdomain resolution.
+ * Always returns the configured REFERENCE_GATEWAY_FQDN (default:
+ * turbo-gateway.com). We can't use the serving gateway's hostname here
+ * because the app may be accessed via an ArNS subdomain
+ * (e.g. portal.vilenarios.com) and stacking another subdomain on top
+ * (arns-name.portal.vilenarios.com) won't resolve correctly.
+ */
+export function getReferenceGatewayFqdn(): string {
+  return REFERENCE_GATEWAY_FQDN;
 }
 
 /**

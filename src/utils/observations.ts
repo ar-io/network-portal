@@ -1,12 +1,9 @@
 /* Based on code by elliotsayes from https://github.com/elliotsayes/gateway-explorer */
 
 import { GatewayWithAddress } from '@ar.io/sdk/web';
-import {
-  NAME_PASS_THRESHOLD,
-  REFERENCE_GATEWAY_FQDN,
-  log,
-} from '@src/constants';
+import { NAME_PASS_THRESHOLD, log } from '@src/constants';
 import { ArNSAssessment, Assessment, OwnershipAssessment } from '@src/types';
+import { getReferenceGatewayFqdn } from '@src/utils/arweaveUrl';
 import ky, { TimeoutError } from 'ky';
 import { arrayBufferToBase64Url } from '.';
 
@@ -108,7 +105,7 @@ const assessArNSName = async (
   gateway: GatewayWithAddress,
   arnsName: string,
 ): Promise<[string, ArNSAssessment]> => {
-  const referenceURL = `https://${arnsName}.${REFERENCE_GATEWAY_FQDN}:443`;
+  const referenceURL = `https://${arnsName}.${getReferenceGatewayFqdn()}:443`;
   const gatewayURL = `${gateway.settings.protocol}://${arnsName}.${gateway.settings.fqdn}:${gateway.settings.port}`;
 
   const referenceRes = await fetchArnsData(referenceURL);

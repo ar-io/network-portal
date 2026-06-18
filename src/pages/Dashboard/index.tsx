@@ -50,15 +50,10 @@ const Dashboard = () => {
                 hoveredEpochIndex={hoveredEpochIndex}
                 onEpochHover={setHoveredEpochIndex}
               />
-            </div>
-            <div className="col-span-1 md:col-span-6">
-              <RewardsDistributionPanel
-                epochCount={epochCount}
-                onEpochCountChange={setEpochCount}
-                hoveredEpochIndex={hoveredEpochIndex}
-                onEpochHover={setHoveredEpochIndex}
-              />
             </div> */}
+            <div className="col-span-1 md:col-span-6">
+              <RewardsDistributionPanel />
+            </div>
           </div>
         </div>
       </div>

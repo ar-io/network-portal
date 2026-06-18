@@ -26,7 +26,8 @@ const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
 interface RewardsData {
   epoch: number;
-  eligible: number;
+  amount: number;
+  status: 'Distributed' | 'Pending';
 }
 
 const CustomTooltip = ({
@@ -35,10 +36,11 @@ const CustomTooltip = ({
   label,
 }: TooltipProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
+    const data = payload[0].payload as RewardsData;
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
         <p>{`Epoch ${label}`}</p>
-        <p>{`Eligible Rewards: ${formatWithCommas(Number(payload[0].value))} ARIO`}</p>
+        <p>{`${data.status}: ${formatWithCommas(Number(payload[0].value))} ARIO`}</p>
       </div>
     );
   }
@@ -147,33 +149,35 @@ const RewardsDistributionPanel = () => {
   const [mouseLeave, setMouseLeave] = useState(true);
   const { data: epochs } = useEpochsWithCount(EPOCH_COUNT);
   const { data: epochSettings } = useEpochSettings();
+  const currentEpochIndex = useGlobalState(
+    (state) => state.currentEpoch?.epochIndex,
+  );
 
   const rewardsData: Array<RewardsData> | undefined = useMemo(() => {
     const data = epochs
       ?.filter((epoch) => epoch !== undefined)
       .sort((a, b) => a!.epochIndex - b!.epochIndex)
       .map((epoch) => {
-        const eligible = new mARIOToken(
-          epoch!.distributions.totalEligibleRewards,
-        )
+        const amount = new mARIOToken(epoch!.distributions.totalEligibleRewards)
           .toARIO()
           .valueOf();
 
         return {
           epoch: epoch!.epochIndex,
-          eligible,
+          amount,
+          status: (epoch!.epochIndex === currentEpochIndex
+            ? 'Pending'
+            : 'Distributed') as RewardsData['status'],
         };
       });
 
     return data;
-  }, [epochs]);
+  }, [epochs, currentEpochIndex]);
 
   return (
     <div className="rounded-xl border border-grey-500">
       <div className="flex items-center justify-between px-5 pb-3 pt-5">
-        <span className="text-sm text-mid">
-          Total Epoch Emissions ({ticker})
-        </span>
+        <span className="text-sm text-mid">Rewards by Epoch ({ticker})</span>
         <span className="text-xs text-low">Last 7 Epochs</span>
       </div>
       <div className="relative h-80">
@@ -220,18 +224,21 @@ const RewardsDistributionPanel = () => {
                 <Tooltip content={<CustomTooltip />} cursor={false} />
 
                 <Bar
-                  dataKey="eligible"
+                  dataKey="amount"
                   fill="url(#colorUv)"
                   stroke="rgba(202, 202, 214, 0.32)"
                   shape={CustomBar(1, 'white')}
                 >
-                  {rewardsData.map((_entry, index) => (
+                  {rewardsData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={
                         index !== focusBar || mouseLeave
                           ? 'url(#colorUv)'
                           : 'url(#fullBar)'
+                      }
+                      strokeDasharray={
+                        entry.status === 'Pending' ? '3 3' : undefined
                       }
                     />
                   ))}

@@ -1,10 +1,8 @@
-import EpochSelector from '@src/components/EpochSelector';
 import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
 import useEpochSettings from '@src/hooks/useEpochSettings';
-import useGatewaysPerEpoch from '@src/hooks/useGatewaysPerEpoch';
 import useGatewaysPerEpochWithCount from '@src/hooks/useGatewaysPerEpochWithCount';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -19,6 +17,8 @@ import {
   NameType,
   ValueType,
 } from 'recharts/types/component/DefaultTooltipContent';
+
+const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
 const CustomTooltip = ({
   active,
@@ -37,20 +37,8 @@ const CustomTooltip = ({
   return null;
 };
 
-interface GatewaysInNetworkPanelProps {
-  epochCount: number;
-  onEpochCountChange: (value: number) => void;
-  hoveredEpochIndex?: number | null;
-  onEpochHover?: (epochIndex: number | null) => void;
-}
-
-const GatewaysInNetworkPanel = ({
-  epochCount,
-  onEpochCountChange,
-  hoveredEpochIndex,
-  onEpochHover,
-}: GatewaysInNetworkPanelProps) => {
-  const { data: gatewaysPerEpoch } = useGatewaysPerEpochWithCount(epochCount);
+const GatewaysInNetworkPanel = () => {
+  const { data: gatewaysPerEpoch } = useGatewaysPerEpochWithCount(EPOCH_COUNT);
   const { data: epochSettings } = useEpochSettings();
 
   const [activeIndex, setActiveIndex] = useState<number>();
@@ -58,17 +46,9 @@ const GatewaysInNetworkPanel = ({
 
   useEffect(() => {
     if (gatewaysPerEpoch) {
-      if (hoveredEpochIndex !== null) {
-        // Find the index that matches the hovered epoch
-        const index = gatewaysPerEpoch.findIndex(
-          (item) => item.epochIndex === hoveredEpochIndex,
-        );
-        setActiveIndex(index >= 0 ? index : gatewaysPerEpoch.length - 1);
-      } else {
-        setActiveIndex(gatewaysPerEpoch.length - 1);
-      }
+      setActiveIndex(gatewaysPerEpoch.length - 1);
     }
-  }, [gatewaysPerEpoch, hoveredEpochIndex]);
+  }, [gatewaysPerEpoch]);
 
   useEffect(() => {
     if (!activeIndex || !gatewaysPerEpoch || !gatewaysPerEpoch[activeIndex]) {
@@ -86,10 +66,10 @@ const GatewaysInNetworkPanel = ({
   }, [activeIndex, gatewaysPerEpoch]);
 
   return (
-    <div className="flex h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid lg:min-w-[22rem]">
+    <div className="flex h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid">
       <div className="flex items-center justify-between px-6 pt-5">
         <span className="text-mid">Gateways in the Network by Epoch</span>
-        <EpochSelector value={epochCount} onChange={onEpochCountChange} />
+        <span className="text-xs text-low">Last 7 Epochs</span>
       </div>
       <div className="flex gap-2">
         <div className="py-6 pl-6 text-[2.625rem] text-high">
@@ -104,7 +84,7 @@ const GatewaysInNetworkPanel = ({
           </div>
         )}
       </div>
-      {gatewaysPerEpoch ? (
+      {gatewaysPerEpoch && gatewaysPerEpoch.length >= 2 ? (
         <ResponsiveContainer
           width="100%"
           height="100%"
@@ -118,15 +98,12 @@ const GatewaysInNetworkPanel = ({
                 state.isTooltipActive &&
                 state.activeTooltipIndex !== undefined
               ) {
-                const epochData = gatewaysPerEpoch[state.activeTooltipIndex];
-                if (epochData && onEpochHover) {
-                  onEpochHover(epochData.epochIndex);
-                }
+                setActiveIndex(state.activeTooltipIndex);
               }
             }}
             onMouseLeave={() => {
-              if (onEpochHover) {
-                onEpochHover(null);
+              if (gatewaysPerEpoch) {
+                setActiveIndex(gatewaysPerEpoch.length - 1);
               }
             }}
           >
@@ -160,7 +137,6 @@ const GatewaysInNetworkPanel = ({
               fillOpacity={0.2}
               fill="url(#gatewaysColorGradient)"
               dot={(props) => {
-                // eslint-disable-next-line react/prop-types
                 const { cx, cy, index } = props;
                 const isActive = index === activeIndex;
 
@@ -182,6 +158,10 @@ const GatewaysInNetworkPanel = ({
       ) : epochSettings && !epochSettings.hasEpochZeroStarted ? (
         <div className="m-auto pb-12 text-sm italic text-low">
           Awaiting first epoch...
+        </div>
+      ) : gatewaysPerEpoch && gatewaysPerEpoch.length < 2 ? (
+        <div className="m-auto pb-12 text-sm italic text-low">
+          Historical trend available soon
         </div>
       ) : (
         <Placeholder className="m-auto" />

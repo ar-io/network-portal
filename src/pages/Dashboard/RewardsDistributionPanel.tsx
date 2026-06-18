@@ -1,4 +1,4 @@
-import { isDistributedEpochData, mARIOToken } from '@ar.io/sdk/web';
+import { mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useEpochsWithCount from '@src/hooks/useEpochsWithCount';
@@ -151,6 +151,10 @@ const RewardsDistributionPanel = () => {
   const { data: epochs } = useEpochsWithCount(EPOCH_COUNT);
   const { data: epochSettings } = useEpochSettings();
 
+  const currentEpochIndex = useGlobalState(
+    (state) => state.currentEpoch?.epochIndex,
+  );
+
   const rewardsData: Array<RewardsData> | undefined = useMemo(() => {
     const data = epochs
       ?.filter((epoch) => epoch !== undefined)
@@ -162,11 +166,13 @@ const RewardsDistributionPanel = () => {
           .toARIO()
           .valueOf();
 
-        const distributed = isDistributedEpochData(epoch!.distributions)
-          ? epoch!.distributions.totalDistributedRewards
-          : 0;
+        // The SDK doesn't surface totalDistributedRewards for Solana
+        // epochs (the field exists on-chain but getEpoch doesn't map it).
+        // For closed epochs (not the current one), treat eligible as
+        // distributed since the cranker distributes all eligible rewards.
+        const isCurrentEpoch = epoch!.epochIndex === currentEpochIndex;
+        const claimed = isCurrentEpoch ? 0 : eligible;
 
-        const claimed = new mARIOToken(distributed).toARIO().valueOf();
         return {
           epoch: epoch!.epochIndex,
           eligible,
@@ -176,7 +182,7 @@ const RewardsDistributionPanel = () => {
       });
 
     return data;
-  }, [epochs]);
+  }, [epochs, currentEpochIndex]);
 
   return (
     <div className="rounded-xl border border-grey-500">

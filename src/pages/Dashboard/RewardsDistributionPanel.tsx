@@ -49,9 +49,30 @@ const CustomTooltip = ({
 };
 
 const CustomBar = (borderHeight: number, borderColor: string) => {
-  const renderFunc = ({ fill, x, y, width, height }: Props) => {
+  const renderFunc = (props: Props) => {
+    const { fill, x, y, width, height } = props;
+    const isPending = (props as any).payload?.status === 'Pending';
     const barBorderColor = 'rgba(202, 202, 214, 0.32)';
-    return height ? (
+
+    if (!height) return <></>;
+
+    if (isPending) {
+      return (
+        <g>
+          <rect
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            fill="transparent"
+            stroke={barBorderColor}
+            strokeDasharray="3 3"
+          />
+        </g>
+      );
+    }
+
+    return (
       <g>
         <rect
           x={x}
@@ -78,8 +99,6 @@ const CustomBar = (borderHeight: number, borderColor: string) => {
           fill={barBorderColor}
         />
       </g>
-    ) : (
-      <></>
     );
   };
   return renderFunc;
@@ -229,16 +248,13 @@ const RewardsDistributionPanel = () => {
                   stroke="rgba(202, 202, 214, 0.32)"
                   shape={CustomBar(1, 'white')}
                 >
-                  {rewardsData.map((entry, index) => (
+                  {rewardsData.map((_entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={
                         index !== focusBar || mouseLeave
                           ? 'url(#colorUv)'
                           : 'url(#fullBar)'
-                      }
-                      strokeDasharray={
-                        entry.status === 'Pending' ? '3 3' : undefined
                       }
                     />
                   ))}

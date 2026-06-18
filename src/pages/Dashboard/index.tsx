@@ -35,18 +35,10 @@ const Dashboard = () => {
             <div className="col-span-1 md:col-span-2">
               <ObserverPerformancePanel />
             </div>
-            <div className="col-span-1 md:col-span-2">
+            <div className="col-span-1 md:col-span-3">
               <GatewaysInNetworkPanel />
             </div>
-            {/* <div className="col-span-1 md:col-span-2">
-              <ArNSStatsPanel
-                epochCount={epochCount}
-                onEpochCountChange={setEpochCount}
-                hoveredEpochIndex={hoveredEpochIndex}
-                onEpochHover={setHoveredEpochIndex}
-              />
-            </div> */}
-            <div className="col-span-1 md:col-span-6">
+            <div className="col-span-1 md:col-span-3">
               <RewardsDistributionPanel />
             </div>
           </div>

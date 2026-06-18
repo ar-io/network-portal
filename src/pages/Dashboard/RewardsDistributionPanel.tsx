@@ -27,8 +27,6 @@ const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 interface RewardsData {
   epoch: number;
   eligible: number;
-  claimed: number;
-  unclaimed: number;
 }
 
 const CustomTooltip = ({
@@ -40,8 +38,7 @@ const CustomTooltip = ({
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
         <p>{`Epoch ${label}`}</p>
-        <p>{`Distributed Rewards: ${formatWithCommas(Number(payload[0].value))}`}</p>
-        <p>{`Eligible Rewards: ${formatWithCommas(Number(payload[0].value) + Number(payload[1].value))}`}</p>
+        <p>{`Eligible Rewards: ${formatWithCommas(Number(payload[0].value))} ARIO`}</p>
       </div>
     );
   }
@@ -86,7 +83,7 @@ const CustomBar = (borderHeight: number, borderColor: string) => {
   return renderFunc;
 };
 
-const CustomUnclaimedBar = ({
+const _CustomUnclaimedBar = ({
   fill,
   x,
   y,
@@ -151,10 +148,6 @@ const RewardsDistributionPanel = () => {
   const { data: epochs } = useEpochsWithCount(EPOCH_COUNT);
   const { data: epochSettings } = useEpochSettings();
 
-  const currentEpochIndex = useGlobalState(
-    (state) => state.currentEpoch?.epochIndex,
-  );
-
   const rewardsData: Array<RewardsData> | undefined = useMemo(() => {
     const data = epochs
       ?.filter((epoch) => epoch !== undefined)
@@ -166,29 +159,20 @@ const RewardsDistributionPanel = () => {
           .toARIO()
           .valueOf();
 
-        // The SDK doesn't surface totalDistributedRewards for Solana
-        // epochs (the field exists on-chain but getEpoch doesn't map it).
-        // For closed epochs (not the current one), treat eligible as
-        // distributed since the cranker distributes all eligible rewards.
-        const isCurrentEpoch = epoch!.epochIndex === currentEpochIndex;
-        const claimed = isCurrentEpoch ? 0 : eligible;
-
         return {
           epoch: epoch!.epochIndex,
           eligible,
-          claimed,
-          unclaimed: eligible - claimed,
         };
       });
 
     return data;
-  }, [epochs, currentEpochIndex]);
+  }, [epochs]);
 
   return (
     <div className="rounded-xl border border-grey-500">
       <div className="flex items-center justify-between px-5 pb-3 pt-5">
         <span className="text-sm text-mid">
-          Eligible Rewards in {ticker} by Epoch vs. Rewards Distributed
+          Total Epoch Emissions ({ticker})
         </span>
         <span className="text-xs text-low">Last 7 Epochs</span>
       </div>
@@ -232,12 +216,11 @@ const RewardsDistributionPanel = () => {
                 </defs>
 
                 <XAxis dataKey="epoch" />
-                <YAxis />
+                <YAxis tickFormatter={(v) => formatWithCommas(v)} />
                 <Tooltip content={<CustomTooltip />} cursor={false} />
 
                 <Bar
-                  dataKey="claimed"
-                  stackId="a"
+                  dataKey="eligible"
                   fill="url(#colorUv)"
                   stroke="rgba(202, 202, 214, 0.32)"
                   shape={CustomBar(1, 'white')}
@@ -249,22 +232,6 @@ const RewardsDistributionPanel = () => {
                         index !== focusBar || mouseLeave
                           ? 'url(#colorUv)'
                           : 'url(#fullBar)'
-                      }
-                    />
-                  ))}
-                </Bar>
-                <Bar
-                  dataKey="unclaimed"
-                  stackId="a"
-                  fill="black"
-                  stroke="rgba(202, 202, 214, 0.32)"
-                  shape={CustomUnclaimedBar}
-                >
-                  {rewardsData.map((_entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      strokeDasharray={
-                        index === rewardsData.length - 1 ? '3 3' : undefined
                       }
                     />
                   ))}

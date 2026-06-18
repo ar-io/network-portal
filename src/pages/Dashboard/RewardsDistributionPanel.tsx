@@ -194,12 +194,12 @@ const RewardsDistributionPanel = () => {
   }, [epochs, currentEpochIndex]);
 
   return (
-    <div className="rounded-xl border border-grey-500">
+    <div className="flex h-72 flex-col rounded-xl border border-grey-500">
       <div className="flex items-center justify-between px-5 pb-3 pt-5">
         <span className="text-sm text-mid">Rewards by Epoch ({ticker})</span>
         <span className="text-xs text-low">Last 7 Epochs</span>
       </div>
-      <div className="relative h-80">
+      <div className="relative flex-1">
         {rewardsData && rewardsData.length > 0 ? (
           <div className="size-full text-xs text-low">
             <ResponsiveContainer width="100%" height="100%">

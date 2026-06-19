@@ -28,6 +28,8 @@ interface RewardsData {
   epoch: number;
   gatewayRewards: number;
   observerRewards: number;
+  gatewayCount: number;
+  observerCount: number;
   status: 'Distributed' | 'Pending';
 }
 
@@ -42,8 +44,8 @@ const CustomTooltip = ({
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
         <p>{`Epoch ${label} (${data.status})`}</p>
-        <p>{`Gateway Rewards: ${formatWithCommas(data.gatewayRewards)} ARIO`}</p>
-        <p>{`Observer Rewards: ${formatWithCommas(data.observerRewards)} ARIO`}</p>
+        <p>{`Gateway Rewards: ${formatWithCommas(data.gatewayRewards)} ARIO (${data.gatewayCount} gateways)`}</p>
+        <p>{`Observer Rewards: ${formatWithCommas(data.observerRewards)} ARIO (${data.observerCount} observers)`}</p>
         <p>{`Total: ${formatWithCommas(total)} ARIO`}</p>
       </div>
     );
@@ -177,6 +179,8 @@ const RewardsDistributionPanel = () => {
           epoch: epoch!.epochIndex,
           gatewayRewards,
           observerRewards,
+          gatewayCount: epoch!.distributions.totalEligibleGateways,
+          observerCount: epoch!.prescribedObservers.length,
           status: (epoch!.epochIndex === currentEpochIndex
             ? 'Pending'
             : 'Distributed') as RewardsData['status'],

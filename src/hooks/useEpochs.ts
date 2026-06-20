@@ -10,6 +10,8 @@ const HISTORICAL_EPOCHS_TO_FETCH = 13;
 /** Returns last EPOCHS_TO_FETCH epochs */
 const useEpochs = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const rpc = useGlobalState((state) => state.rpc);
+  const garProgram = (arIOReadSDK as any)?.garProgram as string | undefined;
   const startEpoch = useGlobalState((state) => state.currentEpoch);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
@@ -17,8 +19,8 @@ const useEpochs = () => {
   const queryResults = useQuery({
     queryKey: ['epochs', solanaRpcUrl, startEpoch?.epochIndex],
     queryFn: async () => {
-      if (!arIOReadSDK || startEpoch === undefined) {
-        throw new Error('arIOReadSDK or startEpoch not available');
+      if (!rpc || !garProgram || startEpoch === undefined) {
+        throw new Error('rpc, garProgram, or startEpoch not available');
       }
 
       const historicalEpochIndexes = Array.from(
@@ -32,7 +34,7 @@ const useEpochs = () => {
 
       const additionalEpochs = await Promise.all(
         historicalEpochIndexes.map((epochIndex) =>
-          getEpoch(networkPortalDB, arIOReadSDK, epochIndex)
+          getEpoch(networkPortalDB, rpc, garProgram, epochIndex)
             .then((epoch) => {
               return epoch;
             })
@@ -57,8 +59,8 @@ const useEpochs = () => {
 
       return [startEpoch, ...availableEpochs];
     },
-    enabled: !!arIOReadSDK && startEpoch !== undefined,
-    staleTime: 5 * 60 * 1000, // 5 minutes — epoch list needs to refresh at the boundary
+    enabled: !!rpc && !!garProgram && startEpoch !== undefined,
+    staleTime: 5 * 60 * 1000,
   });
 
   return queryResults;

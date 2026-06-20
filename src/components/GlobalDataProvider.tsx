@@ -1,7 +1,5 @@
 import {
-  deserializeEpoch,
   deserializeEpochSettingsFull,
-  getEpochPDA,
   getEpochSettingsPDA,
 } from '@ar.io/sdk/solana';
 import { EpochData } from '@ar.io/sdk/web';
@@ -11,29 +9,21 @@ import { log } from '@src/constants';
 import { useGlobalState } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
 import { probeArIOGateway } from '@src/utils/arweaveUrl';
+import { fetchEpochLightweight } from '@src/utils/epochFetch';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect } from 'react';
 
-const DEFAULT_ADDRESS = '11111111111111111111111111111111';
-
-const secToMs = (n: number): number => n * 1000;
-
 /**
- * Lightweight alternative to getCurrentEpoch() that fetches the epoch
- * metadata in ~2-3 RPC calls instead of ~55. Reads the EpochSettings PDA
- * to resolve the current epoch index, then reads the Epoch PDA directly.
- * Builds the prescribedObservers list from the on-chain data WITHOUT
- * making individual getGateway calls for each observer (weights can be
- * looked up from useGateways when needed).
+ * Resolve the current epoch index from on-chain EpochSettings,
+ * then fetch the epoch data via the shared lightweight fetch.
  */
 async function fetchCurrentEpochLightweight(
   rpc: any,
   garProgram: string,
   commitment: Commitment,
-): Promise<EpochData> {
-  // 1. Resolve current epoch index from EpochSettings (1 RPC call)
+) {
   const [settingsPda] = await getEpochSettingsPDA(garProgram as any);
   const settingsAccount = await fetchEncodedAccount(rpc, settingsPda, {
     commitment,
@@ -46,63 +36,7 @@ async function fetchCurrentEpochLightweight(
   );
   const epochIndex = Math.max(0, settings.currentEpochIndex - 1);
 
-  // 2. Fetch the Epoch account (1 RPC call)
-  const [epochPda] = await getEpochPDA(epochIndex, garProgram as any);
-  const epochAccount = await fetchEncodedAccount(rpc, epochPda, {
-    commitment,
-  });
-  if (!epochAccount.exists) {
-    throw new Error(`Epoch ${epochIndex} not found`);
-  }
-  const epochData = deserializeEpoch(Buffer.from(epochAccount.data));
-
-  // 3. Build prescribed observers from the epoch account data (0 RPC calls)
-  const prescribedObservers = [];
-  for (let i = 0; i < epochData.observerCount; i++) {
-    const observerAddress = epochData.prescribedObservers[i] as string;
-    const gatewayAddress = epochData.prescribedObserverGateways[i] as string;
-    if (observerAddress === DEFAULT_ADDRESS) continue;
-
-    prescribedObservers.push({
-      gatewayAddress,
-      observerAddress,
-      stake: 0,
-      startTimestamp: 0,
-      stakeWeight: 0,
-      tenureWeight: 0,
-      gatewayRewardRatioWeight: 0,
-      observerRewardRatioWeight: 0,
-      gatewayPerformanceRatio: 0,
-      observerPerformanceRatio: 0,
-      compositeWeight: 0,
-      normalizedCompositeWeight: 0,
-    });
-  }
-
-  return {
-    epochIndex,
-    startHeight: 0,
-    startTimestamp: secToMs(epochData.startTimestamp),
-    endTimestamp: secToMs(epochData.endTimestamp),
-    distributionTimestamp: secToMs(epochData.endTimestamp),
-    observations: { reports: {}, failureSummaries: {} },
-    prescribedObservers,
-    prescribedNames: [],
-    distributions: {
-      totalEligibleGateways: epochData.activeGatewayCount,
-      totalEligibleRewards: epochData.totalEligibleRewards,
-      totalEligibleObserverReward:
-        epochData.perObserverReward * epochData.observerCount,
-      totalEligibleGatewayReward:
-        epochData.perGatewayReward * epochData.activeGatewayCount,
-    },
-    arnsStats: {
-      totalReturnedNames: 0,
-      totalActiveNames: 0,
-      totalGracePeriodNames: 0,
-      totalReservedNames: 0,
-    },
-  };
+  return fetchEpochLightweight(rpc, garProgram, epochIndex, commitment);
 }
 
 const isEpochUnavailableError = (errorMessage: string): boolean => {

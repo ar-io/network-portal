@@ -83,7 +83,7 @@ const IOTokenDistributionPanel = () => {
         {data && activeIndex !== undefined
           ? data[activeIndex].name
           : ticker
-            ? `${ticker} Token`
+            ? 'Token Supply'
             : ''}
       </div>
       <div className="relative h-48 w-full grow">

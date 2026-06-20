@@ -18,7 +18,7 @@ export type ObserverHistoricalStats = {
  * Count observation PDAs for a given epoch. Uses dataSlice to fetch
  * only account keys (no data), minimizing response size.
  */
-async function countObservationsForEpoch(
+export async function countObservationsForEpoch(
   rpc: any,
   garProgram: string,
   epochIndex: number,

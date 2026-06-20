@@ -1,6 +1,7 @@
-import { ARIORead, EpochData } from '@ar.io/sdk/web';
+import { EpochData } from '@ar.io/sdk/web';
 import { log } from '@src/constants';
 import { Assessment } from '@src/types';
+import { fetchEpochLightweight } from '@src/utils/epochFetch';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import Dexie, { type EntityTable } from 'dexie';
 
@@ -53,9 +54,11 @@ export const createDb = (dbName: string = 'solana-mainnet') => {
 
   return db;
 };
+
 export const getEpoch = async (
   networkPortalDB: NetworkPortalDB,
-  arIOReadSDK: ARIORead,
+  rpc: any,
+  garProgram: string,
   epochIndex: number,
 ) => {
   const epoch = await networkPortalDB.epochs
@@ -68,7 +71,7 @@ export const getEpoch = async (
 
   let epochData: EpochData | undefined;
   try {
-    epochData = await arIOReadSDK.getEpoch({ epochIndex });
+    epochData = await fetchEpochLightweight(rpc, garProgram, epochIndex);
   } catch (error) {
     if (isMissingEpochError(error)) {
       log.info(

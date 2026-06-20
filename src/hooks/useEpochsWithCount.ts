@@ -7,6 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 /** Returns last epochCount epochs */
 const useEpochsWithCount = (epochCount: number) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const rpc = useGlobalState((state) => state.rpc);
+  const garProgram = (arIOReadSDK as any)?.garProgram as string | undefined;
   const startEpoch = useGlobalState((state) => state.currentEpoch);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
@@ -14,8 +16,8 @@ const useEpochsWithCount = (epochCount: number) => {
   const queryResults = useQuery({
     queryKey: ['epochs', solanaRpcUrl, startEpoch?.epochIndex, epochCount],
     queryFn: async () => {
-      if (!arIOReadSDK || startEpoch === undefined) {
-        throw new Error('arIOReadSDK or startEpoch not available');
+      if (!rpc || !garProgram || startEpoch === undefined) {
+        throw new Error('rpc, garProgram, or startEpoch not available');
       }
 
       // Fetch the requested number of historical epochs (minus 1 for current epoch)
@@ -31,7 +33,7 @@ const useEpochsWithCount = (epochCount: number) => {
 
       const additionalEpochs = await Promise.all(
         historicalEpochIndexes.map((epochIndex) =>
-          getEpoch(networkPortalDB, arIOReadSDK, epochIndex)
+          getEpoch(networkPortalDB, rpc, garProgram, epochIndex)
             .then((epoch) => {
               return epoch;
             })
@@ -56,8 +58,8 @@ const useEpochsWithCount = (epochCount: number) => {
 
       return [startEpoch, ...availableEpochs];
     },
-    enabled: !!arIOReadSDK && startEpoch !== undefined,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!rpc && !!garProgram && startEpoch !== undefined,
+    staleTime: 5 * 60 * 1000,
   });
 
   return queryResults;

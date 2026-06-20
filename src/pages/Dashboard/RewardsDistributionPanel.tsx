@@ -2,10 +2,9 @@ import { mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useEpochsWithCount from '@src/hooks/useEpochsWithCount';
-import { countObservationsForEpoch } from '@src/hooks/useObserversWithCount';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -29,9 +28,6 @@ interface RewardsData {
   epoch: number;
   gatewayRewards: number;
   observerRewards: number;
-  gatewayCount: number;
-  observersPrescribed: number;
-  observersSubmitted: number;
   status: 'Distributed' | 'Pending';
 }
 
@@ -46,8 +42,8 @@ const CustomTooltip = ({
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
         <p>{`Epoch ${label} (${data.status})`}</p>
-        <p>{`Gateway Rewards: ${formatWithCommas(data.gatewayRewards)} ARIO (${data.gatewayCount} gateways)`}</p>
-        <p>{`Observer Rewards: ${formatWithCommas(data.observerRewards)} ARIO (${data.observersSubmitted}/${data.observersPrescribed} submitted)`}</p>
+        <p>{`Gateway Rewards: ${formatWithCommas(data.gatewayRewards)} ARIO`}</p>
+        <p>{`Observer Rewards: ${formatWithCommas(data.observerRewards)} ARIO`}</p>
         <p>{`Total: ${formatWithCommas(total)} ARIO`}</p>
       </div>
     );
@@ -152,9 +148,6 @@ const _CustomUnclaimedBar = ({
 
 const RewardsDistributionPanel = () => {
   const ticker = useGlobalState((state) => state.ticker);
-  const rpc = useGlobalState((state) => state.rpc);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const garProgram = (arIOReadSDK as any)?.garProgram as string | undefined;
 
   const [focusBar, setFocusBar] = useState<number>();
   const [mouseLeave, setMouseLeave] = useState(true);
@@ -164,54 +157,32 @@ const RewardsDistributionPanel = () => {
     (state) => state.currentEpoch?.epochIndex,
   );
 
-  const [rewardsData, setRewardsData] = useState<Array<RewardsData>>();
+  const rewardsData = useMemo(() => {
+    return epochs
+      ?.filter((epoch) => epoch !== undefined)
+      .sort((a, b) => a!.epochIndex - b!.epochIndex)
+      .map((epoch) => {
+        const gatewayRewards = new mARIOToken(
+          epoch!.distributions.totalEligibleGatewayReward,
+        )
+          .toARIO()
+          .valueOf();
+        const observerRewards = new mARIOToken(
+          epoch!.distributions.totalEligibleObserverReward,
+        )
+          .toARIO()
+          .valueOf();
 
-  useEffect(() => {
-    if (!epochs || !rpc || !garProgram) return;
-
-    const buildData = async () => {
-      const sorted = epochs
-        .filter((epoch) => epoch !== undefined)
-        .sort((a, b) => a!.epochIndex - b!.epochIndex);
-
-      const data = await Promise.all(
-        sorted.map(async (epoch) => {
-          const gatewayRewards = new mARIOToken(
-            epoch!.distributions.totalEligibleGatewayReward,
-          )
-            .toARIO()
-            .valueOf();
-          const observerRewards = new mARIOToken(
-            epoch!.distributions.totalEligibleObserverReward,
-          )
-            .toARIO()
-            .valueOf();
-
-          const observersSubmitted = await countObservationsForEpoch(
-            rpc,
-            garProgram,
-            epoch!.epochIndex,
-          );
-
-          return {
-            epoch: epoch!.epochIndex,
-            gatewayRewards,
-            observerRewards,
-            gatewayCount: epoch!.distributions.totalEligibleGateways,
-            observersPrescribed: epoch!.prescribedObservers.length,
-            observersSubmitted,
-            status: (epoch!.epochIndex === currentEpochIndex
-              ? 'Pending'
-              : 'Distributed') as RewardsData['status'],
-          };
-        }),
-      );
-
-      setRewardsData(data);
-    };
-
-    buildData();
-  }, [epochs, currentEpochIndex, rpc, garProgram]);
+        return {
+          epoch: epoch!.epochIndex,
+          gatewayRewards,
+          observerRewards,
+          status: (epoch!.epochIndex === currentEpochIndex
+            ? 'Pending'
+            : 'Distributed') as RewardsData['status'],
+        };
+      });
+  }, [epochs, currentEpochIndex]);
 
   return (
     <div className="rounded-xl border border-grey-500">

@@ -277,7 +277,7 @@ const RewardsDistributionPanel = () => {
                   stroke="rgba(202, 202, 214, 0.32)"
                   shape={CustomBar(0, 'transparent')}
                 >
-                  {rewardsData.map((_entry, index) => (
+                  {rewardsData.map((entry, index) => (
                     <Cell
                       key={`gw-${index}`}
                       fill={

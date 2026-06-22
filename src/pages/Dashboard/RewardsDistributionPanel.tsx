@@ -26,7 +26,8 @@ const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
 interface RewardsData {
   epoch: number;
-  amount: number;
+  gatewayRewards: number;
+  observerRewards: number;
   status: 'Distributed' | 'Pending';
 }
 
@@ -37,10 +38,13 @@ const CustomTooltip = ({
 }: TooltipProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as RewardsData;
+    const total = data.gatewayRewards + data.observerRewards;
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
-        <p>{`Epoch ${label}`}</p>
-        <p>{`${data.status}: ${formatWithCommas(Number(payload[0].value))} ARIO`}</p>
+        <p>{`Epoch ${label} (${data.status})`}</p>
+        <p>{`Gateway Rewards: ${formatWithCommas(data.gatewayRewards)} ARIO`}</p>
+        <p>{`Observer Rewards: ${formatWithCommas(data.observerRewards)} ARIO`}</p>
+        <p>{`Total: ${formatWithCommas(total)} ARIO`}</p>
       </div>
     );
   }
@@ -153,25 +157,31 @@ const RewardsDistributionPanel = () => {
     (state) => state.currentEpoch?.epochIndex,
   );
 
-  const rewardsData: Array<RewardsData> | undefined = useMemo(() => {
-    const data = epochs
+  const rewardsData = useMemo(() => {
+    return epochs
       ?.filter((epoch) => epoch !== undefined)
       .sort((a, b) => a!.epochIndex - b!.epochIndex)
       .map((epoch) => {
-        const amount = new mARIOToken(epoch!.distributions.totalEligibleRewards)
+        const gatewayRewards = new mARIOToken(
+          epoch!.distributions.totalEligibleGatewayReward,
+        )
+          .toARIO()
+          .valueOf();
+        const observerRewards = new mARIOToken(
+          epoch!.distributions.totalEligibleObserverReward,
+        )
           .toARIO()
           .valueOf();
 
         return {
           epoch: epoch!.epochIndex,
-          amount,
+          gatewayRewards,
+          observerRewards,
           status: (epoch!.epochIndex === currentEpochIndex
             ? 'Pending'
             : 'Distributed') as RewardsData['status'],
         };
       });
-
-    return data;
   }, [epochs, currentEpochIndex]);
 
   return (
@@ -205,7 +215,13 @@ const RewardsDistributionPanel = () => {
                 barCategoryGap={'20%'}
               >
                 <defs>
-                  <linearGradient id="colorUv" x1="0" y1="0" x2="1" y2="1">
+                  <linearGradient
+                    id="gatewayRewardGradient"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
                     <stop offset="0%" stopColor="#F7C3A1" stopOpacity={0.25} />
                     <stop
                       offset="100%"
@@ -213,9 +229,39 @@ const RewardsDistributionPanel = () => {
                       stopOpacity={0.125}
                     />
                   </linearGradient>
-                  <linearGradient id="fullBar" x1="0" y1="0" x2="1" y2="1">
+                  <linearGradient
+                    id="gatewayRewardHover"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
                     <stop offset="0%" stopColor="#F7C3A1" stopOpacity={0.75} />
                     <stop offset="100%" stopColor="#DF9BE8" stopOpacity={0.5} />
+                  </linearGradient>
+                  <linearGradient
+                    id="observerRewardGradient"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#3DB7C2" stopOpacity={0.3} />
+                    <stop
+                      offset="100%"
+                      stopColor="#3DB7C2"
+                      stopOpacity={0.15}
+                    />
+                  </linearGradient>
+                  <linearGradient
+                    id="observerRewardHover"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#3DB7C2" stopOpacity={0.75} />
+                    <stop offset="100%" stopColor="#3DB7C2" stopOpacity={0.5} />
                   </linearGradient>
                 </defs>
 
@@ -224,21 +270,39 @@ const RewardsDistributionPanel = () => {
                 <Tooltip content={<CustomTooltip />} cursor={false} />
 
                 <Bar
-                  dataKey="amount"
-                  fill="url(#colorUv)"
+                  dataKey="gatewayRewards"
+                  name="Gateway Rewards"
+                  stackId="rewards"
+                  fill="url(#gatewayRewardGradient)"
+                  stroke="rgba(202, 202, 214, 0.32)"
+                  shape={CustomBar(0, 'transparent')}
+                >
+                  {rewardsData.map((_entry, index) => (
+                    <Cell
+                      key={`gw-${index}`}
+                      fill={
+                        index !== focusBar || mouseLeave
+                          ? 'url(#gatewayRewardGradient)'
+                          : 'url(#gatewayRewardHover)'
+                      }
+                    />
+                  ))}
+                </Bar>
+                <Bar
+                  dataKey="observerRewards"
+                  name="Observer Rewards"
+                  stackId="rewards"
+                  fill="url(#observerRewardGradient)"
                   stroke="rgba(202, 202, 214, 0.32)"
                   shape={CustomBar(1, 'white')}
                 >
-                  {rewardsData.map((entry, index) => (
+                  {rewardsData.map((_entry, index) => (
                     <Cell
-                      key={`cell-${index}`}
+                      key={`obs-${index}`}
                       fill={
                         index !== focusBar || mouseLeave
-                          ? 'url(#colorUv)'
-                          : 'url(#fullBar)'
-                      }
-                      strokeDasharray={
-                        entry.status === 'Pending' ? '3 3' : undefined
+                          ? 'url(#observerRewardGradient)'
+                          : 'url(#observerRewardHover)'
                       }
                     />
                   ))}

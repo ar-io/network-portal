@@ -68,7 +68,7 @@ const NetworkStatsPanel = () => {
   ];
 
   return (
-    <div className="flex w-full flex-col rounded-xl border border-grey-500">
+    <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500">
       <div className="px-5 pt-5 pb-3">
         <h3 className="text-sm font-semibold text-mid">Network Statistics</h3>
       </div>

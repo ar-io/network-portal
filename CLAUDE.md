@@ -119,12 +119,12 @@ const useDataHook = (params) => {
 ### Testing
 
 - Vitest with globals enabled (no need to import `describe`, `it`, `expect`, etc.)
-- Separate `vitest.config.ts` for test configuration
-- Coverage thresholds: 80% for branches, functions, and lines
+- `vitest.config.ts` extends the base Vite config with `test: { globals: true }`
+- Legacy `jest.config.json` exists but is unused; tests run via vitest only
 
 ### Development Notes
 
-- Node.js 20.12.2 required (see `.nvmrc`)
+- Node.js 24.16.0 required (see `.nvmrc`)
 - Environment variables use `VITE_` prefix
 - Pre-commit hooks run Biome via Husky
 - CI/CD deploys to GitHub Pages (staging) and Arweave (production)

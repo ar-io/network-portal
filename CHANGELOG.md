@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-07-29
+
+### Fixed
+
+- Vault release and withdrawal claim failing with `SyntaxError: Cannot convert <address> to a BigInt`. Bumped `@ar.io/sdk` to `4.1.0-alpha.2` so `getVaults`/`getWithdrawals` return the numeric per-owner vault id (ar-io/ar-io-sdk#692) instead of the base58 vault PDA that `releaseVault`/`claimWithdrawal` rejected when deriving the on-chain PDA via `BigInt()`.
+
+### Added
+
+- Per-vault Release action and modal on the Balances page for unlocked (expired) vaults.
+
 ## [2.2.1] - 2026-06-18
 
 ### Added

@@ -4,6 +4,7 @@ import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
+import ReleaseVaultModal from '@src/components/modals/ReleaseVaultModal';
 import RevokeVaultModal from '@src/components/modals/RevokeVaultModal';
 import useVaults from '@src/hooks/useVaults';
 import { useGlobalState } from '@src/store';
@@ -43,10 +44,32 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
     | undefined
   >();
 
+  const [showReleaseVaultModal, setShowReleaseVaultModal] = useState<
+    | {
+        vaultId: string;
+        balance: number;
+        endTimestamp: number;
+      }
+    | undefined
+  >();
+
   const userCanRevoke = useMemo(() => {
     return vaults
       ? vaults.some(
           (vault) => vault.controller === userWalletAddress?.toString(),
+        )
+      : false;
+  }, [userWalletAddress, vaults]);
+
+  // Release is owner-signed and only valid after expiry. Show the action when
+  // the connected wallet owns an unlocked vault (Solana has no auto-credit at
+  // expiry — the owner must call release_vault; see SDK BD-050).
+  const userCanRelease = useMemo(() => {
+    return vaults
+      ? vaults.some(
+          (vault) =>
+            vault.address === userWalletAddress?.toString() &&
+            vault.endTimestamp <= Date.now(),
         )
       : false;
   }, [userWalletAddress, vaults]);
@@ -136,40 +159,74 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
       }),
     ];
 
-    return userCanRevoke
+    return userCanRevoke || userCanRelease
       ? [
           ...base,
           columnHelper.display({
-            id: 'revoke',
+            id: 'actions',
             header: '',
             size: 0,
-            cell: ({ row }) =>
-              row.original.controller === userWalletAddress?.toString() ? (
-                <div className="flex justify-end pr-4">
-                  <Button
-                    buttonType={ButtonType.PRIMARY}
-                    active={true}
-                    title="Revoke Vault"
-                    text="Revoke"
-                    className="w-fit"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (walletAddress) {
-                        setShowRevokeVaultModal({
-                          recipient: walletAddress.toString(),
+            cell: ({ row }) => {
+              const isController =
+                row.original.controller === userWalletAddress?.toString();
+              const isOwner =
+                row.original.vaultAddress === userWalletAddress?.toString();
+              const isUnlocked = row.original.endTimestamp <= Date.now();
+              // Revoke: controller-only, valid only BEFORE expiry.
+              const canRevoke = isController && !isUnlocked;
+              // Release: owner-only, valid only AFTER expiry.
+              const canRelease = isOwner && isUnlocked;
+
+              if (!canRevoke && !canRelease) {
+                return null;
+              }
+
+              return (
+                <div className="flex justify-end gap-2 pr-4">
+                  {canRelease && (
+                    <Button
+                      buttonType={ButtonType.PRIMARY}
+                      active={true}
+                      title="Release Vault"
+                      text="Release"
+                      className="w-fit"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowReleaseVaultModal({
                           vaultId: row.original.vaultId,
                           balance: row.original.balance,
                           endTimestamp: row.original.endTimestamp,
                         });
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  )}
+                  {canRevoke && (
+                    <Button
+                      buttonType={ButtonType.PRIMARY}
+                      active={true}
+                      title="Revoke Vault"
+                      text="Revoke"
+                      className="w-fit"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (walletAddress) {
+                          setShowRevokeVaultModal({
+                            recipient: walletAddress.toString(),
+                            vaultId: row.original.vaultId,
+                            balance: row.original.balance,
+                            endTimestamp: row.original.endTimestamp,
+                          });
+                        }
+                      }}
+                    />
+                  )}
                 </div>
-              ) : null,
+              );
+            },
           }),
         ]
       : base;
-  }, [ticker, userCanRevoke, walletAddress, userWalletAddress]);
+  }, [ticker, userCanRevoke, userCanRelease, walletAddress, userWalletAddress]);
 
   return (
     <div>
@@ -195,6 +252,14 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
           balance={showRevokeVaultModal.balance}
           endTimestamp={showRevokeVaultModal.endTimestamp}
           onClose={() => setShowRevokeVaultModal(undefined)}
+        />
+      )}
+      {showReleaseVaultModal && (
+        <ReleaseVaultModal
+          vaultId={showReleaseVaultModal.vaultId}
+          balance={showReleaseVaultModal.balance}
+          endTimestamp={showReleaseVaultModal.endTimestamp}
+          onClose={() => setShowReleaseVaultModal(undefined)}
         />
       )}
     </div>

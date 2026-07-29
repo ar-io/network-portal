@@ -58,10 +58,10 @@
     prompts "^2.4.2"
     zod "^3.25.76"
 
-"@ar.io/sdk@4.0.2-alpha.9":
-  version "4.0.2-alpha.9"
-  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.0.2-alpha.9.tgz#c0f652a0aa803869e4f0063a72e2c7baba620e50"
-  integrity sha512-SSnQarIUFA2ICpQvuTUQQTalVOud1Etu5k+Ffu8r+TndJTX8Q307i799H+oaLJzVWDPMx6MaJ9wCoUzl6Nl1AQ==
+"@ar.io/sdk@4.1.0-alpha.2":
+  version "4.1.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/@ar.io/sdk/-/sdk-4.1.0-alpha.2.tgz#ffba125940fd7e5f4f8be252a447fae1f84b0dcb"
+  integrity sha512-dTLhjX8HNGSIcUmx7VfszqmpsAeL+uZgmekMqnPmT/FlUUBIsTSEA1DBzowdpJJe9Yx67ZbH13jz7OTJI6or4Q==
   dependencies:
     "@ar.io/solana-contracts" "1.0.1"
     "@noble/hashes" "^1.8.0"

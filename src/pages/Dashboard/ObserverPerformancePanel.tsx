@@ -1,10 +1,8 @@
 import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
 import useEpochSettings from '@src/hooks/useEpochSettings';
-import useObservations from '@src/hooks/useObservations';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
-import { useGlobalState } from '@src/store';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -42,50 +40,13 @@ const CustomTooltip = ({
 const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
 const ObserverPerformancePanel = () => {
-  const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const { data: epochSettings } = useEpochSettings();
   const { data: historicalObserverStats } = useObserversWithCount(EPOCH_COUNT);
 
-  // Live observation data for the current epoch
-  const { data: observations } = useObservations(currentEpoch);
-  const reportsCount = observations
-    ? Object.keys(observations.reports).length
-    : undefined;
-  const prescribedCount = currentEpoch
-    ? currentEpoch.prescribedObservers.length
-    : undefined;
-
-  // Patch the current epoch entry with live observation data from
-  // useObservations. The epoch object's embedded observations are empty
-  // (lightweight fetch doesn't populate them), so without this the
-  // current epoch always shows 0/50.
-  const chartData = useMemo(() => {
-    if (!historicalObserverStats) return undefined;
-    if (reportsCount === undefined || prescribedCount === undefined) {
-      return historicalObserverStats;
-    }
-
-    const patched = [...historicalObserverStats];
-    const lastIndex = patched.length - 1;
-    if (
-      lastIndex >= 0 &&
-      patched[lastIndex].epochIndex === currentEpoch?.epochIndex
-    ) {
-      patched[lastIndex] = {
-        ...patched[lastIndex],
-        reportsCount,
-        prescribedObservers: prescribedCount,
-        performancePercentage:
-          prescribedCount > 0 ? (reportsCount / prescribedCount) * 100 : 0,
-      };
-    }
-    return patched;
-  }, [
-    historicalObserverStats,
-    reportsCount,
-    prescribedCount,
-    currentEpoch?.epochIndex,
-  ]);
+  // `observationsSubmitted` comes off the Epoch account and is accurate for
+  // the live epoch too, so the current entry no longer needs patching from
+  // the (rent-reclaimed) Observation PDAs.
+  const chartData = historicalObserverStats;
 
   const [activeIndex, setActiveIndex] = useState<number>();
   const [percentageChange, setPercentageChange] = useState<number>();

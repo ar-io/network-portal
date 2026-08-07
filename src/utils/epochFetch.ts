@@ -8,6 +8,24 @@ const DEFAULT_ADDRESS = '11111111111111111111111111111111';
 const secToMs = (n: number): number => n * 1000;
 
 /**
+ * `EpochData` plus the two counters that live on the Epoch account itself.
+ *
+ * These matter because `Observation` PDAs are deleted by the permissionless
+ * `close_observation` once an epoch distributes (it refunds the observer's
+ * rent). Counting those PDAs therefore returns 0 for every completed epoch.
+ * `Epoch.observations_submitted` is incremented on submit and is never
+ * cleared, so it is the only durable source for historical participation.
+ *
+ * Optional because the SDK fallback path (`getCurrentEpoch()`) returns a
+ * plain `EpochData` without them; consumers should treat absent as unknown.
+ */
+export type EpochDataWithCounters = EpochData & {
+  observationsSubmitted?: number;
+  /** 1 once `distribute_epoch` has run — the epoch's counters are final. */
+  rewardsDistributed?: number;
+};
+
+/**
  * Fetch an epoch by index using a single RPC call (getAccount on the
  * Epoch PDA), then build the EpochData shape from the raw on-chain data.
  * This is ~25x faster than the SDK's getEpoch() which makes ~55 calls
@@ -22,7 +40,7 @@ export async function fetchEpochLightweight(
   garProgram: string,
   epochIndex: number,
   commitment: Commitment = 'confirmed',
-): Promise<EpochData> {
+): Promise<EpochDataWithCounters> {
   const [epochPda] = await getEpochPDA(epochIndex, garProgram as any);
   const epochAccount = await fetchEncodedAccount(rpc, epochPda, {
     commitment,
@@ -56,6 +74,8 @@ export async function fetchEpochLightweight(
 
   return {
     epochIndex,
+    observationsSubmitted: epochData.observationsSubmitted,
+    rewardsDistributed: epochData.rewardsDistributed,
     startHeight: 0,
     startTimestamp: secToMs(epochData.startTimestamp),
     endTimestamp: secToMs(epochData.endTimestamp),

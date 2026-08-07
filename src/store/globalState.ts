@@ -2,7 +2,6 @@ import type { SolanaARIOWriteable, SolanaRpc } from '@ar.io/sdk/solana';
 import {
   ARIO,
   ARIORead,
-  EpochData,
   createCircuitBreakerRpc,
   defaultFallbackUrl,
 } from '@ar.io/sdk/web';
@@ -10,6 +9,7 @@ import { address, createSolanaRpc } from '@solana/kit';
 import type { Rpc, SolanaRpcApi } from '@solana/kit';
 import { THEME_TYPES } from '@src/constants';
 import { AoAddress } from '@src/types';
+import type { EpochDataWithCounters } from '@src/utils/epochFetch';
 import { getOptionalSolanaAddress } from '@src/utils/solanaAddress';
 import { create } from 'zustand';
 import { shallow } from 'zustand/shallow';
@@ -25,7 +25,7 @@ type GlobalState = {
   arIOReadSDK: ARIORead;
   arIOWriteableSDK?: SolanaARIOWriteable;
   solanaSlot?: number;
-  currentEpoch?: EpochData;
+  currentEpoch?: EpochDataWithCounters;
   walletAddress?: AoAddress;
   walletStateInitialized: boolean;
   ticker: string;
@@ -36,7 +36,7 @@ type GlobalState = {
 type GlobalStateActions = {
   setTheme: (theme: ThemeType) => void;
   setSolanaSlot: (slot: number) => void;
-  setCurrentEpoch: (currentEpoch?: EpochData) => void;
+  setCurrentEpoch: (currentEpoch?: EpochDataWithCounters) => void;
   updateWallet: (walletAddress?: AoAddress) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
@@ -164,7 +164,7 @@ class GlobalStateActionBase implements GlobalStateActions {
     this.set({ solanaSlot });
   };
 
-  setCurrentEpoch = (currentEpoch?: EpochData) => {
+  setCurrentEpoch = (currentEpoch?: EpochDataWithCounters) => {
     this.set({ currentEpoch });
   };
 

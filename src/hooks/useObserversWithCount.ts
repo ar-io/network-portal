@@ -33,12 +33,24 @@ const useObserversWithCount = (epochCount: number) => {
         .filter((epoch) => epoch !== undefined)
         .sort((a, b) => a!.epochIndex - b!.epochIndex);
 
+      // An epoch fetched through the SDK fallback carries no counter. Charting
+      // it as 0 would be indistinguishable from "nobody observed" — the exact
+      // failure this hook was changed to stop — so omit it rather than guess.
+      const withCounters = available.filter(
+        (epoch) => typeof epoch!.observationsSubmitted === 'number',
+      );
+      if (withCounters.length !== available.length) {
+        log.warn(
+          `[useObserversWithCount] omitting ${available.length - withCounters.length} epoch(s) with no observationsSubmitted counter rather than rendering them as 0`,
+        );
+      }
+
       // Read the durable counter off the Epoch account rather than counting
       // Observation PDAs — those are closed for rent once an epoch
       // distributes, so counting them yields 0 for every past epoch.
-      const results = available.map((epoch) => {
+      const results = withCounters.map((epoch) => {
         const prescribedObservers = epoch!.prescribedObservers.length;
-        const reportsCount = epoch!.observationsSubmitted ?? 0;
+        const reportsCount = epoch!.observationsSubmitted as number;
         const performancePercentage =
           prescribedObservers > 0
             ? (reportsCount / prescribedObservers) * 100

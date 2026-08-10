@@ -1,7 +1,9 @@
-import { EpochData } from '@ar.io/sdk/web';
 import { log } from '@src/constants';
 import { Assessment } from '@src/types';
-import { fetchEpochLightweight } from '@src/utils/epochFetch';
+import {
+  type EpochDataWithCounters,
+  fetchEpochLightweight,
+} from '@src/utils/epochFetch';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import Dexie, { type EntityTable } from 'dexie';
 
@@ -11,7 +13,7 @@ export type NetworkPortalDB = Dexie & {
     'id' // primary key "id" (for the typings only)
   >;
   epochs: EntityTable<
-    EpochData,
+    EpochDataWithCounters,
     'epochIndex' // primary key "id" (for the typings only)
   >;
 };
@@ -48,6 +50,15 @@ export const createDb = (dbName: string = 'solana-mainnet') => {
     epochs: 'epochIndex',
   });
 
+  // v3: epochs cached by v2 predate `observationsSubmitted`, so they would
+  // report 0 observations forever. Drop them once; they refetch on demand.
+  db.version(3)
+    .stores({
+      observations: '++id, timestamp, gatewayAddress',
+      epochs: 'epochIndex',
+    })
+    .upgrade((tx) => tx.table('epochs').clear());
+
   db.open().catch(function (err) {
     console.error('Failed to open db: ', err);
   });
@@ -69,7 +80,7 @@ export const getEpoch = async (
     return epoch;
   }
 
-  let epochData: EpochData | undefined;
+  let epochData: EpochDataWithCounters | undefined;
   try {
     epochData = await fetchEpochLightweight(rpc, garProgram, epochIndex);
   } catch (error) {
@@ -93,7 +104,10 @@ export const getEpoch = async (
     );
   }
 
-  if (epochData) {
+  // Only cache epochs whose counters are final. An epoch that hasn't
+  // distributed yet can still take observations, and caching it here would
+  // freeze `observationsSubmitted` at whatever it was on first view.
+  if (epochData && epochData.rewardsDistributed) {
     try {
       await networkPortalDB.epochs.add(epochData);
     } catch (e) {

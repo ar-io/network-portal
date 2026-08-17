@@ -12,6 +12,10 @@ jobs:
   # deploy is permanent (Arweave), so refuse rather than publish it.
   verify-secrets:
     runs-on: ubuntu-latest
+    # Same environment as the deploy jobs so this resolves environment-scoped
+    # secrets too, not just repo-level ones — otherwise adding the secret to the
+    # `production` environment would still fail this gate.
+    environment: production
     steps:
       - name: Require RPC secrets
         env:
@@ -33,6 +37,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: verify-secrets
+    environment: production
     strategy:
       matrix:
         step: ['lint:check', 'test', 'build']

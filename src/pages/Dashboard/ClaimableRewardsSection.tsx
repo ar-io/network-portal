@@ -33,7 +33,8 @@ const isUserRejection = (error: unknown): boolean => {
   if (err?.code === 4001) {
     return true;
   }
-  const text = `${err?.name ?? ''} ${err?.message ?? error ?? ''}`.toLowerCase();
+  const text =
+    `${err?.name ?? ''} ${err?.message ?? error ?? ''}`.toLowerCase();
   return /reject|declin|deni|cancel/.test(text);
 };
 
@@ -143,8 +144,7 @@ const ClaimableRewardsSection = () => {
         kind: 'vault' as const,
         noun: `vault ${vault.vaultId}`,
         amount: new mARIOToken(vault.balance).toARIO().valueOf(),
-        run: () =>
-          sdk.releaseVault({ vaultId: vault.vaultId }, WRITE_OPTIONS),
+        run: () => sdk.releaseVault({ vaultId: vault.vaultId }, WRITE_OPTIONS),
       })),
     ];
 

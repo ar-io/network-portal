@@ -169,10 +169,48 @@ const isLocalRpcUrl = (rpcUrl: string | undefined): boolean => {
   }
 };
 
+export const SETTINGS_VERSION = 1;
+
+/**
+ * v0 (unversioned) -> v1: drop persisted network configuration.
+ *
+ * `merge` lets persisted values win over the build's defaults, and its only
+ * reset trigger compares localhost-vs-remote — so an endpoint saved by an older
+ * build survives forever. When a provider auth token is rotated, every returning
+ * user keeps calling the revoked one and gets 401 on every request, while new
+ * visitors are fine. Dropping the stored endpoint (and the program ids keyed to
+ * it) lets the shipped defaults apply again.
+ *
+ * Non-network preferences (sidebar, GQL endpoint) are deliberately preserved.
+ */
+export const migrateSettings = (
+  persistedState: unknown,
+  fromVersion: number,
+): Partial<Settings> => {
+  const persistedSettings = (persistedState ?? {}) as Partial<Settings>;
+
+  if (fromVersion >= SETTINGS_VERSION) {
+    return persistedSettings;
+  }
+
+  const migrated = { ...persistedSettings };
+  delete migrated.solanaRpcUrl;
+  delete migrated.solanaAddressSettingsByNetwork;
+  for (const key of SOLANA_ADDRESS_SETTING_KEYS) {
+    delete migrated[key];
+  }
+
+  return migrated;
+};
+
 export const useSettings = create<Settings>()(
   subscribeWithSelector(
     persist(() => DEFAULT_SETTINGS, {
       name: 'settings',
+      // Bumping SETTINGS_VERSION resets stored network config once — see
+      // migrateSettings for why that is necessary after an endpoint rotation.
+      version: SETTINGS_VERSION,
+      migrate: migrateSettings,
       merge: (persistedState, currentState) => {
         const persistedSettings = (persistedState ?? {}) as Partial<Settings>;
         const mergedState = {

@@ -20,6 +20,9 @@ jobs:
 
       - run: yarn install --frozen-lockfile
       - run: yarn ${{ matrix.step }}
+        env:
+          VITE_SOLANA_RPC_URL: ${{ secrets.VITE_SOLANA_RPC_URL }}
+          VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
 
   deploy-to-github:
     runs-on: ubuntu-latest
@@ -52,6 +55,11 @@ jobs:
           VITE_ARIO_PROCESS_ID: ${{ vars.VITE_ARIO_PROCESS_ID }}
           # ao infra settings
           VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}
+          # Carry provider auth tokens — secrets (masked in logs), not vars.
+          # Unset is tolerated on staging: the app falls back to the public,
+          # rate-limited Solana RPC rather than failing the deploy.
+          VITE_SOLANA_RPC_URL: ${{ secrets.VITE_SOLANA_RPC_URL }}
+          VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
       - name: Add CNAME Record
         run: |
           echo ${{ vars.DOMAIN_NAME }} > dist/CNAME

@@ -27,8 +27,8 @@ yarn format:fix    # Fix formatting only
 yarn tsc --noEmit  # Type check without building
 
 # Build and deploy
-yarn build         # Production build
-yarn deploy        # Deploy to Arweave (requires VITE_IO_PROCESS_ID, VITE_ARNS_NAME, DEPLOY_KEY env vars)
+yarn build         # Full tsc --build type check, then Vite production build (memory-heavy: NODE_OPTIONS max-old-space-size=32768)
+yarn deploy        # Build, then deploy to Arweave via @ar.io/deploy (ario-deploy); requires VITE_ARNS_NAME + DEPLOY_KEY (base64 wallet keyfile) env vars
 ```
 
 ## Code Conventions

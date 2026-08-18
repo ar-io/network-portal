@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-08-17
+
+### Security
+
+- **Provider auth tokens are no longer committed.** `src/constants.ts` carried two
+  QuickNode URLs with live tokens embedded in their paths, and `.env.local` /
+  `.env.localnet` were tracked in git — on a public repository. Both endpoints now
+  read from `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL`, env files are
+  gitignored, and `.env.example` documents the expected shape.
+- **The previously committed tokens must be rotated.** Untracking a file does not
+  remove it from history, and this repository is public.
+- Note on scope: a token supplied through the environment is still inlined into the
+  production bundle by Vite and is readable by anyone who loads the app. Keeping it
+  out of source prevents leakage from the repository, not from the deployed build.
+  The endpoint itself is protected at the provider — a dedicated token per app, a
+  referrer allowlist, and per-method rate limits.
+
+### Added
+
+- `verify-secrets` gate on the production workflow. A missing RPC secret would
+  otherwise fail silently at build time and ship a production build that falls back
+  to the public, rate-limited Solana RPC while looking healthy in CI. Because the
+  production deploy is permanent (Arweave), the release now refuses to run instead.
+
+### Fixed
+
+- `SOLANA_RPC_URL` never actually read `VITE_SOLANA_RPC_URL` — it was a hardcoded
+  literal, so `.env.local` had no effect on the default devnet endpoint and local
+  RPC overrides were silently ignored.
+- Claiming rewards no longer abandons the batch when one item fails. Each withdrawal
+  and vault release is an independent transaction, so failures are isolated per item
+  and the rest of the batch continues; a declined wallet signature stops the run
+  instead of re-prompting for every remaining item; and the success total now
+  reflects what actually processed rather than the full claimable amount.
+
+### Changed
+
+- Both deploy workflows pass `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL`
+  to the build. Staging tolerates them being unset and falls back to public RPC;
+  production does not.
+
 ## [2.3.2] - 2026-08-10
 
 ### Fixed

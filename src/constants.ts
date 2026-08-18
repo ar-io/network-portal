@@ -15,11 +15,16 @@ export const WRITE_OPTIONS = {
 };
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 
+// RPC endpoints come from the environment. A provider URL carries an auth
+// token, so it must never be committed — see .env.example. These fall back to
+// the public Solana RPCs, which are heavily rate-limited but let the app boot
+// (and let users supply their own endpoint via Settings) instead of leaking a
+// token into the bundle.
 export const SOLANA_RPC_URL =
-  'https://frosty-hidden-bush.solana-devnet.quiknode.pro/d878601b7931461e8fd02c6a798cbda800da1762/';
+  import.meta.env.VITE_SOLANA_RPC_URL ?? 'https://api.devnet.solana.com';
 export const SOLANA_MAINNET_RPC_URL =
   import.meta.env.VITE_SOLANA_MAINNET_RPC_URL ??
-  'https://hardworking-restless-sea.solana-mainnet.quiknode.pro/44d938fae3eb6735ec30d8979551827ff70227f5/';
+  'https://api.mainnet-beta.solana.com';
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
 export const DEVNET_SOLANA_CORE_PROGRAM_ID =

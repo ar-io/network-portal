@@ -11,6 +11,11 @@ interface ImportMetaEnv {
   readonly VITE_NODE_ENV: string;
   readonly VITE_GITHUB_HASH: string;
   readonly VITE_SOLANA_RPC_URL: string;
+  readonly VITE_SOLANA_MAINNET_RPC_URL: string;
+  readonly VITE_ARIO_CORE_PROGRAM_ID: string;
+  readonly VITE_ARIO_GAR_PROGRAM_ID: string;
+  readonly VITE_ARIO_ARNS_PROGRAM_ID: string;
+  readonly VITE_ARIO_ANT_PROGRAM_ID: string;
 }
 
 interface ImportMeta {

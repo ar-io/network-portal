@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2026-08-18
+
+### Fixed
+
+- Returning users hitting `401 Unauthorized` on every RPC call after 2.4.0. Settings
+  persist to localStorage, and the merge let a stored value win over the build's
+  defaults — its only reset trigger compared localhost against remote, so an RPC
+  endpoint saved by an older build survived every upgrade. When the provider token
+  was rotated for 2.4.0, everyone who had opened the app before kept calling the
+  revoked endpoint while new visitors were fine.
+
+  The settings store is now versioned. Upgrading from the unversioned store drops
+  the stored endpoint and the program ids keyed to it, so the shipped defaults apply
+  again. Preferences unrelated to the network are preserved.
+
+  Without this, every future endpoint rotation would silently break existing users
+  the same way.
+
 ## [2.4.0] - 2026-08-17
 
 ### Security

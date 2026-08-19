@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-08-19
+
+### Removed
+
+- Sentry. It had never actually run: `sentry.ts` only called `Sentry.init()` when all
+  three DSN variables were present, and `VITE_SENTRY_DSN_PUBLIC_KEY` was always empty
+  because the repository secret is misspelled `SENTRT_DSN_PUBLIC_KEY`. Every build
+  shipped the SDK, initialised nothing, and reported nothing.
+
+  Drops `@sentry/browser`, `@sentry/react` and `@sentry/vite-plugin`, the router
+  instrumentation wrapper in `App.tsx`, the build plugin in both Vite configs, and the
+  `VITE_SENTRY_*` variables from both deploy workflows.
+
+### Changed
+
+- Sourcemaps are no longer emitted. They existed so Sentry could symbolicate stack
+  traces; with Sentry gone they were roughly 13 MB across 41 files, uploaded to
+  Arweave — permanently — on every production release and every pull-request preview
+  build. Production output drops from about 18 MB to 4.8 MB.
+
 ## [2.4.1] - 2026-08-18
 
 ### Fixed

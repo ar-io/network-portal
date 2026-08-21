@@ -44,13 +44,6 @@ jobs:
         env:
           # FOR BUILD
           VITE_NODE_ENV: develop
-          VITE_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          VITE_SENTRY_RELEASE: ${{ github.sha }}
-          VITE_SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          VITE_SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-          VITE_SENTRY_DSN_PUBLIC_KEY: ${{ secrets.SENTRY_DSN_PUBLIC_KEY }}
-          VITE_SENTRY_DSN_PROJECT_URI: ${{ secrets.SENTRY_DSN_PROJECT_URI }}
-          VITE_SENTRY_DSN_PROJECT_ID: ${{ secrets.SENTRY_DSN_PROJECT_ID }}
           VITE_GITHUB_HASH: ${{ github.sha }}
           VITE_ARIO_PROCESS_ID: ${{ vars.VITE_ARIO_PROCESS_ID }}
           # ao infra settings

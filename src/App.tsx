@@ -1,5 +1,4 @@
 import '@fontsource/rubik';
-import { wrapCreateBrowserRouter } from '@sentry/react';
 import {
   ConnectionProvider,
   WalletProvider as SolanaWalletProvider,
@@ -41,8 +40,6 @@ const Extensions = React.lazy(() => import('./pages/Extensions/Extensions'));
 const Reports = React.lazy(() => import('./pages/Reports'));
 const Report = React.lazy(() => import('./pages/Report'));
 const Observe = React.lazy(() => import('./pages/Observe'));
-
-const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createHashRouter);
 
 /**
  * The Solana SDK instance (`SolanaARIOReadable`) is used in React Query keys
@@ -92,7 +89,7 @@ function App() {
   // causes a duplicate-registration console warning.
   const wallets = useMemo(() => [], []);
 
-  const router = sentryCreateBrowserRouter(
+  const router = createHashRouter(
     createRoutesFromElements(
       <Route element={<AppRouterLayout />} errorElement={<NotFound />}>
         <Route index path="/" element={<Navigate to="/dashboard" />} />

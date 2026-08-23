@@ -293,7 +293,14 @@ export function createThrottledRpc({
       onSuccess();
       return response;
     } catch (error) {
-      onFailure(error, usedFallback);
+      // A caller cancelling says nothing about endpoint health. React Query
+      // aborts in-flight queries on unmount, so counting those would let a few
+      // navigations mark a perfectly healthy primary unhealthy and divert
+      // traffic to the fallback. The internal timeout above is a genuine health
+      // signal and still counts -- it aborts our own controller, not this one.
+      if (!config.signal?.aborted) {
+        onFailure(error, usedFallback);
+      }
       throw error;
     } finally {
       cleanup();

@@ -36,12 +36,14 @@ const json200 = () =>
   });
 
 /** Install a fetch stub and return the call log it appends to. */
-function stubFetch(respond: (url: string) => Response | Promise<Response>) {
+function stubFetch(
+  respond: (url: string, init?: any) => Response | Promise<Response>,
+) {
   const calls: Call[] = [];
-  vi.stubGlobal('fetch', async (input: any) => {
+  vi.stubGlobal('fetch', async (input: any, init?: any) => {
     const url = typeof input === 'string' ? input : input.url;
     calls.push({ url, at: Date.now() });
-    return respond(url);
+    return respond(url, init);
   });
   return calls;
 }
@@ -125,6 +127,55 @@ describe('createThrottledRpc', () => {
     const rpc = createThrottledRpc({ primaryUrl: PRIMARY });
 
     await drive(rpc, 1500, 2);
+
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls.every((c) => c.url === PRIMARY)).toBe(true);
+  }, 30_000);
+
+  it('does not fail over when the caller cancels the request', async () => {
+    // React Query aborts in-flight queries on unmount. Those cancellations used
+    // to increment the primary's failure counter, so a handful of navigations
+    // could divert a healthy primary's traffic to the fallback for 30s.
+    //
+    // The abort has to land while the request is genuinely in flight: aborting
+    // synchronously after send() lets it complete, which would make this pass
+    // whether or not the guard exists.
+    const calls = stubFetch(
+      (_url, init) =>
+        new Promise<Response>((resolve, reject) => {
+          const abort = () => reject(new DOMException('aborted', 'AbortError'));
+          // Real fetch rejects immediately on an already-aborted signal.
+          if (init?.signal?.aborted) return abort();
+          const timer = setTimeout(() => resolve(json200()), 200);
+          init?.signal?.addEventListener(
+            'abort',
+            () => {
+              clearTimeout(timer);
+              abort();
+            },
+            { once: true },
+          );
+        }),
+    );
+    const rpc = createThrottledRpc({
+      primaryUrl: PRIMARY,
+      fallbackUrl: FALLBACK,
+    });
+
+    // Comfortably more cancellations than it takes to trip failover.
+    for (let i = 0; i < 8; i++) {
+      const controller = new AbortController();
+      const pending = rpc
+        .getBlockTime(BigInt(i))
+        .send({ abortSignal: controller.signal })
+        .catch(() => undefined);
+      await new Promise((r) => setTimeout(r, 20)); // let it reach the transport
+      controller.abort();
+      await pending;
+    }
+
+    calls.length = 0;
+    await rpc.getSlot().send();
 
     expect(calls.length).toBeGreaterThan(0);
     expect(calls.every((c) => c.url === PRIMARY)).toBe(true);

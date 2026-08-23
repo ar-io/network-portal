@@ -1,24 +1,15 @@
-import { useGlobalState } from '@src/store';
-import { useQuery } from '@tanstack/react-query';
+import useTokenSupply from './useTokenSupply';
 
-const useProtocolBalance = () => {
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
-
-  const queryResults = useQuery({
-    queryKey: ['protocolBalance', solanaRpcUrl],
-    queryFn: async () => {
-      if (arIOReadSDK) {
-        const supply = await arIOReadSDK.getTokenSupply();
-        return supply.protocolBalance;
-      }
-      throw new Error('Error: ArIO Read SDK is not initialized');
-    },
-    enabled: !!arIOReadSDK,
-    staleTime: 60 * 60 * 1000, // 1 hour
-  });
-
-  return queryResults;
-};
+/**
+ * The protocol reward reserve, in mARIO.
+ *
+ * This is one field of the token-supply read. It used to issue its own
+ * `getTokenSupply()` under a separate query key, which meant three redundant
+ * account reads on any page showing both this and the supply breakdown — the
+ * Dashboard shows both. Selecting off the shared query collapses them into one
+ * fetch.
+ */
+const useProtocolBalance = () =>
+  useTokenSupply((supply) => supply.protocolBalance);
 
 export default useProtocolBalance;

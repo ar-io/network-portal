@@ -78,6 +78,15 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      // The SDK already wraps every read in `withRetry` (3 attempts, exponential
+      // backoff + jitter, transient transport errors only). React Query's
+      // default of 3 sits on top of that and multiplies: 12 attempts per failing
+      // query, each one potentially a whole-program scan, which is how a brief
+      // 429 turns into a sustained one. React Query also retries errors the SDK
+      // deliberately does not — "account not found" and deserialization
+      // failures — where a re-run can never succeed. Leave transport retries to
+      // the layer that can tell those apart.
+      retry: 0,
     },
   },
 });

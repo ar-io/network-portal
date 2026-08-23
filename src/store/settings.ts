@@ -169,10 +169,10 @@ const isLocalRpcUrl = (rpcUrl: string | undefined): boolean => {
   }
 };
 
-export const SETTINGS_VERSION = 1;
+export const SETTINGS_VERSION = 2;
 
 /**
- * v0 (unversioned) -> v1: drop persisted network configuration.
+ * Drop persisted network configuration on upgrade.
  *
  * `merge` lets persisted values win over the build's defaults, and its only
  * reset trigger compares localhost-vs-remote — so an endpoint saved by an older
@@ -182,6 +182,13 @@ export const SETTINGS_VERSION = 1;
  * it) lets the shipped defaults apply again.
  *
  * Non-network preferences (sidebar, GQL endpoint) are deliberately preserved.
+ *
+ * History:
+ * - v0 (unversioned) -> v1: first rotation of the QuickNode endpoint.
+ * - v1 -> v2: QuickNode production endpoint rotated again. This bump MUST ship
+ *   in the same deploy as the new `VITE_SOLANA_RPC_URL` /
+ *   `VITE_SOLANA_MAINNET_RPC_URL` secrets — without it the secret change only
+ *   reaches first-time visitors.
  */
 export const migrateSettings = (
   persistedState: unknown,

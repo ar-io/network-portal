@@ -1,4 +1,4 @@
-import { deserializeEpoch, getEpochPDA } from '@ar.io/sdk/solana';
+import { deserializeEpoch, getEpochPDA, withRetry } from '@ar.io/sdk/solana';
 import { EpochData } from '@ar.io/sdk/web';
 import type { Commitment } from '@solana/kit';
 import { fetchEncodedAccount } from '@solana/kit';
@@ -42,9 +42,13 @@ export async function fetchEpochLightweight(
   commitment: Commitment = 'confirmed',
 ): Promise<EpochDataWithCounters> {
   const [epochPda] = await getEpochPDA(epochIndex, garProgram as any);
-  const epochAccount = await fetchEncodedAccount(rpc, epochPda, {
-    commitment,
-  });
+  // `withRetry` because this is a raw kit read rather than an SDK method call,
+  // and React Query no longer retries on top of the SDK (see App.tsx).
+  const epochAccount = await withRetry(() =>
+    fetchEncodedAccount(rpc, epochPda, {
+      commitment,
+    }),
+  );
   if (!epochAccount.exists) {
     throw new Error(`Epoch ${epochIndex} not found`);
   }

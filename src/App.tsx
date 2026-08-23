@@ -1,5 +1,4 @@
 import '@fontsource/rubik';
-import { wrapCreateBrowserRouter } from '@sentry/react';
 import {
   ConnectionProvider,
   WalletProvider as SolanaWalletProvider,
@@ -42,8 +41,6 @@ const Reports = React.lazy(() => import('./pages/Reports'));
 const Report = React.lazy(() => import('./pages/Report'));
 const Observe = React.lazy(() => import('./pages/Observe'));
 
-const sentryCreateBrowserRouter = wrapCreateBrowserRouter(createHashRouter);
-
 /**
  * The Solana SDK instance (`SolanaARIOReadable`) is used in React Query keys
  * across all hooks so queries invalidate when the RPC endpoint changes.
@@ -81,6 +78,15 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      // The SDK already wraps every read in `withRetry` (3 attempts, exponential
+      // backoff + jitter, transient transport errors only). React Query's
+      // default of 3 sits on top of that and multiplies: 12 attempts per failing
+      // query, each one potentially a whole-program scan, which is how a brief
+      // 429 turns into a sustained one. React Query also retries errors the SDK
+      // deliberately does not — "account not found" and deserialization
+      // failures — where a re-run can never succeed. Leave transport retries to
+      // the layer that can tell those apart.
+      retry: 0,
     },
   },
 });
@@ -92,7 +98,7 @@ function App() {
   // causes a duplicate-registration console warning.
   const wallets = useMemo(() => [], []);
 
-  const router = sentryCreateBrowserRouter(
+  const router = createHashRouter(
     createRoutesFromElements(
       <Route element={<AppRouterLayout />} errorElement={<NotFound />}>
         <Route index path="/" element={<Navigate to="/dashboard" />} />

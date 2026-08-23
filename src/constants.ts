@@ -15,6 +15,13 @@ export const WRITE_OPTIONS = {
 };
 export const ARIO_DOCS_URL = 'https://docs.ar.io';
 
+// The SDK's `getInfo()` returns this as a hardcoded literal (see
+// `solana/io-readable.js`, `Ticker: 'ARIO'`) but spends two account reads —
+// ArioConfig and EpochSettings — getting there. The portal only ever wanted the
+// ticker, so it reads the constant and skips the round trip. If the SDK ever
+// makes Ticker network-derived, this is the line to revert.
+export const ARIO_TICKER = 'ARIO';
+
 // RPC endpoints come from the environment. A provider URL carries an auth
 // token, so it must never be committed — see .env.example. These fall back to
 // the public Solana RPCs, which are heavily rate-limited but let the app boot
@@ -25,6 +32,14 @@ export const SOLANA_RPC_URL =
 export const SOLANA_MAINNET_RPC_URL =
   import.meta.env.VITE_SOLANA_MAINNET_RPC_URL ??
   'https://api.mainnet-beta.solana.com';
+
+// Optional second endpoint for failover. Intentionally has no default: the SDK's
+// `defaultFallbackUrl()` resolved to the public Solana RPC, and once the circuit
+// opened the app pushed 100% of its traffic — whole-program scans included —
+// there at a flat 10 req/s that no amount of 429s slowed down. Failing over is
+// only safe to an endpoint we are entitled to hammer, so it must be opted into.
+export const SOLANA_FALLBACK_RPC_URL =
+  import.meta.env.VITE_SOLANA_FALLBACK_RPC_URL ?? '';
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
 export const DEVNET_SOLANA_CORE_PROGRAM_ID =

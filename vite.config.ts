@@ -1,6 +1,5 @@
 import path from 'path';
 /// <reference types="vitest/config" />
-import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
@@ -11,32 +10,14 @@ import packageJson from './package.json';
 export default defineConfig({
   esbuild: false,
   build: {
-    sourcemap: true,
+    // Sourcemaps existed to make Sentry stack traces readable. With Sentry
+    // gone they are ~13MB of dead weight stored permanently on Arweave with
+    // every deploy, so they are no longer emitted.
+    sourcemap: false,
     minify: true,
     cssMinify: true,
   },
-  plugins: [
-    svgr(),
-    react(),
-    nodePolyfills(),
-    ...(process.env.VITE_NODE_ENV
-      ? [
-          sentryVitePlugin({
-            org: process.env.VITE_SENTRY_ORG,
-            project: process.env.VITE_SENTRY_PROJECT,
-            ignore: ['node_modules', 'vite.config.ts'],
-            authToken: process.env.VITE_SENTRY_AUTH_TOKEN,
-            sourcemaps: {
-              assets: './dist/**',
-            },
-            release: process.env.VITE_SENTRY_RELEASE,
-            deploy: {
-              env: process.env.VITE_NODE_ENV,
-            },
-          }),
-        ]
-      : []),
-  ],
+  plugins: [svgr(), react(), nodePolyfills()],
   base: '',
   define: {
     __NPM_PACKAGE_VERSION__: JSON.stringify(packageJson.version),

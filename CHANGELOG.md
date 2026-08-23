@@ -5,6 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-08-23
+
+### Fixed
+
+- **The app flooded a public Solana RPC whenever the primary degraded.** The SDK's
+  circuit breaker requires a fallback URL and its default resolved to
+  `api.mainnet-beta.solana.com`, so once the circuit opened every request — whole-program
+  scans included — went there for the full 60s reset window. Its adaptive throttle could
+  not see that traffic either: opossum emits `reject` rather than `failure` while the
+  circuit is open, and only `failure` was wired to the backoff. Measured against a dead
+  primary and an always-429 fallback: 209 requests in 20.7 seconds at a flat 10 req/s
+  that never slowed down.
+
+  Replaced with a transport that defaults to a single endpoint and no fallback. A second
+  endpoint is opt-in via `VITE_SOLANA_FALLBACK_RPC_URL` and shares the same rate gate, so
+  failing over cannot multiply load.
+
+- **A provider rate-limit header disabled the backoff on the primary too.** The next rate
+  was `min(ceiling, advertised * 0.9)`, so any advertised `x-ratelimit-rps-limit` at or
+  above the ceiling resolved back to the ceiling and skipped the decrease entirely — and
+  public mainnet-beta advertises 250. With that header: 151 requests in 15.7 seconds
+  pinned at 10 req/s. Without it: 24 requests, backing off to 1 req/s. An advertised
+  limit may now only lower the rate.
+
+- Caller cancellation counted as an endpoint failure. React Query aborts in-flight
+  queries on unmount, so a few navigations could mark a healthy primary unhealthy and
+  divert traffic to the configured fallback. Request timeouts still count.
+
+### Changed
+
+- Retries are no longer multiplied. React Query's default of three sat on top of the
+  SDK's own three-attempt retry — up to twelve attempts per failing query, each
+  potentially a whole-program scan — and it retried errors the SDK deliberately does not,
+  such as account-not-found. Transport retries are left to the layer that can tell them
+  apart.
+
+- Redundant reads removed from every cold load: `getInfo()` spent two account reads to
+  return a ticker the SDK hardcodes, `useProtocolBalance` issued its own `getTokenSupply()`
+  under a separate cache key, and the epoch-settings account was read three times. A
+  dashboard load drops from 31 to 25 RPC requests.
+
+- The persisted settings store is versioned again (version 2) so the rotated QuickNode
+  endpoint reaches returning users. Without the bump a stored endpoint outlives the
+  release that replaced it and existing users keep calling the revoked token, exactly as
+  in 2.4.1. Preferences unrelated to the network are preserved.
+
+## [2.5.0] - 2026-08-19
+
+### Removed
+
+- Sentry. It had never actually run: `sentry.ts` only called `Sentry.init()` when all
+  three DSN variables were present, and `VITE_SENTRY_DSN_PUBLIC_KEY` was always empty
+  because the repository secret is misspelled `SENTRT_DSN_PUBLIC_KEY`. Every build
+  shipped the SDK, initialised nothing, and reported nothing.
+
+  Drops `@sentry/browser`, `@sentry/react` and `@sentry/vite-plugin`, the router
+  instrumentation wrapper in `App.tsx`, the build plugin in both Vite configs, and the
+  `VITE_SENTRY_*` variables from both deploy workflows.
+
+### Changed
+
+- Sourcemaps are no longer emitted. They existed so Sentry could symbolicate stack
+  traces; with Sentry gone they were roughly 13 MB across 41 files, uploaded to
+  Arweave — permanently — on every production release and every pull-request preview
+  build. Production output drops from about 18 MB to 4.8 MB.
+
 ## [2.4.1] - 2026-08-18
 
 ### Fixed

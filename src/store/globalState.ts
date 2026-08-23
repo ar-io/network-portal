@@ -1,16 +1,12 @@
-import type { SolanaARIOWriteable, SolanaRpc } from '@ar.io/sdk/solana';
-import {
-  ARIO,
-  ARIORead,
-  createCircuitBreakerRpc,
-  defaultFallbackUrl,
-} from '@ar.io/sdk/web';
-import { address, createSolanaRpc } from '@solana/kit';
+import type { SolanaARIOWriteable } from '@ar.io/sdk/solana';
+import { ARIO, ARIORead } from '@ar.io/sdk/web';
+import { address } from '@solana/kit';
 import type { Rpc, SolanaRpcApi } from '@solana/kit';
-import { THEME_TYPES } from '@src/constants';
+import { SOLANA_FALLBACK_RPC_URL, THEME_TYPES } from '@src/constants';
 import { AoAddress } from '@src/types';
 import type { EpochDataWithCounters } from '@src/utils/epochFetch';
 import { getOptionalSolanaAddress } from '@src/utils/solanaAddress';
+import { createThrottledRpc } from '@src/utils/solanaRpc';
 import { create } from 'zustand';
 import { shallow } from 'zustand/shallow';
 import { NetworkPortalDB, createDb } from './db';
@@ -44,14 +40,22 @@ type GlobalStateActions = {
   setWriteSDK: (sdk?: SolanaARIOWriteable) => void;
 };
 
-/** Memoised kit RPC client with circuit breaker, rebuilt when the RPC URL changes. */
+/**
+ * Memoised kit RPC client, rebuilt when the RPC URL changes. Memoising matters
+ * for more than allocation: the rate gate lives inside the client, so one
+ * instance per endpoint is what keeps the whole tab under a single budget.
+ *
+ * See `@src/utils/solanaRpc` for why this no longer uses the SDK's
+ * `createCircuitBreakerRpc` — in short, its fallback defaulted to a public RPC
+ * and its throttle could not see the traffic it sent there.
+ */
 let _rpc: any | null = null;
 let _rpcUrl: string | null = null;
 export function getSolanaRpc(rpcUrl: string) {
   if (!_rpc || _rpcUrl !== rpcUrl) {
-    _rpc = createCircuitBreakerRpc({
+    _rpc = createThrottledRpc({
       primaryUrl: rpcUrl,
-      fallbackUrl: defaultFallbackUrl(rpcUrl),
+      fallbackUrl: SOLANA_FALLBACK_RPC_URL || undefined,
     });
     _rpcUrl = rpcUrl;
   }

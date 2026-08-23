@@ -1,39 +1,40 @@
-import {
-  deserializeEpochSettingsFull,
-  getEpochSettingsPDA,
-} from '@ar.io/sdk/solana';
 import { EpochData } from '@ar.io/sdk/web';
 import type { Commitment } from '@solana/kit';
-import { fetchEncodedAccount } from '@solana/kit';
-import { log } from '@src/constants';
+import { ARIO_TICKER, log } from '@src/constants';
+import {
+  epochSettingsQueryKey,
+  fetchEpochSettings,
+} from '@src/hooks/useEpochSettings';
 import { useGlobalState } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
 import { probeArIOGateway } from '@src/utils/arweaveUrl';
 import { fetchEpochLightweight } from '@src/utils/epochFetch';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import { showErrorToast } from '@src/utils/toast';
+import type { QueryClient } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactElement, useEffect } from 'react';
 
 /**
- * Resolve the current epoch index from on-chain EpochSettings,
- * then fetch the epoch data via the shared lightweight fetch.
+ * Resolve the current epoch index from on-chain EpochSettings, then fetch the
+ * epoch data via the shared lightweight fetch.
+ *
+ * Routed through `queryClient.fetchQuery` on the same key `useEpochSettings`
+ * uses so the two share one account read. Reading it directly here is what made
+ * EpochSettings a three-times-per-load fetch.
  */
 async function fetchCurrentEpochLightweight(
+  queryClient: QueryClient,
   rpc: any,
+  solanaRpcUrl: string,
   garProgram: string,
   commitment: Commitment,
 ) {
-  const [settingsPda] = await getEpochSettingsPDA(garProgram as any);
-  const settingsAccount = await fetchEncodedAccount(rpc, settingsPda, {
-    commitment,
+  const settings = await queryClient.fetchQuery({
+    queryKey: epochSettingsQueryKey(solanaRpcUrl, garProgram),
+    queryFn: () => fetchEpochSettings(rpc, garProgram, commitment),
+    staleTime: Number.POSITIVE_INFINITY,
   });
-  if (!settingsAccount.exists) {
-    throw new Error('EpochSettings account not found');
-  }
-  const settings = deserializeEpochSettingsFull(
-    Buffer.from(settingsAccount.data),
-  );
   const epochIndex = Math.max(0, settings.currentEpochIndex - 1);
 
   return fetchEpochLightweight(rpc, garProgram, epochIndex, commitment);
@@ -59,29 +60,23 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   useEffect(() => {
     const loadCurrentEpoch = async () => {
       setCurrentEpoch(undefined);
-      setTicker('');
 
       const garProgram = (arioReadSDK as any)?.garProgram as string | undefined;
       const commitment =
         ((arioReadSDK as any)?.commitment as Commitment) ?? 'confirmed';
 
-      try {
-        const { Ticker } = await arioReadSDK.getInfo();
-        setTicker(Ticker);
-      } catch (error) {
-        log.error('[GlobalDataProvider] Error fetching network info', {
-          rpcUrl: solanaRpcUrl,
-          errorMessage: getErrorMessage(error),
-          error,
-        });
-      }
+      // This used to be `(await arioReadSDK.getInfo()).Ticker`, which spent two
+      // account reads to arrive at a value the SDK hardcodes. See ARIO_TICKER.
+      setTicker(ARIO_TICKER);
 
       try {
         let epoch: EpochData;
         if (garProgram && rpc) {
           // Lightweight path: 2-3 RPC calls instead of ~55
           epoch = await fetchCurrentEpochLightweight(
+            queryClient,
             rpc,
+            solanaRpcUrl,
             garProgram,
             commitment,
           );

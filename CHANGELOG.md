@@ -9,80 +9,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Sentry. It had never actually run: `sentry.ts` only called `Sentry.init()` when all
-  three DSN variables were present, and `VITE_SENTRY_DSN_PUBLIC_KEY` was always empty
-  because the repository secret is misspelled `SENTRT_DSN_PUBLIC_KEY`. Every build
-  shipped the SDK, initialised nothing, and reported nothing.
-
-  Drops `@sentry/browser`, `@sentry/react` and `@sentry/vite-plugin`, the router
-  instrumentation wrapper in `App.tsx`, the build plugin in both Vite configs, and the
-  `VITE_SENTRY_*` variables from both deploy workflows.
+- Third-party error reporting. The portal no longer loads an error-tracking SDK or
+  sends any data about your session to an external service.
 
 ### Changed
 
-- Sourcemaps are no longer emitted. They existed so Sentry could symbolicate stack
-  traces; with Sentry gone they were roughly 13 MB across 41 files, uploaded to
-  Arweave — permanently — on every production release and every pull-request preview
-  build. Production output drops from about 18 MB to 4.8 MB.
+- Much smaller download. The published build dropped from roughly 18 MB to under
+  5 MB, so the portal loads faster — noticeably so over a gateway or a slow
+  connection.
 
 ## [2.4.1] - 2026-08-18
 
 ### Fixed
 
-- Returning users hitting `401 Unauthorized` on every RPC call after 2.4.0. Settings
-  persist to localStorage, and the merge let a stored value win over the build's
-  defaults — its only reset trigger compared localhost against remote, so an RPC
-  endpoint saved by an older build survived every upgrade. When the provider token
-  was rotated for 2.4.0, everyone who had opened the app before kept calling the
-  revoked endpoint while new visitors were fine.
-
-  The settings store is now versioned. Upgrading from the unversioned store drops
-  the stored endpoint and the program ids keyed to it, so the shipped defaults apply
-  again. Preferences unrelated to the network are preserved.
-
-  Without this, every future endpoint rotation would silently break existing users
-  the same way.
+- The portal failing to load network data, showing "401 Unauthorized", for anyone
+  who had used it before. Saved settings kept a network endpoint that was no longer
+  valid, and nothing replaced it when a new one shipped. Stored network settings now
+  update automatically when the app ships a new default, so clearing browser storage
+  is no longer necessary.
 
 ## [2.4.0] - 2026-08-17
 
-### Security
-
-- **Provider auth tokens are no longer committed.** `src/constants.ts` carried two
-  QuickNode URLs with live tokens embedded in their paths, and `.env.local` /
-  `.env.localnet` were tracked in git — on a public repository. Both endpoints now
-  read from `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL`, env files are
-  gitignored, and `.env.example` documents the expected shape.
-- **The previously committed tokens must be rotated.** Untracking a file does not
-  remove it from history, and this repository is public.
-- Note on scope: a token supplied through the environment is still inlined into the
-  production bundle by Vite and is readable by anyone who loads the app. Keeping it
-  out of source prevents leakage from the repository, not from the deployed build.
-  The endpoint itself is protected at the provider — a dedicated token per app, a
-  referrer allowlist, and per-method rate limits.
-
-### Added
-
-- `verify-secrets` gate on the production workflow. A missing RPC secret would
-  otherwise fail silently at build time and ship a production build that falls back
-  to the public, rate-limited Solana RPC while looking healthy in CI. Because the
-  production deploy is permanent (Arweave), the release now refuses to run instead.
-
 ### Fixed
 
-- `SOLANA_RPC_URL` never actually read `VITE_SOLANA_RPC_URL` — it was a hardcoded
-  literal, so `.env.local` had no effect on the default devnet endpoint and local
-  RPC overrides were silently ignored.
-- Claiming rewards no longer abandons the batch when one item fails. Each withdrawal
-  and vault release is an independent transaction, so failures are isolated per item
-  and the rest of the batch continues; a declined wallet signature stops the run
-  instead of re-prompting for every remaining item; and the success total now
-  reflects what actually processed rather than the full claimable amount.
+- Claiming rewards no longer stops at the first failure. Each withdrawal and vault
+  release is its own transaction, so one failing no longer strands the others.
+  Declining a signature now ends the run instead of prompting again for every
+  remaining item, and the summary reflects what actually processed rather than the
+  full claimable amount.
+- Custom RPC endpoints configured for local development were silently ignored.
 
 ### Changed
 
-- Both deploy workflows pass `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL`
-  to the build. Staging tolerates them being unset and falls back to public RPC;
-  production does not.
+- Network endpoints are configured per deployment rather than built into the source,
+  and a release now verifies they are present before publishing.
+
+### Security
+
+- Network provider credentials are no longer kept in the repository. Note that any
+  endpoint the portal talks to is visible to anyone running the app — these
+  endpoints are protected by access controls at the provider rather than by being
+  secret. You can always point the portal at your own endpoint in Settings.
 
 ## [2.3.2] - 2026-08-10
 

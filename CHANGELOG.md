@@ -5,130 +5,82 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.1] - 2026-08-23
+
+### Changed
+
+- Release notes rewritten. Earlier entries described internal implementation detail;
+  they now describe what actually changed for you. No functional changes in this
+  release.
+
 ## [2.6.0] - 2026-08-23
 
 ### Fixed
 
-- **The app flooded a public Solana RPC whenever the primary degraded.** The SDK's
-  circuit breaker requires a fallback URL and its default resolved to
-  `api.mainnet-beta.solana.com`, so once the circuit opened every request — whole-program
-  scans included — went there for the full 60s reset window. Its adaptive throttle could
-  not see that traffic either: opossum emits `reject` rather than `failure` while the
-  circuit is open, and only `failure` was wired to the backoff. Measured against a dead
-  primary and an always-429 fallback: 209 requests in 20.7 seconds at a flat 10 req/s
-  that never slowed down.
-
-  Replaced with a transport that defaults to a single endpoint and no fallback. A second
-  endpoint is opt-in via `VITE_SOLANA_FALLBACK_RPC_URL` and shares the same rate gate, so
-  failing over cannot multiply load.
-
-- **A provider rate-limit header disabled the backoff on the primary too.** The next rate
-  was `min(ceiling, advertised * 0.9)`, so any advertised `x-ratelimit-rps-limit` at or
-  above the ceiling resolved back to the ceiling and skipped the decrease entirely — and
-  public mainnet-beta advertises 250. With that header: 151 requests in 15.7 seconds
-  pinned at 10 req/s. Without it: 24 requests, backing off to 1 req/s. An advertised
-  limit may now only lower the rate.
-
-- Caller cancellation counted as an endpoint failure. React Query aborts in-flight
-  queries on unmount, so a few navigations could mark a healthy primary unhealthy and
-  divert traffic to the configured fallback. Request timeouts still count.
+- The portal could overwhelm the network when an endpoint became slow or unreachable.
+  Instead of easing off it kept firing requests at full rate, and quietly diverted them
+  to a shared public endpoint — which made a bad connection worse rather than better.
+  Requests are now paced properly, and the portal no longer falls back to a public
+  endpoint on its own.
+- Moving between pages quickly could make a healthy endpoint look unhealthy and send
+  traffic somewhere else unnecessarily.
 
 ### Changed
 
-- Retries are no longer multiplied. React Query's default of three sat on top of the
-  SDK's own three-attempt retry — up to twelve attempts per failing query, each
-  potentially a whole-program scan — and it retried errors the SDK deliberately does not,
-  such as account-not-found. Transport retries are left to the layer that can tell them
-  apart.
-
-- Redundant reads removed from every cold load: `getInfo()` spent two account reads to
-  return a ticker the SDK hardcodes, `useProtocolBalance` issued its own `getTokenSupply()`
-  under a separate cache key, and the epoch-settings account was read three times. A
-  dashboard load drops from 31 to 25 RPC requests.
-
-- The persisted settings store is versioned again (version 2) so the rotated QuickNode
-  endpoint reaches returning users. Without the bump a stored endpoint outlives the
-  release that replaced it and existing users keep calling the revoked token, exactly as
-  in 2.4.1. Preferences unrelated to the network are preserved.
+- Failed requests are retried far less aggressively. A single failing request could
+  previously be attempted up to twelve times, which slowed recovery instead of helping.
+- The dashboard loads with fewer network requests, so it comes up faster — most
+  noticeably on a busy or rate-limited endpoint.
+- You can now point the portal at a second, backup endpoint if you have one. Without
+  one, a failure surfaces as an error and you can switch endpoints in Settings rather
+  than being silently moved onto a shared public one.
 
 ## [2.5.0] - 2026-08-19
 
 ### Removed
 
-- Sentry. It had never actually run: `sentry.ts` only called `Sentry.init()` when all
-  three DSN variables were present, and `VITE_SENTRY_DSN_PUBLIC_KEY` was always empty
-  because the repository secret is misspelled `SENTRT_DSN_PUBLIC_KEY`. Every build
-  shipped the SDK, initialised nothing, and reported nothing.
-
-  Drops `@sentry/browser`, `@sentry/react` and `@sentry/vite-plugin`, the router
-  instrumentation wrapper in `App.tsx`, the build plugin in both Vite configs, and the
-  `VITE_SENTRY_*` variables from both deploy workflows.
+- Third-party error reporting. The portal no longer loads an error-tracking SDK or
+  sends any data about your session to an external service.
 
 ### Changed
 
-- Sourcemaps are no longer emitted. They existed so Sentry could symbolicate stack
-  traces; with Sentry gone they were roughly 13 MB across 41 files, uploaded to
-  Arweave — permanently — on every production release and every pull-request preview
-  build. Production output drops from about 18 MB to 4.8 MB.
+- Much smaller download. The published build dropped from roughly 18 MB to under
+  5 MB, so the portal loads faster — noticeably so over a gateway or a slow
+  connection.
 
 ## [2.4.1] - 2026-08-18
 
 ### Fixed
 
-- Returning users hitting `401 Unauthorized` on every RPC call after 2.4.0. Settings
-  persist to localStorage, and the merge let a stored value win over the build's
-  defaults — its only reset trigger compared localhost against remote, so an RPC
-  endpoint saved by an older build survived every upgrade. When the provider token
-  was rotated for 2.4.0, everyone who had opened the app before kept calling the
-  revoked endpoint while new visitors were fine.
-
-  The settings store is now versioned. Upgrading from the unversioned store drops
-  the stored endpoint and the program ids keyed to it, so the shipped defaults apply
-  again. Preferences unrelated to the network are preserved.
-
-  Without this, every future endpoint rotation would silently break existing users
-  the same way.
+- The portal failing to load network data, showing "401 Unauthorized", for anyone
+  who had used it before. Saved settings kept a network endpoint that was no longer
+  valid, and nothing replaced it when a new one shipped. Stored network settings now
+  update automatically when the app ships a new default, so clearing browser storage
+  is no longer necessary.
 
 ## [2.4.0] - 2026-08-17
 
-### Security
-
-- **Provider auth tokens are no longer committed.** `src/constants.ts` carried two
-  QuickNode URLs with live tokens embedded in their paths, and `.env.local` /
-  `.env.localnet` were tracked in git — on a public repository. Both endpoints now
-  read from `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL`, env files are
-  gitignored, and `.env.example` documents the expected shape.
-- **The previously committed tokens must be rotated.** Untracking a file does not
-  remove it from history, and this repository is public.
-- Note on scope: a token supplied through the environment is still inlined into the
-  production bundle by Vite and is readable by anyone who loads the app. Keeping it
-  out of source prevents leakage from the repository, not from the deployed build.
-  The endpoint itself is protected at the provider — a dedicated token per app, a
-  referrer allowlist, and per-method rate limits.
-
-### Added
-
-- `verify-secrets` gate on the production workflow. A missing RPC secret would
-  otherwise fail silently at build time and ship a production build that falls back
-  to the public, rate-limited Solana RPC while looking healthy in CI. Because the
-  production deploy is permanent (Arweave), the release now refuses to run instead.
-
 ### Fixed
 
-- `SOLANA_RPC_URL` never actually read `VITE_SOLANA_RPC_URL` — it was a hardcoded
-  literal, so `.env.local` had no effect on the default devnet endpoint and local
-  RPC overrides were silently ignored.
-- Claiming rewards no longer abandons the batch when one item fails. Each withdrawal
-  and vault release is an independent transaction, so failures are isolated per item
-  and the rest of the batch continues; a declined wallet signature stops the run
-  instead of re-prompting for every remaining item; and the success total now
-  reflects what actually processed rather than the full claimable amount.
+- Claiming rewards no longer stops at the first failure. Each withdrawal and vault
+  release is its own transaction, so one failing no longer strands the others.
+  Declining a signature now ends the run instead of prompting again for every
+  remaining item, and the summary reflects what actually processed rather than the
+  full claimable amount.
+- Custom RPC endpoints configured for local development were silently ignored.
 
 ### Changed
 
-- Both deploy workflows pass `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL`
-  to the build. Staging tolerates them being unset and falls back to public RPC;
-  production does not.
+- Network endpoints are configured per deployment rather than built into the source.
+  A production release now refuses to publish if they are missing, so it can no longer
+  ship a build that quietly falls back to a public, rate-limited endpoint.
+
+### Security
+
+- Network provider credentials are no longer kept in the repository. Note that any
+  endpoint the portal talks to is visible to anyone running the app — these
+  endpoints are protected by access controls at the provider rather than by being
+  secret. You can always point the portal at your own endpoint in Settings.
 
 ## [2.3.2] - 2026-08-10
 

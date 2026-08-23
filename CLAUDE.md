@@ -38,6 +38,7 @@ yarn deploy        # Build, then deploy to Arweave via @ar.io/deploy (ario-deplo
 - **Pre-commit**: Husky runs lint-staged which auto-fixes with Biome on `*.{ts,tsx,js,md,json}`
 - **Path aliases**: Use `@src/*` for `./src/*` and `@tests/*` for `./tests/*` (configured in both tsconfig.json and vite.config.ts)
 - **SVGs**: Import as React components via vite-plugin-svgr; icon components live in `/src/components/icons/` (only barrel export in the project)
+- **Stale configs**: `.eslintrc`, `.prettierrc` and `jest.config.json` are all leftovers. Biome and Vitest are authoritative — don't add rules to the dead files
 
 ## High-Level Architecture
 
@@ -63,6 +64,12 @@ The app runs on Solana (devnet by default, localnet and mainnet also supported):
   - `useGlobalState` (`/src/store/globalState.ts`) - wallet info, SDK instances (`arIOReadSDK`, `arIOWriteableSDK`), Solana RPC instance, current epoch, Solana slot, theme
   - `useSettings` (`/src/store/settings.ts`) - user-configurable settings (Solana RPC URL, program IDs, Arweave GQL URL, sidebar state); persisted to localStorage with smart merge to prevent stale localhost URLs
   - `useColumnPreferences` (`/src/store/columnPreferences.ts`) - table column visibility
+
+  `useSettings` is **versioned** (`SETTINGS_VERSION` + `migrateSettings`). Its `merge`
+  lets persisted values win over the build's defaults, so a stored RPC endpoint
+  otherwise outlives the release that replaced it — when a provider token was rotated,
+  every returning user kept calling the revoked one and got 401 while new visitors were
+  fine. **Bump `SETTINGS_VERSION` whenever a shipped default must reach existing users.**
 - **React Query** for server state; custom `queryKeyHashFn` handles non-serializable Solana `Connection` objects in query keys
 - **IndexedDB** (via Dexie) for persistent caching of observations and epochs (`/src/store/db.ts`); database name derived from network tier (solana-devnet, solana-localnet, solana-mainnet)
 
@@ -93,9 +100,34 @@ const useDataHook = (params) => {
 
 ### Routing
 
-- Hash-based routing (`createHashRouter`) with React Router v6, wrapped by Sentry
+- Hash-based routing (`createHashRouter`) with React Router v6
 - All route components lazy-loaded with `React.lazy()` except Dashboard
 - Routes: `/dashboard`, `/gateways`, `/gateways/:ownerId`, `/gateways/:ownerId/reports`, `/gateways/:ownerId/reports/:reportId`, `/gateways/:ownerId/observe`, `/staking`, `/observers`, `/balances`, `/balances/:walletAddress`, `/extensions`
+
+### Token Units
+
+The SDK returns balances and stakes in **mARIO**; the UI shows **ARIO**. Convert at
+the boundary rather than mid-calculation, and never mix the two in one expression:
+
+```typescript
+new mARIOToken(gateway.operatorStake).toARIO().valueOf()  // reading -> display
+new ARIOToken(amountToStake).toMARIO()                    // form input -> SDK write
+```
+
+### Writing Transactions
+
+Write flows follow a fixed shape (see `/src/components/modals/ReviewStakeModal.tsx`):
+a review modal collects input, `BlockingMessageModal` covers the wallet round-trip,
+the call goes through `arIOWriteableSDK` with `WRITE_OPTIONS`, every affected React
+Query key is invalidated by hand, then `SuccessModal` shows the tx id. Failures go to
+`showErrorToast`. `arIOWriteableSDK` is undefined until a wallet with signing
+capability connects, so guard on it before starting a flow.
+
+### SDK Import Paths
+
+`@ar.io/sdk/web` for the app-level API (`ARIO`, `ARIORead`, `mARIOToken`,
+`GatewayWithAddress`); `@ar.io/sdk/solana` for on-chain primitives (PDA helpers,
+deserializers, program ids). Never import from bare `@ar.io/sdk`.
 
 ### Key Domain Concepts
 
@@ -110,7 +142,6 @@ const useDataHook = (params) => {
 - `/src/components/` - Reusable UI components (flat structure with `/forms`, `/modals`, `/panels`, `/charts` subdirs)
 - `/src/hooks/` - Data fetching and business logic hooks
 - `/src/pages/` - Route page components (one directory per page with `index.tsx`)
-- `/src/services/` - External service integrations (Sentry)
 - `/src/store/` - Zustand state management
 - `/src/utils/` - Helper functions (includes `walletAdapterBridge.ts` for Solana signer conversion)
 - `/tokens/` - Design token definitions (primitives.json consumed by Tailwind config)
@@ -122,10 +153,26 @@ const useDataHook = (params) => {
 - `vitest.config.ts` extends the base Vite config with `test: { globals: true }`
 - Legacy `jest.config.json` exists but is unused; tests run via vitest only
 
+### Environment & Secrets
+
+RPC endpoints come from the environment and are **never committed** — `.env*` is
+gitignored, `.env.example` documents the shape. A provider URL carries an auth token
+in its path, so treat it as sensitive in source, but note that Vite inlines it into the
+bundle: it is published to every visitor regardless, and permanently so via Arweave.
+The endpoint is protected at the provider (referrer allowlist, per-method rate limits),
+not by keeping the token out of git.
+
+Both deploy workflows pass `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL` from
+repository secrets. Production has a `verify-secrets` gate that fails the run when either
+is empty — unset would otherwise silently fall back to public RPC and ship a degraded,
+permanent build that looks healthy in CI.
+
 ### Development Notes
 
-- Node.js 24.16.0 required (see `.nvmrc`)
+- Node.js 24.16.0 required (see `.nvmrc`); workflows read `node-version-file: .nvmrc`
 - Environment variables use `VITE_` prefix
+- Sourcemaps are deliberately not emitted — they were ~13MB per deploy, stored
+  permanently on Arweave, and only existed to symbolicate Sentry traces
 - Pre-commit hooks run Biome via Husky
-- CI/CD deploys to GitHub Pages (staging) and Arweave (production)
+- CI/CD: `develop` -> GitHub Pages (staging); `main` -> Firebase + Arweave (production, permanent). PRs publish an Arweave preview
 - Tailwind CSS with custom design tokens in `/tokens/`, Rubik font, dark mode via `selector` strategy

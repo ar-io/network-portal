@@ -7,16 +7,32 @@ on:
       - "content/**"
       - "src/**"
 
+# Every push to an open PR publishes a preview to Arweave, permanently. Without
+# this, pushing three times in quick succession stored three full bundles and
+# only the last was ever looked at. Superseded runs are cancelled instead.
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    # On close the deploy is skipped, so building here only discards the result.
+    if: github.event.action != 'closed'
     strategy:
       matrix:
         step: ["lint:check", "test", "build"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "yarn"
       - run: yarn install --frozen-lockfile
       - run: yarn ${{ matrix.step }}
+        env:
+          VITE_SOLANA_RPC_URL: ${{ secrets.VITE_SOLANA_RPC_URL }}
+          VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
 
   deploy-preview:
     runs-on: ubuntu-latest
@@ -30,7 +46,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20.x"
+          node-version-file: ".nvmrc"
           cache: "yarn"
 
       - name: Install dependencies
@@ -38,6 +54,12 @@ jobs:
 
       - name: Build application
         run: yarn build
+        env:
+          # Without these the preview builds against the public, rate-limited
+          # Solana RPC and behaves differently from staging and production —
+          # which reads as a bug in the PR rather than a gap in the workflow.
+          VITE_SOLANA_RPC_URL: ${{ secrets.VITE_SOLANA_RPC_URL }}
+          VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
 
       - name: Deploy PR preview
         uses: ar-io/ar-io-deploy@v1

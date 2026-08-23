@@ -41,8 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Network endpoints are configured per deployment rather than built into the source,
-  and a release now verifies they are present before publishing.
+- Network endpoints are configured per deployment rather than built into the source.
+  A production release now refuses to publish if they are missing, so it can no longer
+  ship a build that quietly falls back to a public, rate-limited endpoint.
 
 ### Security
 

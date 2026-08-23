@@ -47,6 +47,11 @@ jobs:
       contents: read
       # ar-io-deploy posts the preview URL back to the pull request.
       pull-requests: write
+      # ar-io-deploy dedupes uploads through an Actions cache
+      # (`ario-deploy-transaction-cache`), which it deletes and re-saves on every
+      # run. Both steps are continue-on-error, so without this the cache fails to
+      # save *silently* and every preview re-uploads files that never changed.
+      actions: write
 
     steps:
       - name: Warn on missing RPC secrets

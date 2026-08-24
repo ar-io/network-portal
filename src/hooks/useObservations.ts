@@ -183,6 +183,17 @@ export async function fetchObservationsFromArchive(
   );
   if (!doc?.observations?.length) return null;
 
+  // The portal documents are stamped with a network and program ids and are
+  // refused on mismatch; an epoch document carries no such stamp, so the one
+  // identity claim it does make is worth checking. A host serving the wrong
+  // epoch would otherwise render as this epoch's results.
+  if (doc.epochIndex !== undefined && doc.epochIndex !== epochIndex) {
+    log.warn(
+      `[useObservations] archive returned epoch ${doc.epochIndex} for ${epochIndex} — ignoring`,
+    );
+    return null;
+  }
+
   const reports: Record<string, string> = {};
   const totalsByObserver: Record<string, GatewayResultTotals> = {};
 

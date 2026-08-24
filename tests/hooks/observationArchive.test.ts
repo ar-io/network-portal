@@ -91,6 +91,14 @@ describe('fetchObservationsFromArchive', () => {
     expect(result?.failureSummaries).toEqual({});
   });
 
+  it('refuses a document for a different epoch than the one requested', async () => {
+    // Portal documents are stamped with a network and program ids and refused
+    // on mismatch. An epoch document has no such stamp, so its own epochIndex
+    // is the only identity claim available to check.
+    mockJson({ ...EPOCH_522, epochIndex: 999 });
+    expect(await fetchObservationsFromArchive(522)).toBeNull();
+  });
+
   it('returns null for an epoch outside the retained window', async () => {
     // A 404 here is ordinary, and must leave the caller free to try the live
     // read rather than surfacing an error.

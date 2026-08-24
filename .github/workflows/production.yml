@@ -91,6 +91,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment: production
+    permissions:
+      contents: read
+      # ar-io-deploy dedupes uploads through an Actions cache
+      # (`ario-deploy-transaction-cache`), which it deletes and re-saves on every
+      # run. Both steps are continue-on-error, so without this the cache fails to
+      # save *silently* and every release re-uploads files that never changed —
+      # permanently, to Arweave, at cost. This job currently works only because
+      # the repository default token permission is `write`; declaring it here
+      # means tightening that default cannot quietly start re-uploading the whole
+      # bundle. The same permission was already lost and restored once on the
+      # preview workflow (a85406d).
+      actions: write
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
@@ -117,5 +129,15 @@ jobs:
         with:
           deploy-key: ${{ secrets.DEPLOY_KEY }}
           arns-key: ${{ secrets.ARNS_KEY }}
+          # Production resolves the name from a repository *variable*; the
+          # preview workflow uses a same-named *secret* so previews can target a
+          # different name. Two sources, deliberately — change the right one.
           arns-name: ${{ vars.ARNS_NAME }}
           deploy-folder: ./dist
+          # Without this the ArNS record inherits a 3600s TTL, so a release is
+          # invisible for up to an hour after the workflow reports success. That
+          # is how the 2.6.0 RPC fix deployed green at 22:23 while users kept
+          # running the broken build — which was flooding a public RPC — until
+          # the record expired. Five minutes still caches usefully but keeps a
+          # hotfix reachable. Previews use 60s.
+          ttl-seconds: "300"

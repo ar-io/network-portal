@@ -4,6 +4,16 @@ on:
   push:
     branches:
       - main
+
+# Least privilege baseline: every job is read-only unless it says otherwise.
+# Without this the jobs inherit the repository default, which is currently
+# `write` — far more than any of them needs. `deploy-to-arweave` overrides this
+# to add the one permission it genuinely requires. `deploy-to-firebase` passes
+# `repoToken`, but the Firebase action uses that only to comment preview URLs on
+# pull requests; a `channelId: live` deploy from a push has no PR to comment on.
+permissions:
+  contents: read
+
 jobs:
   # The RPC URLs carry provider auth tokens, so they live in secrets rather than
   # in source. When unset the app falls back to the public Solana RPCs, which are

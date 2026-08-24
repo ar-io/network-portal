@@ -1,0 +1,311 @@
+/**
+ * Client for the analyzer's archive API — a different service contract from
+ * the portal snapshot documents in `portalApi.ts`, served by the same host.
+ *
+ * Three differences make it worth a separate client rather than another entry
+ * in `PortalDocumentName`:
+ *
+ * 1. **No network or programIds stamp.** The portal documents carry both and
+ *    `fetchPortalDocument` refuses a mismatch. These carry neither, so that
+ *    guard has nothing to check and cannot be reused.
+ * 2. **Cadence varies by document.** The portal republishes every ~10 minutes
+ *    and its client applies one 30-minute freshness window. `network.json` and
+ *    the gateway roster are rebuilt DAILY — the same window would reject every
+ *    one of them, silently, forever. Freshness is therefore per document.
+ * 3. **Epoch documents are history, not state.** A closed epoch does not go
+ *    stale; refusing an old one would defeat the point of reading it.
+ *
+ * What carries over unchanged is the contract that matters: this is never a
+ * hard dependency. Anything unavailable, malformed or stale returns null and
+ * the caller renders without it.
+ */
+
+import { log } from '@src/constants';
+import { useSettings } from '@src/store/settings';
+
+/** A slow API must never be slower than doing without it. */
+const REQUEST_TIMEOUT_MS = 8_000;
+
+/**
+ * How old each document may be before it is treated as absent.
+ *
+ * The daily documents get two days: one missed run is a late crank, two is the
+ * analysis having stopped. `null` means age is not a criterion.
+ */
+const MAX_AGE_MS = {
+  network: 48 * 60 * 60 * 1000,
+  gateways: 48 * 60 * 60 * 1000,
+  observers: 48 * 60 * 60 * 1000,
+  findings: 48 * 60 * 60 * 1000,
+  epoch: null,
+} as const;
+
+export type AnalyzerDocument = keyof typeof MAX_AGE_MS;
+
+/** True when an endpoint is configured. Shares the portal's setting. */
+export const isAnalyzerApiEnabled = (): boolean => analyzerBaseUrl().length > 0;
+
+const analyzerBaseUrl = (): string => {
+  const configured = useSettings.getState()?.portalApiUrl;
+  return (typeof configured === 'string' ? configured : '').trim();
+};
+
+const pathFor = (doc: AnalyzerDocument, epochIndex?: number): string =>
+  doc === 'epoch' ? `/api/v1/epochs/${epochIndex}.json` : `/api/v1/${doc}.json`;
+
+/**
+ * Fetch one analyzer document, or null if it cannot be trusted.
+ *
+ * Never throws: callers treat absence as "render without this section", and an
+ * exception would turn a missing panel into a broken page.
+ */
+export async function fetchAnalyzerDocument<T>(
+  doc: AnalyzerDocument,
+  epochIndex?: number,
+): Promise<T | null> {
+  const base = analyzerBaseUrl();
+  if (base.length === 0) return null;
+
+  const url = `${base.replace(/\/+$/, '')}${pathFor(doc, epochIndex)}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      // Only ever a plain GET with a safelisted header: this stays a CORS
+      // "simple request" and never triggers a preflight, which the host
+      // answers with 405.
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      // A 404 is ordinary here — an epoch older than the retained window.
+      log.debug(`[analyzerApi] ${doc}: HTTP ${response.status}`);
+      return null;
+    }
+
+    const body = (await response.json()) as T & { generatedAt?: string };
+
+    const maxAgeMs = MAX_AGE_MS[doc];
+    if (maxAgeMs !== null) {
+      const ageMs = body.generatedAt
+        ? Date.now() - Date.parse(body.generatedAt)
+        : Number.NaN;
+      if (!Number.isFinite(ageMs) || ageMs > maxAgeMs) {
+        log.warn(
+          `[analyzerApi] ${doc}: ${Math.round(ageMs / 3600000)}h old, ignoring`,
+        );
+        return null;
+      }
+    }
+
+    return body;
+  } catch (error) {
+    log.debug(`[analyzerApi] ${doc}: unavailable (${error})`);
+    return null;
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Document shapes. Only the fields the portal renders are declared; the
+ * documents carry more, and everything here is optional because a degraded
+ * analysis run publishes partial data rather than failing.
+ * ---------------------------------------------------------------------- */
+
+export interface AnalyzerVersionDistribution {
+  version: string;
+  count: number;
+  percentage: number;
+}
+
+export interface AnalyzerNetworkSummary {
+  generatedAt?: string;
+  totals?: {
+    gatewaysInNetwork?: number;
+    gatewaysAnalyzed?: number;
+    resolved?: number;
+    failedDns?: number;
+    clustered?: number;
+    highCentralization?: number;
+  };
+  infrastructure?: {
+    totalDatacenterHosted?: number;
+    datacenterPercentage?: number;
+    topProviders?: Array<{ name: string; count: number; percentage: number }>;
+    countryDistribution?: Array<{
+      country: string;
+      countryCode: string;
+      count: number;
+      percentage: number;
+    }>;
+    uniqueIsps?: number;
+    uniqueCountries?: number;
+    uniqueAsns?: number;
+  };
+  versions?: {
+    distribution?: AnalyzerVersionDistribution[];
+    topVersion?: string;
+    topVersionCount?: number;
+    topVersionPercentage?: number;
+    totalGateways?: number;
+    totalReporting?: number;
+  } | null;
+  observers?: {
+    epochRange?: { from: number; to: number; count: number };
+    observerCount?: number;
+    findingCount?: number;
+    bySeverity?: Record<string, number>;
+    byKind?: Record<string, number>;
+    calibrated?: boolean;
+  };
+}
+
+export interface AnalyzerObserverRollup {
+  observer: string;
+  fqdn?: string | null;
+  epochsObserved: number;
+  firstEpochIndex: number;
+  lastEpochIndex: number;
+  distinctReportTxIds: number;
+  /** Epochs where this observer cited a report another observer also cited. */
+  sharedReportEpochs: number;
+  findingCount: number;
+  maxSeverity?: string | null;
+  kinds?: string[];
+}
+
+export interface AnalyzerObserversDocument {
+  generatedAt?: string;
+  observers?: AnalyzerObserverRollup[];
+}
+
+/** One row of the per-gateway analysis roster. */
+export interface AnalyzerGatewayRow {
+  fqdn?: string;
+  wallet?: string;
+  observer?: string;
+  status?: string;
+  stake?: number;
+  arIoRelease?: string | number | null;
+  arIoVersion?: string | null;
+  dnsResolved?: boolean;
+  ipAddress?: string | null;
+  asn?: number | string | null;
+  asnOrg?: string | null;
+  isp?: string | null;
+  hosting?: boolean | null;
+  city?: string | null;
+  country?: string | null;
+  countryCode?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  baseDomain?: string | null;
+  clusterId?: string | number | null;
+  clusterSize?: number | null;
+  clusterRole?: string | null;
+  clusterKind?: string | null;
+  scores?: Record<string, number> | null;
+  suspicionNotes?: string[] | null;
+}
+
+export interface AnalyzerGatewaysDocument {
+  generatedAt?: string;
+  gateways?: AnalyzerGatewayRow[];
+}
+
+export interface AnalyzerObservation {
+  observer: string;
+  reportTxId: string;
+  gatewayCount: number;
+  submittedAt?: string;
+  submittedAtUnix?: number;
+  suspectTimestamp?: boolean;
+  gatewayResultsBase64?: string;
+  gatewayResultsEncoding?: string;
+}
+
+export interface AnalyzerEpochDocument {
+  epochIndex: number;
+  generatedAt?: string;
+  observationCount?: number;
+  distinctReportTxIds?: number;
+  /**
+   * Whether the gateway registry slot order was captured. Without it the
+   * results bitmap cannot be mapped back to individual gateways — see
+   * {@link countGatewayResults}.
+   */
+  registryCaptured?: boolean;
+  registryApproximate?: boolean;
+  registryDigest?: string | null;
+  firstSubmittedAtUnix?: number | null;
+  lastSubmittedAtUnix?: number | null;
+  observations?: AnalyzerObservation[];
+  findings?: Array<Record<string, unknown>>;
+}
+
+/** The only bitmap encoding this decoder is correct for. */
+const SUPPORTED_BITMAP_ENCODING = 'gar-bitmap-v1-lsb';
+
+export interface GatewayResultTotals {
+  passed: number;
+  failed: number;
+  total: number;
+  passRate: number;
+}
+
+/**
+ * Count passes and failures in an observation's results bitmap.
+ *
+ * **Counting is safe; attributing is not.** The bitmap's bit `i` refers to
+ * slot `i` of the gateway registry as it stood in that epoch, and the archive
+ * publishes only a digest of that ordering, not the ordering itself. So a
+ * total is exact — population count does not depend on which gateway sits in
+ * which slot — while naming *which* gateway failed would be a guess against
+ * today's registry, and a wrong name is worse than no name.
+ *
+ * Returns null rather than a zeroed total when the bitmap is absent, short, or
+ * in an encoding this has not been checked against, so a caller can tell
+ * "nothing to show" from "everything failed".
+ */
+export const countGatewayResults = (
+  observation: AnalyzerObservation,
+): GatewayResultTotals | null => {
+  const { gatewayResultsBase64, gatewayCount, gatewayResultsEncoding } =
+    observation;
+
+  if (!gatewayResultsBase64 || !gatewayCount || gatewayCount <= 0) return null;
+  if (
+    gatewayResultsEncoding &&
+    gatewayResultsEncoding !== SUPPORTED_BITMAP_ENCODING
+  ) {
+    log.warn(
+      `[analyzerApi] unknown bitmap encoding ${gatewayResultsEncoding}, refusing to decode`,
+    );
+    return null;
+  }
+
+  let bytes: Uint8Array;
+  try {
+    const binary = atob(gatewayResultsBase64);
+    bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  } catch {
+    return null;
+  }
+
+  // A bitmap shorter than the count it claims would silently read failures
+  // where there is no data at all.
+  if (bytes.length * 8 < gatewayCount) return null;
+
+  let passed = 0;
+  for (let i = 0; i < gatewayCount; i++) {
+    // LSB-first within each byte, matching `gar-bitmap-v1-lsb` and the live
+    // decoding in useObservations.
+    passed += (bytes[i >> 3] >> (i & 7)) & 1;
+  }
+
+  return {
+    passed,
+    failed: gatewayCount - passed,
+    total: gatewayCount,
+    passRate: passed / gatewayCount,
+  };
+};

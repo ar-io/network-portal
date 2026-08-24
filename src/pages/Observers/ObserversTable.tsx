@@ -70,11 +70,6 @@ const ObserversTable = () => {
       0,
     );
 
-    // Pre-calculate failure summaries for efficiency
-    const failureSummaryEntries = observations
-      ? Object.values(observations.failureSummaries)
-      : [];
-
     return observers.map((observer) => {
       const gateway = gateways[observer.gatewayAddress];
 
@@ -87,13 +82,14 @@ const ObserversTable = () => {
             : 'Did not report'
         : undefined;
 
+      // Read from the per-observer totals rather than by counting how many
+      // gateways name this observer. Both give the same number for a live
+      // epoch, but the totals are a population count over the observer's own
+      // results bitmap, so they survive into past epochs where the results can
+      // no longer be attributed to individual gateways.
       const numFailedGatewaysFound =
         observations && submitted
-          ? failureSummaryEntries.reduce(
-              (count, summary) =>
-                count + (summary.includes(observer.observerAddress) ? 1 : 0),
-              0,
-            )
+          ? observations.totalsByObserver[observer.observerAddress]?.failed
           : undefined;
 
       const ncw =

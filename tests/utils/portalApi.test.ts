@@ -212,9 +212,7 @@ describe('program ids (schema >= 1.2)', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('refuses a document whose program id disagrees with this build', async () => {
-    mockJson(
-      document({ programIds: { core: 'CORE_FROM_ANOTHER_DEPLOY' } }),
-    );
+    mockJson(document({ programIds: { core: 'CORE_FROM_ANOTHER_DEPLOY' } }));
 
     // A redeploy moves program ids within a network, so `network` matching is
     // not enough. Decoding another program's accounts yields plausible
@@ -282,7 +280,7 @@ describe('fetchPortalSummary', () => {
     expect(await fetchPortalSummary('mainnet')).toBeNull();
   });
 
-  it('refuses another network\'s summary', async () => {
+  it("refuses another network's summary", async () => {
     mockJson(summary({ network: 'devnet' }));
     expect(await fetchPortalSummary('mainnet')).toBeNull();
   });

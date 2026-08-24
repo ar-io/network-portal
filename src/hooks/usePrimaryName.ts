@@ -1,12 +1,10 @@
+import { PrimaryName } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
 import {
   fetchPortalDocument,
   networkTierFromRpcUrl,
 } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
-
-/** `primaryNames.json` rows, keyed by the wallet that owns the name. */
-type SnapshotPrimaryName = { owner?: string } & Record<string, unknown>;
 
 const usePrimaryName = (walletAddress?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
@@ -25,7 +23,9 @@ const usePrimaryName = (walletAddress?: string) => {
       // every primary-name account and filters client-side, so resolving one
       // wallet's name swept the entire set. The snapshot publishes those rows
       // verbatim, so a local find is equivalent.
-      const snapshot = await fetchPortalDocument<SnapshotPrimaryName>(
+      // The publisher stores the SDK's decoded shape verbatim, so a row here
+      // IS a PrimaryName — same fields the RPC path returns.
+      const snapshot = await fetchPortalDocument<PrimaryName>(
         'primaryNames',
         networkTierFromRpcUrl(solanaRpcUrl),
       );

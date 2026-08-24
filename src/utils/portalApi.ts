@@ -190,9 +190,7 @@ export async function fetchPortalDocument<T>(
       // Same reasoning as the network check, one level finer: a redeploy moves
       // program ids within a network, and decoding the wrong program's
       // accounts produces plausible nonsense rather than an error.
-      log.warn(
-        `[portalApi] ${name}: ${idMismatch} — falling back to RPC`,
-      );
+      log.warn(`[portalApi] ${name}: ${idMismatch} — falling back to RPC`);
       return null;
     }
 

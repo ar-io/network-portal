@@ -1,5 +1,8 @@
 import { useGlobalState } from '@src/store';
-import { fetchPortalSummary, networkTierFromRpcUrl } from '@src/utils/portalApi';
+import {
+  fetchPortalSummary,
+  networkTierFromRpcUrl,
+} from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
 
 export type ArNSStats = {

@@ -95,3 +95,53 @@ describe('countGatewayResults', () => {
     expect(countGatewayResults(observation({ gatewayCount: 0 }))).toBeNull();
   });
 });
+
+import { matchRosterRow } from '@src/utils/analyzerApi';
+
+describe('matchRosterRow', () => {
+  const walletRow = { wallet: 'WALLET_A', fqdn: 'a.example', isp: 'ISP A' };
+  const fqdnOnlyRow = { fqdn: 'b.example', isp: 'ISP B' };
+  const roster = {
+    rows: [walletRow, fqdnOnlyRow],
+    byWallet: new Map([['WALLET_A', walletRow]]),
+    byFqdn: new Map([
+      ['a.example', walletRow],
+      ['b.example', fqdnOnlyRow],
+    ]),
+  };
+
+  it('prefers the wallet, which is the gateway identity', () => {
+    // An FQDN can be re-pointed at another operator's host; matching it first
+    // would attribute someone else's infrastructure to this gateway.
+    expect(
+      matchRosterRow(roster, {
+        gatewayAddress: 'WALLET_A',
+        fqdn: 'b.example',
+      }),
+    ).toBe(walletRow);
+  });
+
+  it('falls back to the FQDN for a row published without a wallet', () => {
+    expect(
+      matchRosterRow(roster, { gatewayAddress: 'UNKNOWN', fqdn: 'b.example' }),
+    ).toBe(fqdnOnlyRow);
+  });
+
+  it('matches an FQDN case-insensitively', () => {
+    expect(
+      matchRosterRow(roster, { gatewayAddress: 'UNKNOWN', fqdn: 'B.Example' }),
+    ).toBe(fqdnOnlyRow);
+  });
+
+  it('returns undefined for a gateway the roster does not cover', () => {
+    // Only joined gateways publishing an FQDN are analysed — roughly half the
+    // registry — so a miss is ordinary and the card removes itself.
+    expect(
+      matchRosterRow(roster, { gatewayAddress: 'NOPE', fqdn: 'nope.example' }),
+    ).toBeUndefined();
+    expect(
+      matchRosterRow(null, { gatewayAddress: 'WALLET_A' }),
+    ).toBeUndefined();
+    expect(matchRosterRow(roster, undefined)).toBeUndefined();
+  });
+});

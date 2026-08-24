@@ -309,3 +309,37 @@ export const countGatewayResults = (
     passRate: passed / gatewayCount,
   };
 };
+
+/** Roster indexed for lookup, as {@link useGatewayRoster} returns it. */
+export interface AnalyzerRosterIndex {
+  rows: AnalyzerGatewayRow[];
+  byWallet: Map<string, AnalyzerGatewayRow>;
+  byFqdn: Map<string, AnalyzerGatewayRow>;
+}
+
+/**
+ * Find a gateway's roster row.
+ *
+ * Wallet first: an FQDN can be re-pointed or shared between gateways, while
+ * the registry wallet is the gateway's identity. The FQDN is only a fallback
+ * for rows the roster published without a wallet.
+ *
+ * Returns undefined for a gateway the roster does not cover — the roster only
+ * includes gateways that are joined AND publish an FQDN, roughly half the
+ * registry, so absence is ordinary and not an error.
+ */
+export const matchRosterRow = (
+  roster: AnalyzerRosterIndex | null | undefined,
+  gateway: { gatewayAddress?: string; fqdn?: string } | null | undefined,
+): AnalyzerGatewayRow | undefined => {
+  if (!roster || !gateway) return undefined;
+
+  const byWallet = gateway.gatewayAddress
+    ? roster.byWallet.get(gateway.gatewayAddress)
+    : undefined;
+  if (byWallet) return byWallet;
+
+  return gateway.fqdn
+    ? roster.byFqdn.get(gateway.fqdn.toLowerCase())
+    : undefined;
+};

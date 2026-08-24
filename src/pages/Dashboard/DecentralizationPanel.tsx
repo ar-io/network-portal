@@ -113,7 +113,12 @@ const DecentralizationPanel = () => {
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded bg-grey-700">
                 <div
-                  className="h-full rounded bg-streak-down"
+                  // Proportionate, not editorial: a provider holding a quarter
+                  // of the analysed network is worth flagging, a small one is
+                  // just a fact.
+                  className={`h-full rounded ${
+                    topProvider.percentage >= 25 ? 'bg-warning' : 'bg-mid'
+                  }`}
                   style={{ width: `${Math.min(topProvider.percentage, 100)}%` }}
                 />
               </div>

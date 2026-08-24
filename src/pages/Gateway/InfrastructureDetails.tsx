@@ -1,5 +1,6 @@
 import { GatewayWithAddress } from '@ar.io/sdk/web';
 import useGatewayRoster from '@src/hooks/useGatewayRoster';
+import { matchRosterRow } from '@src/utils/analyzerApi';
 import StatsBox from './StatsBox';
 
 /**
@@ -19,13 +20,10 @@ const InfrastructureDetails = ({
 
   if (!roster || !gateway) return null;
 
-  // Matched on wallet first: an FQDN can be re-pointed or shared, the
-  // registry wallet is the gateway's identity.
-  const row =
-    roster.byWallet.get(gateway.gatewayAddress) ??
-    (gateway.settings.fqdn
-      ? roster.byFqdn.get(gateway.settings.fqdn.toLowerCase())
-      : undefined);
+  const row = matchRosterRow(roster, {
+    gatewayAddress: gateway.gatewayAddress,
+    fqdn: gateway.settings.fqdn,
+  });
 
   if (!row) return null;
 

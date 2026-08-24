@@ -5,6 +5,7 @@ import {
   fetchEpochLightweight,
 } from '@src/utils/epochFetch';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
+import type { NetworkStats } from '@src/utils/networkStats';
 import Dexie, { type EntityTable } from 'dexie';
 
 export type NetworkPortalDB = Dexie & {
@@ -16,7 +17,29 @@ export type NetworkPortalDB = Dexie & {
     EpochDataWithCounters,
     'epochIndex' // primary key "id" (for the typings only)
   >;
+  networkStats: EntityTable<
+    CachedNetworkStats,
+    'id' // primary key "id" (for the typings only)
+  >;
 };
+
+/**
+ * A single cached row of dashboard counts.
+ *
+ * One row per database, and the database is already named for the network tier
+ * (`solana-mainnet`, `solana-devnet`, …), so the cache is tier-scoped for free.
+ * It is deliberately NOT keyed by RPC endpoint: these are facts about the
+ * network, not about whichever endpoint was asked, so switching providers
+ * within a tier should reuse the cache rather than re-run three program scans.
+ */
+export interface CachedNetworkStats extends NetworkStats {
+  id: string;
+  /** When these counts were read, in ms since epoch. */
+  fetchedAt: number;
+}
+
+/** The only row id used by {@link readCachedNetworkStats}. */
+export const NETWORK_STATS_CACHE_KEY = 'current';
 
 export interface Observation {
   id: number;
@@ -58,6 +81,15 @@ export const createDb = (dbName: string = 'solana-mainnet') => {
       epochs: 'epochIndex',
     })
     .upgrade((tx) => tx.table('epochs').clear());
+
+  // v4: cache the dashboard's three headline counts. They cost three
+  // whole-program scans to compute and change slowly, so a returning visitor
+  // should not pay for them again within the TTL.
+  db.version(4).stores({
+    observations: '++id, timestamp, gatewayAddress',
+    epochs: 'epochIndex',
+    networkStats: 'id',
+  });
 
   db.open().catch(function (err) {
     console.error('Failed to open db: ', err);
@@ -133,4 +165,54 @@ export const cleanupDbCache = async (
     .where('epochIndex')
     .below(currentEpochNumber - 13)
     .delete();
+};
+
+/**
+ * Read the cached counts if they are still within `ttlMs`.
+ *
+ * Returns undefined on a miss, on an expired row, or if IndexedDB is
+ * unavailable — a private window, a browser with site data blocked, or a failed
+ * upgrade. A cache is an optimisation, so every failure here degrades to a
+ * fetch rather than an error.
+ */
+export const readCachedNetworkStats = async (
+  networkPortalDB: NetworkPortalDB,
+  ttlMs: number,
+): Promise<NetworkStats | undefined> => {
+  try {
+    const cached = await networkPortalDB.networkStats.get(
+      NETWORK_STATS_CACHE_KEY,
+    );
+    if (!cached) return undefined;
+
+    const age = Date.now() - cached.fetchedAt;
+    // A negative age means the row was written by a clock ahead of this one;
+    // treat it as expired rather than trusting it indefinitely.
+    if (age < 0 || age > ttlMs) return undefined;
+
+    return {
+      totalAddresses: cached.totalAddresses,
+      uniqueDelegates: cached.uniqueDelegates,
+      totalVaults: cached.totalVaults,
+    };
+  } catch (error) {
+    log.warn('[db] could not read cached network stats', error);
+    return undefined;
+  }
+};
+
+/** Persist freshly-read counts. Failures are logged, never thrown. */
+export const writeCachedNetworkStats = async (
+  networkPortalDB: NetworkPortalDB,
+  stats: NetworkStats,
+): Promise<void> => {
+  try {
+    await networkPortalDB.networkStats.put({
+      ...stats,
+      id: NETWORK_STATS_CACHE_KEY,
+      fetchedAt: Date.now(),
+    });
+  } catch (error) {
+    log.warn('[db] could not cache network stats', error);
+  }
 };

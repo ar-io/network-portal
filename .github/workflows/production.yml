@@ -107,10 +107,11 @@ jobs:
       # (`ario-deploy-transaction-cache`), which it deletes and re-saves on every
       # run. Both steps are continue-on-error, so without this the cache fails to
       # save *silently* and every release re-uploads files that never changed —
-      # permanently, to Arweave, at cost. This job currently works only because
-      # the repository default token permission is `write`; declaring it here
-      # means tightening that default cannot quietly start re-uploading the whole
-      # bundle. The same permission was already lost and restored once on the
+      # permanently, to Arweave, at cost. Before this was declared, the job
+      # worked only by inheriting the repository default of `write`; naming it
+      # here means neither tightening that default nor the read-only baseline
+      # above can quietly start re-uploading the whole bundle. The same
+      # permission was already lost to a hardening pass and restored once on the
       # preview workflow (a85406d).
       actions: write
     steps:

@@ -78,7 +78,7 @@ const GatewayVersionPanel = () => {
         </span>
       </div>
 
-      <div className="mt-3 flex flex-col gap-2 overflow-y-auto px-5 pb-5 scrollbar scrollbar-thin">
+      <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 pb-2 scrollbar scrollbar-thin">
         {listed.map((entry) => (
           <div key={entry.version} className="flex flex-col gap-1">
             <div className="flex items-center justify-between text-xs">
@@ -102,14 +102,17 @@ const GatewayVersionPanel = () => {
             <span>{formatWithCommas(otherCount)}</span>
           </div>
         )}
-
-        {notReporting > 0 && (
-          <div className="flex items-center justify-between border-t border-grey-500 pt-2 text-xs text-low">
-            <span>No version reported</span>
-            <span>{formatWithCommas(notReporting)}</span>
-          </div>
-        )}
       </div>
+
+      {/* Pinned below the scroll region: a count of what is NOT measured is
+          context for everything above it, so it should not scroll out of view
+          or land half-clipped at the panel edge. */}
+      {notReporting > 0 && (
+        <div className="mx-5 flex shrink-0 items-center justify-between border-t border-grey-500 py-3 text-xs text-low">
+          <span>No version reported</span>
+          <span>{formatWithCommas(notReporting)}</span>
+        </div>
+      )}
     </div>
   );
 };

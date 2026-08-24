@@ -6,6 +6,7 @@ import CTASection from './CTASection';
 import DecentralizationPanel from './DecentralizationPanel';
 import GatewayVersionPanel from './GatewayVersionPanel';
 import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';
+import GeographyPanel from './GeographyPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
 import ObserverPerformancePanel from './ObserverPerformancePanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
@@ -58,6 +59,9 @@ const Dashboard = () => {
             </div>
             <div className="col-span-1 md:col-span-2">
               <DecentralizationPanel />
+            </div>
+            <div className="col-span-1 md:col-span-2">
+              <GeographyPanel />
             </div>
             <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel />

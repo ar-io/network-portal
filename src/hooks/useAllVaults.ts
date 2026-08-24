@@ -1,6 +1,6 @@
 import { WalletVault, mARIOToken } from '@ar.io/sdk/web';
-import { useGlobalState } from '@src/store';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useVaultsQuery } from './useVaultsQuery';
 
 export interface VaultsSummary {
   address: string;
@@ -8,46 +8,30 @@ export interface VaultsSummary {
   totalVaultBalance: number;
 }
 
+/** Vaults aggregated per address. A view over the shared vaults query. */
 const useAllVaults = () => {
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
+  const select = useCallback((vaults: WalletVault[]) => {
+    const vaultsByAddress = new Map<string, VaultsSummary>();
 
-  return useQuery<Map<string, VaultsSummary>>({
-    queryKey: ['allVaults', solanaRpcUrl],
-    queryFn: async () => {
-      if (!arIOReadSDK) {
-        throw new Error('arIOReadSDK is not initialized');
-      }
+    for (const vault of vaults) {
+      const existing = vaultsByAddress.get(vault.address) ?? {
+        address: vault.address,
+        vaultCount: 0,
+        totalVaultBalance: 0,
+      };
 
-      const vaultsByAddress = new Map<string, VaultsSummary>();
+      existing.vaultCount += 1;
+      existing.totalVaultBalance += new mARIOToken(vault.balance)
+        .toARIO()
+        .valueOf();
 
-      // The SDK paginates in memory, so a single call fetches the full set
-      // with exactly one chain sweep.
-      const result = await arIOReadSDK.getVaults({
-        limit: Number.MAX_SAFE_INTEGER,
-      });
+      vaultsByAddress.set(vault.address, existing);
+    }
 
-      // Process each vault
-      result.items.forEach((vault: WalletVault) => {
-        const existing = vaultsByAddress.get(vault.address) || {
-          address: vault.address,
-          vaultCount: 0,
-          totalVaultBalance: 0,
-        };
+    return vaultsByAddress;
+  }, []);
 
-        existing.vaultCount += 1;
-        existing.totalVaultBalance += new mARIOToken(vault.balance)
-          .toARIO()
-          .valueOf();
-
-        vaultsByAddress.set(vault.address, existing);
-      });
-
-      return vaultsByAddress;
-    },
-    staleTime: 5 * 60 * 1000,
-    enabled: !!arIOReadSDK,
-  });
+  return useVaultsQuery(select);
 };
 
 export default useAllVaults;

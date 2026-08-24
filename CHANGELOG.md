@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-08-24
+
+### Changed
+
+- Sorting the gateway, staking and balances tables is now instant. Changing a
+  column previously refetched the entire dataset from the network before
+  reordering it; the data is already in the browser, so it is now reordered
+  there. A consequence worth knowing: sorting no longer refreshes the numbers,
+  so a sort shows the data as of the last load. Your own staking and withdrawal
+  actions still refresh everything immediately.
+
+### Fixed
+
+- The gateway and staking tables could keep showing pre-transaction figures for
+  up to an hour after staking, unstaking or redelegating. They now refresh along
+  with everything else.
+
+### Removed
+
+- Background fetching of table data nobody had asked for. The Balances page
+  speculatively downloaded the full dataset for sort orders the visitor had not
+  selected.
+
 ## [2.6.1] - 2026-08-23
 
 ### Changed

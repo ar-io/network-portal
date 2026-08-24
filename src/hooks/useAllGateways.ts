@@ -1,6 +1,6 @@
 import { GatewayWithAddress } from '@ar.io/sdk/web';
-import { useGlobalState } from '@src/store';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useGatewaysQuery } from './useGatewaysQuery';
 
 interface UseAllGatewaysOptions {
   sortBy?: string;
@@ -38,28 +38,17 @@ const compareValues = (
 };
 
 const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const { sortBy = 'totalDelegatedStake', sortOrder = 'desc' } = options;
 
-  return useQuery<GatewayWithAddress[]>({
-    queryKey: ['allGateways', solanaRpcUrl, sortBy, sortOrder],
-    queryFn: async () => {
-      if (!arIOReadSDK) {
-        throw new Error('arIOReadSDK is not initialized');
-      }
+  // Sorting happens here rather than in the query key. The rows were always
+  // re-sorted client-side below, so passing sort through to the SDK only ever
+  // fragmented the cache — every column click missed and triggered another
+  // whole-program scan to reorder data the browser already had.
+  const select = useCallback(
+    (gateways: GatewayWithAddress[]) => {
+      const sorted = [...gateways];
 
-      // The SDK fetches the entire dataset and paginates in memory, so a
-      // single call requesting everything performs exactly one chain sweep.
-      const result = await arIOReadSDK.getGateways({
-        limit: Number.MAX_SAFE_INTEGER,
-        sortBy: sortBy as any,
-        sortOrder,
-      });
-
-      const allGateways: GatewayWithAddress[] = [...result.items];
-
-      allGateways.sort((a, b) => {
+      sorted.sort((a, b) => {
         const valueA =
           sortBy === 'totalStake'
             ? a.totalDelegatedStake + a.operatorStake
@@ -73,12 +62,12 @@ const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
         return sortOrder === 'asc' ? comparison : -comparison;
       });
 
-      return allGateways;
+      return sorted;
     },
-    staleTime: 60 * 60 * 1000,
-    enabled: !!arIOReadSDK,
-    placeholderData: (previousData) => previousData,
-  });
+    [sortBy, sortOrder],
+  );
+
+  return useGatewaysQuery(select);
 };
 
 export default useAllGateways;

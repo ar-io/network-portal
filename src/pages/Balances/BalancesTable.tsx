@@ -8,7 +8,6 @@ import useAllBalances from '@src/hooks/useAllBalances';
 import useAllDelegates from '@src/hooks/useAllDelegates';
 import useAllGateways from '@src/hooks/useAllGateways';
 import useAllVaults from '@src/hooks/useAllVaults';
-import usePrefetchBalances from '@src/hooks/usePrefetchBalances';
 import { useGlobalState, useSettings } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 import { isSolanaAddress } from '@src/utils/solanaAddress';
@@ -84,7 +83,6 @@ const BalancesTable = () => {
   const { data: vaultsByAddress, isLoading: vaultsLoading } = useAllVaults();
   const { data: allGateways, isLoading: gatewaysLoading } = useAllGateways();
   const { data: allDelegates, isLoading: delegatesLoading } = useAllDelegates();
-  const { prefetchNextSort } = usePrefetchBalances();
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [isProcessingData, setIsProcessingData] = useState(true);
 
@@ -186,13 +184,6 @@ const BalancesTable = () => {
     sortColumn,
     sortDesc,
   ]);
-
-  // Prefetch other sort combinations when data loads
-  useEffect(() => {
-    if (allBalances?.length) {
-      prefetchNextSort(apiSortBy, apiSortOrder);
-    }
-  }, [allBalances?.length, apiSortBy, apiSortOrder, prefetchNextSort]);
 
   const filteredData = useMemo(() => {
     if (!debouncedSearchTerm) return tableData;

@@ -9,6 +9,7 @@ import {
   MAINNET_SOLANA_ARNS_PROGRAM_ID,
   MAINNET_SOLANA_CORE_PROGRAM_ID,
   MAINNET_SOLANA_GAR_PROGRAM_ID,
+  PORTAL_API_URL,
   SOLANA_MAINNET_RPC_URL,
   SOLANA_RPC_URL,
 } from '@src/constants';
@@ -27,6 +28,13 @@ type SolanaNetworkTier = 'localnet' | 'mainnet' | 'devnet' | 'testnet';
 
 type Settings = {
   solanaRpcUrl: string;
+  /**
+   * Base URL of the network-services (portal snapshot) API, or '' to read
+   * everything straight from RPC. User-overridable in Settings; seeded from
+   * the build's `VITE_PORTAL_API_URL` so an unset variable still ships with
+   * the snapshot reads off.
+   */
+  portalApiUrl: string;
   arweaveGqlUrl: string;
   sidebarOpen: boolean;
   solanaAddressSettingsByNetwork: Record<
@@ -148,6 +156,7 @@ const getSolanaAddressSettingsPatch = (
 
 const DEFAULT_SETTINGS: Settings = {
   solanaRpcUrl: SOLANA_MAINNET_RPC_URL,
+  portalApiUrl: PORTAL_API_URL,
   arweaveGqlUrl: DEFAULT_ARWEAVE_GQL_ENDPOINT,
   sidebarOpen: true,
   solanaAddressSettingsByNetwork: {},
@@ -202,6 +211,9 @@ export const migrateSettings = (
 
   const migrated = { ...persistedSettings };
   delete migrated.solanaRpcUrl;
+  // Network configuration, same as the RPC endpoint: a stored value would
+  // otherwise outlive the release that replaced it.
+  delete migrated.portalApiUrl;
   delete migrated.solanaAddressSettingsByNetwork;
   for (const key of SOLANA_ADDRESS_SETTING_KEYS) {
     delete migrated[key];

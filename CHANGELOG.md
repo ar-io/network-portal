@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-08-24
+
+### Changed
+
+- The dashboard downloads about half as much data when you come back to it. The
+  Network Statistics panel — total addresses, unique delegates, total vaults —
+  used to read every balance, every delegation and every vault on the network
+  each time the page loaded, purely to count them. Those three counts are now
+  remembered in your browser for an hour.
+
+  A consequence worth knowing: those three numbers can be up to an hour old.
+  Nothing else on the dashboard is cached this way, and no balance, stake or
+  reward figure is affected.
+
+- Releases now reach you within about five minutes of being published, instead
+  of up to an hour. The record that points at the app carried a one-hour cache,
+  so a release could be live and still unreachable for that long — which is what
+  happened with the 2.6.0 connection fix.
+
 ## [2.7.0] - 2026-08-24
 
 ### Changed

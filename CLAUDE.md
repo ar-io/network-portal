@@ -129,12 +129,24 @@ renders the pre-write state.
 projections drop the withdrawal's `owner`. Serving half a wallet's position is
 worse than spending the call.
 
-**Observations and epochs are not published at all.** `useObservations` reads
-them straight from the GAR program, and `Observation` PDAs are deleted by the
-permissionless `close_observation` once an epoch distributes — so that history
-is unrecoverable from RPC after the fact and survives only in whichever
-browser's IndexedDB happened to cache it. `Epoch.observationsSubmitted` keeps
-the count but not the content.
+**The analyzer serves two separate APIs — check both before concluding
+something is unpublished.** `/api/v1/portal/` holds the current-state documents
+this app reads; `/api/v1/` is the archive, with its own manifest at
+`/api/v1/index.json` (`documents`: epochs, findings, gateways, network,
+observers, plus an `archive` array of dated snapshots). `/api/v1/portal/index.json`
+describes only the portal half, so reading it alone will make the archive look
+absent.
+
+Historical observations live there, at `/api/v1/epochs/<index>.json` — each
+carrying `observations[]` with `observer`, `pubkey`, `reportTxId`,
+`submittedAt` and `gatewayResultsBase64`. They survive because capture writes
+them to SQLite before the accounts are swept.
+
+That matters because RPC genuinely cannot serve them after the fact:
+`Observation` PDAs are deleted by the permissionless `close_observation` once
+an epoch distributes, and `Epoch.observationsSubmitted` keeps the count but not
+the content. `useObservations` still reads live epochs straight from the GAR
+program; for a closed epoch the archive is the only source.
 
 ### Data Fetching Pattern
 

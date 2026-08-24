@@ -8,15 +8,29 @@
 // is the first test in the project to use `vi`.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-// PORTAL_API_URL is read from import.meta.env at module load, so the constants
-// module is mocked to make the enabled path testable at all. The URL is
-// inlined because vi.mock is hoisted above any const declaration.
+// The endpoint now comes from the settings store, which the user can change at
+// runtime, so the store is mocked rather than the build constant. `vi.hoisted`
+// gives the factory something a test can mutate — vi.mock is hoisted above any
+// plain const declaration.
+const settingsState = vi.hoisted(() => ({
+  portalApiUrl: 'https://network.services.example',
+}));
+
+vi.mock('@src/store/settings', () => ({
+  useSettings: { getState: () => settingsState },
+}));
+
+// Still mocked so the module does not pull real env-derived constants in.
 vi.mock('@src/constants', () => ({
   PORTAL_API_URL: 'https://network.services.example',
   log: { debug: vi.fn(), warn: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
 const API = 'https://network.services.example';
+
+afterEach(() => {
+  settingsState.portalApiUrl = API;
+});
 
 import {
   fetchPortalDocument,
@@ -86,6 +100,35 @@ describe('fetchPortalDocument', () => {
 
   it('is enabled only when an API URL is configured', () => {
     expect(isPortalApiEnabled()).toBe(true);
+  });
+
+  it('is disabled when the user clears the endpoint in Settings', () => {
+    // Empty is a supported choice, not a misconfiguration: it puts every read
+    // back on RPC without a redeploy.
+    settingsState.portalApiUrl = '';
+    expect(isPortalApiEnabled()).toBe(false);
+  });
+
+  it('reads the endpoint from Settings, not from the build', async () => {
+    // The whole point of the Settings control: a user-supplied endpoint has to
+    // be the one actually requested.
+    settingsState.portalApiUrl = 'https://custom.example';
+    mockJson(document());
+
+    await fetchPortalDocument('gateways', 'mainnet');
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://custom.example/api/v1/portal/gateways.json',
+      expect.anything(),
+    );
+  });
+
+  it('does not fetch at all once the endpoint is cleared', async () => {
+    settingsState.portalApiUrl = '';
+    mockJson(document());
+
+    expect(await fetchPortalDocument('gateways', 'mainnet')).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('refuses a snapshot older than the freshness window', async () => {

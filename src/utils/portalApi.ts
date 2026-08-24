@@ -24,6 +24,20 @@
  */
 
 import { PORTAL_API_URL, log } from '@src/constants';
+import { useSettings } from '@src/store/settings';
+
+/**
+ * The endpoint to read, which the user can change in Settings.
+ *
+ * Read per call rather than captured at module load so a change in Settings
+ * takes effect on the next fetch. Falls back to the build's
+ * `VITE_PORTAL_API_URL` if the setting is somehow absent, which keeps an unset
+ * variable meaning "off".
+ */
+const resolvePortalApiUrl = (): string => {
+  const configured = useSettings.getState()?.portalApiUrl;
+  return (typeof configured === 'string' ? configured : PORTAL_API_URL).trim();
+};
 
 /** Documents the publisher writes. */
 export type PortalDocumentName =
@@ -118,7 +132,8 @@ function programIdsDisagree(
 }
 
 /** True when a portal API is configured for this build. */
-export const isPortalApiEnabled = (): boolean => PORTAL_API_URL.length > 0;
+export const isPortalApiEnabled = (): boolean =>
+  resolvePortalApiUrl().length > 0;
 
 /**
  * Which network the app is currently pointed at, in the vocabulary the
@@ -155,7 +170,7 @@ export async function fetchPortalDocument<T>(
 ): Promise<T[] | null> {
   if (!isPortalApiEnabled()) return null;
 
-  const url = `${PORTAL_API_URL.replace(/\/+$/, '')}/api/v1/portal/${name}.json`;
+  const url = `${resolvePortalApiUrl().replace(/\/+$/, '')}/api/v1/portal/${name}.json`;
 
   try {
     const response = await fetch(url, {
@@ -248,7 +263,7 @@ export async function fetchPortalSummary(
 ): Promise<PortalSummary | null> {
   if (!isPortalApiEnabled()) return null;
 
-  const url = `${PORTAL_API_URL.replace(/\/+$/, '')}/api/v1/portal/summary.json`;
+  const url = `${resolvePortalApiUrl().replace(/\/+$/, '')}/api/v1/portal/summary.json`;
 
   try {
     const response = await fetch(url, {

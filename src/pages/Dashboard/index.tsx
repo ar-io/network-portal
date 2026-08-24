@@ -3,6 +3,8 @@ import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useState } from 'react';
 import ArNSStatsPanel from './ArNSStatsPanel';
 import CTASection from './CTASection';
+import DecentralizationPanel from './DecentralizationPanel';
+import GatewayVersionPanel from './GatewayVersionPanel';
 import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
 import ObserverPerformancePanel from './ObserverPerformancePanel';
@@ -51,6 +53,12 @@ const Dashboard = () => {
                 onEpochHover={setHoveredEpochIndex}
               />
             </div> */}
+            <div className="col-span-1 md:col-span-2">
+              <GatewayVersionPanel />
+            </div>
+            <div className="col-span-1 md:col-span-2">
+              <DecentralizationPanel />
+            </div>
             <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel />
             </div>

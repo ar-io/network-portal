@@ -12,6 +12,7 @@ import Tooltip from '@src/components/Tooltip';
 import useEpochs from '@src/hooks/useEpochs';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
+import useObserverRollup from '@src/hooks/useObserverRollup';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 
 interface TableData {
@@ -25,6 +26,10 @@ interface TableData {
   prescribedEpochs: number;
   reportStatus: string;
   failedGateways?: number;
+  /** Epochs in the analysed window where this observer shared a report tx. */
+  sharedReportEpochs?: number;
+  epochsObserved?: number;
+  maxSeverity?: string | null;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -55,6 +60,9 @@ const ObserversTable = () => {
 
   const { isError: observationsError, data: observations } =
     useObservations(selectedEpoch);
+  // Additive: absent whenever the analyzer endpoint is unset, in which case the
+  // independence column simply renders as unavailable.
+  const { data: observerRollup } = useObserverRollup();
   const {
     isLoading: gatewaysLoading,
     isError: gatewaysError,
@@ -92,6 +100,8 @@ const ObserversTable = () => {
           ? observations.totalsByObserver[observer.observerAddress]?.failed
           : undefined;
 
+      const rollup = observerRollup?.byObserver.get(observer.observerAddress);
+
       const ncw =
         observer.compositeWeight && totalCompositeWeight > 0
           ? observer.compositeWeight / totalCompositeWeight
@@ -111,9 +121,12 @@ const ObserversTable = () => {
         reportStatus:
           status ?? (selectedEpochIndex === 0 ? 'Pending' : 'Loading...'),
         failedGateways: numFailedGatewaysFound,
+        sharedReportEpochs: rollup?.sharedReportEpochs,
+        epochsObserved: rollup?.epochsObserved,
+        maxSeverity: rollup?.maxSeverity,
       };
     });
-  }, [observers, gateways, observations, selectedEpochIndex]);
+  }, [observers, gateways, observations, selectedEpochIndex, observerRollup]);
 
   // Filter data by search term
   const filteredData = useMemo(() => {
@@ -206,6 +219,42 @@ const ObserversTable = () => {
       cell: ({ row }) =>
         row.original.failedGateways ??
         (selectedEpochIndex === 0 ? 'Pending' : 'N/A'),
+    }),
+
+    columnHelper.accessor('sharedReportEpochs', {
+      id: 'sharedReportEpochs',
+      header: 'Shared Reports',
+      sortDescFirst: true,
+      cell: ({ row }) => {
+        const { sharedReportEpochs, epochsObserved } = row.original;
+        if (sharedReportEpochs === undefined || epochsObserved === undefined) {
+          return <span className="text-low">—</span>;
+        }
+        // Citing the same Arweave report as another observer is a fact about
+        // the data, not a verdict about the operator: independent observers
+        // can legitimately land on the same report. Colour only the extreme.
+        const everyEpoch =
+          epochsObserved > 0 && sharedReportEpochs === epochsObserved;
+        return (
+          <Tooltip
+            message={
+              <div className="max-w-64">
+                Epochs in the analysed window where this observer submitted a
+                report transaction another observer also submitted. Shared
+                reports are a signal worth checking, not proof of coordination.
+              </div>
+            }
+          >
+            <span
+              className={
+                everyEpoch ? 'cursor-help text-red-500' : 'cursor-help text-mid'
+              }
+            >
+              {sharedReportEpochs}/{epochsObserved}
+            </span>
+          </Tooltip>
+        );
+      },
     }),
   ];
 

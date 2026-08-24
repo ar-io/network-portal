@@ -1,5 +1,6 @@
 import { WalletVault } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
+import { networkTierFromRpcUrl, snapshotOrRpc } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -34,12 +35,17 @@ export const useVaultsQuery = <TSelected = WalletVault[]>(
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      // The SDK paginates in memory, so requesting everything is one sweep.
-      const result = await arIOReadSDK.getVaults({
-        limit: Number.MAX_SAFE_INTEGER,
-      });
-
-      return result.items as WalletVault[];
+      return snapshotOrRpc<WalletVault>(
+        'vaults',
+        networkTierFromRpcUrl(solanaRpcUrl),
+        async () => {
+          // The SDK paginates in memory, so requesting everything is one sweep.
+          const result = await arIOReadSDK.getVaults({
+            limit: Number.MAX_SAFE_INTEGER,
+          });
+          return result.items as WalletVault[];
+        },
+      );
     },
     ...(select ? { select } : {}),
     staleTime: VAULTS_STALE_TIME,

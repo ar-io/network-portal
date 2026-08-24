@@ -1,5 +1,6 @@
 import { AllDelegates } from '@ar.io/sdk/web';
 import { useGlobalState } from '@src/store';
+import { networkTierFromRpcUrl, snapshotOrRpc } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
 
 const useAllDelegates = () => {
@@ -13,13 +14,18 @@ const useAllDelegates = () => {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      // The SDK paginates in memory, so a single call fetches the full set
-      // with exactly one chain sweep.
-      const result = await arIOReadSDK.getAllDelegates({
-        limit: Number.MAX_SAFE_INTEGER,
-      });
-
-      return result.items;
+      return snapshotOrRpc<AllDelegates>(
+        'delegates',
+        networkTierFromRpcUrl(solanaRpcUrl),
+        async () => {
+          // The SDK paginates in memory, so a single call fetches the full set
+          // with exactly one chain sweep.
+          const result = await arIOReadSDK.getAllDelegates({
+            limit: Number.MAX_SAFE_INTEGER,
+          });
+          return result.items;
+        },
+      );
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!arIOReadSDK,

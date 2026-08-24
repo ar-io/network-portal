@@ -1,3 +1,4 @@
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
 import {
   fetchPortalSummary,
@@ -20,6 +21,7 @@ const useArNSStats = () => {
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
+  const portalProgramIds = usePortalProgramIds();
   const res = useQuery<ArNSStats>({
     queryKey: ['arNSStats', solanaRpcUrl, currentEpoch?.epochIndex],
     queryFn: async () => {
@@ -33,6 +35,7 @@ const useArNSStats = () => {
       // that scan once per cycle and publishes the count.
       const snapshot = await fetchPortalSummary(
         networkTierFromRpcUrl(solanaRpcUrl),
+        portalProgramIds,
       );
 
       const snapshotCount = snapshot?.counts?.arnsRecords;

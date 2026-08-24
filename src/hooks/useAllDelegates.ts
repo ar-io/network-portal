@@ -1,4 +1,5 @@
 import { AllDelegates } from '@ar.io/sdk/web';
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
 import { networkTierFromRpcUrl, snapshotOrRpc } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
@@ -7,6 +8,7 @@ const useAllDelegates = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
+  const portalProgramIds = usePortalProgramIds();
   return useQuery<AllDelegates[]>({
     queryKey: ['allDelegates', solanaRpcUrl],
     queryFn: async () => {
@@ -25,6 +27,7 @@ const useAllDelegates = () => {
           });
           return result.items;
         },
+        portalProgramIds,
       );
     },
     staleTime: 5 * 60 * 1000,

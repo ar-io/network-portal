@@ -1,4 +1,5 @@
 import { GatewayVault } from '@ar.io/sdk/web';
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
 import { networkTierFromRpcUrl, snapshotOrRpc } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ const useGatewayVaults = (address?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
+  const portalProgramIds = usePortalProgramIds();
   const res = useQuery({
     queryKey: ['gatewayVaults', address, solanaRpcUrl],
     queryFn: async () => {
@@ -34,6 +36,7 @@ const useGatewayVaults = (address?: string) => {
             });
             return live.items;
           },
+          portalProgramIds,
         )
       ).filter(
         (vault) =>

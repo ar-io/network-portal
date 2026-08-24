@@ -1,4 +1,5 @@
 import { BalanceWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
 import { networkTierFromRpcUrl, snapshotOrRpc } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
@@ -16,6 +17,7 @@ interface UseAllBalancesOptions {
 const useAllBalances = (options: UseAllBalancesOptions = {}) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
+  const portalProgramIds = usePortalProgramIds();
   const { sortBy = 'balance', sortOrder = 'desc' } = options;
 
   // Sorting happens here rather than in the query key. The rows were always
@@ -62,6 +64,7 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
           });
           return result.items;
         },
+        portalProgramIds,
       );
 
       // Both sources return mARIO, so the conversion happens once, here.

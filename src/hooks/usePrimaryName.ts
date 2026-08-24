@@ -1,5 +1,12 @@
 import { useGlobalState } from '@src/store';
+import {
+  fetchPortalDocument,
+  networkTierFromRpcUrl,
+} from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
+
+/** `primaryNames.json` rows, keyed by the wallet that owns the name. */
+type SnapshotPrimaryName = { owner?: string } & Record<string, unknown>;
 
 const usePrimaryName = (walletAddress?: string) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
@@ -12,9 +19,26 @@ const usePrimaryName = (walletAddress?: string) => {
         throw new Error('Wallet Address or SDK not available');
       }
 
+      const owner = walletAddress.toString();
+
+      // `getPrimaryName` is an UNFILTERED whole-program scan: it deserializes
+      // every primary-name account and filters client-side, so resolving one
+      // wallet's name swept the entire set. The snapshot publishes those rows
+      // verbatim, so a local find is equivalent.
+      const snapshot = await fetchPortalDocument<SnapshotPrimaryName>(
+        'primaryNames',
+        networkTierFromRpcUrl(solanaRpcUrl),
+      );
+
+      if (snapshot) {
+        // A wallet with no primary name is a legitimate null, the same answer
+        // the catch below produces — not a snapshot miss to retry via RPC.
+        return snapshot.find((entry) => entry.owner === owner) ?? null;
+      }
+
       try {
         const primaryName = await arIOReadSDK.getPrimaryName({
-          address: walletAddress.toString(),
+          address: owner,
         });
         return primaryName;
       } catch (_e) {

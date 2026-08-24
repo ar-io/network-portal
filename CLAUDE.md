@@ -81,15 +81,42 @@ scans, and running them per browser made RPC cost scale with traffic. When
 instead (`/src/utils/portalApi.ts`), served by `ar-io-network-analyzer`.
 
 The fallback is not optional. Any failure — unset, unreachable, malformed,
-stale beyond 30 minutes, or stamped with a different network — returns null and
-the hook runs the live scan. The production build is published immutably to
-Arweave, so a hard dependency on a host that lapses would brick a permanent
-deploy.
+stale beyond 30 minutes, stamped with a different network, or derived from
+different Solana programs — returns null and the hook runs the live scan. The
+production build is published immutably to Arweave, so a hard dependency on a
+host that lapses would brick a permanent deploy.
 
-`useDelegateStakes` and `useGatewayDelegates` deliberately stay on RPC:
-`getDelegations` returns a `{stakes, withdrawals}` split keyed on a `type`
-discriminator that `getAllDelegates` does not carry, so deriving them from
-`delegates.json` would silently drop withdrawals.
+Hooks reading the snapshot:
+
+| Hook | Document | Filter |
+|---|---|---|
+| `useGatewaysQuery` | `gateways.json` | — |
+| `useVaultsQuery` | `vaults.json` | — |
+| `useAllBalances` | `balances.json` | — |
+| `useAllDelegates` | `delegates.json` | — |
+| `useGatewayDelegates` | `delegates.json` | `gatewayAddress` |
+| `useGatewayVaults` | `withdrawals.json` | `gatewayAddress` |
+| `usePrimaryName` | `primaryNames.json` | `owner` |
+| `useArNSStats` | `summary.json` | `counts.arnsRecords` |
+
+Two of those are worth their own note:
+
+- `useArNSStats` only ever wanted a count, but `getArNSRecords({ limit: 1 })`
+  scans the whole ArNS program and deserializes every record before truncating
+  **in memory** — so one number cost a full registry sweep per visitor.
+- `getPrimaryName(address)` is an **unfiltered** whole-program scan that
+  filters client-side, so resolving one wallet's name swept the entire set.
+
+`withdrawals.json` is GAR `Withdrawal` accounts and is **not** `vaults.json`,
+which is core-program `Vault` accounts — different datasets, not two views.
+
+`useDelegateStakes` deliberately stays on RPC: `getDelegations` unions
+`type: 'stake'` rows from DELEGATION accounts with `type: 'vault'` rows from
+WITHDRAWAL accounts, both keyed by delegator. `delegates.json` covers only the
+stake half and carries no `type`, and `withdrawals.json` cannot supply the
+other half because both public SDK projections drop the withdrawal's `owner`.
+Serving half a wallet's position is worse than spending the call — and it is a
+memcmp-filtered read, not a whole-program scan.
 
 ### Data Fetching Pattern
 

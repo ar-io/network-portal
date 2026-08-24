@@ -73,6 +73,24 @@ The app runs on Solana (devnet by default, localnet and mainnet also supported):
 - **React Query** for server state; custom `queryKeyHashFn` handles non-serializable Solana `Connection` objects in query keys
 - **IndexedDB** (via Dexie) for persistent caching of observations and epochs (`/src/store/db.ts`); database name derived from network tier (solana-devnet, solana-localnet, solana-mainnet)
 
+### Portal Snapshot API
+
+`getGateways`/`getVaults`/`getBalances`/`getAllDelegates` are whole-program
+scans, and running them per browser made RPC cost scale with traffic. When
+`VITE_PORTAL_API_URL` is set, the canonical queries read published static JSON
+instead (`/src/utils/portalApi.ts`), served by `ar-io-network-analyzer`.
+
+The fallback is not optional. Any failure — unset, unreachable, malformed,
+stale beyond 30 minutes, or stamped with a different network — returns null and
+the hook runs the live scan. The production build is published immutably to
+Arweave, so a hard dependency on a host that lapses would brick a permanent
+deploy.
+
+`useDelegateStakes` and `useGatewayDelegates` deliberately stay on RPC:
+`getDelegations` returns a `{stakes, withdrawals}` split keyed on a `type`
+discriminator that `getAllDelegates` does not carry, so deriving them from
+`delegates.json` would silently drop withdrawals.
+
 ### Data Fetching Pattern
 
 Custom hooks in `/src/hooks/` follow this pattern:

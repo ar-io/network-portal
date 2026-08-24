@@ -42,6 +42,15 @@ export const SOLANA_FALLBACK_RPC_URL =
   import.meta.env.VITE_SOLANA_FALLBACK_RPC_URL ?? '';
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
+/**
+ * Base URL of the portal snapshot API, e.g. https://network.services.ar.io
+ *
+ * Unset disables it entirely and every read goes straight to RPC — which is
+ * how this shipped before, and remains the fallback whenever the API is
+ * unreachable or its data is stale. It is a static JSON host, not a secret.
+ */
+export const PORTAL_API_URL = import.meta.env.VITE_PORTAL_API_URL ?? '';
+
 export const DEVNET_SOLANA_CORE_PROGRAM_ID =
   import.meta.env.VITE_ARIO_CORE_PROGRAM_ID ?? String(DEVNET_PROGRAM_IDS.core);
 export const DEVNET_SOLANA_GAR_PROGRAM_ID =

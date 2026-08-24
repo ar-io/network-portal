@@ -94,8 +94,6 @@ Hooks reading the snapshot:
 | `useVaultsQuery` | `vaults.json` | — |
 | `useAllBalances` | `balances.json` | — |
 | `useAllDelegates` | `delegates.json` | — |
-| `useGatewayDelegates` | `delegates.json` | `gatewayAddress` |
-| `useGatewayVaults` | `withdrawals.json` | `gatewayAddress` |
 | `usePrimaryName` | `primaryNames.json` | `owner` |
 | `useArNSStats` | `summary.json` | `counts.arnsRecords` |
 
@@ -110,13 +108,45 @@ Two of those are worth their own note:
 `withdrawals.json` is GAR `Withdrawal` accounts and is **not** `vaults.json`,
 which is core-program `Vault` accounts — different datasets, not two views.
 
-`useDelegateStakes` deliberately stays on RPC: `getDelegations` unions
-`type: 'stake'` rows from DELEGATION accounts with `type: 'vault'` rows from
-WITHDRAWAL accounts, both keyed by delegator. `delegates.json` covers only the
-stake half and carries no `type`, and `withdrawals.json` cannot supply the
-other half because both public SDK projections drop the withdrawal's `owner`.
-Serving half a wallet's position is worse than spending the call — and it is a
-memcmp-filtered read, not a whole-program scan.
+**A snapshot is only worth it for an unfiltered whole-program scan.** The test
+before moving any read: is the RPC call server-side filtered, and is the value
+freshness-sensitive? If either is yes, leave it on RPC.
+
+`useGatewayDelegates` and `useGatewayVaults` were briefly served from the
+snapshot and reverted. `getGatewayDelegates`/`getGatewayVaults` are
+memcmp-filtered on the gateway pubkey at offset 8, so the node returns only
+that gateway's rows — averaging under one row per gateway across the network.
+Answering them from the published documents meant downloading every other
+gateway's data (~154KB and ~142KB) to filter client-side. Both keys are also
+invalidated after a write, where a snapshot lagging by a publish interval
+renders the pre-write state.
+
+`useDelegateStakes` stays on RPC for a different, harder reason:
+`getDelegations` unions `type: 'stake'` rows from DELEGATION accounts with
+`type: 'vault'` rows from WITHDRAWAL accounts, both keyed by delegator.
+`delegates.json` covers only the stake half and carries no `type`, and
+`withdrawals.json` cannot supply the other half because both public SDK
+projections drop the withdrawal's `owner`. Serving half a wallet's position is
+worse than spending the call.
+
+**The analyzer serves two separate APIs — check both before concluding
+something is unpublished.** `/api/v1/portal/` holds the current-state documents
+this app reads; `/api/v1/` is the archive, with its own manifest at
+`/api/v1/index.json` (`documents`: epochs, findings, gateways, network,
+observers, plus an `archive` array of dated snapshots). `/api/v1/portal/index.json`
+describes only the portal half, so reading it alone will make the archive look
+absent.
+
+Historical observations live there, at `/api/v1/epochs/<index>.json` — each
+carrying `observations[]` with `observer`, `pubkey`, `reportTxId`,
+`submittedAt` and `gatewayResultsBase64`. They survive because capture writes
+them to SQLite before the accounts are swept.
+
+That matters because RPC genuinely cannot serve them after the fact:
+`Observation` PDAs are deleted by the permissionless `close_observation` once
+an epoch distributes, and `Epoch.observationsSubmitted` keeps the count but not
+the content. `useObservations` still reads live epochs straight from the GAR
+program; for a closed epoch the archive is the only source.
 
 ### Data Fetching Pattern
 

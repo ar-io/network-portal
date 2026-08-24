@@ -71,7 +71,14 @@ const ReportedOnByCard = ({
           <>
             <div className="flex">
               <div className="grow whitespace-nowrap px-6 py-4">
-                {!hasAttribution ? (
+                {!observations ? (
+                  // Until the results land there is nothing to state. The
+                  // empty default would otherwise read as "no failures", and
+                  // the badge beside it as a green pass — a verdict rendered
+                  // before any data exists. Switching epochs now costs a
+                  // round trip, so this is on screen long enough to be read.
+                  <Placeholder className="h-4 w-40" />
+                ) : !hasAttribution ? (
                   <div className="text-low">
                     {totalReportsForEpoch} report
                     {totalReportsForEpoch === 1 ? '' : 's'} — per-gateway
@@ -90,7 +97,9 @@ const ReportedOnByCard = ({
                 )}
               </div>
               <div className="mr-4 flex items-center">
-                {!hasAttribution ? (
+                {!observations ? (
+                  <Placeholder className="h-4 w-16" />
+                ) : !hasAttribution ? (
                   <div
                     className="flex items-center text-low"
                     title="This epoch's observations are served from the published archive, which records how many gateways each observer passed but not which ones. Attributing these results to a gateway would mean indexing them against today's registry order, which has since changed."
@@ -260,7 +269,11 @@ const ReportedOnCard = ({
           <>
             <div className="flex items-center">
               <div className="grow items-center whitespace-nowrap py-4 pl-6">
-                {selectedForObservation ? (
+                {!observations ? (
+                  // Same reason: this reads as a statement about the epoch,
+                  // and it must not be made before the epoch has been read.
+                  <Placeholder className="h-4 w-48" />
+                ) : selectedForObservation ? (
                   <>
                     <div className="text-mid">
                       Reported on{' '}

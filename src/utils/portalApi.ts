@@ -31,6 +31,9 @@ export type PortalDocumentName =
   | 'vaults'
   | 'balances'
   | 'delegates'
+  | 'withdrawals'
+  | 'primaryNames'
+  | 'arnsRecords'
   | 'summary';
 
 /**
@@ -45,12 +48,73 @@ const MAX_SNAPSHOT_AGE_MS = 30 * 60 * 1000;
 /** A slow API must never be slower than just doing the RPC call. */
 const REQUEST_TIMEOUT_MS = 8_000;
 
+/**
+ * The Solana programs a document was derived from (schema >= 1.2).
+ *
+ * `network` alone is not enough to trust a document: program ids are
+ * per-cluster and a redeploy moves them, and decoding accounts from the wrong
+ * program yields plausible nonsense rather than an error.
+ */
+export interface PortalProgramIds {
+  core?: string;
+  gar?: string;
+  arns?: string;
+  ant?: string;
+}
+
 interface PortalEnvelope<T> {
   schemaVersion?: string;
   generatedAt?: string;
   network?: string;
+  programIds?: PortalProgramIds;
   count?: number;
   items?: T[];
+}
+
+/** `summary.json` — scalars and counts, with no `items` array. */
+export interface PortalSummary {
+  schemaVersion?: string;
+  generatedAt?: string;
+  network?: string;
+  programIds?: PortalProgramIds;
+  counts?: {
+    gateways?: number;
+    vaults?: number;
+    balances?: number;
+    delegates?: number;
+    withdrawals?: number;
+    primaryNames?: number;
+    arnsRecords?: number;
+  };
+  tokenSupply?: unknown;
+  demandFactor?: number | null;
+  gatewayRegistrySettings?: unknown;
+}
+
+/**
+ * Compare a document's program ids against the ones this app is configured
+ * with, and refuse a mismatch.
+ *
+ * Deliberately conservative: only ids the user has explicitly overridden in
+ * settings are compared. When a setting is unset the SDK is on its defaults
+ * for the network, and the `network` check already covers a cross-cluster
+ * mixup — so an unset id is not evidence of a mismatch and must not cause a
+ * needless fallback to RPC.
+ */
+function programIdsDisagree(
+  documentIds: PortalProgramIds | undefined,
+  configured: PortalProgramIds,
+): string | null {
+  if (!documentIds) return null; // schema < 1.2 — nothing to compare
+  const keys: (keyof PortalProgramIds)[] = ['core', 'gar', 'arns', 'ant'];
+  for (const key of keys) {
+    const mine = configured[key];
+    const theirs = documentIds[key];
+    if (mine && theirs && mine !== theirs) {
+      return `${key} program is ${theirs} in the snapshot but ${mine} here`;
+    }
+  }
+  return null;
 }
 
 /** True when a portal API is configured for this build. */
@@ -87,6 +151,7 @@ export const networkTierFromRpcUrl = (rpcUrl: string): string => {
 export async function fetchPortalDocument<T>(
   name: PortalDocumentName,
   expectedNetwork: string,
+  expectedProgramIds: PortalProgramIds = {},
 ): Promise<T[] | null> {
   if (!isPortalApiEnabled()) return null;
 
@@ -117,6 +182,15 @@ export async function fetchPortalDocument<T>(
       log.warn(
         `[portalApi] ${name}: snapshot is for ${body.network}, app is on ${expectedNetwork} — falling back to RPC`,
       );
+      return null;
+    }
+
+    const idMismatch = programIdsDisagree(body.programIds, expectedProgramIds);
+    if (idMismatch) {
+      // Same reasoning as the network check, one level finer: a redeploy moves
+      // program ids within a network, and decoding the wrong program's
+      // accounts produces plausible nonsense rather than an error.
+      log.warn(`[portalApi] ${name}: ${idMismatch} — falling back to RPC`);
       return null;
     }
 
@@ -151,7 +225,74 @@ export async function snapshotOrRpc<T>(
   name: PortalDocumentName,
   expectedNetwork: string,
   rpcScan: () => Promise<T[]>,
+  expectedProgramIds: PortalProgramIds = {},
 ): Promise<T[]> {
-  const snapshot = await fetchPortalDocument<T>(name, expectedNetwork);
+  const snapshot = await fetchPortalDocument<T>(
+    name,
+    expectedNetwork,
+    expectedProgramIds,
+  );
   return snapshot ?? (await rpcScan());
+}
+
+/**
+ * Read `summary.json`, which carries scalars and counts rather than an `items`
+ * array, so `fetchPortalDocument` cannot be used for it.
+ *
+ * Same contract: unset, unreachable, malformed, stale, wrong network or wrong
+ * programs all return null and the caller falls back to RPC.
+ */
+export async function fetchPortalSummary(
+  expectedNetwork: string,
+  expectedProgramIds: PortalProgramIds = {},
+): Promise<PortalSummary | null> {
+  if (!isPortalApiEnabled()) return null;
+
+  const url = `${PORTAL_API_URL.replace(/\/+$/, '')}/api/v1/portal/summary.json`;
+
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      log.debug(
+        `[portalApi] summary: HTTP ${response.status}, falling back to RPC`,
+      );
+      return null;
+    }
+
+    const body = (await response.json()) as PortalSummary;
+
+    if (body.network && body.network !== expectedNetwork) {
+      log.warn(
+        `[portalApi] summary: snapshot is for ${body.network}, app is on ${expectedNetwork} — falling back to RPC`,
+      );
+      return null;
+    }
+
+    const idMismatch = programIdsDisagree(body.programIds, expectedProgramIds);
+    if (idMismatch) {
+      log.warn(`[portalApi] summary: ${idMismatch} — falling back to RPC`);
+      return null;
+    }
+
+    const ageMs = body.generatedAt
+      ? Date.now() - Date.parse(body.generatedAt)
+      : Number.NaN;
+    if (!Number.isFinite(ageMs) || ageMs > MAX_SNAPSHOT_AGE_MS) {
+      log.warn(
+        `[portalApi] summary: snapshot is ${Math.round(ageMs / 60000)}m old, falling back to RPC`,
+      );
+      return null;
+    }
+
+    return body;
+  } catch (error) {
+    log.debug(
+      `[portalApi] summary: unavailable (${error}), falling back to RPC`,
+    );
+    return null;
+  }
 }

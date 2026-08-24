@@ -1,4 +1,5 @@
 import { GatewayWithAddress } from '@ar.io/sdk/web';
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
 import { networkTierFromRpcUrl, snapshotOrRpc } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
@@ -34,6 +35,7 @@ export const useGatewaysQuery = <TSelected = GatewayWithAddress[]>(
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
+  const portalProgramIds = usePortalProgramIds();
   return useQuery<GatewayWithAddress[], Error, TSelected>({
     queryKey: gatewaysQueryKey(solanaRpcUrl),
     queryFn: async () => {
@@ -53,6 +55,7 @@ export const useGatewaysQuery = <TSelected = GatewayWithAddress[]>(
           });
           return [...result.items];
         },
+        portalProgramIds,
       );
     },
     ...(select ? { select } : {}),

@@ -20,6 +20,7 @@ const API = 'https://network.services.example';
 
 import {
   fetchPortalDocument,
+  fetchPortalSummary,
   isPortalApiEnabled,
   networkTierFromRpcUrl,
   snapshotOrRpc,
@@ -204,5 +205,95 @@ describe('snapshotOrRpc', () => {
 
     expect(await snapshotOrRpc('vaults', 'mainnet', scan)).toEqual([]);
     expect(scan).not.toHaveBeenCalled();
+  });
+});
+
+describe('program ids (schema >= 1.2)', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('refuses a document whose program id disagrees with this build', async () => {
+    mockJson(document({ programIds: { core: 'CORE_FROM_ANOTHER_DEPLOY' } }));
+
+    // A redeploy moves program ids within a network, so `network` matching is
+    // not enough. Decoding another program's accounts yields plausible
+    // nonsense rather than an error, which is the worst failure mode there is.
+    const result = await fetchPortalDocument('gateways', 'mainnet', {
+      core: 'CORE_THIS_BUILD_USES',
+    });
+
+    expect(result).toBeNull();
+  });
+
+  it('accepts a document whose program ids agree', async () => {
+    mockJson(document({ programIds: { core: 'CORE_A', gar: 'GAR_A' } }));
+
+    const result = await fetchPortalDocument('gateways', 'mainnet', {
+      core: 'CORE_A',
+      gar: 'GAR_A',
+    });
+
+    expect(result).toEqual([{ gatewayAddress: 'gw-1' }]);
+  });
+
+  it('ignores ids this build has not pinned', async () => {
+    mockJson(document({ programIds: { core: 'CORE_A', gar: 'GAR_A' } }));
+
+    // An unset id means the SDK is on its defaults for the network, which the
+    // network check already covers. Treating that as a mismatch would send
+    // every default-configured client back to RPC for no reason.
+    const result = await fetchPortalDocument('gateways', 'mainnet', {});
+
+    expect(result).toEqual([{ gatewayAddress: 'gw-1' }]);
+  });
+
+  it('accepts a pre-1.2 document that carries no program ids at all', async () => {
+    mockJson(document());
+
+    const result = await fetchPortalDocument('gateways', 'mainnet', {
+      core: 'CORE_A',
+    });
+
+    expect(result).toEqual([{ gatewayAddress: 'gw-1' }]);
+  });
+});
+
+describe('fetchPortalSummary', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  const summary = (overrides: Record<string, unknown> = {}) => ({
+    schemaVersion: '1.2',
+    generatedAt: fresh(),
+    network: 'mainnet',
+    counts: { arnsRecords: 2981 },
+    demandFactor: 6.88,
+    ...overrides,
+  });
+
+  it('returns the summary when it is fresh and on the right network', async () => {
+    mockJson(summary());
+    const result = await fetchPortalSummary('mainnet');
+    expect(result?.counts?.arnsRecords).toBe(2981);
+  });
+
+  it('refuses a stale summary', async () => {
+    mockJson(summary({ generatedAt: agoMinutes(45) }));
+    expect(await fetchPortalSummary('mainnet')).toBeNull();
+  });
+
+  it("refuses another network's summary", async () => {
+    mockJson(summary({ network: 'devnet' }));
+    expect(await fetchPortalSummary('mainnet')).toBeNull();
+  });
+
+  it('refuses a summary from a different program deploy', async () => {
+    mockJson(summary({ programIds: { core: 'OTHER' } }));
+    expect(await fetchPortalSummary('mainnet', { core: 'MINE' })).toBeNull();
+  });
+
+  it('returns null rather than throwing when the request fails', async () => {
+    global.fetch = vi.fn(async () => {
+      throw new Error('offline');
+    }) as unknown as typeof fetch;
+    expect(await fetchPortalSummary('mainnet')).toBeNull();
   });
 });

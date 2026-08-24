@@ -1,40 +1,23 @@
-import { ARIORead, Gateway } from '@ar.io/sdk/web';
-import { useGlobalState } from '@src/store';
-import { useQuery } from '@tanstack/react-query';
+import { Gateway, GatewayWithAddress } from '@ar.io/sdk/web';
+import { useCallback } from 'react';
+import { useGatewaysQuery } from './useGatewaysQuery';
 
+/**
+ * Every gateway keyed by address. A view over the shared gateways query — see
+ * useGatewaysQuery for why this is not its own fetch.
+ */
 const useGateways = () => {
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
+  const select = useCallback((gateways: GatewayWithAddress[]) => {
+    const byAddress: Record<string, Gateway> = {};
 
-  const fetchAllGateways = async (
-    arIOReadSDK: ARIORead,
-  ): Promise<Record<string, Gateway>> => {
-    const gateways: Record<string, Gateway> = {};
+    for (const gateway of gateways) {
+      byAddress[gateway.gatewayAddress] = gateway;
+    }
 
-    // The SDK paginates in memory, so a single call fetches the full set
-    // with exactly one chain sweep.
-    const pageResult = await arIOReadSDK.getGateways({
-      limit: Number.MAX_SAFE_INTEGER,
-    });
-    pageResult.items.forEach((gateway) => {
-      gateways[gateway.gatewayAddress] = gateway;
-    });
+    return byAddress;
+  }, []);
 
-    return gateways;
-  };
-
-  const queryResults = useQuery({
-    queryKey: ['gateways', solanaRpcUrl],
-    queryFn: () => {
-      if (arIOReadSDK) {
-        return fetchAllGateways(arIOReadSDK);
-      }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!arIOReadSDK,
-  });
-
-  return queryResults;
+  return useGatewaysQuery(select);
 };
 
 export default useGateways;

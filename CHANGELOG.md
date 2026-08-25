@@ -75,6 +75,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The gateway and staking pages now open the same way: what you do on the left,
+  what the protocol requires on the right. They are the network's two ways in —
+  running a gateway or backing one — and presenting them differently made them
+  look like unrelated features. The staking copy says what a delegator actually
+  gets rather than describing the mechanism.
+
 - Rewards by Epoch can be shown in dollars as well as ARIO, and takes up a third
   less room. Each epoch is valued at the ARIO price on that day, so the figures
   are what those rewards were worth at the time. The most recent epochs are
@@ -96,6 +102,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is being retired along with the token it bridged.
 
 ### Fixed
+
+- Switching Rewards by Epoch to dollars converted the chart but not its hover
+  labels, which still said ARIO — so it showed dollar amounts under a token
+  label.
 
 - Every page showed a horizontal scrollbar it never needed. The scrolling area
   was set to scroll in both directions, so the bar was drawn whether or not

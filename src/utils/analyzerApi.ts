@@ -189,6 +189,17 @@ export interface AnalyzerNetworkSummary {
     totalGateways?: number;
     totalReporting?: number;
   } | null;
+  /**
+   * Reward distribution across infrastructure clusters. Published as null
+   * until the analyzer's economics pass has run, so every field is optional.
+   */
+  economics?: {
+    totalDistributedRewards?: number;
+    rewardPerGateway?: number;
+    /** Rewards reaching gateways that share resolved infrastructure. */
+    topCentralizedRewards?: number;
+    topCentralizedPercentage?: number;
+  } | null;
   observers?: {
     epochRange?: { from: number; to: number; count: number };
     observerCount?: number;

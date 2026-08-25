@@ -54,15 +54,15 @@ const Dashboard = () => {
                 onEpochHover={setHoveredEpochIndex}
               />
             </div> */}
-            <div className="col-span-1 md:col-span-2">
-              <GatewayVersionPanel />
-            </div>
-            <div className="col-span-1 md:col-span-2">
-              <DecentralizationPanel />
-            </div>
-            <div className="col-span-1 md:col-span-2">
-              <GeographyPanel />
-            </div>
+            {/* Places itself in the grid, so it occupies no cell when the
+                analyzer has nothing to show. */}
+            <GatewayVersionPanel />
+            {/* Places itself in the grid, so it occupies no cell when the
+                analyzer has nothing to show. */}
+            <DecentralizationPanel />
+            {/* Places itself in the grid, so it occupies no cell when the
+                analyzer has nothing to show. */}
+            <GeographyPanel />
             <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel />
             </div>

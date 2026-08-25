@@ -203,9 +203,11 @@ export async function fetchObservationsFromArchive(
   // refused on mismatch; an epoch document carries no such stamp, so the one
   // identity claim it does make is worth checking. A host serving the wrong
   // epoch would otherwise render as this epoch's results.
-  if (doc.epochIndex !== undefined && doc.epochIndex !== epochIndex) {
+  // An absent `epochIndex` is refused too: it is the document's only identity
+  // claim, and a document that makes none cannot be shown as this epoch.
+  if (doc.epochIndex !== epochIndex) {
     log.warn(
-      `[useObservations] archive returned epoch ${doc.epochIndex} for ${epochIndex} — ignoring`,
+      `[useObservations] archive returned epoch ${doc.epochIndex ?? '(none)'} for ${epochIndex} — ignoring`,
     );
     return null;
   }

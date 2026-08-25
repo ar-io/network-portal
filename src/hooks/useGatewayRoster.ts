@@ -37,11 +37,20 @@ const useGatewayRoster = () => {
 
       const byWallet = new Map<string, AnalyzerGatewayRow>();
       const byFqdn = new Map<string, AnalyzerGatewayRow>();
+      const ambiguousFqdns = new Set<string>();
+
       for (const row of doc.gateways) {
         if (row?.wallet) byWallet.set(row.wallet, row);
-        if (row?.fqdn) byFqdn.set(row.fqdn.toLowerCase(), row);
+        if (!row?.fqdn) continue;
+
+        const fqdn = row.fqdn.toLowerCase();
+        // Overwriting would leave whichever row happened to be last, and the
+        // FQDN fallback would then hand out another gateway's infrastructure.
+        if (byFqdn.has(fqdn)) ambiguousFqdns.add(fqdn);
+        else byFqdn.set(fqdn, row);
       }
-      return { rows: doc.gateways, byWallet, byFqdn };
+
+      return { rows: doc.gateways, byWallet, byFqdn, ambiguousFqdns };
     },
     staleTime: 60 * 60 * 1000,
     enabled: portalApiUrl.trim().length > 0 && usable,

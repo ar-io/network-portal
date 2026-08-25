@@ -66,6 +66,14 @@ describe('countGatewayResults', () => {
     });
   });
 
+  it('refuses a bitmap that declares no encoding at all', () => {
+    // Assuming lsb on an unversioned document would produce confident totals
+    // from bits that may be laid out the other way round.
+    expect(
+      countGatewayResults(observation({ gatewayResultsEncoding: undefined })),
+    ).toBeNull();
+  });
+
   it('refuses an encoding it has not been checked against', () => {
     // Guessing at an unknown layout would produce a confident wrong number.
     expect(
@@ -102,6 +110,7 @@ describe('matchRosterRow', () => {
   const walletRow = { wallet: 'WALLET_A', fqdn: 'a.example', isp: 'ISP A' };
   const fqdnOnlyRow = { fqdn: 'b.example', isp: 'ISP B' };
   const roster = {
+    ambiguousFqdns: new Set<string>(),
     rows: [walletRow, fqdnOnlyRow],
     byWallet: new Map([['WALLET_A', walletRow]]),
     byFqdn: new Map([
@@ -131,6 +140,33 @@ describe('matchRosterRow', () => {
     expect(
       matchRosterRow(roster, { gatewayAddress: 'UNKNOWN', fqdn: 'B.Example' }),
     ).toBe(fqdnOnlyRow);
+  });
+
+  it('refuses an FQDN claimed by more than one row', () => {
+    // A hostname can be shared or re-pointed, so when two rows claim one it
+    // identifies neither. Resolving it would hand out another operator's
+    // provider, location and ASN.
+    const a = { wallet: 'W_A', fqdn: 'shared.example', isp: 'ISP A' };
+    const b = { wallet: 'W_B', fqdn: 'shared.example', isp: 'ISP B' };
+    const contested = {
+      rows: [a, b],
+      byWallet: new Map([
+        ['W_A', a],
+        ['W_B', b],
+      ]),
+      byFqdn: new Map([['shared.example', a]]),
+      ambiguousFqdns: new Set(['shared.example']),
+    };
+
+    // The wallet still identifies it precisely.
+    expect(matchRosterRow(contested, { gatewayAddress: 'W_B' })).toBe(b);
+    // The contested hostname alone does not.
+    expect(
+      matchRosterRow(contested, {
+        gatewayAddress: 'UNKNOWN',
+        fqdn: 'shared.example',
+      }),
+    ).toBeUndefined();
   });
 
   it('returns undefined for a gateway the roster does not cover', () => {

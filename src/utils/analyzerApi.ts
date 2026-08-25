@@ -42,9 +42,6 @@ const MAX_AGE_MS = {
 
 export type AnalyzerDocument = keyof typeof MAX_AGE_MS;
 
-/** True when an endpoint is configured. Shares the portal's setting. */
-export const isAnalyzerApiEnabled = (): boolean => analyzerBaseUrl().length > 0;
-
 const analyzerBaseUrl = (): string => {
   const configured = useSettings.getState()?.portalApiUrl;
   return (typeof configured === 'string' ? configured : '').trim();
@@ -285,12 +282,13 @@ export const countGatewayResults = (
     observation;
 
   if (!gatewayResultsBase64 || !gatewayCount || gatewayCount <= 0) return null;
-  if (
-    gatewayResultsEncoding &&
-    gatewayResultsEncoding !== SUPPORTED_BITMAP_ENCODING
-  ) {
+
+  // An omitted encoding is refused, not assumed. Guessing `lsb` on an
+  // unversioned document would produce confident totals from bits that may be
+  // laid out the other way round, and a wrong pass count is worse than none.
+  if (gatewayResultsEncoding !== SUPPORTED_BITMAP_ENCODING) {
     log.warn(
-      `[analyzerApi] unknown bitmap encoding ${gatewayResultsEncoding}, refusing to decode`,
+      `[analyzerApi] bitmap encoding ${gatewayResultsEncoding ?? '(absent)'} is not ${SUPPORTED_BITMAP_ENCODING}, refusing to decode`,
     );
     return null;
   }
@@ -450,6 +448,15 @@ export interface AnalyzerRosterIndex {
   rows: AnalyzerGatewayRow[];
   byWallet: Map<string, AnalyzerGatewayRow>;
   byFqdn: Map<string, AnalyzerGatewayRow>;
+  /**
+   * FQDNs claimed by more than one row.
+   *
+   * A hostname can be shared or re-pointed, so when two rows claim one the
+   * name identifies neither. Without this the map would silently keep whichever
+   * row was indexed last and the fallback would attribute another operator's
+   * provider, location and ASN to this gateway.
+   */
+  ambiguousFqdns: Set<string>;
 }
 
 /**
@@ -474,7 +481,10 @@ export const matchRosterRow = (
     : undefined;
   if (byWallet) return byWallet;
 
-  return gateway.fqdn
-    ? roster.byFqdn.get(gateway.fqdn.toLowerCase())
-    : undefined;
+  if (!gateway.fqdn) return undefined;
+  const fqdn = gateway.fqdn.toLowerCase();
+  // Ambiguous resolves to nothing rather than to a guess.
+  if (roster.ambiguousFqdns.has(fqdn)) return undefined;
+
+  return roster.byFqdn.get(fqdn);
 };

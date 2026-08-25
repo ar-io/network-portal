@@ -124,6 +124,14 @@ describe('fetchObservationsFromArchive', () => {
     expect(await fetchObservationsFromArchive(522)).toBeNull();
   });
 
+  it('refuses a document that claims no epoch at all', async () => {
+    // `epochIndex` is the document's only identity claim. One that makes none
+    // cannot be shown as the epoch that was asked for.
+    const { epochIndex: _drop, ...anonymous } = EPOCH_522;
+    mockJson(anonymous);
+    expect(await fetchObservationsFromArchive(522)).toBeNull();
+  });
+
   it('returns null for an epoch outside the retained window', async () => {
     // A 404 here is ordinary, and must leave the caller free to try the live
     // read rather than surfacing an error.

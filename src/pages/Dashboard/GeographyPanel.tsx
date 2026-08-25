@@ -23,7 +23,7 @@ const GeographyPanel = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500">
+      <div className="col-span-1 flex h-72 w-full flex-col rounded-xl border border-grey-500 md:col-span-2">
         <div className="px-5 pb-3 pt-5">
           <h3 className="text-sm font-semibold text-mid">Geography</h3>
         </div>
@@ -49,7 +49,7 @@ const GeographyPanel = () => {
   const tailCount = tail.reduce((sum, entry) => sum + entry.count, 0);
 
   return (
-    <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500">
+    <div className="col-span-1 flex h-72 w-full flex-col rounded-xl border border-grey-500 md:col-span-2">
       <div className="flex items-center gap-1 px-5 pb-3 pt-5">
         <h3 className="text-sm font-semibold text-mid">Geography</h3>
         <Tooltip

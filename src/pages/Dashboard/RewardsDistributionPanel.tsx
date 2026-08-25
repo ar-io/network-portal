@@ -26,10 +26,15 @@ import {
 
 const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
+type Unit = 'ario' | 'usd';
+
 interface RewardsData {
   epoch: number;
-  gatewayRewards: number;
-  observerRewards: number;
+  /** Undefined when the epoch has no published price and USD is selected. */
+  gatewayRewards?: number;
+  observerRewards?: number;
+  /** Whether the analyzer has published a closing price for this epoch. */
+  priced: boolean;
   status: 'Distributed' | 'Pending';
 }
 
@@ -37,16 +42,38 @@ const CustomTooltip = ({
   active,
   payload,
   label,
-}: TooltipProps<ValueType, NameType>) => {
+  unit,
+  ticker,
+}: TooltipProps<ValueType, NameType> & { unit?: Unit; ticker?: string }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as RewardsData;
-    const total = data.gatewayRewards + data.observerRewards;
+
+    // An epoch the analyzer has not priced yet carries no USD figure at all;
+    // the bars are absent, and the tooltip must not imply a zero.
+    if (unit === 'usd' && !data.priced) {
+      return (
+        <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
+          <p>{`Epoch ${label} (${data.status})`}</p>
+          <p className="text-low">Not priced yet</p>
+        </div>
+      );
+    }
+
+    const gateway = data.gatewayRewards ?? 0;
+    const observer = data.observerRewards ?? 0;
+    // Must follow the axis. Showing converted figures under an ARIO label was
+    // the bug this replaces.
+    const money = (value: number) =>
+      unit === 'usd'
+        ? `$${formatWithCommas(Math.round(value))}`
+        : `${formatWithCommas(value)} ${ticker || 'ARIO'}`;
+
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
         <p>{`Epoch ${label} (${data.status})`}</p>
-        <p>{`Gateway Rewards: ${formatWithCommas(data.gatewayRewards)} ARIO`}</p>
-        <p>{`Observer Rewards: ${formatWithCommas(data.observerRewards)} ARIO`}</p>
-        <p>{`Total: ${formatWithCommas(total)} ARIO`}</p>
+        <p>{`Gateway Rewards: ${money(gateway)}`}</p>
+        <p>{`Observer Rewards: ${money(observer)}`}</p>
+        <p>{`Total: ${money(gateway + observer)}`}</p>
       </div>
     );
   }
@@ -147,8 +174,6 @@ const _CustomUnclaimedBar = ({
     </g>
   );
 };
-
-type Unit = 'ario' | 'usd';
 
 const RewardsDistributionPanel = () => {
   const ticker = useGlobalState((state) => state.ticker);
@@ -313,7 +338,10 @@ const RewardsDistributionPanel = () => {
                       : formatWithCommas(v)
                   }
                 />
-                <Tooltip content={<CustomTooltip />} cursor={false} />
+                <Tooltip
+                  content={<CustomTooltip unit={unit} ticker={ticker} />}
+                  cursor={false}
+                />
 
                 <Bar
                   dataKey="gatewayRewards"

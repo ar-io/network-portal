@@ -35,6 +35,7 @@ const Banner = () => {
   const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
   const { gatewayInfo, gatewayStatus } = useGatewayInfo();
+  const ticker = useGlobalState((state) => state.ticker);
   const { parameters } = useProtocolParameters('operator');
 
   return (
@@ -86,11 +87,16 @@ const Banner = () => {
           <StartGatewayCubes className="absolute right-[-0.5rem] top-[-0.5rem] z-0" />
 
           <div className="relative z-10">
-            <div className="mb-4 flex items-center gap-2">
+            <div className="mb-1 flex items-center gap-2">
               <div className="text-gradient text-lg font-medium">
-                Start Earning Rewards
+                Join the Permanent Cloud and Start Earning Rewards
               </div>
-              <PinkArrowIcon className="size-3" />
+              <PinkArrowIcon className="size-3 shrink-0" />
+            </div>
+
+            <div className="mb-5 max-w-2xl text-xs text-mid">
+              Run a gateway that serves the network&apos;s data, and earn{' '}
+              {ticker} for the work it does.
             </div>
 
             {/* Steps and requirements side by side: what to do, and what it
@@ -112,7 +118,7 @@ const Banner = () => {
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-grey-600 bg-grey-700 px-4 py-2 text-sm text-high transition-colors hover:bg-grey-600"
                   >
-                    View Setup Guide
+                    Setup Guide
                     <LinkArrowIcon className="h-3 w-3" />
                   </a>
 

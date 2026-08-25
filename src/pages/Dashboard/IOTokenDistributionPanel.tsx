@@ -17,10 +17,32 @@ type IOCategory =
 
 type IODistribution = { name: IOCategory; value: number }[];
 
+/**
+ * One step per slice, in the brand accent's own hue (297deg).
+ *
+ * Every slice used to be the same pink at 20% opacity, lifting to 50% on
+ * hover — in the chart AND in the legend. So colour encoded which slice your
+ * cursor was over, not which slice it was, and the legend could not identify
+ * anything without hovering it first.
+ *
+ * A supply breakdown is parts of one quantity, so this is a sequential ramp
+ * rather than five competing hues: monotonic in lightness, and every step
+ * clears 3:1 against the page (darkest is 3.04:1). Slices are ordered by size,
+ * so the ramp reads largest-to-smallest rather than being an arbitrary
+ * assignment.
+ */
+const SUPPLY_RAMP = [
+  '#E4B1E7',
+  '#D68BDA',
+  '#C964CE',
+  '#BB3DC2',
+  '#96319B',
+] as const;
+
 const calculateIODistribution = (
   tokenSupply: TokenSupplyData,
 ): IODistribution => {
-  return [
+  const distribution: IODistribution = [
     {
       name: 'Protocol Balance',
       value: new mARIOToken(tokenSupply.protocolBalance).toARIO().valueOf(),
@@ -44,6 +66,10 @@ const calculateIODistribution = (
       value: new mARIOToken(tokenSupply.locked).toARIO().valueOf(),
     },
   ];
+
+  // Largest first, so the ramp above reads as a magnitude scale rather than an
+  // arbitrary assignment of five pinks.
+  return distribution.sort((a, b) => b.value - a.value);
 };
 
 const IOTokenDistributionPanel = () => {
@@ -96,9 +122,9 @@ const IOTokenDistributionPanel = () => {
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={70}
+                  cy="42%"
+                  innerRadius={46}
+                  outerRadius={62}
                   stroke="none"
                   paddingAngle={2}
                   onMouseEnter={onPieEnter}
@@ -107,7 +133,14 @@ const IOTokenDistributionPanel = () => {
                   {data.map((_entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={index === activeIndex ? '#E19EE580' : '#E19EE520'}
+                      fill={SUPPLY_RAMP[index % SUPPLY_RAMP.length]}
+                      // Hover now dims the others rather than being the only
+                      // thing that distinguishes them.
+                      fillOpacity={
+                        activeIndex === undefined || activeIndex === index
+                          ? 1
+                          : 0.35
+                      }
                     />
                   ))}
                 </Pie>
@@ -123,9 +156,15 @@ const IOTokenDistributionPanel = () => {
                 </Text>
               </PieChart>
             </ResponsiveContainer>
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="text-gradient flex text-center ">
-                <div className="text-3xl font-semibold">{ioDisplayValue}</div>
+            {/* Beneath the ring, not centred inside it. "1,000,000,000" is
+                wider than the donut's hole at any size that keeps the figure
+                readable, so an absolutely-centred overlay crossed the ring on
+                both sides. That went unnoticed while every slice was the same
+                near-transparent pink; with the slices distinguishable it reads
+                as a collision. */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center">
+              <div className="text-gradient flex items-baseline gap-1 text-center">
+                <div className="text-2xl font-semibold">{ioDisplayValue}</div>
                 <div className="text-xs">{ticker}</div>
               </div>
             </div>
@@ -146,7 +185,14 @@ const IOTokenDistributionPanel = () => {
               onMouseLeave={() => setActiveIndex(undefined)}
             >
               <div
-                className={`mt-1 size-2 min-w-2 rounded-full ${index === activeIndex ? 'bg-[#E19EE5f0]' : 'bg-[#E19EE520]'}`}
+                className="mt-1 size-2 min-w-2 rounded-full"
+                style={{
+                  backgroundColor: SUPPLY_RAMP[index % SUPPLY_RAMP.length],
+                  opacity:
+                    activeIndex === undefined || activeIndex === index
+                      ? 1
+                      : 0.35,
+                }}
               />
               <div className="grow text-[.675rem] text-low">{entry.name}</div>
             </div>

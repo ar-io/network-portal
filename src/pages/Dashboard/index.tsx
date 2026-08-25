@@ -3,6 +3,7 @@ import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useState } from 'react';
 import ArNSStatsPanel from './ArNSStatsPanel';
 import CTASection from './CTASection';
+import ConcentrationPanel from './ConcentrationPanel';
 import DecentralizationPanel from './DecentralizationPanel';
 import GatewayVersionPanel from './GatewayVersionPanel';
 import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';
@@ -12,8 +13,8 @@ import ObserverPerformancePanel from './ObserverPerformancePanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
-  const [_epochCount, _setEpochCount] = useState(7);
-  const [_hoveredEpochIndex, _setHoveredEpochIndex] = useState<number | null>(
+  const [epochCount, setEpochCount] = useState(7);
+  const [hoveredEpochIndex, setHoveredEpochIndex] = useState<number | null>(
     null,
   );
 
@@ -46,14 +47,14 @@ const Dashboard = () => {
             <div className="col-span-1 md:col-span-2">
               <ObserverPerformancePanel />
             </div>
-            {/* <div className="col-span-1 md:col-span-2">
+            <div className="col-span-1 md:col-span-2">
               <ArNSStatsPanel
                 epochCount={epochCount}
                 onEpochCountChange={setEpochCount}
                 hoveredEpochIndex={hoveredEpochIndex}
                 onEpochHover={setHoveredEpochIndex}
               />
-            </div> */}
+            </div>
             {/* Places itself in the grid, so it occupies no cell when the
                 analyzer has nothing to show. */}
             <GatewayVersionPanel />
@@ -63,6 +64,7 @@ const Dashboard = () => {
             {/* Places itself in the grid, so it occupies no cell when the
                 analyzer has nothing to show. */}
             <GeographyPanel />
+            <ConcentrationPanel />
             <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel />
             </div>

@@ -6,6 +6,11 @@ import useEpochSettings from '@src/hooks/useEpochSettings';
 import useEpochsWithCount from '@src/hooks/useEpochsWithCount';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
+import {
+  type RewardUnit,
+  formatRewardAmount,
+  formatRewardTick,
+} from '@src/utils/rewardsFormat';
 import { useMemo, useState } from 'react';
 import {
   Bar,
@@ -26,8 +31,6 @@ import {
 
 const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
-type Unit = 'ario' | 'usd';
-
 interface RewardsData {
   epoch: number;
   /** Undefined when the epoch has no published price and USD is selected. */
@@ -44,7 +47,10 @@ const CustomTooltip = ({
   label,
   unit,
   ticker,
-}: TooltipProps<ValueType, NameType> & { unit?: Unit; ticker?: string }) => {
+}: TooltipProps<ValueType, NameType> & {
+  unit?: RewardUnit;
+  ticker?: string;
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload as RewardsData;
 
@@ -61,12 +67,10 @@ const CustomTooltip = ({
 
     const gateway = data.gatewayRewards ?? 0;
     const observer = data.observerRewards ?? 0;
-    // Must follow the axis. Showing converted figures under an ARIO label was
-    // the bug this replaces.
+    // Shares its formatter with the axis so the two cannot disagree — showing
+    // converted figures under an ARIO label was the bug this replaces.
     const money = (value: number) =>
-      unit === 'usd'
-        ? `$${formatWithCommas(Math.round(value))}`
-        : `${formatWithCommas(value)} ${ticker || 'ARIO'}`;
+      formatRewardAmount(value, unit ?? 'ario', ticker);
 
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
@@ -177,7 +181,7 @@ const _CustomUnclaimedBar = ({
 
 const RewardsDistributionPanel = () => {
   const ticker = useGlobalState((state) => state.ticker);
-  const [unit, setUnit] = useState<Unit>('ario');
+  const [unit, setUnit] = useState<RewardUnit>('ario');
   const prices = useEpochPrices();
 
   const [focusBar, setFocusBar] = useState<number>();
@@ -332,11 +336,7 @@ const RewardsDistributionPanel = () => {
                 <XAxis dataKey="epoch" />
                 <YAxis
                   width={unit === 'usd' ? 56 : 48}
-                  tickFormatter={(v) =>
-                    unit === 'usd'
-                      ? `$${formatWithCommas(Math.round(v))}`
-                      : formatWithCommas(v)
-                  }
+                  tickFormatter={(v) => formatRewardTick(v, unit)}
                 />
                 <Tooltip
                   content={<CustomTooltip unit={unit} ticker={ticker} />}

@@ -33,7 +33,7 @@ const ColumnSelector = <T,>({
           return {
             id: col.id!,
             label: col.meta.displayName,
-            visible: currentVisibility[col.id!] ?? true,
+            visible: currentVisibility[col.id!] ?? !col.meta?.defaultHidden,
           };
         }
 
@@ -51,7 +51,7 @@ const ColumnSelector = <T,>({
         return {
           id: col.id!,
           label,
-          visible: currentVisibility[col.id!] ?? true,
+          visible: currentVisibility[col.id!] ?? !col.meta?.defaultHidden,
         };
       });
   }, [columns, currentVisibility]);

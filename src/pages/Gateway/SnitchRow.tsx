@@ -6,7 +6,12 @@ import { StatsArrowIcon } from '@src/components/icons';
 import useEpochs from '@src/hooks/useEpochs';
 import useObservations from '@src/hooks/useObservations';
 import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
-import { CheckCircleIcon, NotebookText, XCircleIcon } from 'lucide-react';
+import {
+  CheckCircleIcon,
+  CircleHelpIcon,
+  NotebookText,
+  XCircleIcon,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -79,10 +84,12 @@ const ReportedOnByCard = ({
                   // round trip, so this is on screen long enough to be read.
                   <Placeholder className="h-4 w-40" />
                 ) : !hasAttribution ? (
-                  <div className="text-low">
+                  // Short, like every other state in this header. The reason
+                  // the list below is empty belongs in the empty list, not
+                  // crammed onto a nowrap row beside the epoch selector.
+                  <div className="text-mid">
                     {totalReportsForEpoch} report
-                    {totalReportsForEpoch === 1 ? '' : 's'} — per-gateway
-                    results unavailable
+                    {totalReportsForEpoch === 1 ? '' : 's'} submitted
                   </div>
                 ) : failureObservers.length === 0 ? (
                   <div className="text-mid">No Failures Reported</div>
@@ -100,10 +107,10 @@ const ReportedOnByCard = ({
                 {!observations ? (
                   <Placeholder className="h-4 w-16" />
                 ) : !hasAttribution ? (
-                  <div
-                    className="flex items-center text-low"
-                    title="This epoch's observations are served from the published archive, which records how many gateways each observer passed but not which ones. Attributing these results to a gateway would mean indexing them against today's registry order, which has since changed."
-                  >
+                  // Carries an icon like the pass and fail states so it reads
+                  // as a verdict of its own rather than as a stray word.
+                  <div className="flex items-center text-low">
+                    <CircleHelpIcon className="mr-1 size-4" />
                     <span>Unknown</span>
                   </div>
                 ) : failureObservers.length <= totalReportsForEpoch / 2 ? (
@@ -146,6 +153,21 @@ const ReportedOnByCard = ({
         )}
       </div>
       <div className="h-80 overflow-hidden overflow-y-auto scrollbar scrollbar-thin">
+        {observations && !hasAttribution ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-10 text-center">
+            <CircleHelpIcon className="size-5 text-low" />
+            <div className="text-xs text-low">
+              This epoch is served from the published archive, which records how
+              many gateways each observer passed but not which ones. Naming them
+              would mean reading the results against today&apos;s registry
+              order, which has since changed.
+            </div>
+          </div>
+        ) : observations && failureObservers.length === 0 ? (
+          <div className="flex h-full items-center justify-center px-10 text-center text-xs text-low">
+            No observer reported this gateway as failing in this epoch.
+          </div>
+        ) : null}
         {failureObservers?.map((entry) => (
           <div
             key={entry.observerId}

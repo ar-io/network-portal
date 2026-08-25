@@ -178,6 +178,10 @@ const ObserversTable = () => {
       id: 'gatewayAddress',
       header: 'Gateway Address',
       sortDescFirst: false,
+      // Off by default: a 43-character base58 key is the widest thing in the
+      // table and the least read. Clicking the row already opens the gateway,
+      // which shows both addresses in full.
+      meta: { defaultHidden: true },
       cell: ({ row }) => (
         <AddressCell address={row.getValue('gatewayAddress')} />
       ),
@@ -187,6 +191,10 @@ const ObserversTable = () => {
       id: 'observerAddress',
       header: 'Observer Address',
       sortDescFirst: false,
+      // Off by default: a 43-character base58 key is the widest thing in the
+      // table and the least read. Clicking the row already opens the gateway,
+      // which shows both addresses in full.
+      meta: { defaultHidden: true },
       cell: ({ row }) => (
         <AddressCell address={row.getValue('observerAddress')} />
       ),

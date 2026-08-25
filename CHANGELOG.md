@@ -107,6 +107,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   labels, which still said ARIO — so it showed dollar amounts under a token
   label.
 
+- The page scrollbar sat hard against the cards with no gap. It now sits at the
+  edge of the window, where it belongs.
+
+- The balance distribution chart drew every slice in the same near-invisible
+  pink, brightening only the one under the cursor — so the colours said where
+  your mouse was rather than which holder was which. Each slice now takes its
+  own shade, darkening as the holdings get smaller.
+
 - Every page showed a horizontal scrollbar it never needed. The scrolling area
   was set to scroll in both directions, so the bar was drawn whether or not
   anything was wider than the screen.

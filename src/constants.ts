@@ -23,10 +23,25 @@ export const ARIO_DOCS_URL = 'https://docs.ar.io';
 export const ARIO_TICKER = 'ARIO';
 
 // RPC endpoints come from the environment. A provider URL carries an auth
-// token, so it must never be committed — see .env.example. These fall back to
-// the public Solana RPCs, which are heavily rate-limited but let the app boot
-// (and let users supply their own endpoint via Settings) instead of leaking a
-// token into the bundle.
+// token, so it must never be committed — see .env.example.
+//
+// The fallbacks below are NOT equivalent, and only one of them works:
+//
+// - `api.devnet.solana.com` answers a browser normally. Heavily rate-limited,
+//   but the app boots and a user can supply their own endpoint in Settings.
+// - `api.mainnet-beta.solana.com` answers `403 Access forbidden` to ANY request
+//   carrying an `Origin` header, which every browser request has. Measured: the
+//   identical call returns 200 from curl (no Origin) and 403 with one.
+//
+// So an unset mainnet secret is not a slower app, it is one with no chain data.
+// The shell still renders — layout, navigation, and anything served by the
+// portal snapshot API — while every RPC-backed read fails, starting with the
+// current epoch and everything gated behind it. It looks like a permanently
+// loading page rather than an error, which is what makes it easy to miss.
+//
+// This is what the production `verify-secrets` gate is really protecting
+// against; treat the mainnet fallback as a placeholder that keeps the module
+// well-typed, not as a usable endpoint.
 export const SOLANA_RPC_URL =
   import.meta.env.VITE_SOLANA_RPC_URL ?? 'https://api.devnet.solana.com';
 export const SOLANA_MAINNET_RPC_URL =

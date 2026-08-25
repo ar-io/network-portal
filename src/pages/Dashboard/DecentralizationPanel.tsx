@@ -13,6 +13,9 @@ import { InfoIcon } from 'lucide-react';
  * and naming operators on that basis is a product decision, not a rendering
  * one.
  */
+/** How many of the publisher's ten providers the card shows. */
+const TOP_PROVIDER_COUNT = 5;
+
 const DecentralizationPanel = () => {
   const { data: analysis, isLoading } = useNetworkAnalysis();
 
@@ -39,7 +42,9 @@ const DecentralizationPanel = () => {
   // degraded run, and rendering it as "0 ASNs" would be alarming nonsense.
   const degraded = (infra.uniqueAsns ?? 0) === 0;
 
-  const topProvider = infra.topProviders?.[0];
+  // The publisher sends ten; five is enough to show whether hosting is
+  // concentrated in one place or spread, without turning the card into a list.
+  const topProviders = (infra.topProviders ?? []).slice(0, TOP_PROVIDER_COUNT);
   const analysed = totals?.gatewaysAnalyzed;
   const inNetwork = totals?.gatewaysInNetwork;
 
@@ -68,7 +73,7 @@ const DecentralizationPanel = () => {
           hosting and network distribution are unavailable.
         </div>
       ) : (
-        <div className="flex flex-col gap-4 overflow-y-auto px-5 pb-5 scrollbar scrollbar-thin">
+        <div className="flex flex-col gap-3 overflow-y-auto px-5 pb-5 scrollbar scrollbar-thin">
           <div className="flex flex-col">
             <span className="text-xs text-low">Datacenter hosted</span>
             <span className="text-2xl font-semibold text-high">
@@ -99,29 +104,39 @@ const DecentralizationPanel = () => {
             </div>
           </div>
 
-          {topProvider && (
-            <div className="flex flex-col gap-1 border-t border-grey-500 pt-3">
-              <span className="text-xs text-low">Largest provider</span>
-              <div className="flex items-center justify-between text-xs">
-                <span className="truncate pr-2 text-mid">
-                  {topProvider.name}
-                </span>
-                <span className="whitespace-nowrap text-low">
-                  {formatWithCommas(topProvider.count)} (
-                  {topProvider.percentage.toFixed(0)}%)
-                </span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded bg-grey-700">
-                <div
-                  // Proportionate, not editorial: a provider holding a quarter
-                  // of the analysed network is worth flagging, a small one is
-                  // just a fact.
-                  className={`h-full rounded ${
-                    topProvider.percentage >= 25 ? 'bg-warning' : 'bg-mid'
-                  }`}
-                  style={{ width: `${Math.min(topProvider.percentage, 100)}%` }}
-                />
-              </div>
+          {topProviders.length > 0 && (
+            <div className="flex flex-col gap-1.5 border-t border-grey-500 pt-2.5">
+              <span className="text-xs text-low">
+                {topProviders.length === 1
+                  ? 'Largest provider'
+                  : `Top ${topProviders.length} providers`}
+              </span>
+              {topProviders.map((provider) => (
+                <div key={provider.name} className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="truncate pr-2 text-mid">
+                      {provider.name}
+                    </span>
+                    <span className="whitespace-nowrap text-low">
+                      {formatWithCommas(provider.count)} (
+                      {provider.percentage.toFixed(0)}%)
+                    </span>
+                  </div>
+                  <div className="h-1 w-full overflow-hidden rounded bg-grey-700">
+                    <div
+                      // Proportionate, not editorial: a provider holding a
+                      // quarter of the analysed network is worth flagging, a
+                      // small one is just a fact.
+                      className={`h-full rounded ${
+                        provider.percentage >= 25 ? 'bg-warning' : 'bg-mid'
+                      }`}
+                      style={{
+                        width: `${Math.min(provider.percentage, 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

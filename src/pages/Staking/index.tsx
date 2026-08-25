@@ -1,5 +1,4 @@
 import Header from '@src/components/Header';
-import ProtocolParametersCard from '@src/components/ProtocolParametersCard';
 import { useGlobalState } from '@src/store';
 import ConnectedLandingPage from './ConnectedLandingPage';
 import NotConnectedLandingPage from './NotConnectedLandingPage';
@@ -13,9 +12,6 @@ const Staking = () => {
         <Header />
       </div>
       <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
-        <div className="mb-6">
-          <ProtocolParametersCard variant="delegate" />
-        </div>
         {walletAddress ? <ConnectedLandingPage /> : <NotConnectedLandingPage />}
       </div>
     </div>

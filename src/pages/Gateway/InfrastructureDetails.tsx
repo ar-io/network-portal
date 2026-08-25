@@ -1,6 +1,6 @@
 import { GatewayWithAddress } from '@ar.io/sdk/web';
 import useGatewayRoster from '@src/hooks/useGatewayRoster';
-import { matchRosterRow } from '@src/utils/analyzerApi';
+import { formatAsn, matchRosterRow } from '@src/utils/analyzerApi';
 import StatsBox from './StatsBox';
 
 /**
@@ -28,6 +28,7 @@ const InfrastructureDetails = ({
   if (!row) return null;
 
   const location = [row.city, row.country].filter(Boolean).join(', ');
+  const asn = formatAsn(row.asn);
   const network = row.asnOrg ?? row.isp ?? undefined;
 
   return (
@@ -41,9 +42,7 @@ const InfrastructureDetails = ({
         <StatsBox title="Provider" value={row.isp} />
       )}
       {location && <StatsBox title="Location" value={location} />}
-      {row.asn !== null && row.asn !== undefined && (
-        <StatsBox title="ASN" value={`AS${row.asn}`} />
-      )}
+      {asn && <StatsBox title="ASN" value={asn} />}
       {row.hosting !== null && row.hosting !== undefined && (
         <StatsBox
           title="Hosting"

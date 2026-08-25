@@ -265,3 +265,32 @@ describe('fetchAnalyzerAvailability', () => {
     });
   });
 });
+
+import { formatAsn } from '@src/utils/analyzerApi';
+
+describe('formatAsn', () => {
+  it('does not re-prefix a value that already carries AS', () => {
+    // The roster ships "AS214996 netcup GmbH". Templating `AS${asn}` rendered
+    // "ASAS214996 netcup GmbH" on the gateway page.
+    expect(formatAsn('AS214996 netcup GmbH')).toBe('AS214996');
+  });
+
+  it('drops the operator name the Provider row already shows', () => {
+    expect(formatAsn('AS13335 Cloudflare, Inc.')).toBe('AS13335');
+  });
+
+  it('prefixes a bare number, which the contract also allows', () => {
+    expect(formatAsn(16276)).toBe('AS16276');
+  });
+
+  it('shows an unrecognised value verbatim rather than mangling it', () => {
+    expect(formatAsn('unknown-network')).toBe('unknown-network');
+  });
+
+  it('returns undefined for absent or empty values', () => {
+    expect(formatAsn(null)).toBeUndefined();
+    expect(formatAsn(undefined)).toBeUndefined();
+    expect(formatAsn('   ')).toBeUndefined();
+    expect(formatAsn(Number.NaN)).toBeUndefined();
+  });
+});

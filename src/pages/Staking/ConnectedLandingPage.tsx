@@ -1,5 +1,6 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
+import ProtocolParametersCard from '@src/components/ProtocolParametersCard';
 import useBalances from '@src/hooks/useBalances';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import { useGlobalState } from '@src/store';
@@ -93,6 +94,12 @@ const ConnectedLandingPage = () => {
           TODO: re-enable staking rewards when data is populated
         <StakingRewardsCard walletAddress={walletAddress?.toString()} /> */}
       </div>
+      {/* Connected delegators see no connect card, so the same limits and
+          docs link reach them here. */}
+      <ProtocolParametersCard
+        variant="delegate"
+        docsUrl="https://docs.ar.io/learn/oip/staking#delegated-staking"
+      />
       <MyStakesTable />
       <DelegateStake />
     </div>

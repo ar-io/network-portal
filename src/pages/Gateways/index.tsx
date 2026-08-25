@@ -1,5 +1,4 @@
 import Header from '@src/components/Header';
-import ProtocolParametersCard from '@src/components/ProtocolParametersCard';
 import Banner from './Banner';
 import GatewaysTable from './GatewaysTable';
 
@@ -12,7 +11,6 @@ const Gateways = () => {
       <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
         <div className="mb-6 flex flex-col gap-6 pt-0">
           <Banner />
-          <ProtocolParametersCard variant="operator" />
           <GatewaysTable />
         </div>
       </div>

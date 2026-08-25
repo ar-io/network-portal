@@ -37,7 +37,14 @@ export default {
       mid: '#A3A3AD',
       low: '#7F7F87',
       link: '#A3A3AD',
+      // The container scale runs darkest (L0) to lightest (L3). L1 and L2 were
+      // used across the app — every table's pagination buttons and their hover
+      // state — but never defined, so those classes resolved to nothing and the
+      // buttons rendered with no background and no hover feedback. Filling in
+      // the two missing steps by interpolating L0 -> L3.
       containerL0: '#09090A',
+      containerL1: '#101013',
+      containerL2: '#17171B',
       containerL3: '#1E1E24',
       'streak-up': '#3DB7C2',
       'text-red': '#DB4354',

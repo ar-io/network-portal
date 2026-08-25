@@ -3,6 +3,7 @@ import Tooltip from '@src/components/Tooltip';
 import { InfoIcon } from '@src/components/icons';
 import useArNSStats from '@src/hooks/useArNSStats';
 import useNetworkStats from '@src/hooks/useNetworkStats';
+import useWalletRewards from '@src/hooks/useWalletRewards';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { ReactNode } from 'react';
@@ -25,6 +26,11 @@ const NetworkStatsPanel = () => {
   // two figures underneath it were the only real data on that card, and they
   // belong with the network's other headline counts.
   const { data: arnsStats, isLoading: arnsLoading } = useArNSStats();
+  // Realized, not projected: what delegated stake actually returned over the
+  // recorded history. Operator positions are derived rather than measured and
+  // do not exist until a second stake snapshot, so they get their own row only
+  // once the publisher has them.
+  const { delegateReturn, operatorReturn } = useWalletRewards();
   const ticker = useGlobalState((state) => state.ticker);
 
   const stats: StatItem[] = [
@@ -77,6 +83,43 @@ const NetworkStatsPanel = () => {
         </div>
       ),
     },
+    ...(delegateReturn !== undefined
+      ? [
+          {
+            label: 'Delegate yield',
+            value: `${(delegateReturn * 100).toFixed(2)}%`,
+            tooltip: (
+              <div>
+                What delegated stake has actually returned across the network,
+                annualised from measured rewards over the recorded history — not
+                a projection.
+                <br />
+                <br />
+                An individual position can differ sharply from this: gateways
+                pass on anywhere from 0% to 95% of their rewards, and a stake
+                that changed recently is measured against a balance that did not
+                earn those rewards.
+              </div>
+            ),
+          },
+        ]
+      : []),
+    ...(operatorReturn !== undefined
+      ? [
+          {
+            label: 'Operator yield',
+            value: `${(operatorReturn * 100).toFixed(2)}%`,
+            tooltip: (
+              <div>
+                What operator stake has returned, annualised over the recorded
+                history. Derived by comparing stake between epochs rather than
+                from reward events, so it is an estimate where the delegate
+                figure is a measurement.
+              </div>
+            ),
+          },
+        ]
+      : []),
     {
       label: 'Total Vaults',
       value: networkStats ? formatWithCommas(networkStats.totalVaults) : '-',

@@ -29,7 +29,9 @@ const useWalletRewards = () => {
     queryKey: ['analyzerRewards', portalApiUrl, availability.network ?? ''],
     queryFn: () => fetchAnalyzerDocument<AnalyzerRewardsDocument>('rewards'),
     staleTime: 30 * 60 * 1000,
-    enabled: portalApiUrl.trim().length > 0 && usable && !!walletAddress,
+    // No wallet gate: the network-wide figures are shown on the dashboard,
+    // where nobody is connected.
+    enabled: portalApiUrl.trim().length > 0 && usable,
   });
 
   const address = walletAddress?.toString();
@@ -41,11 +43,21 @@ const useWalletRewards = () => {
     () => networkAnnualisedReturn(query.data ?? undefined),
     [query.data],
   );
+  const delegateReturn = useMemo(
+    () => networkAnnualisedReturn(query.data ?? undefined, 'delegate'),
+    [query.data],
+  );
+  const operatorReturn = useMemo(
+    () => networkAnnualisedReturn(query.data ?? undefined, 'operator'),
+    [query.data],
+  );
 
   return {
     ...query,
     summary,
     networkReturn: network,
+    delegateReturn,
+    operatorReturn,
     /** Operator positions only exist once a second stake snapshot is retained. */
     hasOperatorData: (query.data?.counts?.operator ?? 0) > 0,
   };

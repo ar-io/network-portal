@@ -1,6 +1,7 @@
 import {
   APP_VERSION,
   ARIO_DOCS_URL,
+  ARIO_SWAP_URL,
   SOLANA_EXPLORER_URL,
 } from '@src/constants';
 import { useState } from 'react';
@@ -95,9 +96,9 @@ const Sidebar = () => {
 
   const ROUTES_SECONDARY = [
     {
-      title: 'Bridge',
+      title: 'Swap ARIO',
       icon: <ArrowLeftRight className="size-4" />,
-      path: `https://swap.ar.io`,
+      path: ARIO_SWAP_URL,
     },
     {
       title: 'Explorer',

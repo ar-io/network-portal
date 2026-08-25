@@ -70,7 +70,7 @@ const GeographyPanel = () => {
         </span>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 pb-2 scrollbar scrollbar-thin">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overflow-x-hidden px-5 pb-2 scrollbar scrollbar-thin">
         {listed.map((entry) => (
           <div
             key={entry.countryCode || entry.country}

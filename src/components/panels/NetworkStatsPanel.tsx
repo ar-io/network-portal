@@ -1,7 +1,9 @@
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
 import { InfoIcon } from '@src/components/icons';
+import useArNSStats from '@src/hooks/useArNSStats';
 import useNetworkStats from '@src/hooks/useNetworkStats';
+import useWalletRewards from '@src/hooks/useWalletRewards';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { ReactNode } from 'react';
@@ -18,6 +20,17 @@ const NetworkStatsPanel = () => {
   // pull every balance, delegation and vault on the network — 1.6 MB, 52% of
   // the dashboard's bytes — purely to count them. See `useNetworkStats`.
   const { data: networkStats, isLoading } = useNetworkStats();
+  // ArNS had its own panel built around a historical chart, but the epoch
+  // accounts carry no ArNS counters — `fetchEpochLightweight` fills `arnsStats`
+  // with zeros — so the chart plotted a flat line at zero and always had. The
+  // two figures underneath it were the only real data on that card, and they
+  // belong with the network's other headline counts.
+  const { data: arnsStats, isLoading: arnsLoading } = useArNSStats();
+  // Realized, not projected: what delegated stake actually returned over the
+  // recorded history. Operator positions are derived rather than measured and
+  // do not exist until a second stake snapshot, so they get their own row only
+  // once the publisher has them.
+  const { delegateReturn, operatorReturn } = useWalletRewards();
   const ticker = useGlobalState((state) => state.ticker);
 
   const stats: StatItem[] = [
@@ -46,6 +59,68 @@ const NetworkStatsPanel = () => {
       ),
     },
     {
+      label: 'ArNS Names',
+      value: arnsStats ? formatWithCommas(arnsStats.namesPurchased) : '-',
+      isLoading: arnsLoading,
+      tooltip: (
+        <div>
+          Total names registered in the ArNS registry, whether leased or bought
+          permanently.
+        </div>
+      ),
+    },
+    {
+      label: 'Demand Factor',
+      // Three decimals: it settles slowly and moves in the third place, so
+      // rounding further would make it look static.
+      value: arnsStats ? arnsStats.demandFactor.toFixed(3) : '-',
+      isLoading: arnsLoading,
+      tooltip: (
+        <div>
+          The multiplier applied to ArNS registration prices. It rises as names
+          are bought and decays when demand slows, so it is the closest thing on
+          chain to a live read on ArNS demand.
+        </div>
+      ),
+    },
+    ...(delegateReturn !== undefined
+      ? [
+          {
+            label: 'Delegate yield',
+            value: `${(delegateReturn * 100).toFixed(2)}%`,
+            tooltip: (
+              <div>
+                What delegated stake has actually returned across the network,
+                annualised from measured rewards over the recorded history — not
+                a projection.
+                <br />
+                <br />
+                An individual position can differ sharply from this: gateways
+                pass on anywhere from 0% to 95% of their rewards, and a stake
+                that changed recently is measured against a balance that did not
+                earn those rewards.
+              </div>
+            ),
+          },
+        ]
+      : []),
+    ...(operatorReturn !== undefined
+      ? [
+          {
+            label: 'Operator yield',
+            value: `${(operatorReturn * 100).toFixed(2)}%`,
+            tooltip: (
+              <div>
+                What operator stake has returned, annualised over the recorded
+                history. Derived by comparing stake between epochs rather than
+                from reward events, so it is an estimate where the delegate
+                figure is a measurement.
+              </div>
+            ),
+          },
+        ]
+      : []),
+    {
       label: 'Total Vaults',
       value: networkStats ? formatWithCommas(networkStats.totalVaults) : '-',
       isLoading,
@@ -60,18 +135,18 @@ const NetworkStatsPanel = () => {
 
   return (
     <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500">
-      <div className="px-5 pt-5 pb-3">
+      <div className="px-5 pb-3 pt-5">
         <h3 className="text-sm font-semibold text-mid">Network Statistics</h3>
       </div>
 
-      <div className="flex flex-col gap-4 px-5 pb-5">
-        {stats.map((stat, index) => (
-          <div key={index} className="flex flex-col">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-4 px-5 pb-5">
+        {stats.map((stat) => (
+          <div key={stat.label} className="flex min-w-0 flex-col">
             <div className="flex items-center gap-1">
-              <span className="text-xs text-low">{stat.label}</span>
+              <span className="truncate text-xs text-low">{stat.label}</span>
               {stat.tooltip && (
                 <Tooltip message={stat.tooltip} side="right">
-                  <InfoIcon className="h-3 w-3 text-low cursor-help" />
+                  <InfoIcon className="h-3 w-3 shrink-0 cursor-help text-low" />
                 </Tooltip>
               )}
             </div>

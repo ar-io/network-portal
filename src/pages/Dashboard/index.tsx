@@ -1,28 +1,22 @@
 import Header from '@src/components/Header';
 import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
-import { useState } from 'react';
-import ArNSStatsPanel from './ArNSStatsPanel';
 import CTASection from './CTASection';
 import DecentralizationPanel from './DecentralizationPanel';
 import GatewayVersionPanel from './GatewayVersionPanel';
-import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';
 import GeographyPanel from './GeographyPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
+import IndependencePanel from './IndependencePanel';
 import ObserverPerformancePanel from './ObserverPerformancePanel';
+import ProtocolInflowPanel from './ProtocolInflowPanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
-  const [_epochCount, _setEpochCount] = useState(7);
-  const [_hoveredEpochIndex, _setHoveredEpochIndex] = useState<number | null>(
-    null,
-  );
-
   return (
-    <div className="px-4 pb-4 lg:px-6 flex h-full max-w-full flex-col">
-      <div className="mb-4 shrink-0">
+    <div className="pl-4 pb-4 lg:pl-6 flex h-full max-w-full flex-col">
+      <div className="mb-4 shrink-0 pr-4 lg:pr-6">
         <Header />
       </div>
-      <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2 scrollbar scrollbar-thin lg:pr-3">
         <div className="h-full w-full space-y-6">
           {/* CTA Section at the top */}
           <CTASection />
@@ -32,28 +26,12 @@ const Dashboard = () => {
             <div className="col-span-1 md:col-span-2">
               <IOTokenDistributionPanel />
             </div>
-            {/* <div className="col-span-1 md:col-span-4">
-              <GatewaysInNetworkPanel
-                epochCount={epochCount}
-                onEpochCountChange={setEpochCount}
-                hoveredEpochIndex={hoveredEpochIndex}
-                onEpochHover={setHoveredEpochIndex}
-              />
-            </div> */}
             <div className="col-span-1 md:col-span-2">
               <NetworkStatsPanel />
             </div>
             <div className="col-span-1 md:col-span-2">
               <ObserverPerformancePanel />
             </div>
-            {/* <div className="col-span-1 md:col-span-2">
-              <ArNSStatsPanel
-                epochCount={epochCount}
-                onEpochCountChange={setEpochCount}
-                hoveredEpochIndex={hoveredEpochIndex}
-                onEpochHover={setHoveredEpochIndex}
-              />
-            </div> */}
             {/* Places itself in the grid, so it occupies no cell when the
                 analyzer has nothing to show. */}
             <GatewayVersionPanel />
@@ -63,6 +41,10 @@ const Dashboard = () => {
             {/* Places itself in the grid, so it occupies no cell when the
                 analyzer has nothing to show. */}
             <GeographyPanel />
+            {/* Both place themselves in the grid, so they occupy no cell when
+                the analyzer has nothing to show. */}
+            <ProtocolInflowPanel />
+            <IndependencePanel />
             <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel />
             </div>

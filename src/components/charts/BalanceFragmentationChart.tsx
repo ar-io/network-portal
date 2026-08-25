@@ -2,14 +2,32 @@ import Placeholder from '@src/components/Placeholder';
 import useAllBalances from '@src/hooks/useAllBalances';
 import { useGlobalState, useSettings } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
-import { useEffect, useState } from 'react';
+import { sequentialRamp } from '@src/utils/chartRamp';
+import { useEffect, useMemo, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 const TOTAL_SUPPLY = 1_000_000_000;
 
+/**
+ * The bridge is not a holder, so it does not belong on the holder ramp. Uses
+ * the palette's reserved warning step rather than the ad-hoc orange it had,
+ * which was close enough to that token to look like a mistake.
+ */
+const BRIDGE_COLOR = '#ffb938';
+
+/**
+ * The pooled remainder is thousands of addresses, not one. Giving it a ramp
+ * step would put a large slice at whatever shade its array position happened
+ * to land on, breaking the one thing the ramp is supposed to say — that shade
+ * tracks rank among individual holders.
+ */
+const AGGREGATE_COLOR = '#3b3b45';
+
 interface BalanceData {
   name: string;
   value: number;
+  /** The pooled remainder, which is not a holder and must not sit on the ramp. */
+  isAggregate?: boolean;
   percentage: number;
   address: string;
   ticker?: string;
@@ -46,6 +64,17 @@ const BalanceFragmentationChart = () => {
   const bridgeBalanceAddress = useSettings(
     (state) => state.bridgeBalanceAddress,
   );
+
+  // Ramp only over the individual holders, which are already ordered
+  // largest-first, so shade tracks rank. The bridge and the pooled remainder
+  // are not holders and get their own colours.
+  const rampLength = useMemo(
+    () =>
+      data.filter((d) => !d.isAggregate && d.address !== bridgeBalanceAddress)
+        .length,
+    [data, bridgeBalanceAddress],
+  );
+  const ramp = useMemo(() => sequentialRamp(rampLength), [rampLength]);
 
   useEffect(() => {
     if (allBalances && allBalances.length > 0) {
@@ -99,6 +128,7 @@ const BalanceFragmentationChart = () => {
           percentage: othersTotal / TOTAL_SUPPLY,
           address: '',
           ticker,
+          isAggregate: true,
         });
       }
 
@@ -164,14 +194,27 @@ const BalanceFragmentationChart = () => {
                   {data.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
+                      // Identity comes from the ramp position, not from hover.
+                      // Every slice used to sit at 6% opacity and lift to 25%
+                      // under the cursor, so colour encoded which slice you
+                      // were pointing at rather than which slice it was, and
+                      // the legend could identify nothing on its own.
                       fill={
                         entry.address === bridgeBalanceAddress
-                          ? index === activeIndex
-                            ? '#FF8C00'
-                            : '#FF8C0050'
-                          : index === activeIndex
-                            ? '#E19EE540'
-                            : '#E19EE510'
+                          ? BRIDGE_COLOR
+                          : entry.isAggregate
+                            ? AGGREGATE_COLOR
+                            : (ramp[
+                                index -
+                                  (data[0]?.address === bridgeBalanceAddress
+                                    ? 1
+                                    : 0)
+                              ] ?? AGGREGATE_COLOR)
+                      }
+                      fillOpacity={
+                        activeIndex === undefined || activeIndex === index
+                          ? 1
+                          : 0.35
                       }
                     />
                   ))}

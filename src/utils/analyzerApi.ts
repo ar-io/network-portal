@@ -37,6 +37,8 @@ const MAX_AGE_MS = {
   gateways: 48 * 60 * 60 * 1000,
   observers: 48 * 60 * 60 * 1000,
   findings: 48 * 60 * 60 * 1000,
+  economics: 48 * 60 * 60 * 1000,
+  rewards: 48 * 60 * 60 * 1000,
   epoch: null,
 } as const;
 
@@ -189,6 +191,17 @@ export interface AnalyzerNetworkSummary {
     totalGateways?: number;
     totalReporting?: number;
   } | null;
+  /**
+   * Reward distribution across infrastructure clusters. Published as null
+   * until the analyzer's economics pass has run, so every field is optional.
+   */
+  economics?: {
+    totalDistributedRewards?: number;
+    rewardPerGateway?: number;
+    /** Rewards reaching gateways that share resolved infrastructure. */
+    topCentralizedRewards?: number;
+    topCentralizedPercentage?: number;
+  } | null;
   observers?: {
     epochRange?: { from: number; to: number; count: number };
     observerCount?: number;
@@ -213,9 +226,25 @@ export interface AnalyzerObserverRollup {
   kinds?: string[];
 }
 
+/**
+ * One epoch's observation totals.
+ *
+ * `distinctReportTxIds` vs `observationCount` is the only independence signal
+ * in this dataset that needs no calibration: submitting a report transaction
+ * another observer already submitted is not circumstantial evidence of shared
+ * operation, it is the same report under two wallets.
+ */
+export interface AnalyzerObserverEpoch {
+  epochIndex: number;
+  observationCount?: number;
+  distinctReportTxIds?: number;
+  findingCount?: number;
+}
+
 export interface AnalyzerObserversDocument {
   generatedAt?: string;
   observers?: AnalyzerObserverRollup[];
+  epochs?: AnalyzerObserverEpoch[];
 }
 
 /** One row of the per-gateway analysis roster. */
@@ -273,6 +302,127 @@ export interface AnalyzerFinding {
   confidence?: number;
   observerCount?: number;
   summary?: string;
+}
+
+/**
+ * The rolling cross-epoch findings document.
+ *
+ * `counts` is the publisher's own tally over `findings`, which is itself capped
+ * to `window.epochs`. Read the counts rather than re-deriving them from the
+ * array: when `window.truncated` is set the array is the shorter of the two.
+ */
+export interface AnalyzerFindingsDocument {
+  generatedAt?: string;
+  detectorVersion?: number;
+  /**
+   * False while the publisher's similarity threshold has not been calibrated
+   * against known-independent observers. Every consumer must say so — an
+   * uncalibrated detector produces leads, not verdicts.
+   */
+  calibrated?: boolean;
+  thresholdSimilarity?: number;
+  epochRange?: { from?: number; to?: number; count?: number };
+  window?: { epochs?: number; from?: number; truncated?: boolean };
+  counts?: {
+    total?: number;
+    bySeverity?: Record<string, number>;
+    byKind?: Record<string, number>;
+  };
+  findings?: AnalyzerFinding[];
+}
+
+/**
+ * One epoch's treasury sample.
+ *
+ * `protocolBalance` and `totalEligibleRewards` together give the epoch's net
+ * inflow — see {@link AnalyzerEconomicsDocument}. `arioPriceUsd` is the daily
+ * close at that epoch, so a USD figure is what the inflow was worth then, not
+ * what it would be worth today.
+ *
+ * The enrichment fields are published but currently null for every row.
+ */
+export interface AnalyzerEconomicsRow {
+  epochIndex: number;
+  endTimestamp?: number;
+  protocolBalance?: number;
+  totalEligibleRewards?: number;
+  arioPriceUsd?: number | null;
+  arioPriceSource?: string | null;
+  arioPriceAt?: number | null;
+  demandFactor?: number | null;
+  circulating?: number | null;
+  staked?: number | null;
+  delegated?: number | null;
+  arnsRecordCount?: number | null;
+}
+
+/**
+ * The protocol treasury over time.
+ *
+ * Net inflow is derived, not published: the balance moves by whatever came in
+ * minus what was paid out as rewards, so
+ *
+ *   inflow(t) = protocolBalance(t) - protocolBalance(t-1) + rewards(t)
+ *
+ * Two honesty constraints follow from that. It is *inflow*, not revenue — the
+ * balance also moves for treasury operations that are not protocol income, and
+ * this data cannot tell them apart. And `totalEligibleRewards` is what was
+ * payable rather than what was paid, so a failing gateway's forfeited reward
+ * inflates the figure slightly.
+ */
+export interface AnalyzerEconomicsDocument {
+  generatedAt?: string;
+  series?: AnalyzerEconomicsRow[];
+}
+
+/** One wallet's stake in one gateway, or its operator position. */
+export interface AnalyzerRewardPosition {
+  /** `operator` positions appear only once a second stake snapshot exists. */
+  kind: 'delegate' | 'operator';
+  address: string;
+  gatewayAddress?: string;
+  /**
+   * mARIO per epoch, aligned to the document's `epochs`.
+   *
+   * `null` is a gap, never a zero: for a delegate it means nothing was earned,
+   * and for an operator it additionally means the epoch could not be derived
+   * because the stake moved for a non-reward reason. Zero-filling either would
+   * invent data.
+   */
+  rewards?: Array<number | null>;
+  /** Sum over the published window only — see `lifetimeRewards`. */
+  windowRewards?: number;
+  /** Sum over all history. This is the "what have I earned" figure. */
+  lifetimeRewards?: number;
+  epochsRewarded?: number;
+  /** Today's stake, which may be null for a position that has exited. */
+  currentStake?: number | null;
+  /**
+   * `events` is exact, decoded from the program's own reward events.
+   * `inferred` is derived by differencing stake observations, which is all that
+   * is possible for operators. The two must not be totalled without saying so.
+   */
+  basis?: 'events' | 'inferred';
+}
+
+/**
+ * Realized rewards per position.
+ *
+ * `epochs` is a rolling window capped at 30, so it is NOT the same as
+ * `totalEpochsRecorded` once history exceeds that. Any rate computed over the
+ * window rather than over recorded history will silently overstate itself the
+ * moment the two diverge.
+ */
+export interface AnalyzerRewardsDocument {
+  schemaVersion?: string;
+  generatedAt?: string;
+  /** Oldest first. Do not assume contiguous or fixed length. */
+  epochs?: number[];
+  totalEpochsRecorded?: number;
+  epochEndTimestamps?: number[];
+  counts?: { delegate?: number; operator?: number };
+  totals?: { delegateRewards?: number; operatorRewards?: number };
+  positions?: AnalyzerRewardPosition[];
 }
 
 export interface AnalyzerEpochDocument {

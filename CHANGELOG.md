@@ -5,6 +5,136 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-08-25
+
+### Added
+
+- The staking page shows what your delegations have actually earned, per gateway
+  and per epoch, alongside the yield that works out to.
+
+  A consequence worth knowing: the earnings are measured, but the yield is not a
+  rate to expect. It divides everything you have earned by the stake you hold
+  today, so if you have added or withdrawn since, it is measured against a
+  balance that did not earn those rewards. The network's own figure sits beside
+  it for comparison — across the whole network the two differ by about six
+  times, so the comparison is the point.
+
+  Gateways pass on anywhere from 0% to 95% of their rewards, so the same stake
+  earns very differently depending where it sits. One wallet's eleven positions
+  currently range from 2.8% to 12.4%.
+
+- The dashboard charts what flows into the protocol treasury each epoch, in ARIO
+  or in dollars.
+
+  A consequence worth knowing: it is called inflow rather than revenue because
+  it measures everything that moved into the treasury and cannot separate
+  registration fees from one-off transfers. One epoch in the current window
+  contains a 60 million ARIO deposit that is not income; it is drawn in amber
+  and clipped, because at true scale it would flatten every other epoch to a
+  hairline. Dollar figures use the ARIO price at each epoch, so they are what
+  that inflow was worth at the time.
+
+- The dashboard shows how much of the network's auditing is independent work.
+  Observers are meant to assess the network on their own, and each epoch some of
+  them file a report another observer had already filed. The chart tracks that
+  share over time.
+
+  It is deliberately the one measure here that needs no interpretation: two
+  observers submitting the same report transaction is the same report under two
+  wallets, not an inference about who they are.
+
+  A consequence worth knowing: an epoch that only a handful of observers reported
+  is marked in amber. Two observers filing two reports is 100% and means nothing,
+  and hiding those epochs would conceal that they were barely observed at all.
+
+- The rules the protocol enforces now appear where they decide what you can do.
+  Joining as a gateway operator shows the minimum stake, the withdrawal and leave
+  periods, the failed-epoch limit and the reward-share cap alongside the setup
+  steps. Staking shows the minimum delegation, the withdrawal period and the
+  redelegation and early-withdrawal fees before you commit.
+
+  These are read from the same settings the network checks your transaction
+  against, so they cannot drift out of date the way a number copied into the docs
+  can.
+
+- Network Statistics shows what delegated stake has actually returned across the
+  network — annualised from measured rewards, not projected. Operator returns get
+  their own line once the data exists for them, rather than being averaged in:
+  they are worked out by comparing stake between epochs, where delegate rewards
+  are read from the network's own records.
+
+- Network Statistics now includes the total number of ArNS names and the demand
+  factor — the multiplier applied to ArNS registration prices, which rises as
+  names are bought and settles when demand slows.
+
+- The infrastructure panel lists the five largest hosting providers rather than
+  only the largest. On the current network the top five account for 86% of the
+  gateways analysed, which one figure could not convey.
+
+- Every column on the staking table can be sorted.
+
+### Changed
+
+- The gateway and staking pages now open the same way: what you do on the left,
+  what the protocol requires on the right. They are the network's two ways in —
+  running a gateway or backing one — and presenting them differently made them
+  look like unrelated features. The staking copy says what a delegator actually
+  gets rather than describing the mechanism.
+
+- Rewards by Epoch can be shown in dollars as well as ARIO, and takes up a third
+  less room. Each epoch is valued at the ARIO price on that day, so the figures
+  are what those rewards were worth at the time. The most recent epochs are
+  usually not priced yet and are left blank rather than drawn as zero.
+
+- The dashboard fits more on screen. The three action cards at the top are about
+  half their previous height on a wide display, and the panels below them are
+  arranged in even rows.
+
+- The token supply chart gives each slice its own shade. Previously every slice
+  was the same colour and only the one under your cursor changed, so the legend
+  could not identify anything without hovering it first.
+
+- The staking page opens with one card instead of three. The invitation to
+  connect, the link explaining how delegated staking works, and the protocol
+  limits were saying overlapping things in three places.
+
+- The sidebar links to the ARIO market on Raydium in place of the bridge, which
+  is being retired along with the token it bridged.
+
+### Fixed
+
+- Switching Rewards by Epoch to dollars converted the chart but not its hover
+  labels, which still said ARIO — so it showed dollar amounts under a token
+  label.
+
+- The page scrollbar sat hard against the cards with no gap. It now sits at the
+  edge of the window, where it belongs.
+
+- The balance distribution chart drew every slice in the same near-invisible
+  pink, brightening only the one under the cursor — so the colours said where
+  your mouse was rather than which holder was which. Each slice now takes its
+  own shade, darkening as the holdings get smaller.
+
+- Every page showed a horizontal scrollbar it never needed. The scrolling area
+  was set to scroll in both directions, so the bar was drawn whether or not
+  anything was wider than the screen.
+
+- Table headers no longer hid their own controls on a phone. The search box was
+  wider than the screen, which pushed it and the page controls off the edge of
+  the card where they could only be reached by scrolling a bar that gave no sign
+  it scrolled.
+
+- The link to swap for ARIO wrapped onto two lines in the sidebar.
+
+- The page buttons under every table had no background and no hover response.
+
+- Sorting the staking table by performance, yield or reward share put every row
+  with no data first, which is the opposite of what sorting ascending is for.
+
+- The staking rewards card is no longer disabled. It read a source that was never
+  populated, so it reported zero for every wallet — it now reads the published
+  rewards and has been rebuilt around them.
+
 ## [2.9.0] - 2026-08-25
 
 ### Added

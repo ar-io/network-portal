@@ -19,6 +19,7 @@ import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
+import { compareRowValues } from '@src/utils/tableSort';
 import {
   ColumnDef,
   SortingState,
@@ -28,6 +29,23 @@ import { MathJax } from 'better-react-mathjax';
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+/**
+ * Columns where a negative number means "no data", not a low value.
+ *
+ * These three render as N/A, and their sentinel is -1 rather than null, so the
+ * null check alone would sort every N/A row to the very top in ascending order
+ * — the opposite of keeping missing data last.
+ *
+ * `streak` is deliberately absent: its negatives are real, ordered data (a
+ * gateway failing five epochs in a row IS worse than one failing one), so
+ * treating them as missing would hide the worst performers.
+ */
+const NEGATIVE_MEANS_MISSING: ReadonlySet<string> = new Set([
+  'performance',
+  'eay',
+  'rewardShareRatio',
+]);
 
 interface TableData {
   label: string;
@@ -68,29 +86,19 @@ const DelegateStake = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Map table columns to API sort fields
-  const sortMapping: Record<string, string> = {
-    label: 'settings.label',
-    domain: 'settings.fqdn',
-    owner: 'gatewayAddress',
-    totalStake: 'totalDelegatedStake',
-  };
-
-  const sortColumn = sorting[0]?.id;
-  const sortDesc = sorting[0]?.desc;
-  const apiSortBy =
-    (sortColumn && sortMapping[sortColumn]) || 'totalDelegatedStake';
-  const apiSortOrder = sortDesc ? 'desc' : 'asc';
-
+  // Sorting is applied to the assembled rows below rather than threaded back
+  // into the query. Only four of this table's columns exist as fields on the
+  // gateway record; reward share, EAY, performance and streak are computed
+  // while building the rows, which is why they were previously not sortable at
+  // all. Every row is already in the browser — pagination slices locally — so
+  // there is nothing to fetch in order to reorder them, and one unparameterised
+  // query keeps a single cache entry instead of one per column clicked.
   const {
     isLoading,
     isFetching,
     isError,
     data: allGateways,
-  } = useAllGateways({
-    sortBy: apiSortBy,
-    sortOrder: apiSortOrder,
-  });
+  } = useAllGateways();
   const { data: protocolBalance } = useProtocolBalance();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
@@ -168,14 +176,28 @@ const DelegateStake = () => {
     );
   }, [tableData, debouncedSearchTerm]);
 
-  // Client-side pagination
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+  const sortedData = useMemo(() => {
+    const active = sorting[0];
+    if (!active) return filteredData;
+
+    const columnId = active.id as keyof TableData;
+    const negativeMeansMissing = NEGATIVE_MEANS_MISSING.has(columnId);
+
+    return [...filteredData].sort((a, b) =>
+      compareRowValues(a[columnId], b[columnId], {
+        desc: active.desc,
+        negativeMeansMissing,
+      }),
+    );
+  }, [filteredData, sorting]);
+
+  const totalPages = Math.ceil(sortedData.length / ITEMS_PER_PAGE);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage]);
+    return sortedData.slice(startIndex, endIndex);
+  }, [sortedData, currentPage]);
 
   const handleSortingChange = (newSorting: SortingState) => {
     setSorting(newSorting);
@@ -243,7 +265,6 @@ const DelegateStake = () => {
       columnHelper.accessor('rewardShareRatio', {
         id: 'rewardShareRatio',
         header: 'Reward Share Ratio',
-        enableSorting: false,
         cell: ({ row }) =>
           row.original.rewardShareRatio >= 0
             ? `${row.original.rewardShareRatio}%`
@@ -270,7 +291,6 @@ const DelegateStake = () => {
             </Tooltip>
           </div>
         ),
-        enableSorting: false,
         cell: ({ row }) => (
           <div>
             {row.original.eay < 0
@@ -282,7 +302,6 @@ const DelegateStake = () => {
       columnHelper.accessor('performance', {
         id: 'performance',
         header: 'Performance',
-        enableSorting: false,
         cell: ({ row }) =>
           row.original.performance < 0 ? (
             'N/A'
@@ -306,7 +325,6 @@ const DelegateStake = () => {
       columnHelper.accessor('streak', {
         id: 'streak',
         header: 'Streak',
-        enableSorting: false,
         cell: ({ row }) => <Streak streak={row.original.streak} />,
       }),
 
@@ -359,21 +377,21 @@ const DelegateStake = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center overflow-x-auto justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-3">
-        <div className="flex items-center gap-4">
+      <div className="flex w-full flex-wrap items-center justify-between gap-y-2 rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-3">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-x-4 gap-y-2 sm:w-auto sm:flex-1">
           <div className="text-sm text-mid">
             Delegate Stake{' '}
             {!isLoading &&
               `(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(tableData.length)}` : ''})`}
           </div>
-          <div className="relative">
+          <div className="relative w-full min-w-0 sm:w-auto sm:flex-none">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
             <input
               type="text"
               placeholder="Search domain..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
+              className="w-full sm:w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
             />
           </div>
         </div>

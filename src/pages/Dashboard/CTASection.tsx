@@ -41,17 +41,17 @@ const CTASection = () => {
       <div className="grid gap-4 md:grid-cols-3">
         {/* Join Network CTA */}
         <div
-          className="group relative overflow-hidden rounded-lg bg-grey-800 p-6 hover:bg-grey-700 transition-colors cursor-pointer"
+          className="group relative overflow-hidden rounded-lg bg-grey-800 px-5 py-3.5 hover:bg-grey-700 transition-colors cursor-pointer"
           onClick={handleJoinNetwork}
         >
-          <div className="relative z-10">
-            <div className="mb-3 inline-flex items-center gap-2">
+          <div className="relative z-10 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <div className="inline-flex items-center gap-2">
               <span className="text-gradient font-medium">
                 Join the Network
               </span>
               <PinkArrowIcon className="size-3" />
             </div>
-            <p className="text-sm text-mid">
+            <p className="text-xs text-mid">
               Start your gateway and earn {ticker} rewards
             </p>
           </div>
@@ -59,17 +59,17 @@ const CTASection = () => {
 
         {/* Delegate CTA */}
         <div
-          className="group relative overflow-hidden rounded-lg bg-grey-800 p-6 hover:bg-grey-700 transition-colors cursor-pointer"
+          className="group relative overflow-hidden rounded-lg bg-grey-800 px-5 py-3.5 hover:bg-grey-700 transition-colors cursor-pointer"
           onClick={handleDelegate}
         >
-          <div className="relative z-10">
-            <div className="mb-3 inline-flex items-center gap-2">
+          <div className="relative z-10 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <div className="inline-flex items-center gap-2">
               <span className="text-gradient font-medium">
                 Delegate to Gateways
               </span>
               <PinkArrowIcon className="size-3" />
             </div>
-            <p className="text-sm text-mid">
+            <p className="text-xs text-mid">
               Stake your {ticker} tokens and earn rewards
             </p>
           </div>
@@ -77,17 +77,17 @@ const CTASection = () => {
 
         {/* Transfer CTA */}
         <div
-          className="group relative overflow-hidden rounded-lg bg-grey-800 p-6 hover:bg-grey-700 transition-colors cursor-pointer"
+          className="group relative overflow-hidden rounded-lg bg-grey-800 px-5 py-3.5 hover:bg-grey-700 transition-colors cursor-pointer"
           onClick={handleTransfer}
         >
-          <div className="relative z-10">
-            <div className="mb-3 inline-flex items-center gap-2">
+          <div className="relative z-10 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <div className="inline-flex items-center gap-2">
               <span className="text-gradient font-medium">
                 Transfer {ticker}
               </span>
               <SendHorizonal className="size-4" />
             </div>
-            <p className="text-sm text-mid">Send tokens to other addresses</p>
+            <p className="text-xs text-mid">Send tokens to other addresses</p>
           </div>
         </div>
       </div>

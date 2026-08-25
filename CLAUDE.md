@@ -282,8 +282,21 @@ not by keeping the token out of git.
 
 Both deploy workflows pass `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL` from
 repository secrets. Production has a `verify-secrets` gate that fails the run when either
-is empty — unset would otherwise silently fall back to public RPC and ship a degraded,
-permanent build that looks healthy in CI.
+is empty, and ships a permanent build, so it must not be weakened.
+
+**The public fallbacks are not a safety net, and the mainnet one is not usable at
+all.** `api.mainnet-beta.solana.com` answers `403 Access forbidden` to any request
+carrying an `Origin` header — which every browser request has. The identical call
+returns 200 from curl, which sends none, so this is easy to "verify" wrongly from a
+terminal. An unset mainnet secret therefore does not degrade the app so much as
+hollow it out: the shell renders and snapshot-backed views still populate, while
+every RPC-backed read fails — starting with the current epoch and everything gated
+behind it — so it reads as a permanently loading page rather than an error.
+`api.devnet.solana.com` does answer browsers, rate-limited.
+
+The portal snapshot API is a separate variable, `VITE_PORTAL_API_URL`, and is
+deliberately **outside** that gate: empty is a supported state that falls back to
+direct RPC, and removing the variable is the documented rollback.
 
 ### Development Notes
 

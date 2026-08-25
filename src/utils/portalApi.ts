@@ -40,15 +40,20 @@ const resolvePortalApiUrl = (): string => {
 };
 
 /** Documents the publisher writes. */
+/**
+ * Documents reachable through {@link fetchPortalDocument}.
+ *
+ * Only the ones this app actually reads. `summary.json` is deliberately absent:
+ * it carries scalars rather than an `items` array, so naming it here would
+ * invite a call that fetches successfully and is then discarded for having no
+ * items — see {@link fetchPortalSummary} instead.
+ */
 export type PortalDocumentName =
   | 'gateways'
   | 'vaults'
   | 'balances'
   | 'delegates'
-  | 'withdrawals'
-  | 'primaryNames'
-  | 'arnsRecords'
-  | 'summary';
+  | 'primaryNames';
 
 /**
  * How old a snapshot may be before we prefer a live read.

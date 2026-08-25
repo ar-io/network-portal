@@ -3,7 +3,10 @@ import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
 import { useState } from 'react';
 import ArNSStatsPanel from './ArNSStatsPanel';
 import CTASection from './CTASection';
+import DecentralizationPanel from './DecentralizationPanel';
+import GatewayVersionPanel from './GatewayVersionPanel';
 import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';
+import GeographyPanel from './GeographyPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
 import ObserverPerformancePanel from './ObserverPerformancePanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
@@ -51,6 +54,15 @@ const Dashboard = () => {
                 onEpochHover={setHoveredEpochIndex}
               />
             </div> */}
+            {/* Places itself in the grid, so it occupies no cell when the
+                analyzer has nothing to show. */}
+            <GatewayVersionPanel />
+            {/* Places itself in the grid, so it occupies no cell when the
+                analyzer has nothing to show. */}
+            <DecentralizationPanel />
+            {/* Places itself in the grid, so it occupies no cell when the
+                analyzer has nothing to show. */}
+            <GeographyPanel />
             <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel />
             </div>

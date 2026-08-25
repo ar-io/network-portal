@@ -37,6 +37,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ActiveDelegates from './ActiveDelegates';
 import GatewayHeader from './GatewayHeader';
+import InfrastructureDetails from './InfrastructureDetails';
 import OperatorStake from './OperatorStake';
 import PendingWithdrawals from './PendingWIthdrawals';
 import PropertyDisplayPanel from './PropertyDisplayPanel';
@@ -415,6 +416,9 @@ const Gateway = () => {
               )}
               {gateway?.status === 'joined' && (
                 <SoftwareDetails gateway={gateway} />
+              )}
+              {gateway?.status === 'joined' && (
+                <InfrastructureDetails gateway={gateway} />
               )}
               <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
                 <div className="bg-containerL3 px-6 py-4">

@@ -11,6 +11,10 @@ import useAllGateways from '@src/hooks/useAllGateways';
 import { useGlobalState } from '@src/store';
 import { formatDate, formatWithCommas } from '@src/utils';
 import {
+  GATEWAY_STREAK_SORT_KEY,
+  gatewayStreak,
+} from '@src/utils/gatewayStreak';
+import {
   ColumnDef,
   SortingState,
   createColumnHelper,
@@ -66,7 +70,8 @@ const GatewaysTable = () => {
     totalStake: 'totalStake',
     status: 'status',
     performance: 'stats.passedEpochCount',
-    streak: 'stats.passedConsecutiveEpochs',
+    // A computed, signed value rather than a stored counter — see gatewayStreak.
+    streak: GATEWAY_STREAK_SORT_KEY,
   };
 
   const sortColumn = sorting[0]?.id;
@@ -120,12 +125,7 @@ const GatewaysTable = () => {
           totalEpochCount > 0 ? passedEpochCount / totalEpochCount : -1,
         passedEpochCount,
         totalEpochCount,
-        streak:
-          gateway.status === 'leaving'
-            ? Number.NEGATIVE_INFINITY
-            : gateway.stats.failedConsecutiveEpochs > 0
-              ? -gateway.stats.failedConsecutiveEpochs
-              : gateway.stats.passedConsecutiveEpochs,
+        streak: gatewayStreak(gateway),
       };
     });
     setTableData(processedData);

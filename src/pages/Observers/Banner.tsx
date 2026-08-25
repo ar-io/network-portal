@@ -62,11 +62,13 @@ const Banner = () => {
       : 'Prescribed - Report Pending'
     : 'Not prescribed for this epoch';
 
+  // Counted from this observer's own results bitmap rather than from the
+  // per-gateway attribution, so it still resolves for a past epoch where the
+  // registry slot order needed for attribution is no longer available.
   const numFailedGatewaysFound = myObserver
     ? observations?.reports[myObserver.observerAddress]
-      ? Object.values(observations.failureSummaries).reduce((acc, summary) => {
-          return acc + (summary.includes(myObserver.observerAddress) ? 1 : 0);
-        }, 0)
+      ? (observations.totalsByObserver[myObserver.observerAddress]?.failed ??
+        'Unknown')
       : 'Pending'
     : 'N/A';
 

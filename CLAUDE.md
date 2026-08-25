@@ -148,6 +148,49 @@ an epoch distributes, and `Epoch.observationsSubmitted` keeps the count but not
 the content. `useObservations` still reads live epochs straight from the GAR
 program; for a closed epoch the archive is the only source.
 
+The endpoint is user-configurable in Settings (`portalApiUrl`), seeded from
+`VITE_PORTAL_API_URL`, with presets for the two published hosts. Unset still
+means the snapshot reads start off, so removing the variable is a real
+rollback. The network switcher moves the endpoint along with the RPC URL, but
+only when one is in use.
+
+### Analyzer Archive API
+
+`/src/utils/analyzerApi.ts` reads the `/api/v1/` half, and is deliberately a
+separate client from `portalApi.ts` rather than another `PortalDocumentName`:
+
+- **No `network` or `programIds` stamp**, so the portal client's mismatch guard
+  has nothing to check.
+- **Cadence varies per document.** The portal republishes every ~10 minutes;
+  `network.json` and the gateway roster are rebuilt **daily**. Applying the
+  portal's single 30-minute window to them would reject every one, silently and
+  forever — so freshness is per document, and epoch documents have no window at
+  all because history does not go stale.
+- **`/api/v1/gateways.json` is not `/api/v1/portal/gateways.json`.** The first
+  is ~316 analysed rows with DNS/ASN/cluster detail; the second is every
+  gateway on chain. Same filename, different dataset.
+
+Everything read from it is additive: unavailable means render without the
+panel, never an error.
+
+**The analysis layer is mainnet-only.** Devnet publishes the portal documents
+and nothing else, so these panels correctly disappear there and
+`useObservations` falls back to the live read.
+
+Two contract traps the publisher documents and the UI honours: `economics` is
+always null, and `infrastructure` is zeroed when a run skips geolocation —
+`uniqueAsns: 0` is a degraded run, not a decentralised network.
+
+**Results bitmaps: count, never attribute.** An observation's
+`gatewayResultsBase64` (`gar-bitmap-v1-lsb`) indexes into the gateway
+registry's slot order *for that epoch*, and the archive publishes only a digest
+of that ordering. A population count is therefore exact — `countGatewayResults`
+— while naming *which* gateway failed would mean indexing historical bits
+against today's registry. `ObservationData.hasGatewayAttribution` exists so
+consumers branch on it: an empty `failureSummaries` must never render as "no
+failures", which previously would have shown a green **Passed** for a gateway
+whose result is simply unknown.
+
 ### Data Fetching Pattern
 
 Custom hooks in `/src/hooks/` follow this pattern:

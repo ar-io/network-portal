@@ -488,3 +488,30 @@ export const matchRosterRow = (
 
   return roster.byFqdn.get(fqdn);
 };
+
+/**
+ * Render a roster `asn` value as a bare autonomous-system number.
+ *
+ * The field is not a number. It arrives as `"AS214996 netcup GmbH"` — already
+ * carrying the `AS` prefix, and trailing the operator name that the Provider
+ * row displays anyway. Formatting it as `AS${asn}` produced `ASAS214996 netcup
+ * GmbH`, and repeated the provider twice in one card.
+ *
+ * A plain number is still accepted and prefixed, since the contract types it as
+ * either.
+ */
+export const formatAsn = (
+  asn: string | number | null | undefined,
+): string | undefined => {
+  if (asn === null || asn === undefined) return undefined;
+  if (typeof asn === 'number')
+    return Number.isFinite(asn) ? `AS${asn}` : undefined;
+
+  const trimmed = asn.trim();
+  if (trimmed.length === 0) return undefined;
+
+  const numbered = trimmed.match(/^AS\s*(\d+)/i);
+  // Anything that is not recognisably an AS number is shown verbatim rather
+  // than mangled into one.
+  return numbered ? `AS${numbered[1]}` : trimmed;
+};

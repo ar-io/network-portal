@@ -7,6 +7,7 @@ import GeographyPanel from './GeographyPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
 import IndependencePanel from './IndependencePanel';
 import ObserverPerformancePanel from './ObserverPerformancePanel';
+import ProtocolInflowPanel from './ProtocolInflowPanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
@@ -40,10 +41,11 @@ const Dashboard = () => {
             {/* Places itself in the grid, so it occupies no cell when the
                 analyzer has nothing to show. */}
             <GeographyPanel />
-            {/* Places itself in the grid, so it occupies no cell when the
-                analyzer has nothing to show. */}
+            {/* Both place themselves in the grid, so they occupy no cell when
+                the analyzer has nothing to show. */}
+            <ProtocolInflowPanel />
             <IndependencePanel />
-            <div className="col-span-1 md:col-span-4">
+            <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel />
             </div>
           </div>

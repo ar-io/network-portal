@@ -237,6 +237,61 @@ export async function fetchObservationsFromArchive(
   };
 }
 
+/**
+ * Resolve one epoch's observations from whichever source can answer.
+ *
+ * Shared deliberately. This decision used to be inlined in the hook while
+ * `useReports` called `fetchObservationsDirect` straight through — so the
+ * Reports page kept asking the chain for accounts `close_observation` had
+ * already deleted, and silently listed nothing. Two callers asking the same
+ * question must not each decide how to answer it.
+ */
+export async function resolveEpochObservations({
+  rpc,
+  arIOReadSDK,
+  garProgram,
+  epochIndex,
+  currentEpochIndex,
+  archiveAvailable,
+}: {
+  rpc: any;
+  arIOReadSDK: any;
+  garProgram?: string;
+  epochIndex?: number;
+  currentEpochIndex?: number;
+  archiveAvailable: boolean;
+}): Promise<ObservationData> {
+  if (!rpc || !arIOReadSDK || !garProgram || epochIndex === undefined) {
+    throw new Error('rpc, garProgram, or epoch not available');
+  }
+
+  const readLive = () =>
+    fetchObservationsDirect(rpc, arIOReadSDK, garProgram, epochIndex);
+
+  // `close_observation` deletes an epoch's Observation accounts once it
+  // distributes, so for any epoch behind the current one the live read is a
+  // scan that is known to come back empty. Ask the archive first and keep the
+  // live read as the fallback, rather than paying for both.
+  const isHistorical =
+    currentEpochIndex !== undefined && epochIndex < currentEpochIndex;
+
+  if (isHistorical && archiveAvailable) {
+    const archived = await fetchObservationsFromArchive(epochIndex);
+    if (archived) return archived;
+    // Not yet published, or outside the retained window — the accounts may
+    // still be there if the epoch has not distributed.
+    return readLive();
+  }
+
+  const live = await readLive();
+  if (Object.keys(live.reports).length > 0) return live;
+
+  // Distributed between rendering and reading: fall through to the archive
+  // rather than showing an epoch that suddenly has no observations.
+  if (!archiveAvailable) return live;
+  return (await fetchObservationsFromArchive(epochIndex)) ?? live;
+}
+
 const useObservations = (epoch?: EpochData) => {
   const rpc = useGlobalState((state) => state.rpc);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
@@ -263,38 +318,15 @@ const useObservations = (epoch?: EpochData) => {
       portalApiUrl,
       archiveAvailable,
     ],
-    queryFn: async (): Promise<ObservationData | null> => {
-      if (!rpc || !arIOReadSDK || !garProgram || !epoch) {
-        throw new Error('rpc, garProgram, or epoch not available');
-      }
-
-      const readLive = () =>
-        fetchObservationsDirect(rpc, arIOReadSDK, garProgram, epoch.epochIndex);
-
-      // `close_observation` deletes an epoch's Observation accounts once it
-      // distributes, so for any epoch behind the current one the live read is
-      // a scan that is known to come back empty. Ask the archive first and
-      // keep the live read as the fallback, rather than paying for both.
-      const isHistorical =
-        currentEpoch !== undefined &&
-        epoch.epochIndex < currentEpoch.epochIndex;
-
-      if (isHistorical && archiveAvailable) {
-        const archived = await fetchObservationsFromArchive(epoch.epochIndex);
-        if (archived) return archived;
-        // Not yet published, or outside the retained window — the accounts may
-        // still be there if the epoch has not distributed.
-        return readLive();
-      }
-
-      const live = await readLive();
-      if (Object.keys(live.reports).length > 0) return live;
-
-      // Distributed between rendering and reading: fall through to the archive
-      // rather than showing an epoch that suddenly has no observations.
-      if (!archiveAvailable) return live;
-      return (await fetchObservationsFromArchive(epoch.epochIndex)) ?? live;
-    },
+    queryFn: () =>
+      resolveEpochObservations({
+        rpc,
+        arIOReadSDK,
+        garProgram,
+        epochIndex: epoch?.epochIndex,
+        currentEpochIndex: currentEpoch?.epochIndex,
+        archiveAvailable,
+      }),
     enabled: !!rpc && !!arIOReadSDK && !!garProgram && !!epoch,
   });
 

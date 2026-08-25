@@ -56,6 +56,24 @@ const pathFor = (doc: AnalyzerDocument, epochIndex?: number): string =>
  * Never throws: callers treat absence as "render without this section", and an
  * exception would turn a missing panel into a broken page.
  */
+/**
+ * Transient-failure retries.
+ *
+ * Deliberately narrow. A non-ok HTTP response is an ANSWER — a 404 means the
+ * epoch is outside the retained window, and retrying it just burns time before
+ * reaching the same conclusion. Only a thrown fetch (timeout, DNS, connection
+ * reset) is retried, because that is the case where the document probably
+ * exists and we simply failed to reach it.
+ *
+ * Two retries, backing off: enough to ride out a blip, bounded so a genuinely
+ * unreachable host does not hold a page hostage. Note this sits on plain
+ * `fetch`, not on an SDK call that already retries — the multiplication problem
+ * documented in App.tsx's React Query defaults does not apply here.
+ */
+const TRANSIENT_RETRY_DELAYS_MS = [400, 1200];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function fetchAnalyzerDocument<T>(
   doc: AnalyzerDocument,
   epochIndex?: number,
@@ -65,6 +83,30 @@ export async function fetchAnalyzerDocument<T>(
 
   const url = `${base.replace(/\/+$/, '')}${pathFor(doc, epochIndex)}`;
 
+  for (let attempt = 0; ; attempt++) {
+    const result = await attemptAnalyzerFetch<T>(doc, url);
+    if (result.kind === 'ok') return result.body;
+    if (result.kind === 'refused') return null;
+
+    // kind === 'unreachable'
+    const delay = TRANSIENT_RETRY_DELAYS_MS[attempt];
+    if (delay === undefined) {
+      log.debug(`[analyzerApi] ${doc}: unreachable after retries`);
+      return null;
+    }
+    await sleep(delay);
+  }
+}
+
+type AttemptResult<T> =
+  | { kind: 'ok'; body: T | null }
+  | { kind: 'refused' }
+  | { kind: 'unreachable' };
+
+async function attemptAnalyzerFetch<T>(
+  doc: AnalyzerDocument,
+  url: string,
+): Promise<AttemptResult<T>> {
   try {
     const response = await fetch(url, {
       headers: { Accept: 'application/json' },
@@ -77,7 +119,7 @@ export async function fetchAnalyzerDocument<T>(
     if (!response.ok) {
       // A 404 is ordinary here — an epoch older than the retained window.
       log.debug(`[analyzerApi] ${doc}: HTTP ${response.status}`);
-      return null;
+      return { kind: 'refused' };
     }
 
     const body = (await response.json()) as T & { generatedAt?: string };
@@ -91,14 +133,15 @@ export async function fetchAnalyzerDocument<T>(
         log.warn(
           `[analyzerApi] ${doc}: ${Math.round(ageMs / 3600000)}h old, ignoring`,
         );
-        return null;
+        // Stale is a verdict, not a blip — retrying returns the same document.
+        return { kind: 'refused' };
       }
     }
 
-    return body;
+    return { kind: 'ok', body };
   } catch (error) {
-    log.debug(`[analyzerApi] ${doc}: unavailable (${error})`);
-    return null;
+    log.debug(`[analyzerApi] ${doc}: unreachable (${error})`);
+    return { kind: 'unreachable' };
   }
 }
 

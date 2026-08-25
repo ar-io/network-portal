@@ -150,11 +150,11 @@ export default function Extensions() {
   }
 
   return (
-    <div className="px-4 lg:px-6 flex h-full max-w-full flex-col">
-      <div className="mb-4 shrink-0">
+    <div className="pl-4 lg:pl-6 flex h-full max-w-full flex-col">
+      <div className="mb-4 shrink-0 pr-4 lg:pr-6">
         <Header />
       </div>
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar scrollbar-thin">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2 scrollbar scrollbar-thin lg:pr-3">
         <div className="grow">
           <div className="flex w-full items-center overflow-x-auto justify-between rounded-t-xl border border-grey-600 bg-containerL3 px-6 py-[0.9375rem]">
             <div className="grow">

@@ -9,25 +9,16 @@ import { useQuery } from '@tanstack/react-query';
 export type ArNSStats = {
   namesPurchased: number;
   demandFactor: number;
-  activeAuctions: number;
-  totalReturnedNames: number;
-  totalActiveNames: number;
-  totalGracePeriodNames: number;
-  totalReservedNames: number;
 };
 
 const useArNSStats = () => {
   const arioReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const portalProgramIds = usePortalProgramIds();
   const res = useQuery<ArNSStats>({
-    queryKey: ['arNSStats', solanaRpcUrl, currentEpoch?.epochIndex],
+    queryKey: ['arNSStats', solanaRpcUrl],
     queryFn: async () => {
-      if (!arioReadSDK) throw new Error('arIOReadSDK not initialized');
-      if (!currentEpoch) throw new Error('currentEpoch not initialized');
-
       // `getArNSRecords({ limit: 1 })` reads as a cheap count and is not: the
       // SDK scans the whole ArNS program and deserializes every record before
       // `paginate()` truncates in memory, so rendering one number cost a full
@@ -48,23 +39,18 @@ const useArNSStats = () => {
         return {
           demandFactor: snapshotDemandFactor,
           namesPurchased: snapshotCount,
-          activeAuctions: 0,
-          ...currentEpoch.arnsStats,
         };
       }
 
-      const demandFactor = await arioReadSDK.getDemandFactor();
+      // Only the fallback needs the chain, and only when the snapshot is off
+      // or unusable.
+      if (!arioReadSDK) throw new Error('arIOReadSDK not initialized');
 
+      const demandFactor = await arioReadSDK.getDemandFactor();
       const records = await arioReadSDK.getArNSRecords({ limit: 1 });
 
-      return {
-        demandFactor,
-        namesPurchased: records.totalItems,
-        activeAuctions: 0,
-        ...currentEpoch.arnsStats,
-      };
+      return { demandFactor, namesPurchased: records.totalItems };
     },
-    enabled: !!arioReadSDK && !!currentEpoch,
     staleTime: Infinity,
   });
   return res;

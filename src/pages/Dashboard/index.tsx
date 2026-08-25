@@ -1,23 +1,14 @@
 import Header from '@src/components/Header';
 import NetworkStatsPanel from '@src/components/panels/NetworkStatsPanel';
-import { useState } from 'react';
-import ArNSStatsPanel from './ArNSStatsPanel';
 import CTASection from './CTASection';
-import ConcentrationPanel from './ConcentrationPanel';
 import DecentralizationPanel from './DecentralizationPanel';
 import GatewayVersionPanel from './GatewayVersionPanel';
-import GatewaysInNetworkPanel from './GatewaysInNetworkPanel';
 import GeographyPanel from './GeographyPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
 import ObserverPerformancePanel from './ObserverPerformancePanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
 
 const Dashboard = () => {
-  const [epochCount, setEpochCount] = useState(7);
-  const [hoveredEpochIndex, setHoveredEpochIndex] = useState<number | null>(
-    null,
-  );
-
   return (
     <div className="px-4 pb-4 lg:px-6 flex h-full max-w-full flex-col">
       <div className="mb-4 shrink-0">
@@ -33,27 +24,11 @@ const Dashboard = () => {
             <div className="col-span-1 md:col-span-2">
               <IOTokenDistributionPanel />
             </div>
-            {/* <div className="col-span-1 md:col-span-4">
-              <GatewaysInNetworkPanel
-                epochCount={epochCount}
-                onEpochCountChange={setEpochCount}
-                hoveredEpochIndex={hoveredEpochIndex}
-                onEpochHover={setHoveredEpochIndex}
-              />
-            </div> */}
             <div className="col-span-1 md:col-span-2">
               <NetworkStatsPanel />
             </div>
             <div className="col-span-1 md:col-span-2">
               <ObserverPerformancePanel />
-            </div>
-            <div className="col-span-1 md:col-span-2">
-              <ArNSStatsPanel
-                epochCount={epochCount}
-                onEpochCountChange={setEpochCount}
-                hoveredEpochIndex={hoveredEpochIndex}
-                onEpochHover={setHoveredEpochIndex}
-              />
             </div>
             {/* Places itself in the grid, so it occupies no cell when the
                 analyzer has nothing to show. */}
@@ -64,7 +39,6 @@ const Dashboard = () => {
             {/* Places itself in the grid, so it occupies no cell when the
                 analyzer has nothing to show. */}
             <GeographyPanel />
-            <ConcentrationPanel />
             <div className="col-span-1 md:col-span-6">
               <RewardsDistributionPanel />
             </div>

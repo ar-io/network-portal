@@ -1,3 +1,4 @@
+import useAnalyzerAvailability from '@src/hooks/useAnalyzerAvailability';
 import { useSettings } from '@src/store';
 import {
   type AnalyzerNetworkSummary,
@@ -18,12 +19,17 @@ import { useQuery } from '@tanstack/react-query';
  */
 const useNetworkAnalysis = () => {
   const portalApiUrl = useSettings((state) => state.portalApiUrl);
+  const availability = useAnalyzerAvailability();
+  // Refuse an endpoint that is for another network, or that does not publish
+  // this document at all, rather than issuing a request that cannot succeed.
+  const usable =
+    availability.networkMatches && availability.documents.includes('network');
 
   return useQuery({
-    queryKey: ['analyzerNetwork', portalApiUrl],
+    queryKey: ['analyzerNetwork', portalApiUrl, availability.network ?? ''],
     queryFn: () => fetchAnalyzerDocument<AnalyzerNetworkSummary>('network'),
     staleTime: 60 * 60 * 1000,
-    enabled: portalApiUrl.trim().length > 0,
+    enabled: portalApiUrl.trim().length > 0 && usable,
   });
 };
 

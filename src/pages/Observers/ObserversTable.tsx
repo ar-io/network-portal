@@ -14,6 +14,7 @@ import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
 import useObserverRollup from '@src/hooks/useObserverRollup';
 import { formatPercentage, formatWithCommas } from '@src/utils';
+import EpochFindings from './EpochFindings';
 
 interface TableData {
   label: string;
@@ -26,6 +27,8 @@ interface TableData {
   prescribedEpochs: number;
   reportStatus: string;
   failedGateways?: number;
+  /** Share of gateways this observer passed, 0..1. */
+  passRate?: number;
   /** Epochs in the analysed window where this observer shared a report tx. */
   sharedReportEpochs?: number;
   epochsObserved?: number;
@@ -121,6 +124,12 @@ const ObserversTable = () => {
         reportStatus:
           status ?? (selectedEpochIndex === 0 ? 'Pending' : 'Loading...'),
         failedGateways: numFailedGatewaysFound,
+        // Already computed for both the live and archived paths — the column
+        // only surfaces what the totals carry.
+        passRate:
+          observations && submitted
+            ? observations.totalsByObserver[observer.observerAddress]?.passRate
+            : undefined,
         sharedReportEpochs: rollup?.sharedReportEpochs,
         epochsObserved: rollup?.epochsObserved,
         maxSeverity: rollup?.maxSeverity,
@@ -221,6 +230,42 @@ const ObserversTable = () => {
         (selectedEpochIndex === 0 ? 'Pending' : 'N/A'),
     }),
 
+    columnHelper.accessor('passRate', {
+      id: 'passRate',
+      header: 'Gateways Passed',
+      sortDescFirst: true,
+      cell: ({ row }) => {
+        const { passRate, failedGateways } = row.original;
+        if (passRate === undefined) {
+          return (
+            <span className="text-low">
+              {selectedEpochIndex === 0 ? 'Pending' : 'N/A'}
+            </span>
+          );
+        }
+        const total =
+          failedGateways !== undefined && passRate < 1
+            ? Math.round(failedGateways / (1 - passRate))
+            : undefined;
+        return (
+          <Tooltip
+            message={
+              <div className="max-w-64">
+                Share of the gateways this observer assessed that it marked as
+                passing
+                {total ? ` (${total} assessed)` : ''}. Counted from the
+                observer's own results, so it is available for past epochs too.
+              </div>
+            }
+          >
+            <span className="cursor-help text-mid">
+              {(passRate * 100).toFixed(1)}%
+            </span>
+          </Tooltip>
+        );
+      },
+    }),
+
     columnHelper.accessor('sharedReportEpochs', {
       id: 'sharedReportEpochs',
       header: 'Shared Reports',
@@ -269,6 +314,36 @@ const ObserversTable = () => {
             {!tableIsLoading &&
               `(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(observersTableData.length)}` : ''})`}
           </div>
+          {/* Fewer distinct reports than observers means observers cited the
+              same report transaction. It is the clearest independence signal in
+              the data and costs nothing — both sources already carry it. */}
+          {observations && observations.observationCount > 0 && (
+            <Tooltip
+              message={
+                <div className="max-w-72">
+                  {observations.distinctReportTxIds} distinct report transaction
+                  {observations.distinctReportTxIds === 1 ? '' : 's'} across{' '}
+                  {observations.observationCount} submitting observer
+                  {observations.observationCount === 1 ? '' : 's'} this epoch.
+                  Observers citing the same report are worth a look, not proof
+                  of coordination — independent observers can legitimately reach
+                  the same one.
+                </div>
+              }
+            >
+              <span
+                className={`cursor-help whitespace-nowrap text-xs ${
+                  observations.distinctReportTxIds <
+                  observations.observationCount
+                    ? 'text-warning'
+                    : 'text-low'
+                }`}
+              >
+                {observations.distinctReportTxIds}/
+                {observations.observationCount} distinct reports
+              </span>
+            </Tooltip>
+          )}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
             <input
@@ -311,6 +386,7 @@ const ObserversTable = () => {
         }}
         tableId="observers"
       />
+      <EpochFindings findings={observations?.findings} />
     </div>
   );
 };

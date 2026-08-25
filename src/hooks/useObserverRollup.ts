@@ -1,3 +1,4 @@
+import useAnalyzerAvailability from '@src/hooks/useAnalyzerAvailability';
 import { useSettings } from '@src/store';
 import {
   type AnalyzerObserverRollup,
@@ -15,9 +16,14 @@ import { useQuery } from '@tanstack/react-query';
  */
 const useObserverRollup = () => {
   const portalApiUrl = useSettings((state) => state.portalApiUrl);
+  const availability = useAnalyzerAvailability();
+  // Refuse an endpoint that is for another network, or that does not publish
+  // this document at all, rather than issuing a request that cannot succeed.
+  const usable =
+    availability.networkMatches && availability.documents.includes('observers');
 
   return useQuery({
-    queryKey: ['analyzerObservers', portalApiUrl],
+    queryKey: ['analyzerObservers', portalApiUrl, availability.network ?? ''],
     queryFn: async () => {
       const doc =
         await fetchAnalyzerDocument<AnalyzerObserversDocument>('observers');
@@ -30,7 +36,7 @@ const useObserverRollup = () => {
       return { rows: doc.observers, byObserver };
     },
     staleTime: 60 * 60 * 1000,
-    enabled: portalApiUrl.trim().length > 0,
+    enabled: portalApiUrl.trim().length > 0 && usable,
   });
 };
 

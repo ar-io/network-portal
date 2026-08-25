@@ -1,8 +1,10 @@
 import { EpochData } from '@ar.io/sdk/web';
 import { log } from '@src/constants';
+import useAnalyzerAvailability from '@src/hooks/useAnalyzerAvailability';
 import { useGlobalState, useSettings } from '@src/store';
 import {
   type AnalyzerEpochDocument,
+  type AnalyzerFinding,
   type GatewayResultTotals,
   countGatewayResults,
   fetchAnalyzerDocument,
@@ -49,6 +51,18 @@ export interface ObservationData {
    * population count does not depend on which gateway sits in which slot.
    */
   totalsByObserver: Record<string, GatewayResultTotals>;
+  /** Observers that submitted for this epoch. */
+  observationCount: number;
+  /**
+   * Distinct report transactions across those observers.
+   *
+   * Fewer than `observationCount` means observers cited the same report — the
+   * single clearest independence signal in the data, and free to compute from
+   * either source.
+   */
+  distinctReportTxIds: number;
+  /** Detector output for this epoch. Only the archive carries it. */
+  findings?: AnalyzerFinding[];
 }
 
 export async function fetchObservationsDirect(
@@ -156,6 +170,8 @@ export async function fetchObservationsDirect(
   return {
     reports,
     failureSummaries,
+    observationCount: Object.keys(reports).length,
+    distinctReportTxIds: new Set(Object.values(reports)).size,
     source: 'rpc',
     // The live accounts are indexed against the registry we just read, so the
     // bits and the addresses come from the same moment.
@@ -207,6 +223,12 @@ export async function fetchObservationsFromArchive(
   return {
     reports,
     failureSummaries: {},
+    // Prefer the publisher's own counts, which describe the epoch as captured;
+    // fall back to what the rows we received imply.
+    observationCount: doc.observationCount ?? Object.keys(reports).length,
+    distinctReportTxIds:
+      doc.distinctReportTxIds ?? new Set(Object.values(reports)).size,
+    findings: doc.findings,
     source: 'archive',
     hasGatewayAttribution: false,
     totalsByObserver,
@@ -219,6 +241,16 @@ const useObservations = (epoch?: EpochData) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const portalApiUrl = useSettings((state) => state.portalApiUrl);
+  const availability = useAnalyzerAvailability();
+  // Not every deployment publishes the archive. Without this every historical
+  // epoch pays a doomed round trip before falling back to the live read.
+  // The manifest lists exactly which epochs are archived, so an epoch outside
+  // the retained window costs no request at all.
+  const archiveAvailable =
+    availability.networkMatches &&
+    availability.documents.includes('epochs') &&
+    (epoch === undefined ||
+      availability.archivedEpochs.includes(epoch.epochIndex));
   const garProgram = (arIOReadSDK as any)?.garProgram as string | undefined;
 
   const queryResults = useQuery({
@@ -227,6 +259,7 @@ const useObservations = (epoch?: EpochData) => {
       solanaRpcUrl,
       epoch?.epochIndex ?? -1,
       portalApiUrl,
+      archiveAvailable,
     ],
     queryFn: async (): Promise<ObservationData | null> => {
       if (!rpc || !arIOReadSDK || !garProgram || !epoch) {
@@ -244,7 +277,7 @@ const useObservations = (epoch?: EpochData) => {
         currentEpoch !== undefined &&
         epoch.epochIndex < currentEpoch.epochIndex;
 
-      if (isHistorical) {
+      if (isHistorical && archiveAvailable) {
         const archived = await fetchObservationsFromArchive(epoch.epochIndex);
         if (archived) return archived;
         // Not yet published, or outside the retained window — the accounts may
@@ -257,6 +290,7 @@ const useObservations = (epoch?: EpochData) => {
 
       // Distributed between rendering and reading: fall through to the archive
       // rather than showing an epoch that suddenly has no observations.
+      if (!archiveAvailable) return live;
       return (await fetchObservationsFromArchive(epoch.epochIndex)) ?? live;
     },
     enabled: !!rpc && !!arIOReadSDK && !!garProgram && !!epoch,

@@ -223,6 +223,18 @@ export interface AnalyzerObservation {
   gatewayResultsEncoding?: string;
 }
 
+/** One detector output. Summaries state what the data shows, not what it means. */
+export interface AnalyzerFinding {
+  id?: string;
+  kind?: string;
+  epochIndex?: number | null;
+  severity?: string;
+  /** Capped at 0.5 by the publisher while the similarity threshold is uncalibrated. */
+  confidence?: number;
+  observerCount?: number;
+  summary?: string;
+}
+
 export interface AnalyzerEpochDocument {
   epochIndex: number;
   generatedAt?: string;
@@ -239,7 +251,7 @@ export interface AnalyzerEpochDocument {
   firstSubmittedAtUnix?: number | null;
   lastSubmittedAtUnix?: number | null;
   observations?: AnalyzerObservation[];
-  findings?: Array<Record<string, unknown>>;
+  findings?: AnalyzerFinding[];
 }
 
 /** The only bitmap encoding this decoder is correct for. */
@@ -307,6 +319,129 @@ export const countGatewayResults = (
     failed: gatewayCount - passed,
     total: gatewayCount,
     passRate: passed / gatewayCount,
+  };
+};
+
+/* -------------------------------------------------------------------------
+ * Endpoint identity and capability.
+ * ---------------------------------------------------------------------- */
+
+/**
+ * The archive's root manifest, `/api/v1/index.json`.
+ *
+ * `documents` is a MAP keyed by document name, not a list of names — and its
+ * `epochs` entry is an array with one record per archived epoch rather than a
+ * single document. Both matter: reading it as a list yields nothing, which
+ * silently gates every panel off.
+ */
+interface AnalyzerRootManifest {
+  schemaVersion?: string;
+  generatedAt?: string;
+  documents?: Record<string, unknown>;
+  archive?: Array<{ date: string; path: string }>;
+}
+
+/** Just enough of `/api/v1/portal/index.json` to identify the endpoint. */
+interface PortalManifest {
+  network?: string;
+}
+
+/**
+ * What this endpoint is, and what it can answer.
+ *
+ * Two problems solved by one pair of small reads:
+ *
+ * 1. **Identity.** The archive documents carry no `network` or `programIds`
+ *    stamp, so unlike the portal documents there is nothing on them to refuse.
+ *    Pointed at another network's host they would render that network's
+ *    analysis as this one's. The portal half of the same host *is* stamped, so
+ *    it is used to identify the host before any archive document is trusted.
+ * 2. **Capability.** Not every deployment publishes the archive — devnet
+ *    serves the portal documents and nothing else. Without this, every
+ *    historical epoch pays a doomed round trip before falling back to the live
+ *    read: thirteen of them across one session on the epoch selector.
+ *
+ * Unverifiable is treated as unavailable. A host whose portal manifest cannot
+ * be read is one whose identity cannot be established, and the analysis panels
+ * are additive enough that refusing is cheaper than being wrong.
+ */
+export interface AnalyzerAvailability {
+  /** The endpoint is for the network this app is pointed at. */
+  networkMatches: boolean;
+  /** Which archive documents the endpoint publishes. */
+  documents: string[];
+  /**
+   * Exactly which epochs are archived.
+   *
+   * The manifest lists them, so an epoch outside the retained window can be
+   * skipped without spending a request to be told 404.
+   */
+  archivedEpochs: number[];
+  /** Endpoint identity, for logging. */
+  network?: string;
+}
+
+const fetchJson = async <T>(url: string): Promise<T | null> => {
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
+};
+
+export const fetchAnalyzerAvailability = async (
+  expectedNetwork: string,
+): Promise<AnalyzerAvailability> => {
+  const base = analyzerBaseUrl().replace(/\/+$/, '');
+  const unavailable: AnalyzerAvailability = {
+    networkMatches: false,
+    documents: [],
+    archivedEpochs: [],
+  };
+  if (base.length === 0) return unavailable;
+
+  const [root, portal] = await Promise.all([
+    fetchJson<AnalyzerRootManifest>(`${base}/api/v1/index.json`),
+    fetchJson<PortalManifest>(`${base}/api/v1/portal/index.json`),
+  ]);
+
+  // The portal manifest is the only stamped thing this host serves. No stamp,
+  // no identity, no trust.
+  if (!portal?.network) {
+    log.debug('[analyzerApi] endpoint publishes no network stamp — ignoring');
+    return unavailable;
+  }
+
+  if (portal.network !== expectedNetwork) {
+    log.warn(
+      `[analyzerApi] endpoint is for ${portal.network}, app is on ${expectedNetwork} — ignoring its analysis`,
+    );
+    return { ...unavailable, network: portal.network };
+  }
+
+  const documentMap = root?.documents;
+  const documents =
+    documentMap && typeof documentMap === 'object'
+      ? Object.keys(documentMap)
+      : [];
+
+  const epochEntries = documentMap?.epochs;
+  const archivedEpochs = Array.isArray(epochEntries)
+    ? epochEntries
+        .map((entry) => (entry as { epochIndex?: number })?.epochIndex)
+        .filter((index): index is number => typeof index === 'number')
+    : [];
+
+  return {
+    networkMatches: true,
+    documents,
+    archivedEpochs,
+    network: portal.network,
   };
 };
 

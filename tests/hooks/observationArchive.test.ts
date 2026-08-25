@@ -81,6 +81,31 @@ describe('fetchObservationsFromArchive', () => {
     ).toMatchObject({ passed: 1, failed: 7, total: 8 });
   });
 
+  it('carries the report-sharing counts the epoch document reports', async () => {
+    // Fewer distinct transactions than observers is the independence signal;
+    // it must come from the publisher's own counts, not be re-derived from
+    // however many rows happened to be returned.
+    mockJson(EPOCH_522);
+    const result = await fetchObservationsFromArchive(522);
+
+    expect(result?.observationCount).toBe(2);
+    expect(result?.distinctReportTxIds).toBe(1);
+  });
+
+  it('falls back to deriving the counts when the document omits them', async () => {
+    const {
+      observationCount: _a,
+      distinctReportTxIds: _b,
+      ...rest
+    } = EPOCH_522;
+    mockJson(rest);
+    const result = await fetchObservationsFromArchive(522);
+
+    expect(result?.observationCount).toBe(2);
+    // Both observations cite the same transaction.
+    expect(result?.distinctReportTxIds).toBe(1);
+  });
+
   it('refuses to attribute results to individual gateways', async () => {
     // The registry slot order for a past epoch is not published, so a
     // consumer must be able to tell "cannot attribute" from "no failures".

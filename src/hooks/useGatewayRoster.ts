@@ -1,3 +1,4 @@
+import useAnalyzerAvailability from '@src/hooks/useAnalyzerAvailability';
 import { useSettings } from '@src/store';
 import {
   type AnalyzerGatewayRow,
@@ -17,9 +18,18 @@ import { useQuery } from '@tanstack/react-query';
  */
 const useGatewayRoster = () => {
   const portalApiUrl = useSettings((state) => state.portalApiUrl);
+  const availability = useAnalyzerAvailability();
+  // Refuse an endpoint that is for another network, or that does not publish
+  // this document at all, rather than issuing a request that cannot succeed.
+  const usable =
+    availability.networkMatches && availability.documents.includes('gateways');
 
   return useQuery({
-    queryKey: ['analyzerGatewayRoster', portalApiUrl],
+    queryKey: [
+      'analyzerGatewayRoster',
+      portalApiUrl,
+      availability.network ?? '',
+    ],
     queryFn: async () => {
       const doc =
         await fetchAnalyzerDocument<AnalyzerGatewaysDocument>('gateways');
@@ -34,7 +44,7 @@ const useGatewayRoster = () => {
       return { rows: doc.gateways, byWallet, byFqdn };
     },
     staleTime: 60 * 60 * 1000,
-    enabled: portalApiUrl.trim().length > 0,
+    enabled: portalApiUrl.trim().length > 0 && usable,
   });
 };
 

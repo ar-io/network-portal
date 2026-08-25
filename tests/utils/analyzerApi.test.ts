@@ -145,3 +145,87 @@ describe('matchRosterRow', () => {
     expect(matchRosterRow(roster, undefined)).toBeUndefined();
   });
 });
+
+import { fetchAnalyzerAvailability } from '@src/utils/analyzerApi';
+
+describe('fetchAnalyzerAvailability', () => {
+  /**
+   * Shaped like the real `/api/v1/index.json`: `documents` is a MAP keyed by
+   * name, and its `epochs` entry is an array of per-epoch records. An earlier
+   * version of this test asserted a list of names, which is what a `jq keys`
+   * of the document looks like but not what the endpoint serves — so the test
+   * passed while the code read nothing and gated every panel off.
+   */
+  const ROOT = {
+    documents: {
+      observers: { path: '/api/v1/observers.json', bytes: 48013 },
+      findings: { path: '/api/v1/findings.json', bytes: 297599 },
+      network: { path: '/api/v1/network.json', bytes: 78323 },
+      gateways: { path: '/api/v1/gateways.json', bytes: 437791 },
+      epochs: [
+        { path: '/api/v1/epochs/523.json', epochIndex: 523 },
+        { path: '/api/v1/epochs/522.json', epochIndex: 522 },
+      ],
+    },
+  };
+
+  const mockHosts = (portal: unknown, root: unknown) => {
+    global.fetch = vi.fn(async (url: string) => {
+      const body = String(url).includes('/portal/') ? portal : root;
+      return {
+        ok: body !== null,
+        status: body === null ? 404 : 200,
+        json: async () => body,
+      };
+    }) as unknown as typeof fetch;
+  };
+
+  it('reads the document map and the archived epoch list', async () => {
+    mockHosts({ network: 'mainnet' }, ROOT);
+    const result = await fetchAnalyzerAvailability('mainnet');
+
+    expect(result.networkMatches).toBe(true);
+    expect(result.documents.sort()).toEqual([
+      'epochs',
+      'findings',
+      'gateways',
+      'network',
+      'observers',
+    ]);
+    // Knowing which epochs exist means an epoch outside the window costs no
+    // request at all.
+    expect(result.archivedEpochs).toEqual([523, 522]);
+  });
+
+  it("refuses a host serving another network's analysis", async () => {
+    // The archive documents carry no network stamp of their own, so without
+    // this they would render as though they described the current network.
+    mockHosts({ network: 'devnet' }, ROOT);
+    const result = await fetchAnalyzerAvailability('mainnet');
+
+    expect(result.networkMatches).toBe(false);
+    expect(result.documents).toEqual([]);
+    expect(result.archivedEpochs).toEqual([]);
+  });
+
+  it('refuses a host that publishes no network stamp at all', async () => {
+    // Unverifiable identity is treated as unavailable: these panels are
+    // additive, so refusing costs less than being wrong.
+    mockHosts({}, ROOT);
+    expect((await fetchAnalyzerAvailability('mainnet')).networkMatches).toBe(
+      false,
+    );
+  });
+
+  it('reports no documents when the archive is not published', async () => {
+    // Devnet serves the portal documents and no archive. Without this every
+    // historical epoch pays a doomed round trip before falling back to RPC.
+    mockHosts({ network: 'devnet' }, null);
+    expect(await fetchAnalyzerAvailability('devnet')).toEqual({
+      networkMatches: true,
+      documents: [],
+      archivedEpochs: [],
+      network: 'devnet',
+    });
+  });
+});

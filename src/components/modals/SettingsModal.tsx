@@ -9,11 +9,14 @@ import {
   MAINNET_SOLANA_ARNS_PROGRAM_ID,
   MAINNET_SOLANA_CORE_PROGRAM_ID,
   MAINNET_SOLANA_GAR_PROGRAM_ID,
+  PORTAL_DEVNET_API_URL,
+  PORTAL_MAINNET_API_URL,
   SOLANA_MAINNET_RPC_URL,
   SOLANA_RPC_URL,
 } from '@src/constants';
 import { updateSettings, useSettings } from '@src/store';
 import { isValidSolanaAddress } from '@src/utils';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import BaseModal from './BaseModal';
 
@@ -24,6 +27,12 @@ const isValidHttpUrl = (value: string) => {
   } catch {
     return false;
   }
+};
+
+/** Empty is a valid choice: it turns the snapshot reads off entirely. */
+const isValidPortalApiUrl = (value: string) => {
+  const trimmed = value.trim();
+  return trimmed === '' || isValidHttpUrl(trimmed);
 };
 
 type SolanaAddressSettings = {
@@ -140,7 +149,9 @@ const getDefaultSolanaAddressSettingsForRpcUrl = (
 };
 
 const SettingsModal = ({ onClose }: { onClose: () => void }) => {
+  const queryClient = useQueryClient();
   const solanaRpcUrl = useSettings((state) => state.solanaRpcUrl);
+  const portalApiUrl = useSettings((state) => state.portalApiUrl);
   const arweaveGqlUrl = useSettings((state) => state.arweaveGqlUrl);
   const solanaCoreProgramId = useSettings((state) => state.solanaCoreProgramId);
   const solanaGarProgramId = useSettings((state) => state.solanaGarProgramId);
@@ -151,6 +162,7 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
   );
 
   const [localRpcUrl, setLocalRpcUrl] = useState(solanaRpcUrl);
+  const [localPortalApiUrl, setLocalPortalApiUrl] = useState(portalApiUrl);
   const [localGqlUrl, setLocalGqlUrl] = useState(arweaveGqlUrl);
   const [localSolanaAddressSettings, setLocalSolanaAddressSettings] =
     useState<SolanaAddressSettings>({
@@ -188,19 +200,60 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
 
   const activeNetworkTier = getNetworkTierFromRpcUrl(solanaRpcUrl);
 
+  const trimmedPortalApiUrl = portalApiUrl.trim();
+  const activePortalPreset =
+    trimmedPortalApiUrl.length === 0
+      ? 'off'
+      : trimmedPortalApiUrl === PORTAL_MAINNET_API_URL
+        ? 'mainnet'
+        : trimmedPortalApiUrl === PORTAL_DEVNET_API_URL
+          ? 'devnet'
+          : 'custom';
+
+  const PORTAL_PRESET_LABEL: Record<string, string> = {
+    off: 'Off — reading from RPC',
+    mainnet: 'Mainnet',
+    devnet: 'Devnet',
+    custom: 'Custom',
+  };
+
   const switchNetwork = (network: 'devnet' | 'mainnet') => {
     const nextRpcUrl =
       network === 'mainnet' ? SOLANA_MAINNET_RPC_URL : SOLANA_RPC_URL;
     const nextAddressSettings =
       getDefaultSolanaAddressSettingsForRpcUrl(nextRpcUrl);
 
+    // Follow the network with the endpoint, but only if one is actually in
+    // use. An empty value means the user (or the build) has the snapshot reads
+    // switched off, and switching networks is not a request to turn them on.
+    const nextPortalApiUrl =
+      portalApiUrl.trim().length === 0
+        ? portalApiUrl
+        : network === 'mainnet'
+          ? PORTAL_MAINNET_API_URL
+          : PORTAL_DEVNET_API_URL;
+
     updateSettings({
       solanaRpcUrl: nextRpcUrl,
+      portalApiUrl: nextPortalApiUrl,
       ...nextAddressSettings,
     });
 
     setLocalRpcUrl(nextRpcUrl);
+    setLocalPortalApiUrl(nextPortalApiUrl);
     setLocalSolanaAddressSettings(nextAddressSettings);
+  };
+
+  /**
+   * Saving a new endpoint has to invalidate the cache by hand. Unlike the RPC
+   * URL, which is part of every query key and so changes them, the endpoint is
+   * read inside the fetch — nothing about the keys changes, and without this
+   * the switch appears to do nothing until a reload.
+   */
+  const applyPortalApiUrl = (nextUrl: string) => {
+    updateSettings({ portalApiUrl: nextUrl });
+    setLocalPortalApiUrl(nextUrl);
+    queryClient.invalidateQueries();
   };
 
   return (
@@ -262,6 +315,75 @@ const SettingsModal = ({ onClose }: { onClose: () => void }) => {
                   }}
                   disabled={
                     localRpcUrl === solanaRpcUrl || !isValidHttpUrl(localRpcUrl)
+                  }
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center">
+                <div className="grow">Network Services URL</div>
+                <div className="text-xs text-low">
+                  Active: {PORTAL_PRESET_LABEL[activePortalPreset]}
+                </div>
+              </div>
+              <div className="text-xs text-low">
+                Serves gateways, balances and other network-wide data as
+                published snapshots. When off, or whenever it is unreachable or
+                stale, these are read directly from RPC.
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
+                  onClick={() => {
+                    applyPortalApiUrl(PORTAL_MAINNET_API_URL);
+                  }}
+                  disabled={activePortalPreset === 'mainnet'}
+                >
+                  Mainnet
+                </button>
+                <button
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
+                  onClick={() => {
+                    applyPortalApiUrl(PORTAL_DEVNET_API_URL);
+                  }}
+                  disabled={activePortalPreset === 'devnet'}
+                >
+                  Devnet
+                </button>
+                <button
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
+                  onClick={() => {
+                    applyPortalApiUrl('');
+                  }}
+                  disabled={activePortalPreset === 'off'}
+                >
+                  Turn Off
+                </button>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  className="w-full rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid focus:outline-none"
+                  value={localPortalApiUrl}
+                  placeholder="https://network.services.ar.io"
+                  onChange={(e) => {
+                    setLocalPortalApiUrl(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  className="rounded border border-grey-500 px-4 py-2 text-xs text-high disabled:text-low"
+                  onClick={() => {
+                    applyPortalApiUrl(localPortalApiUrl.trim());
+                  }}
+                  disabled={
+                    localPortalApiUrl.trim() === trimmedPortalApiUrl ||
+                    !isValidPortalApiUrl(localPortalApiUrl)
                   }
                 >
                   Save

@@ -5,6 +5,91 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-08-25
+
+### Added
+
+- Network-wide lists — gateways, balances, vaults and delegations — are now read
+  from a published snapshot instead of being rebuilt in every visitor's browser.
+  Those four reads scanned the entire network on each load, so the cost grew with
+  the site's popularity.
+
+  A consequence worth knowing: those four lists can be up to about ten minutes
+  old. Anything the snapshot cannot answer — or that is stale, or published for a
+  different network — falls back to reading the network directly, so the app
+  behaves exactly as before whenever the service is unavailable. Your own
+  balances, delegations and withdrawals are always read live.
+
+- Past epochs now show their observations again. The records live on-chain only
+  until an epoch pays out, after which they are deleted, so older epochs had
+  nothing to show.
+
+  A consequence worth knowing: for a past epoch we can show how many gateways
+  each observer passed, but not which ones. Those results are recorded against a
+  list of gateways whose order is not published, and matching them against
+  today's list would name the wrong gateways. The gateway page says "Unknown"
+  for those epochs rather than showing a pass it cannot stand behind.
+
+- The dashboard has three new panels: which release versions gateways are
+  running, where they are hosted, and which countries they are in.
+
+- A gateway's page now shows the network, hosting provider and location it
+  resolves to, and how many other gateways share that infrastructure.
+
+- The observers table now shows what share of gateways each observer passed, and
+  how often it submitted the same report as another observer. Below it, the
+  correlations the analyzer detected for that epoch are listed with the reason
+  for each. These describe what the data shows; the analyzer reports its own
+  scoring as uncalibrated, so treat them as leads rather than conclusions.
+
+- Settings has a Network Services URL, with presets for the published endpoints,
+  a field for your own, and an option to turn it off entirely — in which case
+  everything is read directly from the network, as before.
+
+### Changed
+
+- The observers table no longer scrolls sideways on a normal screen. The gateway
+  and observer address columns are hidden by default; both are still available
+  from the column selector, and clicking a row opens the gateway, which shows
+  them in full.
+
+### Fixed
+
+- The reports page listed nothing. It asked the chain for records that had
+  already been deleted, and separately, its request for each report's size and
+  version could never succeed against the configured index — which is why those
+  columns were always empty. Reports with no size or version now show a dash
+  rather than a zero and a 1969 date.
+
+- Sorting the gateways table by streak ranked only passing runs, so sorting
+  ascending — what you do to find the worst-performing gateways — grouped every
+  failing gateway together with no relation to how badly it was failing.
+
+- A gateway's epoch card announced a green "Passed" before its results had
+  loaded, and again for past epochs where the result is not knowable.
+
+- A gateway's ASN was shown with a doubled prefix, as ASAS214996, and repeated
+  the provider name already displayed beside it.
+
+## [2.8.0] - 2026-08-24
+
+### Changed
+
+- The dashboard downloads about half as much data when you come back to it. The
+  Network Statistics panel — total addresses, unique delegates, total vaults —
+  used to read every balance, every delegation and every vault on the network
+  each time the page loaded, purely to count them. Those three counts are now
+  remembered in your browser for an hour.
+
+  A consequence worth knowing: those three numbers can be up to an hour old.
+  Nothing else on the dashboard is cached this way, and no balance, stake or
+  reward figure is affected.
+
+- Releases now reach you within about five minutes of being published, instead
+  of up to an hour. The record that points at the app carried a one-hour cache,
+  so a release could be live and still unreachable for that long — which is what
+  happened with the 2.6.0 connection fix.
+
 ## [2.7.0] - 2026-08-24
 
 ### Changed

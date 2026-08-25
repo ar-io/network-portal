@@ -53,9 +53,12 @@ const TableView = <T, S>({
       const reactTableVisibility: VisibilityState = {};
       columns.forEach((column) => {
         if (column.id) {
-          // Default to visible (true) if not explicitly set to false
+          // A stored preference always wins. Absent one, a column is visible
+          // unless it opted out — `!== false` alone could not express that,
+          // because an unset column and a hidden one look identical.
+          const stored = storedVisibility[column.id];
           reactTableVisibility[column.id] =
-            storedVisibility[column.id] !== false;
+            stored !== undefined ? stored : !column.meta?.defaultHidden;
         }
       });
       setColumnVisibility(reactTableVisibility);

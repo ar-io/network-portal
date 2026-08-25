@@ -73,6 +73,124 @@ The app runs on Solana (devnet by default, localnet and mainnet also supported):
 - **React Query** for server state; custom `queryKeyHashFn` handles non-serializable Solana `Connection` objects in query keys
 - **IndexedDB** (via Dexie) for persistent caching of observations and epochs (`/src/store/db.ts`); database name derived from network tier (solana-devnet, solana-localnet, solana-mainnet)
 
+### Portal Snapshot API
+
+`getGateways`/`getVaults`/`getBalances`/`getAllDelegates` are whole-program
+scans, and running them per browser made RPC cost scale with traffic. When
+`VITE_PORTAL_API_URL` is set, the canonical queries read published static JSON
+instead (`/src/utils/portalApi.ts`), served by `ar-io-network-analyzer`.
+
+The fallback is not optional. Any failure — unset, unreachable, malformed,
+stale beyond 30 minutes, stamped with a different network, or derived from
+different Solana programs — returns null and the hook runs the live scan. The
+production build is published immutably to Arweave, so a hard dependency on a
+host that lapses would brick a permanent deploy.
+
+Hooks reading the snapshot:
+
+| Hook | Document | Filter |
+|---|---|---|
+| `useGatewaysQuery` | `gateways.json` | — |
+| `useVaultsQuery` | `vaults.json` | — |
+| `useAllBalances` | `balances.json` | — |
+| `useAllDelegates` | `delegates.json` | — |
+| `usePrimaryName` | `primaryNames.json` | `owner` |
+| `useArNSStats` | `summary.json` | `counts.arnsRecords` |
+
+Two of those are worth their own note:
+
+- `useArNSStats` only ever wanted a count, but `getArNSRecords({ limit: 1 })`
+  scans the whole ArNS program and deserializes every record before truncating
+  **in memory** — so one number cost a full registry sweep per visitor.
+- `getPrimaryName(address)` is an **unfiltered** whole-program scan that
+  filters client-side, so resolving one wallet's name swept the entire set.
+
+`withdrawals.json` is GAR `Withdrawal` accounts and is **not** `vaults.json`,
+which is core-program `Vault` accounts — different datasets, not two views.
+
+**A snapshot is only worth it for an unfiltered whole-program scan.** The test
+before moving any read: is the RPC call server-side filtered, and is the value
+freshness-sensitive? If either is yes, leave it on RPC.
+
+`useGatewayDelegates` and `useGatewayVaults` were briefly served from the
+snapshot and reverted. `getGatewayDelegates`/`getGatewayVaults` are
+memcmp-filtered on the gateway pubkey at offset 8, so the node returns only
+that gateway's rows — averaging under one row per gateway across the network.
+Answering them from the published documents meant downloading every other
+gateway's data (~154KB and ~142KB) to filter client-side. Both keys are also
+invalidated after a write, where a snapshot lagging by a publish interval
+renders the pre-write state.
+
+`useDelegateStakes` stays on RPC for a different, harder reason:
+`getDelegations` unions `type: 'stake'` rows from DELEGATION accounts with
+`type: 'vault'` rows from WITHDRAWAL accounts, both keyed by delegator.
+`delegates.json` covers only the stake half and carries no `type`, and
+`withdrawals.json` cannot supply the other half because both public SDK
+projections drop the withdrawal's `owner`. Serving half a wallet's position is
+worse than spending the call.
+
+**The analyzer serves two separate APIs — check both before concluding
+something is unpublished.** `/api/v1/portal/` holds the current-state documents
+this app reads; `/api/v1/` is the archive, with its own manifest at
+`/api/v1/index.json` (`documents`: epochs, findings, gateways, network,
+observers, plus an `archive` array of dated snapshots). `/api/v1/portal/index.json`
+describes only the portal half, so reading it alone will make the archive look
+absent.
+
+Historical observations live there, at `/api/v1/epochs/<index>.json` — each
+carrying `observations[]` with `observer`, `pubkey`, `reportTxId`,
+`submittedAt` and `gatewayResultsBase64`. They survive because capture writes
+them to SQLite before the accounts are swept.
+
+That matters because RPC genuinely cannot serve them after the fact:
+`Observation` PDAs are deleted by the permissionless `close_observation` once
+an epoch distributes, and `Epoch.observationsSubmitted` keeps the count but not
+the content. `useObservations` still reads live epochs straight from the GAR
+program; for a closed epoch the archive is the only source.
+
+The endpoint is user-configurable in Settings (`portalApiUrl`), seeded from
+`VITE_PORTAL_API_URL`, with presets for the two published hosts. Unset still
+means the snapshot reads start off, so removing the variable is a real
+rollback. The network switcher moves the endpoint along with the RPC URL, but
+only when one is in use.
+
+### Analyzer Archive API
+
+`/src/utils/analyzerApi.ts` reads the `/api/v1/` half, and is deliberately a
+separate client from `portalApi.ts` rather than another `PortalDocumentName`:
+
+- **No `network` or `programIds` stamp**, so the portal client's mismatch guard
+  has nothing to check.
+- **Cadence varies per document.** The portal republishes every ~10 minutes;
+  `network.json` and the gateway roster are rebuilt **daily**. Applying the
+  portal's single 30-minute window to them would reject every one, silently and
+  forever — so freshness is per document, and epoch documents have no window at
+  all because history does not go stale.
+- **`/api/v1/gateways.json` is not `/api/v1/portal/gateways.json`.** The first
+  is ~316 analysed rows with DNS/ASN/cluster detail; the second is every
+  gateway on chain. Same filename, different dataset.
+
+Everything read from it is additive: unavailable means render without the
+panel, never an error.
+
+**The analysis layer is mainnet-only.** Devnet publishes the portal documents
+and nothing else, so these panels correctly disappear there and
+`useObservations` falls back to the live read.
+
+Two contract traps the publisher documents and the UI honours: `economics` is
+always null, and `infrastructure` is zeroed when a run skips geolocation —
+`uniqueAsns: 0` is a degraded run, not a decentralised network.
+
+**Results bitmaps: count, never attribute.** An observation's
+`gatewayResultsBase64` (`gar-bitmap-v1-lsb`) indexes into the gateway
+registry's slot order *for that epoch*, and the archive publishes only a digest
+of that ordering. A population count is therefore exact — `countGatewayResults`
+— while naming *which* gateway failed would mean indexing historical bits
+against today's registry. `ObservationData.hasGatewayAttribution` exists so
+consumers branch on it: an empty `failureSummaries` must never render as "no
+failures", which previously would have shown a green **Passed** for a gateway
+whose result is simply unknown.
+
 ### Data Fetching Pattern
 
 Custom hooks in `/src/hooks/` follow this pattern:

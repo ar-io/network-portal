@@ -1,5 +1,7 @@
 import { WalletVault } from '@ar.io/sdk/web';
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
+import { networkTierFromRpcUrl, snapshotOrRpc } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -27,6 +29,7 @@ export const useVaultsQuery = <TSelected = WalletVault[]>(
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
+  const portalProgramIds = usePortalProgramIds();
   return useQuery<WalletVault[], Error, TSelected>({
     queryKey: vaultsQueryKey(solanaRpcUrl),
     queryFn: async () => {
@@ -34,12 +37,18 @@ export const useVaultsQuery = <TSelected = WalletVault[]>(
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      // The SDK paginates in memory, so requesting everything is one sweep.
-      const result = await arIOReadSDK.getVaults({
-        limit: Number.MAX_SAFE_INTEGER,
-      });
-
-      return result.items as WalletVault[];
+      return snapshotOrRpc<WalletVault>(
+        'vaults',
+        networkTierFromRpcUrl(solanaRpcUrl),
+        async () => {
+          // The SDK paginates in memory, so requesting everything is one sweep.
+          const result = await arIOReadSDK.getVaults({
+            limit: Number.MAX_SAFE_INTEGER,
+          });
+          return result.items as WalletVault[];
+        },
+        portalProgramIds,
+      );
     },
     ...(select ? { select } : {}),
     staleTime: VAULTS_STALE_TIME,

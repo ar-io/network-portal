@@ -12,7 +12,9 @@ import Tooltip from '@src/components/Tooltip';
 import useEpochs from '@src/hooks/useEpochs';
 import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
+import useObserverRollup from '@src/hooks/useObserverRollup';
 import { formatPercentage, formatWithCommas } from '@src/utils';
+import EpochFindings from './EpochFindings';
 
 interface TableData {
   label: string;
@@ -25,6 +27,12 @@ interface TableData {
   prescribedEpochs: number;
   reportStatus: string;
   failedGateways?: number;
+  /** Share of gateways this observer passed, 0..1. */
+  passRate?: number;
+  /** Epochs in the analysed window where this observer shared a report tx. */
+  sharedReportEpochs?: number;
+  epochsObserved?: number;
+  maxSeverity?: string | null;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -55,6 +63,9 @@ const ObserversTable = () => {
 
   const { isError: observationsError, data: observations } =
     useObservations(selectedEpoch);
+  // Additive: absent whenever the analyzer endpoint is unset, in which case the
+  // independence column simply renders as unavailable.
+  const { data: observerRollup } = useObserverRollup();
   const {
     isLoading: gatewaysLoading,
     isError: gatewaysError,
@@ -70,11 +81,6 @@ const ObserversTable = () => {
       0,
     );
 
-    // Pre-calculate failure summaries for efficiency
-    const failureSummaryEntries = observations
-      ? Object.values(observations.failureSummaries)
-      : [];
-
     return observers.map((observer) => {
       const gateway = gateways[observer.gatewayAddress];
 
@@ -87,14 +93,17 @@ const ObserversTable = () => {
             : 'Did not report'
         : undefined;
 
+      // Read from the per-observer totals rather than by counting how many
+      // gateways name this observer. Both give the same number for a live
+      // epoch, but the totals are a population count over the observer's own
+      // results bitmap, so they survive into past epochs where the results can
+      // no longer be attributed to individual gateways.
       const numFailedGatewaysFound =
         observations && submitted
-          ? failureSummaryEntries.reduce(
-              (count, summary) =>
-                count + (summary.includes(observer.observerAddress) ? 1 : 0),
-              0,
-            )
+          ? observations.totalsByObserver[observer.observerAddress]?.failed
           : undefined;
+
+      const rollup = observerRollup?.byObserver.get(observer.observerAddress);
 
       const ncw =
         observer.compositeWeight && totalCompositeWeight > 0
@@ -115,9 +124,18 @@ const ObserversTable = () => {
         reportStatus:
           status ?? (selectedEpochIndex === 0 ? 'Pending' : 'Loading...'),
         failedGateways: numFailedGatewaysFound,
+        // Already computed for both the live and archived paths — the column
+        // only surfaces what the totals carry.
+        passRate:
+          observations && submitted
+            ? observations.totalsByObserver[observer.observerAddress]?.passRate
+            : undefined,
+        sharedReportEpochs: rollup?.sharedReportEpochs,
+        epochsObserved: rollup?.epochsObserved,
+        maxSeverity: rollup?.maxSeverity,
       };
     });
-  }, [observers, gateways, observations, selectedEpochIndex]);
+  }, [observers, gateways, observations, selectedEpochIndex, observerRollup]);
 
   // Filter data by search term
   const filteredData = useMemo(() => {
@@ -160,6 +178,10 @@ const ObserversTable = () => {
       id: 'gatewayAddress',
       header: 'Gateway Address',
       sortDescFirst: false,
+      // Off by default: a 43-character base58 key is the widest thing in the
+      // table and the least read. Clicking the row already opens the gateway,
+      // which shows both addresses in full.
+      meta: { defaultHidden: true },
       cell: ({ row }) => (
         <AddressCell address={row.getValue('gatewayAddress')} />
       ),
@@ -169,6 +191,10 @@ const ObserversTable = () => {
       id: 'observerAddress',
       header: 'Observer Address',
       sortDescFirst: false,
+      // Off by default: a 43-character base58 key is the widest thing in the
+      // table and the least read. Clicking the row already opens the gateway,
+      // which shows both addresses in full.
+      meta: { defaultHidden: true },
       cell: ({ row }) => (
         <AddressCell address={row.getValue('observerAddress')} />
       ),
@@ -211,6 +237,78 @@ const ObserversTable = () => {
         row.original.failedGateways ??
         (selectedEpochIndex === 0 ? 'Pending' : 'N/A'),
     }),
+
+    columnHelper.accessor('passRate', {
+      id: 'passRate',
+      header: 'Gateways Passed',
+      sortDescFirst: true,
+      cell: ({ row }) => {
+        const { passRate, failedGateways } = row.original;
+        if (passRate === undefined) {
+          return (
+            <span className="text-low">
+              {selectedEpochIndex === 0 ? 'Pending' : 'N/A'}
+            </span>
+          );
+        }
+        const total =
+          failedGateways !== undefined && passRate < 1
+            ? Math.round(failedGateways / (1 - passRate))
+            : undefined;
+        return (
+          <Tooltip
+            message={
+              <div className="max-w-64">
+                Share of the gateways this observer assessed that it marked as
+                passing
+                {total ? ` (${total} assessed)` : ''}. Counted from the
+                observer's own results, so it is available for past epochs too.
+              </div>
+            }
+          >
+            <span className="cursor-help text-mid">
+              {(passRate * 100).toFixed(1)}%
+            </span>
+          </Tooltip>
+        );
+      },
+    }),
+
+    columnHelper.accessor('sharedReportEpochs', {
+      id: 'sharedReportEpochs',
+      header: 'Shared Reports',
+      sortDescFirst: true,
+      cell: ({ row }) => {
+        const { sharedReportEpochs, epochsObserved } = row.original;
+        if (sharedReportEpochs === undefined || epochsObserved === undefined) {
+          return <span className="text-low">—</span>;
+        }
+        // Citing the same Arweave report as another observer is a fact about
+        // the data, not a verdict about the operator: independent observers
+        // can legitimately land on the same report. Colour only the extreme.
+        const everyEpoch =
+          epochsObserved > 0 && sharedReportEpochs === epochsObserved;
+        return (
+          <Tooltip
+            message={
+              <div className="max-w-64">
+                Epochs in the analysed window where this observer submitted a
+                report transaction another observer also submitted. Shared
+                reports are a signal worth checking, not proof of coordination.
+              </div>
+            }
+          >
+            <span
+              className={
+                everyEpoch ? 'cursor-help text-red-500' : 'cursor-help text-mid'
+              }
+            >
+              {sharedReportEpochs}/{epochsObserved}
+            </span>
+          </Tooltip>
+        );
+      },
+    }),
   ];
 
   const tableIsLoading = !observers || gatewaysLoading;
@@ -224,6 +322,36 @@ const ObserversTable = () => {
             {!tableIsLoading &&
               `(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(observersTableData.length)}` : ''})`}
           </div>
+          {/* Fewer distinct reports than observers means observers cited the
+              same report transaction. It is the clearest independence signal in
+              the data and costs nothing — both sources already carry it. */}
+          {observations && observations.observationCount > 0 && (
+            <Tooltip
+              message={
+                <div className="max-w-72">
+                  {observations.distinctReportTxIds} distinct report transaction
+                  {observations.distinctReportTxIds === 1 ? '' : 's'} across{' '}
+                  {observations.observationCount} submitting observer
+                  {observations.observationCount === 1 ? '' : 's'} this epoch.
+                  Observers citing the same report are worth a look, not proof
+                  of coordination — independent observers can legitimately reach
+                  the same one.
+                </div>
+              }
+            >
+              <span
+                className={`cursor-help whitespace-nowrap text-xs ${
+                  observations.distinctReportTxIds <
+                  observations.observationCount
+                    ? 'text-warning'
+                    : 'text-low'
+                }`}
+              >
+                {observations.distinctReportTxIds}/
+                {observations.observationCount} distinct reports
+              </span>
+            </Tooltip>
+          )}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
             <input
@@ -266,6 +394,7 @@ const ObserversTable = () => {
         }}
         tableId="observers"
       />
+      <EpochFindings findings={observations?.findings} />
     </div>
   );
 };

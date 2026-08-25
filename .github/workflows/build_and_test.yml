@@ -23,6 +23,12 @@ jobs:
         env:
           VITE_SOLANA_RPC_URL: ${{ secrets.VITE_SOLANA_RPC_URL }}
           VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
+          # The portal snapshot API. A public URL with no auth token, so it is a
+          # var rather than a secret — visible in logs and auditable in the UI.
+          # Deliberately NOT part of the verify-secrets gate: unset is a
+          # supported state that falls back to direct RPC, and removing this
+          # variable is the documented rollback.
+          VITE_PORTAL_API_URL: ${{ vars.VITE_PORTAL_API_URL }}
 
   deploy-to-github:
     runs-on: ubuntu-latest
@@ -53,6 +59,12 @@ jobs:
           # rate-limited Solana RPC rather than failing the deploy.
           VITE_SOLANA_RPC_URL: ${{ secrets.VITE_SOLANA_RPC_URL }}
           VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
+          # The portal snapshot API. A public URL with no auth token, so it is a
+          # var rather than a secret — visible in logs and auditable in the UI.
+          # Deliberately NOT part of the verify-secrets gate: unset is a
+          # supported state that falls back to direct RPC, and removing this
+          # variable is the documented rollback.
+          VITE_PORTAL_API_URL: ${{ vars.VITE_PORTAL_API_URL }}
       - name: Add CNAME Record
         run: |
           echo ${{ vars.DOMAIN_NAME }} > dist/CNAME

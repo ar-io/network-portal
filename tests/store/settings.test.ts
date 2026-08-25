@@ -22,6 +22,7 @@ describe('migrateSettings', () => {
         solanaCoreProgramId: 'CoreOld',
       },
     },
+    portalApiUrl: 'https://network.services.old-example',
     sidebarOpen: false,
     arweaveGqlUrl: 'https://gql.example/graphql',
   };
@@ -30,6 +31,14 @@ describe('migrateSettings', () => {
     const migrated = migrateSettings(legacyState, 0);
 
     expect(migrated).not.toHaveProperty('solanaRpcUrl');
+  });
+
+  it('drops a network-services endpoint persisted by an older build', () => {
+    // Same reasoning as the RPC endpoint: it is network configuration, so a
+    // stored value would otherwise outlive the release that replaced it.
+    const migrated = migrateSettings(legacyState, 0);
+
+    expect(migrated).not.toHaveProperty('portalApiUrl');
   });
 
   it('drops program ids keyed to the old endpoint', () => {

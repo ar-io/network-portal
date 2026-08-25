@@ -1,5 +1,7 @@
 import { BalanceWithAddress, mARIOToken } from '@ar.io/sdk/web';
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
+import { networkTierFromRpcUrl, snapshotOrRpc } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 
@@ -15,6 +17,7 @@ interface UseAllBalancesOptions {
 const useAllBalances = (options: UseAllBalancesOptions = {}) => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
+  const portalProgramIds = usePortalProgramIds();
   const { sortBy = 'balance', sortOrder = 'desc' } = options;
 
   // Sorting happens here rather than in the query key. The rows were always
@@ -50,13 +53,22 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
         throw new Error('arIOReadSDK is not initialized');
       }
 
-      // The SDK fetches the entire dataset and paginates in memory, so this is
-      // one whole-program scan. Keep it to a single cache entry per endpoint.
-      const result = await arIOReadSDK.getBalances({
-        limit: Number.MAX_SAFE_INTEGER,
-      });
+      const balances = await snapshotOrRpc<BalanceWithAddress>(
+        'balances',
+        networkTierFromRpcUrl(solanaRpcUrl),
+        async () => {
+          // The SDK fetches the entire dataset and paginates in memory, so
+          // this is one whole-program scan. Keep it to a single cache entry.
+          const result = await arIOReadSDK.getBalances({
+            limit: Number.MAX_SAFE_INTEGER,
+          });
+          return result.items;
+        },
+        portalProgramIds,
+      );
 
-      return result.items.map((item) => ({
+      // Both sources return mARIO, so the conversion happens once, here.
+      return balances.map((item) => ({
         ...item,
         arioBalance: new mARIOToken(item.balance).toARIO().valueOf(),
       }));

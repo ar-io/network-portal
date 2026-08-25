@@ -1,9 +1,7 @@
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
 import { InfoIcon } from '@src/components/icons';
-import useAllBalances from '@src/hooks/useAllBalances';
-import useAllDelegates from '@src/hooks/useAllDelegates';
-import useAllVaults from '@src/hooks/useAllVaults';
+import useNetworkStats from '@src/hooks/useNetworkStats';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { ReactNode } from 'react';
@@ -16,24 +14,17 @@ interface StatItem {
 }
 
 const NetworkStatsPanel = () => {
-  const { data: allBalances, isLoading: balancesLoading } = useAllBalances();
-  const { data: allDelegates, isLoading: delegatesLoading } = useAllDelegates();
-  const { data: vaultsByAddress, isLoading: vaultsLoading } = useAllVaults();
+  // One cached read instead of three whole-program scans. The panel used to
+  // pull every balance, delegation and vault on the network — 1.6 MB, 52% of
+  // the dashboard's bytes — purely to count them. See `useNetworkStats`.
+  const { data: networkStats, isLoading } = useNetworkStats();
   const ticker = useGlobalState((state) => state.ticker);
-
-  // Calculate total vaults
-  const totalVaults = vaultsByAddress
-    ? Array.from(vaultsByAddress.values()).reduce(
-        (acc, summary) => acc + summary.vaultCount,
-        0,
-      )
-    : 0;
 
   const stats: StatItem[] = [
     {
       label: 'Total Addresses',
-      value: allBalances ? formatWithCommas(allBalances.length) : '-',
-      isLoading: balancesLoading,
+      value: networkStats ? formatWithCommas(networkStats.totalAddresses) : '-',
+      isLoading,
       tooltip: (
         <div>
           Total number of unique addresses holding {ticker} tokens on the
@@ -43,10 +34,10 @@ const NetworkStatsPanel = () => {
     },
     {
       label: 'Unique Delegates',
-      value: allDelegates
-        ? formatWithCommas(new Set(allDelegates.map((d) => d.address)).size)
+      value: networkStats
+        ? formatWithCommas(networkStats.uniqueDelegates)
         : '-',
-      isLoading: delegatesLoading,
+      isLoading,
       tooltip: (
         <div>
           Number of unique addresses that are delegating stake. Many addresses
@@ -56,8 +47,8 @@ const NetworkStatsPanel = () => {
     },
     {
       label: 'Total Vaults',
-      value: totalVaults ? formatWithCommas(totalVaults) : '-',
-      isLoading: vaultsLoading,
+      value: networkStats ? formatWithCommas(networkStats.totalVaults) : '-',
+      isLoading,
       tooltip: (
         <div>
           Total number of active vaults containing locked {ticker} tokens

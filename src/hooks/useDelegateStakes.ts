@@ -23,6 +23,16 @@ const useDelegateStakes = (address?: string) => {
         withdrawals: [],
       };
 
+      // Deliberately NOT served from the snapshot, unlike the other bulk
+      // reads. `getDelegations` unions two account types keyed by the
+      // delegator: `type: 'stake'` rows from DELEGATION accounts and
+      // `type: 'vault'` rows from WITHDRAWAL accounts. `delegates.json` covers
+      // only the stake half and carries no `type`, and `withdrawals.json`
+      // cannot supply the other half because both public SDK projections drop
+      // the withdrawal's `owner`. Rendering half a wallet's position is worse
+      // than spending the call — and this is a memcmp-filtered read, not the
+      // whole-program scan this service exists to displace.
+      //
       // The SDK paginates in memory, so a single call fetches the full set
       // with exactly one chain sweep.
       const pageResult = await arIOReadSDK.getDelegations({

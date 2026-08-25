@@ -1,4 +1,8 @@
 import { GatewayWithAddress } from '@ar.io/sdk/web';
+import {
+  GATEWAY_STREAK_SORT_KEY,
+  gatewayStreak,
+} from '@src/utils/gatewayStreak';
 import { useCallback } from 'react';
 import { useGatewaysQuery } from './useGatewaysQuery';
 
@@ -49,14 +53,22 @@ const useAllGateways = (options: UseAllGatewaysOptions = {}) => {
       const sorted = [...gateways];
 
       sorted.sort((a, b) => {
-        const valueA =
-          sortBy === 'totalStake'
-            ? a.totalDelegatedStake + a.operatorStake
-            : toSortableValue(getNestedValue(a as Record<string, any>, sortBy));
-        const valueB =
-          sortBy === 'totalStake'
-            ? b.totalDelegatedStake + b.operatorStake
-            : toSortableValue(getNestedValue(b as Record<string, any>, sortBy));
+        // `streak` and `totalStake` are computed, not stored, so neither
+        // resolves as a path into the record.
+        const sortValue = (gateway: GatewayWithAddress) => {
+          if (sortBy === 'totalStake') {
+            return gateway.totalDelegatedStake + gateway.operatorStake;
+          }
+          if (sortBy === GATEWAY_STREAK_SORT_KEY) {
+            return gatewayStreak(gateway);
+          }
+          return toSortableValue(
+            getNestedValue(gateway as Record<string, any>, sortBy),
+          );
+        };
+
+        const valueA = sortValue(a);
+        const valueB = sortValue(b);
 
         const comparison = compareValues(valueA, valueB);
         return sortOrder === 'asc' ? comparison : -comparison;

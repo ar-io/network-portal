@@ -42,6 +42,33 @@ export const SOLANA_FALLBACK_RPC_URL =
   import.meta.env.VITE_SOLANA_FALLBACK_RPC_URL ?? '';
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
+/**
+ * Base URL of the portal snapshot API, e.g. https://network.services.ar.io
+ *
+ * Unset disables it entirely and every read goes straight to RPC — which is
+ * how this shipped before, and remains the fallback whenever the API is
+ * unreachable or its data is stale. It is a static JSON host, not a secret.
+ */
+export const PORTAL_API_URL = import.meta.env.VITE_PORTAL_API_URL ?? '';
+
+/**
+ * The two published network-services endpoints, offered as presets in Settings
+ * so a user can flip between them the same way they flip the Solana RPC, or
+ * type a custom one.
+ *
+ * Hardcoded fallbacks rather than required env: these host public JSON, carry
+ * no credential, and the switcher should work on any build. They are only ever
+ * *applied* by an explicit user action or by an existing selection following a
+ * network switch — an unset `VITE_PORTAL_API_URL` still means the feature
+ * starts off, which is what keeps removing the variable a real rollback.
+ */
+export const PORTAL_MAINNET_API_URL =
+  import.meta.env.VITE_PORTAL_MAINNET_API_URL ??
+  'https://network.services.ar.io';
+export const PORTAL_DEVNET_API_URL =
+  import.meta.env.VITE_PORTAL_DEVNET_API_URL ??
+  'https://network.services.ar-io.dev';
+
 export const DEVNET_SOLANA_CORE_PROGRAM_ID =
   import.meta.env.VITE_ARIO_CORE_PROGRAM_ID ?? String(DEVNET_PROGRAM_IDS.core);
 export const DEVNET_SOLANA_GAR_PROGRAM_ID =

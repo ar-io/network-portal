@@ -63,17 +63,38 @@ const ReportsTable = ({
       id: 'generatedAt',
       header: 'Generated At',
       sortDescFirst: false,
-      cell: ({ row }) => formatDateTime(new Date(row.original.timestamp)),
+      // A report the indexer has not returned still belongs in this list — its
+      // id is what opens it. What must not happen is rendering the unknown
+      // metadata as fact: a zero timestamp formats as 31 December 1969, which
+      // reads as a real date rather than as missing information.
+      cell: ({ row }) =>
+        row.original.metadataUnavailable ? (
+          <span className="text-low">&mdash;</span>
+        ) : (
+          formatDateTime(new Date(row.original.timestamp))
+        ),
     }),
     columnHelper.accessor('size', {
       id: 'size',
       header: 'Size',
       sortDescFirst: false,
+      cell: ({ row }) =>
+        row.original.metadataUnavailable ? (
+          <span className="text-low">&mdash;</span>
+        ) : (
+          row.original.size
+        ),
     }),
     columnHelper.accessor('version', {
       id: 'version',
       header: 'Version',
       sortDescFirst: false,
+      cell: ({ row }) =>
+        row.original.metadataUnavailable ? (
+          <span className="text-low">&mdash;</span>
+        ) : (
+          row.original.version
+        ),
     }),
     columnHelper.accessor('failedGateways', {
       id: 'failedGateways',

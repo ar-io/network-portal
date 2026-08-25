@@ -5,6 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-08-25
+
+### Added
+
+- The dashboard shows how much of the network's auditing is independent work.
+  Observers are meant to assess the network on their own, and each epoch some of
+  them file a report another observer had already filed. The chart tracks that
+  share over time.
+
+  It is deliberately the one measure here that needs no interpretation: two
+  observers submitting the same report transaction is the same report under two
+  wallets, not an inference about who they are.
+
+  A consequence worth knowing: an epoch that only a handful of observers reported
+  is marked in amber. Two observers filing two reports is 100% and means nothing,
+  and hiding those epochs would conceal that they were barely observed at all.
+
+- The rules the protocol enforces now appear where they decide what you can do.
+  Joining as a gateway operator shows the minimum stake, the withdrawal and leave
+  periods, the failed-epoch limit and the reward-share cap alongside the setup
+  steps. Staking shows the minimum delegation, the withdrawal period and the
+  redelegation and early-withdrawal fees before you commit.
+
+  These are read from the same settings the network checks your transaction
+  against, so they cannot drift out of date the way a number copied into the docs
+  can.
+
+- Network Statistics now includes the total number of ArNS names and the demand
+  factor — the multiplier applied to ArNS registration prices, which rises as
+  names are bought and settles when demand slows.
+
+- The infrastructure panel lists the five largest hosting providers rather than
+  only the largest. On the current network the top five account for 86% of the
+  gateways analysed, which one figure could not convey.
+
+- Every column on the staking table can be sorted.
+
+### Changed
+
+- The dashboard fits more on screen. The three action cards at the top are about
+  half their previous height on a wide display, and the panels below them are
+  arranged in even rows.
+
+- The token supply chart gives each slice its own shade. Previously every slice
+  was the same colour and only the one under your cursor changed, so the legend
+  could not identify anything without hovering it first.
+
+- The staking page opens with one card instead of three. The invitation to
+  connect, the link explaining how delegated staking works, and the protocol
+  limits were saying overlapping things in three places.
+
+- The sidebar links to the ARIO market on Raydium in place of the bridge, which
+  is being retired along with the token it bridged.
+
+### Fixed
+
+- Table headers no longer hid their own controls on a phone. The search box was
+  wider than the screen, which pushed it and the page controls off the edge of
+  the card where they could only be reached by scrolling a bar that gave no sign
+  it scrolled.
+
+- The page buttons under every table had no background and no hover response.
+
+- Sorting the staking table by performance, yield or reward share put every row
+  with no data first, which is the opposite of what sorting ascending is for.
+
 ## [2.9.0] - 2026-08-25
 
 ### Added

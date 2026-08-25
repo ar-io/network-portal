@@ -37,6 +37,7 @@ const MAX_AGE_MS = {
   gateways: 48 * 60 * 60 * 1000,
   observers: 48 * 60 * 60 * 1000,
   findings: 48 * 60 * 60 * 1000,
+  economics: 48 * 60 * 60 * 1000,
   epoch: null,
 } as const;
 
@@ -327,6 +328,50 @@ export interface AnalyzerFindingsDocument {
     byKind?: Record<string, number>;
   };
   findings?: AnalyzerFinding[];
+}
+
+/**
+ * One epoch's treasury sample.
+ *
+ * `protocolBalance` and `totalEligibleRewards` together give the epoch's net
+ * inflow — see {@link AnalyzerEconomicsDocument}. `arioPriceUsd` is the daily
+ * close at that epoch, so a USD figure is what the inflow was worth then, not
+ * what it would be worth today.
+ *
+ * The enrichment fields are published but currently null for every row.
+ */
+export interface AnalyzerEconomicsRow {
+  epochIndex: number;
+  endTimestamp?: number;
+  protocolBalance?: number;
+  totalEligibleRewards?: number;
+  arioPriceUsd?: number | null;
+  arioPriceSource?: string | null;
+  arioPriceAt?: number | null;
+  demandFactor?: number | null;
+  circulating?: number | null;
+  staked?: number | null;
+  delegated?: number | null;
+  arnsRecordCount?: number | null;
+}
+
+/**
+ * The protocol treasury over time.
+ *
+ * Net inflow is derived, not published: the balance moves by whatever came in
+ * minus what was paid out as rewards, so
+ *
+ *   inflow(t) = protocolBalance(t) - protocolBalance(t-1) + rewards(t)
+ *
+ * Two honesty constraints follow from that. It is *inflow*, not revenue — the
+ * balance also moves for treasury operations that are not protocol income, and
+ * this data cannot tell them apart. And `totalEligibleRewards` is what was
+ * payable rather than what was paid, so a failing gateway's forfeited reward
+ * inflates the figure slightly.
+ */
+export interface AnalyzerEconomicsDocument {
+  generatedAt?: string;
+  series?: AnalyzerEconomicsRow[];
 }
 
 export interface AnalyzerEpochDocument {

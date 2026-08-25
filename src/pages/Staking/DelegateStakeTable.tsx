@@ -68,29 +68,19 @@ const DelegateStake = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Map table columns to API sort fields
-  const sortMapping: Record<string, string> = {
-    label: 'settings.label',
-    domain: 'settings.fqdn',
-    owner: 'gatewayAddress',
-    totalStake: 'totalDelegatedStake',
-  };
-
-  const sortColumn = sorting[0]?.id;
-  const sortDesc = sorting[0]?.desc;
-  const apiSortBy =
-    (sortColumn && sortMapping[sortColumn]) || 'totalDelegatedStake';
-  const apiSortOrder = sortDesc ? 'desc' : 'asc';
-
+  // Sorting is applied to the assembled rows below rather than threaded back
+  // into the query. Only four of this table's columns exist as fields on the
+  // gateway record; reward share, EAY, performance and streak are computed
+  // while building the rows, which is why they were previously not sortable at
+  // all. Every row is already in the browser — pagination slices locally — so
+  // there is nothing to fetch in order to reorder them, and one unparameterised
+  // query keeps a single cache entry instead of one per column clicked.
   const {
     isLoading,
     isFetching,
     isError,
     data: allGateways,
-  } = useAllGateways({
-    sortBy: apiSortBy,
-    sortOrder: apiSortOrder,
-  });
+  } = useAllGateways();
   const { data: protocolBalance } = useProtocolBalance();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
@@ -169,13 +159,38 @@ const DelegateStake = () => {
   }, [tableData, debouncedSearchTerm]);
 
   // Client-side pagination
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+  const sortedData = useMemo(() => {
+    const active = sorting[0];
+    if (!active) return filteredData;
+
+    const rows = [...filteredData];
+    rows.sort((a, b) => {
+      const left = a[active.id as keyof TableData];
+      const right = b[active.id as keyof TableData];
+
+      // Missing values sort last in either direction: a gateway with no
+      // performance history is not the best performer, nor the worst.
+      if (left == null && right == null) return 0;
+      if (left == null) return 1;
+      if (right == null) return -1;
+
+      const comparison =
+        typeof left === 'number' && typeof right === 'number'
+          ? left - right
+          : String(left).localeCompare(String(right));
+
+      return active.desc ? -comparison : comparison;
+    });
+    return rows;
+  }, [filteredData, sorting]);
+
+  const totalPages = Math.ceil(sortedData.length / ITEMS_PER_PAGE);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage]);
+    return sortedData.slice(startIndex, endIndex);
+  }, [sortedData, currentPage]);
 
   const handleSortingChange = (newSorting: SortingState) => {
     setSorting(newSorting);
@@ -243,7 +258,6 @@ const DelegateStake = () => {
       columnHelper.accessor('rewardShareRatio', {
         id: 'rewardShareRatio',
         header: 'Reward Share Ratio',
-        enableSorting: false,
         cell: ({ row }) =>
           row.original.rewardShareRatio >= 0
             ? `${row.original.rewardShareRatio}%`
@@ -270,7 +284,6 @@ const DelegateStake = () => {
             </Tooltip>
           </div>
         ),
-        enableSorting: false,
         cell: ({ row }) => (
           <div>
             {row.original.eay < 0
@@ -282,7 +295,6 @@ const DelegateStake = () => {
       columnHelper.accessor('performance', {
         id: 'performance',
         header: 'Performance',
-        enableSorting: false,
         cell: ({ row }) =>
           row.original.performance < 0 ? (
             'N/A'
@@ -306,7 +318,6 @@ const DelegateStake = () => {
       columnHelper.accessor('streak', {
         id: 'streak',
         header: 'Streak',
-        enableSorting: false,
         cell: ({ row }) => <Streak streak={row.original.streak} />,
       }),
 

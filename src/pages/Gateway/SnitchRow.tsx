@@ -71,11 +71,17 @@ const ReportedOnByCard = ({
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="flex flex-col border-b border-grey-500 bg-containerL3 lg:flex-row">
+      {/* Titled because the card beside this one reads almost identically while
+          answering the opposite question. "No Failures Reported" is about this
+          gateway; "Reported on N gateways" is about what it did to others. */}
+      <div className="border-b border-grey-500 bg-containerL3 px-6 pt-3 text-xs text-low">
+        Observations of this gateway
+      </div>
+      <div className="flex flex-wrap items-center gap-x-2 border-b border-grey-500 bg-containerL3 pb-3">
         {epochs ? (
           <>
-            <div className="flex">
-              <div className="grow whitespace-nowrap px-6 py-4">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2">
+              <div className="min-w-0 px-6 py-1">
                 {!observations ? (
                   // Until the results land there is nothing to state. The
                   // empty default would otherwise read as "no failures", and
@@ -103,7 +109,7 @@ const ReportedOnByCard = ({
                   </div>
                 )}
               </div>
-              <div className="mr-4 flex items-center">
+              <div className="mr-4 flex shrink-0 items-center">
                 {!observations ? (
                   <Placeholder className="h-4 w-16" />
                 ) : !hasAttribution ? (
@@ -130,7 +136,7 @@ const ReportedOnByCard = ({
                 )}
               </div>
             </div>
-            <div className="grow place-items-end">
+            <div className="ml-auto shrink-0 pr-3">
               <Dropdown
                 options={
                   epochs?.map((epoch, index) => ({
@@ -286,11 +292,14 @@ const ReportedOnCard = ({
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">
-      <div className="flex flex-col border-b border-grey-500 bg-containerL3 lg:flex-row">
+      <div className="border-b border-grey-500 bg-containerL3 px-6 pt-3 text-xs text-low">
+        Observations this gateway made
+      </div>
+      <div className="flex flex-wrap items-center gap-x-2 border-b border-grey-500 bg-containerL3 pb-3">
         {epochs ? (
           <>
-            <div className="flex items-center">
-              <div className="grow items-center whitespace-nowrap py-4 pl-6">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2">
+              <div className="min-w-0 py-1 pl-6">
                 {!observations ? (
                   // Same reason: this reads as a statement about the epoch,
                   // and it must not be made before the epoch has been read.
@@ -338,7 +347,7 @@ const ReportedOnCard = ({
                 ></Button>
               )}
             </div>
-            <div className="grow place-items-end">
+            <div className="ml-auto shrink-0 pr-3">
               <Dropdown
                 options={
                   epochs?.map((epoch, index) => ({
@@ -360,6 +369,15 @@ const ReportedOnCard = ({
       </div>
 
       <div className="h-80 overflow-hidden overflow-y-auto scrollbar scrollbar-thin">
+        {observations && snitchedOn.length === 0 && (
+          <div className="flex h-full items-center justify-center px-10 text-center text-xs text-low">
+            {!selectedForObservation
+              ? 'This gateway was not selected to observe in this epoch.'
+              : !hasAttribution
+                ? 'The archive records how many gateways this observer failed, but not which ones.'
+                : 'This observer reported no gateways as failing in this epoch.'}
+          </div>
+        )}
         {snitchedOn?.map((observer) => (
           <div
             key={observer}
@@ -378,7 +396,11 @@ const ReportedOnCard = ({
 
 const SnitchRow = ({ gateway }: { gateway?: GatewayWithAddress | null }) => {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    // Two columns only from 2xl. Measured on the gateway page: at a 1100px
+    // viewport `lg:grid-cols-2` left each card 267px while its header needed
+    // 415px, so the two cards overlapped. Single column below that is roomy —
+    // 858px at a 900px viewport.
+    <div className="grid grid-cols-1 gap-6 2xl:grid-cols-2">
       <ReportedOnByCard gateway={gateway} />
       <ReportedOnCard gateway={gateway} />
     </div>

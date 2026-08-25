@@ -277,21 +277,21 @@ const GatewaysTable = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center overflow-x-auto justify-between rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
-        <div className="flex items-center gap-4">
+      <div className="flex w-full flex-wrap items-center justify-between gap-y-2 rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-x-4 gap-y-2 sm:w-auto sm:flex-1">
           <div className="text-sm text-mid">
             Gateways{' '}
             {!isLoading &&
               `(${formatWithCommas(filteredData.length)}${debouncedSearchTerm ? ` of ${formatWithCommas(tableData.length)}` : ''})`}
           </div>
-          <div className="relative">
+          <div className="relative w-full min-w-0 sm:w-auto sm:flex-none">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-low" />
             <input
               type="text"
               placeholder="Search domain..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
+              className="w-full sm:w-[400px] rounded-md border border-grey-700 bg-grey-1000 py-1.5 pl-9 pr-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
             />
           </div>
         </div>

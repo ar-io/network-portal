@@ -6206,15 +6206,6 @@ arrify@^1.0.1:
   resolved "https://registry.npmjs.org/arrify/-/arrify-1.0.1.tgz"
   integrity sha512-3CYzex9M9FGQjCGMGyi6/31c8GJbgb0qGyrx5HWxPd0aCwh4cB2YjMb2Xf9UuoogrMrlO9cTqnB5rI5GHZTcUA==
 
-arweave-graphql@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.npmjs.org/arweave-graphql/-/arweave-graphql-0.0.5.tgz"
-  integrity sha512-7YYgpIk7Q/i8W5k/GfM0oPkcf61daI8PsgfgMIdT0wa+ZxlNYtQWjpKJ6Ib+uSg+5Qw8mMVoYLU8nIajGXFpnA==
-  dependencies:
-    graphql "^15.8.0"
-    graphql-request "^4.0.0"
-    graphql-tag "^2.12.6"
-
 arweave-stream-tx@1.1.0:
   version "1.1.0"
   resolved "https://registry.npmjs.org/arweave-stream-tx/-/arweave-stream-tx-1.1.0.tgz#288fbaee30f6aa5cadb0b7cd2efd5b34147e867f"
@@ -8007,11 +7998,6 @@ extension-port-stream@^3.0.0:
     readable-stream "^3.6.2 || ^4.4.2"
     webextension-polyfill ">=0.10.0 <1.0"
 
-extract-files@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.npmjs.org/extract-files/-/extract-files-9.0.0.tgz"
-  integrity sha512-CvdFfHkC95B4bBBk36hcEmvdR2awOdhhVUYH6S/zrVj3477zven/fJMYg7121h4T1xHZC+tetUpubpAhxwI7hQ==
-
 eyes@^0.1.8:
   version "0.1.8"
   resolved "https://registry.npmjs.org/eyes/-/eyes-0.1.8.tgz"
@@ -8391,27 +8377,6 @@ graceful-fs@^4.1.15, graceful-fs@^4.1.6, graceful-fs@^4.2.0, graceful-fs@^4.2.9:
   version "4.2.11"
   resolved "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
-
-graphql-request@^4.0.0:
-  version "4.3.0"
-  resolved "https://registry.npmjs.org/graphql-request/-/graphql-request-4.3.0.tgz"
-  integrity sha512-2v6hQViJvSsifK606AliqiNiijb1uwWp6Re7o0RTyH+uRTv/u7Uqm2g4Fjq/LgZIzARB38RZEvVBFOQOVdlBow==
-  dependencies:
-    cross-fetch "^3.1.5"
-    extract-files "^9.0.0"
-    form-data "^3.0.0"
-
-graphql-tag@^2.12.6:
-  version "2.12.6"
-  resolved "https://registry.npmjs.org/graphql-tag/-/graphql-tag-2.12.6.tgz"
-  integrity sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==
-  dependencies:
-    tslib "^2.1.0"
-
-graphql@^15.8.0:
-  version "15.8.0"
-  resolved "https://registry.npmjs.org/graphql/-/graphql-15.8.0.tgz"
-  integrity sha512-5gghUc24tP9HRznNpV2+FIoq3xKkj5dTQqf4v0CpdPbFVwFkWoxOM+o+2OC9ZSvjEMTjfmG9QT+gcvggTwW1zw==
 
 h3@^1.15.10:
   version "1.15.11"

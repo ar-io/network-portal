@@ -50,10 +50,17 @@ export type WalletRewards = {
  */
 export const networkAnnualisedReturn = (
   doc: AnalyzerRewardsDocument | undefined,
+  kind?: 'delegate' | 'operator',
 ): number | undefined => {
-  const positions = doc?.positions;
+  const all = doc?.positions;
   const epochs = doc?.totalEpochsRecorded;
-  if (!positions?.length || !epochs) return undefined;
+  if (!all?.length || !epochs) return undefined;
+
+  // Delegate and operator rewards are measured differently — the first from the
+  // program's own events, the second by differencing stake observations — so a
+  // combined rate would blend an exact figure with a derived one.
+  const positions = kind ? all.filter((p) => p.kind === kind) : all;
+  if (!positions.length) return undefined;
 
   let rewards = 0;
   let stake = 0;

@@ -11,7 +11,6 @@ import {
 } from '@src/components/icons';
 import ConnectModal from '@src/components/modals/ConnectModal';
 import StartGatewayModal from '@src/components/modals/StartGatewayModal';
-import useAllGateways from '@src/hooks/useAllGateways';
 import { GatewayStatus, useGatewayInfo } from '@src/hooks/useGatewayInfo';
 import { useProtocolParameters } from '@src/hooks/useProtocolParameters';
 import { useGlobalState } from '@src/store';
@@ -36,8 +35,6 @@ const Banner = () => {
   const [startGatewayOpen, setStartGatewayOpen] = useState(false);
 
   const { gatewayInfo, gatewayStatus } = useGatewayInfo();
-  const { data: allGateways } = useAllGateways();
-  const ticker = useGlobalState((state) => state.ticker);
   const { parameters } = useProtocolParameters('operator');
 
   return (
@@ -89,16 +86,11 @@ const Banner = () => {
           <StartGatewayCubes className="absolute right-[-0.5rem] top-[-0.5rem] z-0" />
 
           <div className="relative z-10">
-            <div className="mb-1 flex items-center gap-2">
+            <div className="mb-4 flex items-center gap-2">
               <div className="text-gradient text-lg font-medium">
                 Start Earning Rewards
               </div>
               <PinkArrowIcon className="size-3" />
-            </div>
-
-            <div className="mb-5 text-xs text-mid">
-              Join {allGateways ? `${allGateways.length}+` : '500+'} gateways
-              earning {ticker} tokens
             </div>
 
             {/* Steps and requirements side by side: what to do, and what it

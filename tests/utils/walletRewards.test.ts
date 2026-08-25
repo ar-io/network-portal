@@ -238,6 +238,51 @@ describe('networkAnnualisedReturn', () => {
     expect(r).toBeLessThan(0.055);
   });
 
+  it('separates delegate from operator rather than blending the two', () => {
+    // Delegates are measured from reward events, operators derived from stake
+    // differences. A combined rate would present a derivation as a measurement.
+    const d = doc({
+      totalEpochsRecorded: 10,
+      positions: [
+        {
+          kind: 'delegate',
+          address: 'a',
+          lifetimeRewards: 10 * M,
+          currentStake: 1000 * M,
+        },
+        {
+          kind: 'operator',
+          address: 'b',
+          lifetimeRewards: 40 * M,
+          currentStake: 1000 * M,
+        },
+      ],
+    });
+    expect(networkAnnualisedReturn(d, 'delegate')).toBeCloseTo(0.365, 5);
+    expect(networkAnnualisedReturn(d, 'operator')).toBeCloseTo(1.46, 5);
+    // Unfiltered blends them, which is why callers pass a kind.
+    expect(networkAnnualisedReturn(d)).toBeCloseTo(0.9125, 5);
+  });
+
+  it('is undefined for a kind with no positions, not zero', () => {
+    // Operators are empty until a second stake snapshot exists; rendering that
+    // as 0% would claim they earn nothing.
+    const d = doc({
+      totalEpochsRecorded: 10,
+      counts: { delegate: 1, operator: 0 },
+      positions: [
+        {
+          kind: 'delegate',
+          address: 'a',
+          lifetimeRewards: 10 * M,
+          currentStake: 1000 * M,
+        },
+      ],
+    });
+    expect(networkAnnualisedReturn(d, 'operator')).toBeUndefined();
+    expect(networkAnnualisedReturn(d, 'delegate')).toBeDefined();
+  });
+
   it('is undefined without stake to divide by', () => {
     expect(
       networkAnnualisedReturn(

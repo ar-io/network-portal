@@ -96,7 +96,7 @@ const Sidebar = () => {
 
   const ROUTES_SECONDARY = [
     {
-      title: 'Swap for ARIO',
+      title: 'Swap ARIO',
       icon: <ArrowLeftRight className="size-4" />,
       path: ARIO_SWAP_URL,
     },

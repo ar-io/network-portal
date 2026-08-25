@@ -1,5 +1,7 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
+import UnitToggle from '@src/components/UnitToggle';
+import useEpochPrices from '@src/hooks/useEpochPrices';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useEpochsWithCount from '@src/hooks/useEpochsWithCount';
 import { useGlobalState } from '@src/store';
@@ -146,8 +148,12 @@ const _CustomUnclaimedBar = ({
   );
 };
 
+type Unit = 'ario' | 'usd';
+
 const RewardsDistributionPanel = () => {
   const ticker = useGlobalState((state) => state.ticker);
+  const [unit, setUnit] = useState<Unit>('ario');
+  const prices = useEpochPrices();
 
   const [focusBar, setFocusBar] = useState<number>();
   const [mouseLeave, setMouseLeave] = useState(true);
@@ -173,24 +179,57 @@ const RewardsDistributionPanel = () => {
           .toARIO()
           .valueOf();
 
+        // Each epoch is valued at its own close. Converting a total at
+        // today's price is a different figure — about 16% apart over the
+        // current window — and would move history whenever the price moved.
+        const price = prices.get(epoch!.epochIndex);
+        const priced = unit === 'usd';
+
         return {
           epoch: epoch!.epochIndex,
-          gatewayRewards,
-          observerRewards,
+          // An epoch the analyzer has not priced yet draws no bar rather than
+          // a zero one. The epoch in progress is routinely in this state.
+          gatewayRewards: priced
+            ? price === undefined
+              ? undefined
+              : gatewayRewards * price
+            : gatewayRewards,
+          observerRewards: priced
+            ? price === undefined
+              ? undefined
+              : observerRewards * price
+            : observerRewards,
+          priced: price !== undefined,
           status: (epoch!.epochIndex === currentEpochIndex
             ? 'Pending'
             : 'Distributed') as RewardsData['status'],
         };
       });
-  }, [epochs, currentEpochIndex]);
+  }, [epochs, currentEpochIndex, prices, unit]);
+
+  // Offer the switch only when there is something to switch to.
+  const pricedCount = rewardsData?.filter((d) => d.priced).length ?? 0;
+  const unpricedCount = (rewardsData?.length ?? 0) - pricedCount;
 
   return (
     <div className="rounded-xl border border-grey-500">
-      <div className="flex items-center justify-between px-5 pb-3 pt-5">
-        <span className="text-sm text-mid">Rewards by Epoch ({ticker})</span>
-        <span className="text-xs text-low">Last 7 Epochs</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-5 pb-3 pt-5">
+        <span className="text-sm text-mid">Rewards by Epoch</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-low">Last {EPOCH_COUNT} Epochs</span>
+          {pricedCount > 0 && (
+            <UnitToggle
+              value={unit}
+              onChange={setUnit}
+              options={[
+                { value: 'ario', label: ticker || 'ARIO' },
+                { value: 'usd', label: 'USD' },
+              ]}
+            />
+          )}
+        </div>
       </div>
-      <div className="relative h-80">
+      <div className="relative h-56">
         {rewardsData && rewardsData.length > 0 ? (
           <div className="size-full text-xs text-low">
             <ResponsiveContainer width="100%" height="100%">
@@ -266,7 +305,14 @@ const RewardsDistributionPanel = () => {
                 </defs>
 
                 <XAxis dataKey="epoch" />
-                <YAxis tickFormatter={(v) => formatWithCommas(v)} />
+                <YAxis
+                  width={unit === 'usd' ? 56 : 48}
+                  tickFormatter={(v) =>
+                    unit === 'usd'
+                      ? `$${formatWithCommas(Math.round(v))}`
+                      : formatWithCommas(v)
+                  }
+                />
                 <Tooltip content={<CustomTooltip />} cursor={false} />
 
                 <Bar
@@ -322,6 +368,12 @@ const RewardsDistributionPanel = () => {
           </div>
         )}
       </div>
+      {unit === 'usd' && unpricedCount > 0 && (
+        <div className="px-5 pb-4 text-xs text-low">
+          {unpricedCount} epoch{unpricedCount === 1 ? '' : 's'} not priced yet —
+          each epoch is valued at its own closing price.
+        </div>
+      )}
     </div>
   );
 };

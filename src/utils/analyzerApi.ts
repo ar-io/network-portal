@@ -38,6 +38,7 @@ const MAX_AGE_MS = {
   observers: 48 * 60 * 60 * 1000,
   findings: 48 * 60 * 60 * 1000,
   economics: 48 * 60 * 60 * 1000,
+  rewards: 48 * 60 * 60 * 1000,
   epoch: null,
 } as const;
 
@@ -372,6 +373,56 @@ export interface AnalyzerEconomicsRow {
 export interface AnalyzerEconomicsDocument {
   generatedAt?: string;
   series?: AnalyzerEconomicsRow[];
+}
+
+/** One wallet's stake in one gateway, or its operator position. */
+export interface AnalyzerRewardPosition {
+  /** `operator` positions appear only once a second stake snapshot exists. */
+  kind: 'delegate' | 'operator';
+  address: string;
+  gatewayAddress?: string;
+  /**
+   * mARIO per epoch, aligned to the document's `epochs`.
+   *
+   * `null` is a gap, never a zero: for a delegate it means nothing was earned,
+   * and for an operator it additionally means the epoch could not be derived
+   * because the stake moved for a non-reward reason. Zero-filling either would
+   * invent data.
+   */
+  rewards?: Array<number | null>;
+  /** Sum over the published window only — see `lifetimeRewards`. */
+  windowRewards?: number;
+  /** Sum over all history. This is the "what have I earned" figure. */
+  lifetimeRewards?: number;
+  epochsRewarded?: number;
+  /** Today's stake, which may be null for a position that has exited. */
+  currentStake?: number | null;
+  /**
+   * `events` is exact, decoded from the program's own reward events.
+   * `inferred` is derived by differencing stake observations, which is all that
+   * is possible for operators. The two must not be totalled without saying so.
+   */
+  basis?: 'events' | 'inferred';
+}
+
+/**
+ * Realized rewards per position.
+ *
+ * `epochs` is a rolling window capped at 30, so it is NOT the same as
+ * `totalEpochsRecorded` once history exceeds that. Any rate computed over the
+ * window rather than over recorded history will silently overstate itself the
+ * moment the two diverge.
+ */
+export interface AnalyzerRewardsDocument {
+  schemaVersion?: string;
+  generatedAt?: string;
+  /** Oldest first. Do not assume contiguous or fixed length. */
+  epochs?: number[];
+  totalEpochsRecorded?: number;
+  epochEndTimestamps?: number[];
+  counts?: { delegate?: number; operator?: number };
+  totals?: { delegateRewards?: number; operatorRewards?: number };
+  positions?: AnalyzerRewardPosition[];
 }
 
 export interface AnalyzerEpochDocument {

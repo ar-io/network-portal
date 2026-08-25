@@ -16,7 +16,7 @@ const Dashboard = () => {
       <div className="mb-4 shrink-0">
         <Header />
       </div>
-      <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar scrollbar-thin">
         <div className="h-full w-full space-y-6">
           {/* CTA Section at the top */}
           <CTASection />

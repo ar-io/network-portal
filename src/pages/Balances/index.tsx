@@ -14,7 +14,7 @@ const Balances = () => {
       <div className="mb-4 shrink-0">
         <Header />
       </div>
-      <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar scrollbar-thin">
         <div className="flex flex-col gap-6 pb-6">
           <div
             className={`grid grid-cols-1 ${walletAddress ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-6`}

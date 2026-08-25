@@ -275,6 +275,33 @@ export interface AnalyzerFinding {
   summary?: string;
 }
 
+/**
+ * The rolling cross-epoch findings document.
+ *
+ * `counts` is the publisher's own tally over `findings`, which is itself capped
+ * to `window.epochs`. Read the counts rather than re-deriving them from the
+ * array: when `window.truncated` is set the array is the shorter of the two.
+ */
+export interface AnalyzerFindingsDocument {
+  generatedAt?: string;
+  detectorVersion?: number;
+  /**
+   * False while the publisher's similarity threshold has not been calibrated
+   * against known-independent observers. Every consumer must say so — an
+   * uncalibrated detector produces leads, not verdicts.
+   */
+  calibrated?: boolean;
+  thresholdSimilarity?: number;
+  epochRange?: { from?: number; to?: number; count?: number };
+  window?: { epochs?: number; from?: number; truncated?: boolean };
+  counts?: {
+    total?: number;
+    bySeverity?: Record<string, number>;
+    byKind?: Record<string, number>;
+  };
+  findings?: AnalyzerFinding[];
+}
+
 export interface AnalyzerEpochDocument {
   epochIndex: number;
   generatedAt?: string;

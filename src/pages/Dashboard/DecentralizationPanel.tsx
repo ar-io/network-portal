@@ -73,7 +73,7 @@ const DecentralizationPanel = () => {
           hosting and network distribution are unavailable.
         </div>
       ) : (
-        <div className="flex flex-col gap-3 overflow-y-auto px-5 pb-5 scrollbar scrollbar-thin">
+        <div className="flex flex-col gap-3 overflow-y-auto overflow-x-hidden px-5 pb-5 scrollbar scrollbar-thin">
           <div className="flex flex-col">
             <span className="text-xs text-low">Datacenter hosted</span>
             <span className="text-2xl font-semibold text-high">

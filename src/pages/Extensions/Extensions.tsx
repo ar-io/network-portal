@@ -154,7 +154,7 @@ export default function Extensions() {
       <div className="mb-4 shrink-0">
         <Header />
       </div>
-      <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar scrollbar-thin">
         <div className="grow">
           <div className="flex w-full items-center overflow-x-auto justify-between rounded-t-xl border border-grey-600 bg-containerL3 px-6 py-[0.9375rem]">
             <div className="grow">

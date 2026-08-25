@@ -11,7 +11,7 @@ const Staking = () => {
       <div className="mb-4 shrink-0">
         <Header />
       </div>
-      <div className="flex-1 overflow-scroll scrollbar scrollbar-thin">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar scrollbar-thin">
         {walletAddress ? <ConnectedLandingPage /> : <NotConnectedLandingPage />}
       </div>
     </div>

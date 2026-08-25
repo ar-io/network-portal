@@ -3,12 +3,13 @@ import Placeholder from '@src/components/Placeholder';
 import ProtocolParametersCard from '@src/components/ProtocolParametersCard';
 import useBalances from '@src/hooks/useBalances';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
+import useWalletRewards from '@src/hooks/useWalletRewards';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import DelegateStake from './DelegateStakeTable';
+import MyRewardsPanel from './MyRewardsPanel';
 import MyStakesTable from './MyStakesTable';
-import StakingRewardsCard from './StakingRewardsCard';
 
 const TopPanel = ({
   title,
@@ -48,6 +49,7 @@ const ConnectedLandingPage = () => {
   const { data: delegatedStakes } = useDelegateStakes(
     walletAddress?.toString(),
   );
+  const { summary: rewards } = useWalletRewards();
 
   useEffect(() => {
     if (delegatedStakes) {
@@ -77,6 +79,13 @@ const ConnectedLandingPage = () => {
           ? formatWithCommas(amountStaking)
           : undefined,
     },
+    {
+      title: 'Rewards Earned',
+      // Lifetime, so it does not quietly reset when the published window rolls.
+      balance: rewards
+        ? formatWithCommas(Math.round(rewards.earned))
+        : undefined,
+    },
   ];
 
   return (
@@ -90,10 +99,8 @@ const ConnectedLandingPage = () => {
             ticker={ticker}
           />
         ))}
-        {/* 
-          TODO: re-enable staking rewards when data is populated
-        <StakingRewardsCard walletAddress={walletAddress?.toString()} /> */}
       </div>
+      <MyRewardsPanel />
       {/* Connected delegators see no connect card, so the same limits and
           docs link reach them here. */}
       <ProtocolParametersCard

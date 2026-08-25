@@ -78,7 +78,7 @@ const GatewayVersionPanel = () => {
         </span>
       </div>
 
-      <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 pb-2 scrollbar scrollbar-thin">
+      <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overflow-x-hidden px-5 pb-2 scrollbar scrollbar-thin">
         {listed.map((entry) => (
           <div key={entry.version} className="flex flex-col gap-1">
             <div className="flex items-center justify-between text-xs">

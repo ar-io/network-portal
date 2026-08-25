@@ -224,9 +224,25 @@ export interface AnalyzerObserverRollup {
   kinds?: string[];
 }
 
+/**
+ * One epoch's observation totals.
+ *
+ * `distinctReportTxIds` vs `observationCount` is the only independence signal
+ * in this dataset that needs no calibration: submitting a report transaction
+ * another observer already submitted is not circumstantial evidence of shared
+ * operation, it is the same report under two wallets.
+ */
+export interface AnalyzerObserverEpoch {
+  epochIndex: number;
+  observationCount?: number;
+  distinctReportTxIds?: number;
+  findingCount?: number;
+}
+
 export interface AnalyzerObserversDocument {
   generatedAt?: string;
   observers?: AnalyzerObserverRollup[];
+  epochs?: AnalyzerObserverEpoch[];
 }
 
 /** One row of the per-gateway analysis roster. */

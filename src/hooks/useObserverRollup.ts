@@ -33,7 +33,9 @@ const useObserverRollup = () => {
       for (const row of doc.observers) {
         if (row?.observer) byObserver.set(row.observer, row);
       }
-      return { rows: doc.observers, byObserver };
+      // `epochs` carries the per-epoch observation totals the dashboard's
+      // independence chart reads, so both share this one request.
+      return { rows: doc.observers, byObserver, epochs: doc.epochs ?? [] };
     },
     staleTime: 60 * 60 * 1000,
     enabled: portalApiUrl.trim().length > 0 && usable,

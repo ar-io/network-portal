@@ -58,6 +58,17 @@ export const SOLANA_FALLBACK_RPC_URL =
 export const SOLANA_EXPLORER_URL = 'https://explorer.solana.com';
 
 /**
+ * Where a user without ARIO goes to get some.
+ *
+ * This replaced a link to the BASE-ARIO bridge at swap.ar.io, which is being
+ * decommissioned — a link to a bridge for a token that is going away is worse
+ * than no link. Raydium is a DEX, not a fiat on-ramp, which is why the label
+ * says "Swap": a user who clicks expecting a card form has been misled.
+ */
+export const ARIO_SWAP_URL =
+  'https://raydium.io/swap/?inputMint=sol&outputMint=DcNnMuFxwhgV4WY1HVSaSEgr92bv2b1vUvEKiNxWqHdF';
+
+/**
  * Base URL of the portal snapshot API, e.g. https://network.services.ar.io
  *
  * Unset disables it entirely and every read goes straight to RPC — which is

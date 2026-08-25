@@ -57,6 +57,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   against, so they cannot drift out of date the way a number copied into the docs
   can.
 
+- Network Statistics shows what delegated stake has actually returned across the
+  network — annualised from measured rewards, not projected. Operator returns get
+  their own line once the data exists for them, rather than being averaged in:
+  they are worked out by comparing stake between epochs, where delegate rewards
+  are read from the network's own records.
+
 - Network Statistics now includes the total number of ArNS names and the demand
   factor — the multiplier applied to ArNS registration prices, which rises as
   names are bought and settles when demand slows.
@@ -68,6 +74,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Every column on the staking table can be sorted.
 
 ### Changed
+
+- Rewards by Epoch can be shown in dollars as well as ARIO, and takes up a third
+  less room. Each epoch is valued at the ARIO price on that day, so the figures
+  are what those rewards were worth at the time. The most recent epochs are
+  usually not priced yet and are left blank rather than drawn as zero.
 
 - The dashboard fits more on screen. The three action cards at the top are about
   half their previous height on a wide display, and the panels below them are
@@ -94,6 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wider than the screen, which pushed it and the page controls off the edge of
   the card where they could only be reached by scrolling a bar that gave no sign
   it scrolled.
+
+- The link to swap for ARIO wrapped onto two lines in the sidebar.
 
 - The page buttons under every table had no background and no hover response.
 

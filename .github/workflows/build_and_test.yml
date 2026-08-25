@@ -5,6 +5,18 @@ on:
     branches:
       - develop
 
+# Every push to develop force-pushes the built site to `gh-pages`. Without a
+# concurrency group, two pushes in quick succession race that force-push: the
+# loser fails with `cannot lock ref 'refs/heads/gh-pages'`, and if the loser is
+# the NEWER commit, staging is left serving the older build with a green run to
+# suggest otherwise. Merging a stack of PRs reproduces this reliably.
+#
+# One group for the whole branch, cancelling whatever is in flight, so the most
+# recent commit always wins and older deploys stop rather than overwrite it.
+concurrency:
+  group: staging-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest

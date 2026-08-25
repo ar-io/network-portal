@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The staking page shows what your delegations have actually earned, per gateway
+  and per epoch, alongside the yield that works out to.
+
+  A consequence worth knowing: the earnings are measured, but the yield is not a
+  rate to expect. It divides everything you have earned by the stake you hold
+  today, so if you have added or withdrawn since, it is measured against a
+  balance that did not earn those rewards. The network's own figure sits beside
+  it for comparison — across the whole network the two differ by about six
+  times, so the comparison is the point.
+
+  Gateways pass on anywhere from 0% to 95% of their rewards, so the same stake
+  earns very differently depending where it sits. One wallet's eleven positions
+  currently range from 2.8% to 12.4%.
+
+- The dashboard charts what flows into the protocol treasury each epoch, in ARIO
+  or in dollars.
+
+  A consequence worth knowing: it is called inflow rather than revenue because
+  it measures everything that moved into the treasury and cannot separate
+  registration fees from one-off transfers. One epoch in the current window
+  contains a 60 million ARIO deposit that is not income; it is drawn in amber
+  and clipped, because at true scale it would flatten every other epoch to a
+  hairline. Dollar figures use the ARIO price at each epoch, so they are what
+  that inflow was worth at the time.
+
 - The dashboard shows how much of the network's auditing is independent work.
   Observers are meant to assess the network on their own, and each epoch some of
   them file a report another observer had already filed. The chart tracks that
@@ -61,6 +86,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Every page showed a horizontal scrollbar it never needed. The scrolling area
+  was set to scroll in both directions, so the bar was drawn whether or not
+  anything was wider than the screen.
+
 - Table headers no longer hid their own controls on a phone. The search box was
   wider than the screen, which pushed it and the page controls off the edge of
   the card where they could only be reached by scrolling a bar that gave no sign
@@ -70,6 +99,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Sorting the staking table by performance, yield or reward share put every row
   with no data first, which is the opposite of what sorting ascending is for.
+
+- The staking rewards card is no longer disabled. It read a source that was never
+  populated, so it reported zero for every wallet — it now reads the published
+  rewards and has been rebuilt around them.
 
 ## [2.9.0] - 2026-08-25
 

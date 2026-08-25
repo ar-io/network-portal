@@ -19,6 +19,7 @@ import useProtocolBalance from '@src/hooks/useProtocolBalance';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
+import { compareRowValues } from '@src/utils/tableSort';
 import {
   ColumnDef,
   SortingState,
@@ -28,6 +29,23 @@ import { MathJax } from 'better-react-mathjax';
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+/**
+ * Columns where a negative number means "no data", not a low value.
+ *
+ * These three render as N/A, and their sentinel is -1 rather than null, so the
+ * null check alone would sort every N/A row to the very top in ascending order
+ * — the opposite of keeping missing data last.
+ *
+ * `streak` is deliberately absent: its negatives are real, ordered data (a
+ * gateway failing five epochs in a row IS worse than one failing one), so
+ * treating them as missing would hide the worst performers.
+ */
+const NEGATIVE_MEANS_MISSING: ReadonlySet<string> = new Set([
+  'performance',
+  'eay',
+  'rewardShareRatio',
+]);
 
 interface TableData {
   label: string;
@@ -158,30 +176,19 @@ const DelegateStake = () => {
     );
   }, [tableData, debouncedSearchTerm]);
 
-  // Client-side pagination
   const sortedData = useMemo(() => {
     const active = sorting[0];
     if (!active) return filteredData;
 
-    const rows = [...filteredData];
-    rows.sort((a, b) => {
-      const left = a[active.id as keyof TableData];
-      const right = b[active.id as keyof TableData];
+    const columnId = active.id as keyof TableData;
+    const negativeMeansMissing = NEGATIVE_MEANS_MISSING.has(columnId);
 
-      // Missing values sort last in either direction: a gateway with no
-      // performance history is not the best performer, nor the worst.
-      if (left == null && right == null) return 0;
-      if (left == null) return 1;
-      if (right == null) return -1;
-
-      const comparison =
-        typeof left === 'number' && typeof right === 'number'
-          ? left - right
-          : String(left).localeCompare(String(right));
-
-      return active.desc ? -comparison : comparison;
-    });
-    return rows;
+    return [...filteredData].sort((a, b) =>
+      compareRowValues(a[columnId], b[columnId], {
+        desc: active.desc,
+        negativeMeansMissing,
+      }),
+    );
   }, [filteredData, sorting]);
 
   const totalPages = Math.ceil(sortedData.length / ITEMS_PER_PAGE);

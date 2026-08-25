@@ -31,9 +31,13 @@ export const ARIO_TICKER = 'ARIO';
 //   but the app boots and a user can supply their own endpoint in Settings.
 // - `api.mainnet-beta.solana.com` answers `403 Access forbidden` to ANY request
 //   carrying an `Origin` header, which every browser request has. Measured: the
-//   identical call returns 200 from curl (no Origin) and 403 with one. So an
-//   unset mainnet secret does not degrade the app — it stops it loading at all,
-//   because the current epoch can never be read.
+//   identical call returns 200 from curl (no Origin) and 403 with one.
+//
+// So an unset mainnet secret is not a slower app, it is one with no chain data.
+// The shell still renders — layout, navigation, and anything served by the
+// portal snapshot API — while every RPC-backed read fails, starting with the
+// current epoch and everything gated behind it. It looks like a permanently
+// loading page rather than an error, which is what makes it easy to miss.
 //
 // This is what the production `verify-secrets` gate is really protecting
 // against; treat the mainnet fallback as a placeholder that keeps the module

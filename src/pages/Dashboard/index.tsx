@@ -5,6 +5,7 @@ import DecentralizationPanel from './DecentralizationPanel';
 import GatewayVersionPanel from './GatewayVersionPanel';
 import GeographyPanel from './GeographyPanel';
 import IOTokenDistributionPanel from './IOTokenDistributionPanel';
+import IndependencePanel from './IndependencePanel';
 import ObserverPerformancePanel from './ObserverPerformancePanel';
 import RewardsDistributionPanel from './RewardsDistributionPanel';
 
@@ -39,7 +40,10 @@ const Dashboard = () => {
             {/* Places itself in the grid, so it occupies no cell when the
                 analyzer has nothing to show. */}
             <GeographyPanel />
-            <div className="col-span-1 md:col-span-6">
+            {/* Places itself in the grid, so it occupies no cell when the
+                analyzer has nothing to show. */}
+            <IndependencePanel />
+            <div className="col-span-1 md:col-span-4">
               <RewardsDistributionPanel />
             </div>
           </div>

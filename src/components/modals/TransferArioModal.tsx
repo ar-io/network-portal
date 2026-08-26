@@ -4,12 +4,27 @@ import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
 import { getTransactionExplorerUrl, isValidSolanaAddress } from '@src/utils';
 import { showErrorToast } from '@src/utils/toast';
+import {
+  LOCK_PRESETS,
+  MIN_LOCK_DAYS,
+  formatLockDuration,
+  lockDaysFromDate,
+  maxUnlockDate,
+  minUnlockDate,
+  unlockDateFromDays,
+  validateLockDays,
+  validateVaultAmount,
+} from '@src/utils/vaultLock';
 import { useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
+import DatePicker from '../forms/DatePicker';
+import FormSwitch from '../forms/FormSwitch';
 import { LinkArrowIcon } from '../icons';
 import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
+import ReviewLockedTransferModal from './ReviewLockedTransferModal';
 import SuccessModal from './SuccessModal';
 
 const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
@@ -25,6 +40,14 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
   const [recipientError, setRecipientError] = useState<string>();
   const [amountError, setAmountError] = useState<string>();
   const [formValid, setFormValid] = useState(false);
+
+  // Locked transfer ("vaulted transfer"). Off by default: a plain send is the
+  // common case, and every lock deposits rent and cannot be reversed.
+  const [lockEnabled, setLockEnabled] = useState(false);
+  const [lockDays, setLockDays] = useState<number | undefined>();
+  const [revocable, setRevocable] = useState(false);
+  const [lockError, setLockError] = useState<string>();
+  const [showReviewLockedModal, setShowReviewLockedModal] = useState(false);
 
   const transferArio = async (recipient: string, amount: string) => {
     if (arIOWriteableSDK === undefined) {
@@ -67,26 +90,63 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
   useEffect(() => {
     const arioBalance = balances?.ario ?? 0;
     const normalizedRecipient = recipient.trim();
-    const hasRecipientError =
+    const isSelf =
+      normalizedRecipient.length > 0 &&
+      normalizedRecipient === walletAddress?.toString();
+
+    // `vaulted_transfer` rejects a vault to yourself on chain (SelfTransfer,
+    // 6003); a plain SPL transfer to yourself is legal, so only gate the lock.
+    const recipientErrorText =
       !isValidSolanaAddress(normalizedRecipient) &&
-      normalizedRecipient.length > 0;
-    const hasAmountError = isNaN(+amount) || +amount > arioBalance;
-    setRecipientError(hasRecipientError ? 'Invalid address' : undefined);
-    setAmountError(
-      isNaN(+amount)
-        ? 'Invalid amount'
-        : +amount > arioBalance
-          ? 'Insufficient funds.'
-          : undefined,
-    );
+      normalizedRecipient.length > 0
+        ? 'Invalid address'
+        : lockEnabled && isSelf
+          ? 'You cannot send a locked transfer to your own address.'
+          : undefined;
+
+    // An untouched amount field is not an error yet — `formValid` still gates
+    // the button on it. Without this the vault minimum fires the moment the
+    // lock is switched on, before the user has typed anything.
+    const amountErrorText =
+      amount.trim().length === 0
+        ? undefined
+        : lockEnabled
+          ? validateVaultAmount(+amount, arioBalance, ticker)
+          : isNaN(+amount)
+            ? 'Invalid amount'
+            : +amount > arioBalance
+              ? 'Insufficient funds.'
+              : undefined;
+
+    const lockErrorText = lockEnabled
+      ? lockDays === undefined
+        ? 'Select an unlock date.'
+        : validateLockDays(lockDays)
+      : undefined;
+
+    setRecipientError(recipientErrorText);
+    setAmountError(amountErrorText);
+    setLockError(lockErrorText);
 
     setFormValid(
-      !hasRecipientError &&
-        !hasAmountError &&
+      !recipientErrorText &&
+        !amountErrorText &&
+        !lockErrorText &&
         normalizedRecipient.length > 0 &&
         +amount > 0,
     );
-  }, [amount, balances, balances?.ario, recipient]);
+  }, [
+    amount,
+    balances,
+    recipient,
+    lockEnabled,
+    lockDays,
+    ticker,
+    walletAddress,
+  ]);
+
+  const unlockDate =
+    lockDays !== undefined ? unlockDateFromDays(lockDays) : undefined;
 
   return (
     <BaseModal onClose={onClose} useDefaultPadding={false}>
@@ -145,14 +205,116 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
               <div className="p-2 text-xs text-red-600">{amountError}</div>
             )}
           </div>
+
+          <div className="mt-6 flex flex-col gap-3 text-sm text-mid">
+            <div className="flex items-center gap-3">
+              <FormSwitch
+                checked={lockEnabled}
+                onChange={(checked) => {
+                  setLockEnabled(checked);
+                  if (checked && lockDays === undefined) {
+                    setLockDays(LOCK_PRESETS[0].days);
+                  }
+                }}
+                title="Lock these tokens in a vault"
+              />
+              <div className="grow">Lock in a vault</div>
+            </div>
+            <div className="text-xs text-low">
+              The recipient receives the tokens in a vault they cannot access
+              until it unlocks.
+            </div>
+
+            {lockEnabled && (
+              <div className="flex flex-col gap-4 rounded-md border border-grey-800 bg-containerL1 p-4">
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs text-low">Lock for</div>
+                  {/* Segmented control, matching `UnitToggle` — as separate
+                      buttons only the active preset drew a background, which
+                      left the row reading as one button and three labels. */}
+                  <div className="flex overflow-hidden rounded-md border border-grey-600 text-xs">
+                    {LOCK_PRESETS.map((preset) => (
+                      <button
+                        key={preset.days}
+                        type="button"
+                        title={`Lock for ${preset.days} days`}
+                        onClick={() => setLockDays(preset.days)}
+                        className={`grow px-3 py-2 transition-colors ${
+                          lockDays === preset.days
+                            ? 'bg-grey-700 text-high'
+                            : 'text-low hover:text-mid'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs text-low">Unlock date</div>
+                  <DatePicker
+                    value={unlockDate}
+                    onChange={(date) => setLockDays(lockDaysFromDate(date))}
+                    minDate={minUnlockDate()}
+                    maxDate={maxUnlockDate()}
+                    hasError={!!lockError}
+                    buttonTitle="Choose an unlock date"
+                    placeholder={`At least ${MIN_LOCK_DAYS} days from today`}
+                  />
+                  {lockDays !== undefined && !lockError && (
+                    <div className="text-xs text-low">
+                      Unlocks on or around{' '}
+                      <span className="text-mid">
+                        {dayjs(unlockDate).format('MMMM D, YYYY')}
+                      </span>{' '}
+                      · {formatLockDuration(lockDays)}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-start gap-3 border-t border-grey-800 pt-4">
+                  <FormSwitch
+                    checked={revocable}
+                    onChange={setRevocable}
+                    title="Allow revoking this vault"
+                  />
+                  <div className="flex flex-col gap-1">
+                    <div className="grow">Let me revoke this vault</div>
+                    <div className="text-xs text-low">
+                      {revocable
+                        ? 'You can cancel the vault before it unlocks and take the tokens back.'
+                        : 'Once sent, you cannot recover these tokens.'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {lockError && (
+              <div className="px-2 text-xs text-red-600">{lockError}</div>
+            )}
+          </div>
         </div>
 
         <div className="my-8 flex grow justify-center px-8">
           <Button
-            onClick={() => transferArio(recipient, amount)}
+            onClick={() => {
+              // `pointer-events-none` dims the button for a mouse but leaves it
+              // in the tab order, so Enter still fires this — which for a
+              // locked transfer would open the review step over an invalid
+              // recipient or amount.
+              if (!formValid) {
+                return;
+              }
+              if (lockEnabled) {
+                setShowReviewLockedModal(true);
+              } else {
+                transferArio(recipient, amount);
+              }
+            }}
             buttonType={ButtonType.PRIMARY}
-            title="Send"
-            text={<div className="py-2">Send</div>}
+            title={lockEnabled ? 'Review locked transfer' : 'Send'}
+            text={<div className="py-2">{lockEnabled ? 'Review' : 'Send'}</div>}
             className={`w-full ${!formValid && 'pointer-events-none opacity-30'}`}
           />
         </div>
@@ -162,6 +324,16 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
             onClose={() => setShowBlockingMessageModal(false)}
             message="Sign the following data with your wallet to proceed."
           ></BlockingMessageModal>
+        )}
+        {showReviewLockedModal && lockDays !== undefined && (
+          <ReviewLockedTransferModal
+            recipient={recipient.trim()}
+            amount={+amount}
+            lockDays={lockDays}
+            revocable={revocable}
+            onClose={() => setShowReviewLockedModal(false)}
+            onSuccess={onClose}
+          />
         )}
         {showSuccessModal && (
           <SuccessModal

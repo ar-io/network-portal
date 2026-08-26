@@ -1,4 +1,3 @@
-import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
@@ -10,30 +9,13 @@ import useVaults from '@src/hooks/useVaults';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
 import { formatDate, formatDateTime, formatWithCommas } from '@src/utils';
+import {
+  type VaultRole,
+  type VaultRow,
+  vaultRowsFor,
+} from '@src/utils/vaultRows';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
-
-/**
- * How the vault relates to the address whose page this is: `owned` means the
- * tokens are theirs and land when it unlocks, `sent` means they locked the
- * tokens for someone else and can revoke until then. A vault is never both —
- * the program rejects a locked transfer to yourself (`SelfTransfer`).
- */
-type VaultRole = 'owned' | 'sent';
-
-interface TableData {
-  startTimestamp: number;
-  endTimestamp: number;
-
-  controller: string;
-
-  role: VaultRole;
-  daysRemaining: number;
-  balance: number;
-  vaultId: string;
-  vaultAddress: string;
-}
 
 const ROLE_BADGE: Record<VaultRole, { label: string; classes: string }> = {
   owned: {
@@ -55,13 +37,15 @@ const RoleBadge = ({ role }: { role: VaultRole }) => (
   </div>
 );
 
-const columnHelper = createColumnHelper<TableData>();
+const columnHelper = createColumnHelper<VaultRow>();
 
 const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   const ticker = useGlobalState((state) => state.ticker);
   const { isLoading, isError, data: vaults } = useVaults();
 
-  const { walletAddress: userWalletAddress } = useGlobalState();
+  // Selector rather than destructuring the store: this component re-rendered
+  // on every theme toggle, slot tick and epoch update to read one field.
+  const userWalletAddress = useGlobalState((state) => state.walletAddress);
 
   const [showRevokeVaultModal, setShowRevokeVaultModal] = useState<
     | {
@@ -85,40 +69,11 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   // Vaults this address owns AND vaults it controls. Filtering on the owner
   // alone hid every revocable vault from the person who sent it — the only
   // party who can revoke one — so the action existed with no way to reach it.
-  const vaultsTableData: Array<TableData> = useMemo(() => {
-    const pageAddress = walletAddress?.toString();
-
-    // Bail out rather than compare against undefined. `controller` is undefined
-    // on every non-revocable vault, so `vault.controller === pageAddress` would
-    // be undefined === undefined — true — and list every such vault on the
-    // network. `vault.address` is always set, which is why the owner-only
-    // filter this replaced was safe without the guard.
-    if (!pageAddress) {
-      return [];
-    }
-
-    return (
-      vaults
-        ?.filter(
-          (vault) =>
-            vault.address === pageAddress || vault.controller === pageAddress,
-        )
-        .map((vault) => {
-          return {
-            startTimestamp: vault.startTimestamp,
-            endTimestamp: vault.endTimestamp,
-            daysRemaining: dayjs(vault.endTimestamp).diff(dayjs(), 'days'),
-            balance: new mARIOToken(vault.balance).toARIO().valueOf(),
-            controller: vault.controller ?? '',
-            role: (vault.address === pageAddress
-              ? 'owned'
-              : 'sent') as VaultRole,
-            vaultId: vault.vaultId,
-            vaultAddress: vault.address,
-          };
-        }) ?? []
-    );
-  }, [vaults, walletAddress]);
+  // The predicate lives in `@src/utils/vaultRows` so it is reachable by a test.
+  const vaultsTableData: Array<VaultRow> = useMemo(
+    () => vaultRowsFor(vaults, walletAddress?.toString()),
+    [vaults, walletAddress],
+  );
 
   // Derived from the rows on screen, not from every vault on the network:
   // scanning all of them rendered an empty actions column on pages where
@@ -147,16 +102,17 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   );
 
   // Define columns for the table
-  const columns: ColumnDef<TableData, any>[] = useMemo(() => {
+  const columns: ColumnDef<VaultRow, any>[] = useMemo(() => {
     const base = [
       columnHelper.accessor('role', {
         id: 'role',
         header: 'Type',
+        sortDescFirst: false,
         cell: ({ row }) => (
           <Tooltip
             message={
               row.original.role === 'owned'
-                ? 'Locked for this address. The tokens are released to them when it unlocks.'
+                ? 'Locked for this address. Once it unlocks they must claim it with Release — nothing is credited automatically.'
                 : 'Locked by this address for someone else. Revocable until it unlocks.'
             }
           >
@@ -213,16 +169,24 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
         id: 'daysRemaining',
         header: 'Days Remaining',
         sortDescFirst: false,
-      }),
-      columnHelper.accessor('controller', {
-        id: 'controller',
-        header: 'Controller',
-        // A vault with no controller is not revocable and has no address to
-        // show. Passing the literal 'N/A' through AddressCell rendered it as
-        // the address "N/A...N/A", with a button offering to copy it.
+        // Vaults persist until released, so an expired one counts ever further
+        // negative. The number still sorts; only the display is clamped.
         cell: ({ row }) =>
-          row.original.controller ? (
-            <AddressCell address={row.original.controller} />
+          row.original.daysRemaining < 0 ? (
+            <span className="text-low">Unlocked</span>
+          ) : (
+            row.original.daysRemaining
+          ),
+      }),
+      columnHelper.accessor('counterparty', {
+        id: 'counterparty',
+        header: 'Counterparty',
+        // Was the controller, which on a sent row is the address whose page
+        // this is — so two vaults sent to different people were identical on
+        // screen, and the recipient first appeared inside the revoke modal.
+        cell: ({ row }) =>
+          row.original.counterparty ? (
+            <AddressCell address={row.original.counterparty} />
           ) : (
             <span className="text-low">&mdash;</span>
           ),
@@ -311,7 +275,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   return (
     <div>
       <div className="flex w-full items-center overflow-x-auto rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
-        <div className="grow text-sm text-mid">Locked Token Vaults</div>
+        <div className="grow text-sm text-mid">Token Vaults</div>
         <ColumnSelector tableId="vaults" columns={columns} />
       </div>
       <TableView

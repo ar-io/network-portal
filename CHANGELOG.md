@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-08-26
+
+### Added
+
+- You can now send tokens locked. The send dialog has a "Lock in a vault" switch
+  that asks who receives them, how much, and when it unlocks; the recipient holds
+  the tokens from the moment it confirms but cannot move them until that date. A
+  second switch decides whether you can take them back: leave it off and the
+  transfer is final, turn it on and you can revoke the vault any time before it
+  unlocks. Vaults you create show up in the recipient's Vaults table alongside
+  every other one.
+
+  A consequence worth knowing: the network stores a lock *length*, not a moment.
+  It starts counting when the transaction confirms rather than when you press
+  send, so a vault unlocks that long after confirmation — which is why the dates
+  read "on or around" and why the picker works in whole days. On a two-week lock
+  the difference is seconds; there is no way to pin an exact time, so the dialog
+  does not pretend to offer one.
+
+  Two limits come from the network rather than from us: a vault must hold at
+  least 100 ARIO, and you cannot send a locked transfer to yourself. The dialog
+  checks both before asking your wallet to sign, so neither costs you a
+  signature. Locks run from 14 days to 12 years.
+
+  Locking also costs meaningfully more SOL than a plain send — it creates
+  accounts the network charges rent for, roughly a hundred times the fee of an
+  ordinary transfer, and the review step quotes it before you commit.
+
 ## [2.10.0] - 2026-08-25
 
 ### Added

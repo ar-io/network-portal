@@ -300,6 +300,14 @@ new mARIOToken(gateway.operatorStake).toARIO().valueOf()  // reading -> display
 new ARIOToken(amountToStake).toMARIO()                    // form input -> SDK write
 ```
 
+**Timestamps cross a units boundary in the same way.** The programs store unix
+**seconds**; the SDK's read methods convert with `secToMs`, so everything reaching
+the app — `getVaults`, the portal snapshot documents — is in **milliseconds** and
+`new Date(value)` is correct. Raw `deserializeVault` does **not** convert, so a
+value taken straight off an account is in seconds and renders as 1970. Writes go
+the other way: `vaultedTransfer` takes `lockLengthMs` and floors it to seconds
+itself.
+
 ### Writing Transactions
 
 Write flows follow a fixed shape (see `/src/components/modals/ReviewStakeModal.tsx`):
@@ -308,6 +316,37 @@ the call goes through `arIOWriteableSDK` with `WRITE_OPTIONS`, every affected Re
 Query key is invalidated by hand, then `SuccessModal` shows the tx id. Failures go to
 `showErrorToast`. `arIOWriteableSDK` is undefined until a wallet with signing
 capability connects, so guard on it before starting a flow.
+
+### Locked Transfers (Vaults)
+
+`vaultedTransfer` sends tokens into a vault the recipient cannot touch until it
+unlocks. `TransferArioModal` collects it behind a toggle and
+`ReviewLockedTransferModal` commits it. Four things about it are not obvious:
+
+- **It stores a duration, not a date.** The program computes
+  `end_timestamp = clock.unix_timestamp + duration` when the transaction *lands*,
+  so the vault unlocks that long after confirmation, not at an instant the user
+  chose. `@src/utils/vaultLock` therefore works in whole days and the UI says "on
+  or around". Do not add a time-of-day input on top of this — it would promise a
+  precision the protocol cannot keep.
+- **The SDK parameter is `revokable`; the on-chain field is `revocable`.**
+  Misspelling it silently sends a non-revocable vault, which nobody can undo.
+- **The vault address depends on the recipient's vault counter, read before
+  signing.** Another vault created for that recipient in the meantime makes the
+  derived address stale and the transaction fails — a hardware wallet's slower
+  confirmation widens the window. `@src/utils/vaultErrors` maps that to a retry
+  message rather than raw Anchor text.
+- **No SDK estimator covers it.** `getGasEstimate` takes an ArNS `Intent` and
+  `getGarGasEstimate` a `GarGasWorkflow`; a core-program vault is neither, so
+  `useVaultGasEstimate` composes `estimateRentLamports` + `estimateGasFee`
+  directly. Rent dominates — a vault deposits for a Vault PDA (110 bytes) and the
+  vault's own token account, roughly two orders of magnitude more SOL than the
+  plain transfer beside it.
+
+Protocol limits worth knowing before changing the form: a vault must hold at least
+**100 ARIO** (`VaultBelowMinimum`, 6014), a locked transfer to yourself is rejected
+(`SelfTransfer`, 6003), and the lock bounds the portal enforces (14 days to ~12
+years) are the SDK's, not readable from chain.
 
 ### SDK Import Paths
 

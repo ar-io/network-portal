@@ -14,17 +14,46 @@ import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
+/**
+ * How the vault relates to the address whose page this is: `owned` means the
+ * tokens are theirs and land when it unlocks, `sent` means they locked the
+ * tokens for someone else and can revoke until then. A vault is never both —
+ * the program rejects a locked transfer to yourself (`SelfTransfer`).
+ */
+type VaultRole = 'owned' | 'sent';
+
 interface TableData {
   startTimestamp: number;
   endTimestamp: number;
 
   controller: string;
 
+  role: VaultRole;
   daysRemaining: number;
   balance: number;
   vaultId: string;
   vaultAddress: string;
 }
+
+const ROLE_BADGE: Record<VaultRole, { label: string; classes: string }> = {
+  owned: {
+    label: 'Owned',
+    classes: 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up',
+  },
+  sent: { label: 'Sent', classes: 'border-grey-500 bg-grey-700 text-mid' },
+};
+
+/**
+ * Matches `Bubble`'s pill geometry but not its palette — `Bubble` encodes
+ * pass/fail, and these two are categories, not outcomes.
+ */
+const RoleBadge = ({ role }: { role: VaultRole }) => (
+  <div
+    className={`flex w-fit items-center rounded-xl border px-2 py-0.5 text-xs ${ROLE_BADGE[role].classes}`}
+  >
+    {ROLE_BADGE[role].label}
+  </div>
+);
 
 const columnHelper = createColumnHelper<TableData>();
 
@@ -53,38 +82,28 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
     | undefined
   >();
 
-  const userCanRevoke = useMemo(() => {
-    return vaults
-      ? vaults.some(
-          (vault) => vault.controller === userWalletAddress?.toString(),
-        )
-      : false;
-  }, [userWalletAddress, vaults]);
-
-  // Release is owner-signed and only valid after expiry. Show the action when
-  // the connected wallet owns an unlocked vault (Solana has no auto-credit at
-  // expiry — the owner must call release_vault; see SDK BD-050).
-  const userCanRelease = useMemo(() => {
-    return vaults
-      ? vaults.some(
-          (vault) =>
-            vault.address === userWalletAddress?.toString() &&
-            vault.endTimestamp <= Date.now(),
-        )
-      : false;
-  }, [userWalletAddress, vaults]);
-
+  // Vaults this address owns AND vaults it controls. Filtering on the owner
+  // alone hid every revocable vault from the person who sent it — the only
+  // party who can revoke one — so the action existed with no way to reach it.
   const vaultsTableData: Array<TableData> = useMemo(() => {
+    const pageAddress = walletAddress?.toString();
+
     return (
       vaults
-        ?.filter((vault) => vault.address === walletAddress?.toString())
+        ?.filter(
+          (vault) =>
+            vault.address === pageAddress || vault.controller === pageAddress,
+        )
         .map((vault) => {
           return {
             startTimestamp: vault.startTimestamp,
             endTimestamp: vault.endTimestamp,
             daysRemaining: dayjs(vault.endTimestamp).diff(dayjs(), 'days'),
             balance: new mARIOToken(vault.balance).toARIO().valueOf(),
-            controller: vault.controller || 'N/A',
+            controller: vault.controller ?? '',
+            role: (vault.address === pageAddress
+              ? 'owned'
+              : 'sent') as VaultRole,
             vaultId: vault.vaultId,
             vaultAddress: vault.address,
           };
@@ -92,9 +111,52 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
     );
   }, [vaults, walletAddress]);
 
+  // Derived from the rows on screen, not from every vault on the network:
+  // scanning all of them rendered an empty actions column on pages where
+  // nothing shown was actionable.
+  const userCanRevoke = useMemo(
+    () =>
+      vaultsTableData.some(
+        (vault) =>
+          vault.controller === userWalletAddress?.toString() &&
+          vault.endTimestamp > Date.now(),
+      ),
+    [userWalletAddress, vaultsTableData],
+  );
+
+  // Release is owner-signed and only valid after expiry. Show the action when
+  // the connected wallet owns an unlocked vault (Solana has no auto-credit at
+  // expiry — the owner must call release_vault; see SDK BD-050).
+  const userCanRelease = useMemo(
+    () =>
+      vaultsTableData.some(
+        (vault) =>
+          vault.vaultAddress === userWalletAddress?.toString() &&
+          vault.endTimestamp <= Date.now(),
+      ),
+    [userWalletAddress, vaultsTableData],
+  );
+
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = useMemo(() => {
     const base = [
+      columnHelper.accessor('role', {
+        id: 'role',
+        header: 'Type',
+        cell: ({ row }) => (
+          <Tooltip
+            message={
+              row.original.role === 'owned'
+                ? 'Locked for this address. The tokens are released to them when it unlocks.'
+                : 'Locked by this address for someone else. Revocable until it unlocks.'
+            }
+          >
+            <div className="cursor-pointer">
+              <RoleBadge role={row.original.role} />
+            </div>
+          </Tooltip>
+        ),
+      }),
       columnHelper.accessor('startTimestamp', {
         id: 'startTimeStamp',
         header: 'Start Date',
@@ -146,7 +208,15 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
       columnHelper.accessor('controller', {
         id: 'controller',
         header: 'Controller',
-        cell: ({ row }) => <AddressCell address={row.getValue('controller')} />,
+        // A vault with no controller is not revocable and has no address to
+        // show. Passing the literal 'N/A' through AddressCell rendered it as
+        // the address "N/A...N/A", with a button offering to copy it.
+        cell: ({ row }) =>
+          row.original.controller ? (
+            <AddressCell address={row.original.controller} />
+          ) : (
+            <span className="text-low">&mdash;</span>
+          ),
       }),
       columnHelper.accessor('balance', {
         id: 'balance',
@@ -209,14 +279,15 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
                       className="w-fit"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (walletAddress) {
-                          setShowRevokeVaultModal({
-                            recipient: walletAddress.toString(),
-                            vaultId: row.original.vaultId,
-                            balance: row.original.balance,
-                            endTimestamp: row.original.endTimestamp,
-                          });
-                        }
+                        // The vault PDA is derived from its OWNER, which is
+                        // not the page address once controlled vaults show up
+                        // here.
+                        setShowRevokeVaultModal({
+                          recipient: row.original.vaultAddress,
+                          vaultId: row.original.vaultId,
+                          balance: row.original.balance,
+                          endTimestamp: row.original.endTimestamp,
+                        });
                       }}
                     />
                   )}
@@ -226,7 +297,7 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
           }),
         ]
       : base;
-  }, [ticker, userCanRevoke, userCanRelease, walletAddress, userWalletAddress]);
+  }, [ticker, userCanRevoke, userCanRelease, userWalletAddress]);
 
   return (
     <div>

@@ -184,6 +184,7 @@ const ReviewLockedTransferModal = ({
                 </div>
                 <input
                   type="text"
+                  aria-label="Type CONFIRM to authorise this locked transfer"
                   onChange={(e) => setConfirmText(e.target.value)}
                   className={
                     'h-7 w-full rounded-md border border-grey-700 bg-grey-1000 p-4 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high'

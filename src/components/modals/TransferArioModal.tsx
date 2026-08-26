@@ -299,6 +299,13 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
         <div className="my-8 flex grow justify-center px-8">
           <Button
             onClick={() => {
+              // `pointer-events-none` dims the button for a mouse but leaves it
+              // in the tab order, so Enter still fires this — which for a
+              // locked transfer would open the review step over an invalid
+              // recipient or amount.
+              if (!formValid) {
+                return;
+              }
               if (lockEnabled) {
                 setShowReviewLockedModal(true);
               } else {

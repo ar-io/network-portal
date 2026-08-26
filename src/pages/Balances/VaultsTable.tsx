@@ -88,6 +88,15 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   const vaultsTableData: Array<TableData> = useMemo(() => {
     const pageAddress = walletAddress?.toString();
 
+    // Bail out rather than compare against undefined. `controller` is undefined
+    // on every non-revocable vault, so `vault.controller === pageAddress` would
+    // be undefined === undefined — true — and list every such vault on the
+    // network. `vault.address` is always set, which is why the owner-only
+    // filter this replaced was safe without the guard.
+    if (!pageAddress) {
+      return [];
+    }
+
     return (
       vaults
         ?.filter(

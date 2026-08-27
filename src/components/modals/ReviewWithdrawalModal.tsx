@@ -121,8 +121,8 @@ const ReviewWithdrawalModal = ({
         invalidateWrittenDocuments(
           queryClient,
           ...(instant
-            ? (['balances', 'gateways'] as const)
-            : (['gateways'] as const)),
+            ? (['balances', 'gateways', 'delegates'] as const)
+            : (['gateways', 'delegates'] as const)),
         );
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],

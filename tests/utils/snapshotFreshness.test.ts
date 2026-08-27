@@ -4,6 +4,7 @@ import { MAX_SNAPSHOT_AGE_MS } from '@src/utils/portalApi';
 import {
   LIVE_READ_WINDOW_MS,
   clearDocumentWrites,
+  invalidateWrittenDocuments,
   markDocumentWritten,
   shouldReadLive,
 } from '@src/utils/snapshotFreshness';
@@ -81,6 +82,40 @@ describe('snapshotFreshness', () => {
       markDocumentWritten('balances');
       vi.advanceTimersByTime(LIVE_READ_WINDOW_MS - 1000);
       expect(shouldReadLive('balances')).toBe(true);
+    });
+  });
+
+  describe('invalidateWrittenDocuments', () => {
+    it('marks and invalidates together, which is the whole point', () => {
+      // Hand-placing these separately is what left `gateways` invalidated in
+      // seven flows and marked in none.
+      const invalidateQueries = vi.fn();
+      const qc = { invalidateQueries } as unknown as Parameters<
+        typeof invalidateWrittenDocuments
+      >[0];
+
+      invalidateWrittenDocuments(qc, 'balances', 'gateways');
+
+      expect(shouldReadLive('balances')).toBe(true);
+      expect(shouldReadLive('gateways')).toBe(true);
+      expect(invalidateQueries).toHaveBeenCalledTimes(2);
+      expect(invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['balances'],
+        refetchType: 'active',
+      });
+    });
+
+    it('never refetches a whole-program scan from a page that is not showing it', () => {
+      const invalidateQueries = vi.fn();
+      const qc = { invalidateQueries } as unknown as Parameters<
+        typeof invalidateWrittenDocuments
+      >[0];
+
+      invalidateWrittenDocuments(qc, 'balances', 'vaults', 'gateways');
+
+      for (const call of invalidateQueries.mock.calls) {
+        expect(call[0].refetchType).toBe('active');
+      }
     });
   });
 

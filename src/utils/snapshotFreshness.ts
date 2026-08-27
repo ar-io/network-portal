@@ -1,3 +1,4 @@
+import type { QueryClient } from '@tanstack/react-query';
 import type { PortalDocumentName } from './portalApi';
 
 /**
@@ -127,12 +128,7 @@ export const clearDocumentWrites = (): void => {
  * they cannot drift apart.
  */
 export const invalidateWrittenDocuments = (
-  queryClient: {
-    invalidateQueries: (filters: {
-      queryKey: string[];
-      refetchType?: 'active' | 'inactive' | 'all';
-    }) => unknown;
-  },
+  queryClient: QueryClient,
   ...names: PortalDocumentName[]
 ): void => {
   markDocumentWritten(...names);

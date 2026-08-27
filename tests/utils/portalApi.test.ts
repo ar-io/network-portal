@@ -4,6 +4,10 @@
  * is the correct answer, exercised through the real module.
  */
 
+import {
+  clearDocumentWrites,
+  markDocumentWritten,
+} from '@src/utils/snapshotFreshness';
 // `globals: true` provides these at runtime, but tsc needs the import — this
 // is the first test in the project to use `vi`.
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -199,9 +203,69 @@ describe('fetchPortalDocument', () => {
 describe('snapshotOrRpc', () => {
   const originalFetch = global.fetch;
 
+  beforeEach(() => clearDocumentWrites());
+
   afterEach(() => {
     global.fetch = originalFetch;
     vi.restoreAllMocks();
+  });
+
+  it('reads live and skips the snapshot after a write to that document', async () => {
+    // The published document cannot say whether it contains a write that just
+    // landed, so a recent write takes the scan instead.
+    mockJson(document({ items: [{ id: 'from-snapshot' }] }));
+    const scan = vi.fn(async () => [{ id: 'from-rpc' }]);
+    markDocumentWritten('gateways');
+
+    const result = await snapshotOrRpc('gateways', 'mainnet', scan);
+
+    expect(result).toEqual([{ id: 'from-rpc' }]);
+    expect(scan).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('only bypasses the document that was written', async () => {
+    mockJson(document({ items: [{ id: 'from-snapshot' }] }));
+    const scan = vi.fn(async () => [{ id: 'from-rpc' }]);
+    markDocumentWritten('balances');
+
+    expect(await snapshotOrRpc('gateways', 'mainnet', scan)).toEqual([
+      { id: 'from-snapshot' },
+    ]);
+    expect(scan).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the snapshot when the live read fails', async () => {
+    // The API is never a hard dependency here, and the reverse has to hold:
+    // a throttled RPC must not turn into an error where the user would
+    // previously have seen data.
+    mockJson(document({ items: [{ id: 'from-snapshot' }] }));
+    const scan = vi.fn(async () => {
+      throw new Error('429');
+    });
+    markDocumentWritten('gateways');
+
+    expect(await snapshotOrRpc('gateways', 'mainnet', scan)).toEqual([
+      { id: 'from-snapshot' },
+    ]);
+    expect(scan).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not scan twice when both the live read and the snapshot fail', async () => {
+    // Re-running a scan that just failed doubles the load on an endpoint whose
+    // throttle halves its own rate on every 429.
+    global.fetch = vi.fn(async () => {
+      throw new Error('api down');
+    }) as unknown as typeof fetch;
+    const scan = vi.fn(async () => {
+      throw new Error('429');
+    });
+    markDocumentWritten('gateways');
+
+    await expect(snapshotOrRpc('gateways', 'mainnet', scan)).rejects.toThrow(
+      '429',
+    );
+    expect(scan).toHaveBeenCalledTimes(1);
   });
 
   it('uses the snapshot and skips the scan entirely', async () => {

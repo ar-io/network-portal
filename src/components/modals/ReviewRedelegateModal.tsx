@@ -100,7 +100,16 @@ const ReviewRedelegateModal = ({
 
         log.info(`Redelegate Stake txID: ${txID}`);
 
-        invalidateWrittenDocuments(queryClient, 'gateways', 'delegates');
+        // `['balances']` also keys `useBalances`, whose `sol` figure funds the
+        // insufficient-SOL guards — every one of these pays fees even when no
+        // ARIO moves. Invalidated but deliberately not marked: the published
+        // balances document did not change, so forcing it live would buy the
+        // most expensive scan on the network for nothing.
+        queryClient.invalidateQueries({
+          queryKey: ['balances'],
+          refetchType: 'active',
+        });
+        invalidateWrittenDocuments(queryClient, 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',

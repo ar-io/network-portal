@@ -88,12 +88,7 @@ const ReviewStakeModal = ({
           log.info(`Increase Delegate Stake txID: ${txID}`);
         }
 
-        invalidateWrittenDocuments(
-          queryClient,
-          'balances',
-          'gateways',
-          'delegates',
-        );
+        invalidateWrittenDocuments(queryClient, 'balances', 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',

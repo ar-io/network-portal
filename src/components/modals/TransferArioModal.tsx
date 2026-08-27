@@ -70,7 +70,6 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
 
       setTxid(txID);
 
-      setShowBlockingMessageModal(false);
       invalidateWrittenDocuments(queryClient, 'balances');
 
       setShowSuccessModal(true);

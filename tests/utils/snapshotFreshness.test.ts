@@ -16,7 +16,12 @@ describe('snapshotFreshness', () => {
     vi.useRealTimers();
   });
 
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    // In the body, a failed assertion would leave a throwing sessionStorage
+    // installed and cascade into unrelated tests.
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
 
   it('reads the snapshot when nothing has been written', () => {
     expect(shouldReadLive('balances')).toBe(false);
@@ -61,7 +66,13 @@ describe('snapshotFreshness', () => {
       // document on offer can be nearly that old — and a shorter window would
       // close onto one that predates the write, showing the user their own
       // transfer disappear.
-      expect(LIVE_READ_WINDOW_MS).toBeGreaterThanOrEqual(MAX_SNAPSHOT_AGE_MS);
+      // Strictly greater, with room for scan-to-publish latency: equality
+      // would close the window at the same instant a 30-minute-old, pre-write
+      // document becomes acceptable.
+      expect(LIVE_READ_WINDOW_MS).toBeGreaterThan(MAX_SNAPSHOT_AGE_MS);
+      expect(LIVE_READ_WINDOW_MS - MAX_SNAPSHOT_AGE_MS).toBeGreaterThanOrEqual(
+        10 * 60 * 1000,
+      );
     });
 
     it('is measured as a client-side duration, so a skewed clock cancels', () => {
@@ -145,8 +156,6 @@ describe('snapshotFreshness', () => {
       vi.resetModules();
       const reloaded = await import('@src/utils/snapshotFreshness');
       expect(reloaded.shouldReadLive('balances')).toBe(true);
-
-      vi.unstubAllGlobals();
     });
 
     it('ignores a corrupted stored value rather than never expiring', async () => {
@@ -159,8 +168,6 @@ describe('snapshotFreshness', () => {
       vi.resetModules();
       const reloaded = await import('@src/utils/snapshotFreshness');
       expect(reloaded.shouldReadLive('balances')).toBe(false);
-
-      vi.unstubAllGlobals();
     });
 
     it('survives storage being unavailable, as in a private window', () => {
@@ -175,9 +182,34 @@ describe('snapshotFreshness', () => {
 
       expect(() => markDocumentWritten('vaults')).not.toThrow();
       expect(shouldReadLive('vaults')).toBe(true);
-
-      vi.unstubAllGlobals();
     });
+  });
+
+  it('keeps marks separate per network tier', async () => {
+    // Scoping is what lets a user glance at another network and come back
+    // inside the window without losing the mark. Both modules are imported
+    // together so they share one registry — an earlier test resets it.
+    vi.resetModules();
+    const [fresh, { useSettings }] = await Promise.all([
+      import('@src/utils/snapshotFreshness'),
+      import('@src/store/settings'),
+    ]);
+    const original = useSettings.getState().solanaRpcUrl;
+
+    useSettings.setState({ solanaRpcUrl: 'https://api.devnet.solana.com' });
+    fresh.markDocumentWritten('balances');
+    expect(fresh.shouldReadLive('balances')).toBe(true);
+
+    useSettings.setState({
+      solanaRpcUrl: 'https://api.mainnet-beta.solana.com',
+    });
+    expect(fresh.shouldReadLive('balances')).toBe(false);
+
+    // Back again, and the mark is still there — no clear on the way out.
+    useSettings.setState({ solanaRpcUrl: 'https://api.devnet.solana.com' });
+    expect(fresh.shouldReadLive('balances')).toBe(true);
+
+    useSettings.setState({ solanaRpcUrl: original });
   });
 
   describe('clearDocumentWrites', () => {

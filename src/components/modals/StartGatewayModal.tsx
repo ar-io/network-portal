@@ -213,7 +213,7 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
         log.info(`Join Network txID: ${txID}`);
 
-        invalidateWrittenDocuments(queryClient, 'gateways');
+        invalidateWrittenDocuments(queryClient, 'gateways', 'balances');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress?.toString()],
           refetchType: 'all',

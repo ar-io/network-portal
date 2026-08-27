@@ -101,7 +101,6 @@ const ReviewLockedTransferModal = ({
 
       setTxid(txID);
 
-      setShowBlockingMessageModal(false);
       invalidateWrittenDocuments(queryClient, 'balances', 'vaults');
 
       setShowSuccessModal(true);

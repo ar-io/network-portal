@@ -176,6 +176,23 @@ export async function fetchPortalDocument<T>(
 ): Promise<T[] | null> {
   if (!isPortalApiEnabled()) return null;
 
+  // A write this session landed after the publisher last ran, and the document
+  // cannot say whether it contains that write — see
+  // `@src/utils/snapshotFreshness`. Refused here rather than in
+  // `snapshotOrRpc` so it covers every caller: `usePrimaryName` reads this
+  // function directly, and a gate one level up could never apply to it.
+  //
+  // Null routes through each caller's own fallback, which is a live read.
+  // Deliberately not falling back to the snapshot if that read fails: React
+  // Query would cache the pre-write document as a *success* for the query's
+  // staleTime — an hour for gateways and vaults, with `retry: 0` and no refetch
+  // on focus — so one transient 429 would hide the user's own write for an
+  // hour. An error is visible and retries on remount, with the mark intact.
+  if (shouldReadLive(name)) {
+    log.debug(`[portalApi] ${name}: recent write, reading live`);
+    return null;
+  }
+
   const url = `${resolvePortalApiUrl().replace(/\/+$/, '')}/api/v1/portal/${name}.json`;
 
   try {
@@ -248,42 +265,12 @@ export async function snapshotOrRpc<T>(
   rpcScan: () => Promise<T[]>,
   expectedProgramIds: PortalProgramIds = {},
 ): Promise<T[]> {
-  // A write this session lands here before the publisher has republished, and
-  // the snapshot cannot say whether it contains that write — see
-  // `@src/utils/snapshotFreshness`. Read from chain until the window closes.
-  //
-  // Still falling back to the snapshot if that read fails: the API is never a
-  // hard dependency in this client, and the reverse has to hold too. Bypassing
-  // it outright would mean a throttled or unreachable RPC surfaces an error
-  // where, before this window existed, the user would have seen data — stale
-  // by a publish interval, but data.
-  // A write this session lands here before the publisher has republished, and
-  // the snapshot cannot say whether it contains that write — see
-  // `@src/utils/snapshotFreshness`. Read from chain until the window closes.
-  //
-  // Deliberately NOT falling back to the snapshot when that read fails. It is
-  // tempting — the API is never a hard dependency in this client — but React
-  // Query would cache the pre-write document as a *success* for the query's
-  // staleTime, which is an hour for gateways and vaults, with `retry: 0` and no
-  // refetch on focus or reconnect. One transient 429 would then hide the user's
-  // own write for an hour and the live-read window would expire unused, which
-  // is worse than the error this avoids: an error is visible, retries on
-  // remount, and leaves the mark in place.
-  if (shouldReadLive(name)) {
-    log.debug(`[portalApi] ${name}: recent write, reading live`);
-    return rpcScan();
-  }
-
   const snapshot = await fetchPortalDocument<T>(
     name,
     expectedNetwork,
     expectedProgramIds,
   );
-  if (snapshot) {
-    return snapshot;
-  }
-
-  return rpcScan();
+  return snapshot ?? (await rpcScan());
 }
 
 /**

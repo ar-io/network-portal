@@ -1,5 +1,7 @@
+import { useSettings } from '@src/store/settings';
 import type { QueryClient } from '@tanstack/react-query';
 import type { PortalDocumentName } from './portalApi';
+import { networkTierFromRpcUrl } from './portalApi';
 
 /**
  * After a write, read that document live instead of from the published
@@ -45,40 +47,71 @@ import type { PortalDocumentName } from './portalApi';
  */
 export const LIVE_READ_WINDOW_MS = 45 * 60 * 1000;
 
+/**
+ * Scoped by network tier, the way the IndexedDB name already is. Marks are
+ * about one network's published documents, so switching endpoints and back
+ * inside the window keeps them rather than needing a clear on the way out —
+ * which lost them, reinstating the bug for anyone who looked at another
+ * network in between.
+ */
 const STORAGE_KEY = 'portal-document-writes';
 
 /**
- * Backed by `sessionStorage` so a page reload inside the window does not lose
- * the marks — refreshing the tab shortly after a write is ordinary, and the
- * in-memory map alone would serve the pre-write document again. Per tab, and
- * it stores a client timestamp compared only against another client timestamp,
- * so no clock is trusted across machines. Every access is guarded: private
- * modes and blocked site data throw rather than return null.
+ * Marks are per network tier, the way the IndexedDB name already is: they are
+ * about one network's published documents. Scoping them means switching
+ * endpoint and back inside the window keeps them, where clearing on the way out
+ * lost them and reinstated the bug for anyone who glanced at another network.
  */
-const load = (): Map<PortalDocumentName, number> => {
+const scoped = (name: PortalDocumentName): string => {
+  // Guarded: this runs on every snapshot read, and an unset endpoint must not
+  // throw from inside a cache decision. An unknown tier simply gets its own
+  // bucket, which is correct — those marks belong to no network we can name.
+  let tier = 'unknown';
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return new Map();
-    return new Map(
-      Object.entries(JSON.parse(raw)) as Array<[PortalDocumentName, number]>,
-    );
+    const url = useSettings.getState()?.solanaRpcUrl;
+    if (url) {
+      tier = networkTierFromRpcUrl(url);
+    }
   } catch {
-    return new Map();
+    // Store not initialised; keep the fallback bucket.
   }
+  return `${tier}:${name}`;
 };
 
-const persist = (map: Map<PortalDocumentName, number>): void => {
+/**
+ * In memory, mirrored to `sessionStorage`.
+ *
+ * Memory is the source of truth so a browser that refuses storage — a private
+ * window, blocked site data — still gets the window for the rest of the
+ * session. The mirror exists only so a reload inside the window does not drop
+ * the marks and serve the pre-write document again, which is an ordinary thing
+ * for a user to do right after a write.
+ */
+const writtenAt = new Map<string, number>();
+
+const persist = (): void => {
   try {
     sessionStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify(Object.fromEntries(map)),
+      JSON.stringify(Object.fromEntries(writtenAt)),
     );
   } catch {
-    // Memory-only for this session; the window still works until reload.
+    // Memory-only for this session.
   }
 };
 
-const writtenAt = load();
+try {
+  const raw = sessionStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    for (const [key, value] of Object.entries(JSON.parse(raw))) {
+      if (Number.isFinite(value)) {
+        writtenAt.set(key, value as number);
+      }
+    }
+  }
+} catch {
+  // Nothing to restore.
+}
 
 /**
  * Record that this session changed a document. Synchronous and cheap by
@@ -88,42 +121,35 @@ const writtenAt = load();
 export const markDocumentWritten = (...names: PortalDocumentName[]): void => {
   const now = Date.now();
   for (const name of names) {
-    writtenAt.set(name, now);
+    writtenAt.set(scoped(name), now);
   }
-  persist(writtenAt);
+  persist();
 };
 
 /** Whether `name` should bypass the snapshot and read from chain. */
 export const shouldReadLive = (name: PortalDocumentName): boolean => {
-  const at = writtenAt.get(name);
+  const at = writtenAt.get(scoped(name));
   if (at === undefined) {
     return false;
   }
 
-  // Guard both ends. A backwards clock jump (NTP correction, resume from
-  // sleep, a user changing it) makes the delta negative, and a corrupted
-  // sessionStorage value makes it NaN — neither is caught by `> window`, so
-  // the mark would never expire and every refetch would run a whole-program
-  // scan for the life of the tab.
+  // Guards both ends: a backwards clock jump makes this negative and a
+  // corrupted stored value makes it NaN, neither caught by `> window`, which
+  // would pin the document into whole-program scans for the life of the tab.
+  //
+  // No side effect — an expired entry simply reads false. Deleting and
+  // re-serialising inside a predicate made two calls either side of the
+  // boundary disagree, for no benefit.
   const elapsed = Date.now() - at;
-  const expired =
-    !Number.isFinite(elapsed) || elapsed < 0 || elapsed > LIVE_READ_WINDOW_MS;
-  if (expired) {
-    writtenAt.delete(name);
-    persist(writtenAt);
-    return false;
-  }
-  return true;
+  return (
+    Number.isFinite(elapsed) && elapsed >= 0 && elapsed <= LIVE_READ_WINDOW_MS
+  );
 };
 
-/**
- * Drop every mark. Called when the endpoint changes: the new network's
- * documents were not written by this session, and reading them live would only
- * spend scans.
- */
+/** Drop every mark. Test seam; the tier scoping makes it unnecessary in app code. */
 export const clearDocumentWrites = (): void => {
   writtenAt.clear();
-  persist(writtenAt);
+  persist();
 };
 
 /**
@@ -138,8 +164,11 @@ export const clearDocumentWrites = (): void => {
  * refetching one from a page where its table is not mounted spends that scan
  * on nothing. Inactive queries are still marked stale and refetch on mount.
  *
- * The query key and the document name are the same string by construction, so
- * they cannot drift apart.
+ * Only for documents whose query key IS the document name — `balances`,
+ * `vaults` and `gateways`. That is not universal: `delegates` is served under
+ * `['allDelegates', …]`, so marking it while invalidating `['delegates']`
+ * would match no query at all and still buy a 45-minute live-read window. Do
+ * not add a name here without checking its hook's key.
  */
 export const invalidateWrittenDocuments = (
   queryClient: QueryClient,

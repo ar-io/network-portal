@@ -100,14 +100,10 @@ const ReviewRedelegateModal = ({
 
         log.info(`Redelegate Stake txID: ${txID}`);
 
-        invalidateWrittenDocuments(queryClient, 'gateways');
+        invalidateWrittenDocuments(queryClient, 'gateways', 'delegates');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['balances'],
-          refetchType: 'active',
         });
         queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],

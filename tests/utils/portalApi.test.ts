@@ -206,6 +206,10 @@ describe('snapshotOrRpc', () => {
   beforeEach(() => clearDocumentWrites());
 
   afterEach(() => {
+    // Marks are module state; without this they leak into the describes below
+    // and a future snapshotOrRpc test there would silently take the live-read
+    // branch.
+    clearDocumentWrites();
     global.fetch = originalFetch;
     vi.restoreAllMocks();
   });
@@ -235,28 +239,14 @@ describe('snapshotOrRpc', () => {
     expect(scan).not.toHaveBeenCalled();
   });
 
-  it('falls back to the snapshot when the live read fails', async () => {
-    // The API is never a hard dependency here, and the reverse has to hold:
-    // a throttled RPC must not turn into an error where the user would
-    // previously have seen data.
+  it('propagates a failed live read instead of serving the pre-write document', async () => {
+    // Tempting to fall back to the snapshot here, but React Query would cache
+    // that pre-write document as a success for the query's staleTime — an hour
+    // for gateways and vaults — with retry: 0 and no refetch on focus. One
+    // transient 429 would hide the user's own write for an hour and the
+    // live-read window would expire unused. An error is visible and retries on
+    // remount, with the mark still set.
     mockJson(document({ items: [{ id: 'from-snapshot' }] }));
-    const scan = vi.fn(async () => {
-      throw new Error('429');
-    });
-    markDocumentWritten('gateways');
-
-    expect(await snapshotOrRpc('gateways', 'mainnet', scan)).toEqual([
-      { id: 'from-snapshot' },
-    ]);
-    expect(scan).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not scan twice when both the live read and the snapshot fail', async () => {
-    // Re-running a scan that just failed doubles the load on an endpoint whose
-    // throttle halves its own rate on every 429.
-    global.fetch = vi.fn(async () => {
-      throw new Error('api down');
-    }) as unknown as typeof fetch;
     const scan = vi.fn(async () => {
       throw new Error('429');
     });
@@ -266,6 +256,7 @@ describe('snapshotOrRpc', () => {
       '429',
     );
     expect(scan).toHaveBeenCalledTimes(1);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('uses the snapshot and skips the scan entirely', async () => {

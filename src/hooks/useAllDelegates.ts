@@ -34,7 +34,6 @@ const useAllDelegates = () => {
         portalProgramIds,
       );
     },
-    staleTime: 5 * 60 * 1000,
     enabled: !!arIOReadSDK,
   });
 };

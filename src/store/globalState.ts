@@ -147,12 +147,9 @@ class GlobalStateActionBase implements GlobalStateActions {
 
         if (nextDb !== currentDb) {
           currentDb.close();
-        }
-
-        // Only on a tier change. Switching provider within a tier reads the
-        // same published documents, so dropping the marks there would discard
-        // writes that are still pending publication.
-        if (currentDb.name !== nextDbName) {
+          // Same condition, one branch: the new tier's documents were not
+          // written by this session, so reading them live would only spend
+          // whole-program scans.
           clearDocumentWrites();
         }
 

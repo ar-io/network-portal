@@ -78,7 +78,6 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
       }));
     },
     select,
-    staleTime: 5 * 60 * 1000,
     enabled: !!arIOReadSDK,
     placeholderData: (previousData) => previousData,
   });

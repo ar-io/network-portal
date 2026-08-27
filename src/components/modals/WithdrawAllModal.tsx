@@ -57,7 +57,7 @@ const WithdrawAllModal = ({
           }
         }
 
-        invalidateWrittenDocuments(queryClient, 'gateways');
+        invalidateWrittenDocuments(queryClient, 'gateways', 'delegates');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',
@@ -65,10 +65,6 @@ const WithdrawAllModal = ({
         queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],
           refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['balances'],
-          refetchType: 'active',
         });
 
         onClose();

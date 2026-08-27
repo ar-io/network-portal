@@ -257,17 +257,21 @@ export async function snapshotOrRpc<T>(
   // it outright would mean a throttled or unreachable RPC surfaces an error
   // where, before this window existed, the user would have seen data — stale
   // by a publish interval, but data.
-  let liveError: unknown;
+  // A write this session lands here before the publisher has republished, and
+  // the snapshot cannot say whether it contains that write — see
+  // `@src/utils/snapshotFreshness`. Read from chain until the window closes.
+  //
+  // Deliberately NOT falling back to the snapshot when that read fails. It is
+  // tempting — the API is never a hard dependency in this client — but React
+  // Query would cache the pre-write document as a *success* for the query's
+  // staleTime, which is an hour for gateways and vaults, with `retry: 0` and no
+  // refetch on focus or reconnect. One transient 429 would then hide the user's
+  // own write for an hour and the live-read window would expire unused, which
+  // is worse than the error this avoids: an error is visible, retries on
+  // remount, and leaves the mark in place.
   if (shouldReadLive(name)) {
     log.debug(`[portalApi] ${name}: recent write, reading live`);
-    try {
-      return await rpcScan();
-    } catch (error) {
-      liveError = error;
-      log.debug(
-        `[portalApi] ${name}: live read failed (${error}), falling back to the snapshot`,
-      );
-    }
+    return rpcScan();
   }
 
   const snapshot = await fetchPortalDocument<T>(
@@ -277,13 +281,6 @@ export async function snapshotOrRpc<T>(
   );
   if (snapshot) {
     return snapshot;
-  }
-
-  // The scan already failed once; running it again would double the load on an
-  // endpoint that is evidently struggling, and the throttle halves its own rate
-  // on every 429.
-  if (liveError !== undefined) {
-    throw liveError;
   }
 
   return rpcScan();

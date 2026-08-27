@@ -33,12 +33,17 @@ import type { PortalDocumentName } from './portalApi';
  * `fetchPortalDocument` accepts any document under 30 minutes old, so if the
  * publisher stalls the newest one on offer can be 25 minutes old — and a
  * shorter window would close onto a document that predates the write, showing
- * the user their own transfer disappear. That invariant is asserted in
+ * the user their own transfer disappear. That floor is asserted in
  * `tests/utils/snapshotFreshness.test.ts`.
  *
- * Erring long costs scans; erring short reinstates the bug.
+ * The excess over that floor is a margin, not a proof: `generatedAt` is when
+ * the publisher uploaded the file, not when it read the chain, so a document
+ * accepted at the moment the window closes could still have been scanned
+ * before the write. Fifteen minutes covers the scan-to-publish latency of a
+ * run that takes seconds, with room to spare. Erring long costs scans; erring
+ * short reinstates the bug.
  */
-export const LIVE_READ_WINDOW_MS = 35 * 60 * 1000;
+export const LIVE_READ_WINDOW_MS = 45 * 60 * 1000;
 
 const STORAGE_KEY = 'portal-document-writes';
 
@@ -94,7 +99,16 @@ export const shouldReadLive = (name: PortalDocumentName): boolean => {
   if (at === undefined) {
     return false;
   }
-  if (Date.now() - at > LIVE_READ_WINDOW_MS) {
+
+  // Guard both ends. A backwards clock jump (NTP correction, resume from
+  // sleep, a user changing it) makes the delta negative, and a corrupted
+  // sessionStorage value makes it NaN — neither is caught by `> window`, so
+  // the mark would never expire and every refetch would run a whole-program
+  // scan for the life of the tab.
+  const elapsed = Date.now() - at;
+  const expired =
+    !Number.isFinite(elapsed) || elapsed < 0 || elapsed > LIVE_READ_WINDOW_MS;
+  if (expired) {
     writtenAt.delete(name);
     persist(writtenAt);
     return false;

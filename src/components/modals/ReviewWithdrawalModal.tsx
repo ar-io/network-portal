@@ -116,7 +116,14 @@ const ReviewWithdrawalModal = ({
           log.info(`Decrease Delegate Stake txID: ${txID}`);
         }
 
-        invalidateWrittenDocuments(queryClient, 'balances', 'gateways');
+        // Expedited pays out immediately; the standard path moves stake into a
+        // withdrawal account and leaves the wallet balance untouched.
+        invalidateWrittenDocuments(
+          queryClient,
+          ...(instant
+            ? (['balances', 'gateways'] as const)
+            : (['gateways'] as const)),
+        );
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',

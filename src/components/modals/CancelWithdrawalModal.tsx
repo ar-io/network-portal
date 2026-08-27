@@ -54,7 +54,7 @@ const CancelWithdrawalModal = ({
         );
         setTxid(txID);
 
-        invalidateWrittenDocuments(queryClient, 'gateways', 'balances');
+        invalidateWrittenDocuments(queryClient, 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],
           refetchType: 'all',

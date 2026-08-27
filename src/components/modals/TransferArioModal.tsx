@@ -74,11 +74,6 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
       invalidateWrittenDocuments(queryClient, 'balances');
 
       setShowSuccessModal(true);
-
-      // The transaction has landed and the receipt is ready, so show it before
-      // the follow-up reads: these are best-effort cache freshening, and
-      // awaiting them here left the user staring at "sign with your wallet"
-      // through further round trips behind a 10 req/s bucket.
     } catch (e: any) {
       showErrorToast(`${e}`);
     } finally {

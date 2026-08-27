@@ -151,6 +151,29 @@ Two of those are worth their own note:
 `withdrawals.json` is GAR `Withdrawal` accounts and is **not** `vaults.json`,
 which is core-program `Vault` accounts — different datasets, not two views.
 
+**A write makes the snapshot wrong, and invalidating does not fix it.** The
+refetch downloads the same document the publisher generated before the write, so
+the user who just signed is the one person guaranteed to see stale data. After a
+write, `@src/utils/snapshotFreshness` makes that document read from chain for a
+bounded window instead.
+
+There is no sound way to ask a document whether it contains a write: it carries
+`generatedAt`, which is when the publisher *uploaded* the file, not when it read
+the chain, and comparing against the browser's clock fails on any machine whose
+clock is off. So the window is a duration measured entirely on the client, long
+enough to outlast `MAX_SNAPSHOT_AGE_MS` plus scan-to-publish latency. A failed
+live read propagates rather than falling back — React Query would otherwise
+cache the pre-write document as a success for the query's `staleTime`, which is
+an hour for gateways and vaults.
+
+**Every write flow must pair invalidation with marking**, and
+`invalidateWrittenDocuments(queryClient, ...names)` does both in one call — the
+query key and the document name are the same string, so they cannot drift. Mark
+only the documents the transaction actually changes: a stake decrease moves
+tokens into a withdrawal account and does not touch `balances`, and `balances`
+is the most expensive scan on the network. Hand-placing the two separately does
+not survive: `gateways` was once invalidated in seven flows and marked in none.
+
 **A snapshot is only worth it for an unfiltered whole-program scan.** The test
 before moving any read: is the RPC call server-side filtered, and is the value
 freshness-sensitive? If either is yes, leave it on RPC.

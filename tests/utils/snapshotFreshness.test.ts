@@ -119,6 +119,67 @@ describe('snapshotFreshness', () => {
     });
   });
 
+  describe('sessionStorage persistence', () => {
+    // vitest runs in the node environment, where `sessionStorage` is
+    // undefined and every access in the module takes its catch path — so
+    // without stubbing it, the persistence these tests exist for is never
+    // exercised and a regression in the stored shape would ship green.
+    const makeStorage = () => {
+      const store = new Map<string, string>();
+      return {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => void store.set(k, v),
+        removeItem: (k: string) => void store.delete(k),
+        raw: store,
+      };
+    };
+
+    it('writes the mark out so a reload can read it back', async () => {
+      const storage = makeStorage();
+      vi.stubGlobal('sessionStorage', storage);
+
+      markDocumentWritten('balances');
+      expect(storage.raw.size).toBe(1);
+
+      // A reload is a fresh module instance reading the same storage.
+      vi.resetModules();
+      const reloaded = await import('@src/utils/snapshotFreshness');
+      expect(reloaded.shouldReadLive('balances')).toBe(true);
+
+      vi.unstubAllGlobals();
+    });
+
+    it('ignores a corrupted stored value rather than never expiring', async () => {
+      // A non-numeric timestamp makes the elapsed check NaN, which `> window`
+      // does not catch — the mark would pin live scans for the life of the tab.
+      const storage = makeStorage();
+      storage.raw.set('portal-document-writes', '{"balances":"not-a-number"}');
+      vi.stubGlobal('sessionStorage', storage);
+
+      vi.resetModules();
+      const reloaded = await import('@src/utils/snapshotFreshness');
+      expect(reloaded.shouldReadLive('balances')).toBe(false);
+
+      vi.unstubAllGlobals();
+    });
+
+    it('survives storage being unavailable, as in a private window', () => {
+      vi.stubGlobal('sessionStorage', {
+        getItem: () => {
+          throw new Error('blocked');
+        },
+        setItem: () => {
+          throw new Error('blocked');
+        },
+      });
+
+      expect(() => markDocumentWritten('vaults')).not.toThrow();
+      expect(shouldReadLive('vaults')).toBe(true);
+
+      vi.unstubAllGlobals();
+    });
+  });
+
   describe('clearDocumentWrites', () => {
     it('drops every mark, which is what an endpoint change does', () => {
       markDocumentWritten('balances', 'vaults');

@@ -6,7 +6,7 @@ import useVaults from '@src/hooks/useVaults';
 import useWithdrawals from '@src/hooks/useWithdrawals';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas, getTransactionExplorerUrl } from '@src/utils';
-import { markDocumentWritten } from '@src/utils/snapshotFreshness';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -92,14 +92,8 @@ const ClaimableRewardsSection = () => {
   const totalClaimableAmount = claimableWithdrawalAmount + claimableVaultAmount;
 
   const refreshRelatedQueries = () => {
-    // Read these from chain rather than the snapshot until the publisher
-    // catches up; the refetch below would otherwise pull the pre-write
-    // document. Synchronous, so it adds nothing to the wallet round trip.
-    markDocumentWritten('balances', 'vaults');
-
+    invalidateWrittenDocuments(queryClient, 'balances', 'vaults');
     queryClient.invalidateQueries({ queryKey: ['withdrawals'] });
-    queryClient.invalidateQueries({ queryKey: ['vaults'] });
-    queryClient.invalidateQueries({ queryKey: ['balances'] });
     queryClient.invalidateQueries({ queryKey: ['delegateStakes'] });
     queryClient.invalidateQueries({ queryKey: ['gatewayVaults'] });
   };

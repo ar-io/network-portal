@@ -149,9 +149,12 @@ class GlobalStateActionBase implements GlobalStateActions {
           currentDb.close();
         }
 
-        // The new network's documents were not written by this session, so
-        // reading them live would only spend whole-program scans.
-        clearDocumentWrites();
+        // Only on a tier change. Switching provider within a tier reads the
+        // same published documents, so dropping the marks there would discard
+        // writes that are still pending publication.
+        if (currentDb.name !== nextDbName) {
+          clearDocumentWrites();
+        }
 
         set({
           rpc,

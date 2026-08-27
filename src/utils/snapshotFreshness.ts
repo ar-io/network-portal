@@ -28,13 +28,51 @@ import type { PortalDocumentName } from './portalApi';
  */
 
 /**
- * Long enough to outlast a publish interval (~10 min) plus the scan behind it.
- * Erring long costs scans; erring short shows the user their own write
- * disappearing again, which is the bug this exists to fix.
+ * Must be at least `MAX_SNAPSHOT_AGE_MS`, not merely a publish interval.
+ * `fetchPortalDocument` accepts any document under 30 minutes old, so if the
+ * publisher stalls the newest one on offer can be 25 minutes old — and a
+ * shorter window would close onto a document that predates the write, showing
+ * the user their own transfer disappear. That invariant is asserted in
+ * `tests/utils/snapshotFreshness.test.ts`.
+ *
+ * Erring long costs scans; erring short reinstates the bug.
  */
-export const LIVE_READ_WINDOW_MS = 15 * 60 * 1000;
+export const LIVE_READ_WINDOW_MS = 35 * 60 * 1000;
 
-const writtenAt = new Map<PortalDocumentName, number>();
+const STORAGE_KEY = 'portal-document-writes';
+
+/**
+ * Backed by `sessionStorage` so a page reload inside the window does not lose
+ * the marks — refreshing the tab shortly after a write is ordinary, and the
+ * in-memory map alone would serve the pre-write document again. Per tab, and
+ * it stores a client timestamp compared only against another client timestamp,
+ * so no clock is trusted across machines. Every access is guarded: private
+ * modes and blocked site data throw rather than return null.
+ */
+const load = (): Map<PortalDocumentName, number> => {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return new Map();
+    return new Map(
+      Object.entries(JSON.parse(raw)) as Array<[PortalDocumentName, number]>,
+    );
+  } catch {
+    return new Map();
+  }
+};
+
+const persist = (map: Map<PortalDocumentName, number>): void => {
+  try {
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(Object.fromEntries(map)),
+    );
+  } catch {
+    // Memory-only for this session; the window still works until reload.
+  }
+};
+
+const writtenAt = load();
 
 /**
  * Record that this session changed a document. Synchronous and cheap by
@@ -46,6 +84,7 @@ export const markDocumentWritten = (...names: PortalDocumentName[]): void => {
   for (const name of names) {
     writtenAt.set(name, now);
   }
+  persist(writtenAt);
 };
 
 /** Whether `name` should bypass the snapshot and read from chain. */
@@ -56,6 +95,7 @@ export const shouldReadLive = (name: PortalDocumentName): boolean => {
   }
   if (Date.now() - at > LIVE_READ_WINDOW_MS) {
     writtenAt.delete(name);
+    persist(writtenAt);
     return false;
   }
   return true;
@@ -68,4 +108,38 @@ export const shouldReadLive = (name: PortalDocumentName): boolean => {
  */
 export const clearDocumentWrites = (): void => {
   writtenAt.clear();
+  persist(writtenAt);
+};
+
+/**
+ * Invalidate a snapshot-backed query and mark its document in one call.
+ *
+ * The two must always happen together: invalidating without marking refetches
+ * the pre-write document, which is the bug this module exists to fix. Leaving
+ * that pairing to each call site did not hold — `gateways` was invalidated in
+ * seven flows and marked in none of them.
+ *
+ * `refetchType: 'active'` because these documents are whole-program scans:
+ * refetching one from a page where its table is not mounted spends that scan
+ * on nothing. Inactive queries are still marked stale and refetch on mount.
+ *
+ * The query key and the document name are the same string by construction, so
+ * they cannot drift apart.
+ */
+export const invalidateWrittenDocuments = (
+  queryClient: {
+    invalidateQueries: (filters: {
+      queryKey: string[];
+      refetchType?: 'active' | 'inactive' | 'all';
+    }) => unknown;
+  },
+  ...names: PortalDocumentName[]
+): void => {
+  markDocumentWritten(...names);
+  for (const name of names) {
+    queryClient.invalidateQueries({
+      queryKey: [name],
+      refetchType: 'active',
+    });
+  }
 };

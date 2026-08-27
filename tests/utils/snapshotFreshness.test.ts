@@ -1,11 +1,12 @@
+// `vi` explicitly: the repo's ambient test globals come from @types/jest,
+// which has describe/it/expect but no vitest-specific API.
+import { MAX_SNAPSHOT_AGE_MS } from '@src/utils/portalApi';
 import {
   LIVE_READ_WINDOW_MS,
   clearDocumentWrites,
   markDocumentWritten,
   shouldReadLive,
 } from '@src/utils/snapshotFreshness';
-// `vi` explicitly: the repo's ambient test globals come from @types/jest,
-// which has describe/it/expect but no vitest-specific API.
 import { vi } from 'vitest';
 
 describe('snapshotFreshness', () => {
@@ -53,11 +54,13 @@ describe('snapshotFreshness', () => {
       expect(shouldReadLive('balances')).toBe(false);
     });
 
-    it('outlasts a publish interval, which is the point', () => {
-      // The publisher republishes about every 10 minutes and the scan behind
-      // it takes seconds; a window shorter than that would hand the user back
-      // a document that predates their write.
-      expect(LIVE_READ_WINDOW_MS).toBeGreaterThan(10 * 60 * 1000);
+    it('outlasts the oldest document the client will still accept', () => {
+      // Not merely a publish interval. `fetchPortalDocument` serves anything
+      // under MAX_SNAPSHOT_AGE_MS, so if the publisher stalls, the newest
+      // document on offer can be nearly that old — and a shorter window would
+      // close onto one that predates the write, showing the user their own
+      // transfer disappear.
+      expect(LIVE_READ_WINDOW_MS).toBeGreaterThanOrEqual(MAX_SNAPSHOT_AGE_MS);
     });
 
     it('is measured as a client-side duration, so a skewed clock cancels', () => {

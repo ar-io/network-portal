@@ -63,7 +63,7 @@ export type PortalDocumentName =
  * plus slack. Beyond that the data is stale enough that paying for the scan is
  * the better trade.
  */
-const MAX_SNAPSHOT_AGE_MS = 30 * 60 * 1000;
+export const MAX_SNAPSHOT_AGE_MS = 30 * 60 * 1000;
 
 /** A slow API must never be slower than just doing the RPC call. */
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -225,9 +225,6 @@ export async function fetchPortalDocument<T>(
       return null;
     }
 
-    // Lay any rows read from chain after a write over the published document.
-    // Without this a refetch triggered by that very write re-downloads the
-    // pre-write state; the overlay drops itself once a newer snapshot lands.
     log.debug(`[portalApi] ${name}: ${body.items.length} items from snapshot`);
     return body.items;
   } catch (error) {

@@ -2,14 +2,14 @@ import { ARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import useVaultGasEstimate from '@src/hooks/useVaultGasEstimate';
-import { useGlobalState, useSettings } from '@src/store';
+import { useGlobalState } from '@src/store';
 import {
   formatAddress,
   formatDate,
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
-import { markDocumentWritten } from '@src/utils/snapshotFreshness';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { describeVaultError } from '@src/utils/vaultErrors';
 import {
@@ -56,9 +56,6 @@ const ReviewLockedTransferModal = ({
   const ticker = useGlobalState((state) => state.ticker);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
-  const _arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const _rpc = useGlobalState((state) => state.rpc);
-  const _coreProgramId = useSettings((state) => state.solanaCoreProgramId);
   const { data: balances } = useBalances(walletAddress);
 
   const { data: gasEstimate, isLoading: isLoadingGas } = useVaultGasEstimate({
@@ -105,26 +102,14 @@ const ReviewLockedTransferModal = ({
       setTxid(txID);
 
       setShowBlockingMessageModal(false);
+      invalidateWrittenDocuments(queryClient, 'balances', 'vaults');
+
       setShowSuccessModal(true);
 
       // The transaction has landed and the receipt is ready, so show it before
       // the follow-up reads: these are best-effort cache freshening, and
       // awaiting them here left the user staring at "sign with your wallet"
       // through further round trips behind a 10 req/s bucket.
-
-      // Read these from chain rather than the snapshot until the publisher
-      // catches up; the refetch below would otherwise pull the pre-write
-      // document. Synchronous, so it adds nothing to the wallet round trip.
-      markDocumentWritten('balances', 'vaults');
-
-      queryClient.invalidateQueries({
-        queryKey: ['vaults'],
-        refetchType: 'active',
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['balances'],
-        refetchType: 'active',
-      });
     } catch (e) {
       showErrorToast(describeVaultError(e));
     } finally {

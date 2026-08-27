@@ -10,7 +10,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
-import { markDocumentWritten } from '@src/utils/snapshotFreshness';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -116,21 +116,9 @@ const ReviewWithdrawalModal = ({
           log.info(`Decrease Delegate Stake txID: ${txID}`);
         }
 
-        // Read these from chain rather than the snapshot until the publisher
-        // catches up; the refetch below would otherwise pull the pre-write
-        // document. Synchronous, so it adds nothing to the wallet round trip.
-        markDocumentWritten('balances');
-
+        invalidateWrittenDocuments(queryClient, 'balances', 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['balances'],
           refetchType: 'all',
         });
         queryClient.invalidateQueries({

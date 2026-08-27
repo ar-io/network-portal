@@ -9,7 +9,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
-import { refreshVaultAfterCreate } from '@src/utils/postWriteRefresh';
+import { markDocumentWritten } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { describeVaultError } from '@src/utils/vaultErrors';
 import {
@@ -56,9 +56,9 @@ const ReviewLockedTransferModal = ({
   const ticker = useGlobalState((state) => state.ticker);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
-  const rpc = useGlobalState((state) => state.rpc);
-  const coreProgramId = useSettings((state) => state.solanaCoreProgramId);
+  const _arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const _rpc = useGlobalState((state) => state.rpc);
+  const _coreProgramId = useSettings((state) => state.solanaCoreProgramId);
   const { data: balances } = useBalances(walletAddress);
 
   const { data: gasEstimate, isLoading: isLoadingGas } = useVaultGasEstimate({
@@ -111,15 +111,11 @@ const ReviewLockedTransferModal = ({
       // the follow-up reads: these are best-effort cache freshening, and
       // awaiting them here left the user staring at "sign with your wallet"
       // through further round trips behind a 10 req/s bucket.
-      // Read the vault back off its own account before invalidating, so the
-      // row that appears carries the real vault id and end timestamp rather
-      // than the snapshot's pre-write view.
-      await refreshVaultAfterCreate(
-        rpc,
-        coreProgramId,
-        { recipient, sender: walletAddress?.toString() },
-        arIOReadSDK,
-      );
+
+      // Read these from chain rather than the snapshot until the publisher
+      // catches up; the refetch below would otherwise pull the pre-write
+      // document. Synchronous, so it adds nothing to the wallet round trip.
+      markDocumentWritten('balances', 'vaults');
 
       queryClient.invalidateQueries({
         queryKey: ['vaults'],

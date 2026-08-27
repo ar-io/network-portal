@@ -6,7 +6,7 @@ import useVaults from '@src/hooks/useVaults';
 import useWithdrawals from '@src/hooks/useWithdrawals';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas, getTransactionExplorerUrl } from '@src/utils';
-import { refreshAfterVaultsClosed } from '@src/utils/postWriteRefresh';
+import { markDocumentWritten } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -42,7 +42,6 @@ const isUserRejection = (error: unknown): boolean => {
 const ClaimableRewardsSection = () => {
   const queryClient = useQueryClient();
   const walletAddress = useGlobalState((state) => state.walletAddress);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const ticker = useGlobalState((state) => state.ticker);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
 
@@ -93,6 +92,11 @@ const ClaimableRewardsSection = () => {
   const totalClaimableAmount = claimableWithdrawalAmount + claimableVaultAmount;
 
   const refreshRelatedQueries = () => {
+    // Read these from chain rather than the snapshot until the publisher
+    // catches up; the refetch below would otherwise pull the pre-write
+    // document. Synchronous, so it adds nothing to the wallet round trip.
+    markDocumentWritten('balances', 'vaults');
+
     queryClient.invalidateQueries({ queryKey: ['withdrawals'] });
     queryClient.invalidateQueries({ queryKey: ['vaults'] });
     queryClient.invalidateQueries({ queryKey: ['balances'] });
@@ -145,7 +149,6 @@ const ClaimableRewardsSection = () => {
       ...unlockedVaults.map((vault) => ({
         kind: 'vault' as const,
         noun: `vault ${vault.vaultId}`,
-        vault,
         amount: new mARIOToken(vault.balance).toARIO().valueOf(),
         run: () => sdk.releaseVault({ vaultId: vault.vaultId }, WRITE_OPTIONS),
       })),
@@ -155,7 +158,6 @@ const ClaimableRewardsSection = () => {
     const failures: Array<{ noun: string; message: string }> = [];
     let claimedWithdrawals = 0;
     let releasedVaults = 0;
-    const releasedVaultRows: Array<{ owner: string; vaultId: string }> = [];
     let processedAmount = 0;
     let cancelled = false;
 
@@ -168,10 +170,6 @@ const ClaimableRewardsSection = () => {
             txs.push({ txid: id, label: `Claimed ${task.noun}` });
           } else {
             releasedVaults += 1;
-            releasedVaultRows.push({
-              owner: task.vault.address,
-              vaultId: task.vault.vaultId,
-            });
             txs.push({ txid: id, label: `Released ${task.noun}` });
           }
           processedAmount += task.amount;
@@ -190,13 +188,6 @@ const ClaimableRewardsSection = () => {
 
       if (succeeded > 0) {
         setRecentTxs((prev) => [...txs, ...prev].slice(0, 8));
-        // Released vaults are deleted accounts and the balance has moved, but
-        // the published documents still show both in their pre-write state.
-        await refreshAfterVaultsClosed(
-          arIOReadSDK,
-          releasedVaultRows,
-          walletAddress?.toString(),
-        );
         refreshRelatedQueries();
       }
 

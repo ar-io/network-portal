@@ -6,7 +6,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
-import { refreshAfterVaultClosed } from '@src/utils/postWriteRefresh';
+import { markDocumentWritten } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -34,7 +34,6 @@ const RevokeVaultModal = ({
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
@@ -57,29 +56,21 @@ const RevokeVaultModal = ({
         );
         setTxid(txID);
 
-        setShowBlockingMessageModal(false);
-        setShowSuccessModal(true);
-
-        // The transaction has landed and the receipt is ready, so show it before
-        // the follow-up reads: these are best-effort cache freshening, and
-        // awaiting them here left the user staring at "sign with your wallet"
-        // through further round trips behind a 10 req/s bucket.
-        // Hide the closed vault and re-read the credited balance: the
-        // published snapshot still lists both in their pre-write state.
-        await refreshAfterVaultClosed(arIOReadSDK, {
-          owner: recipient,
-          vaultId,
-          creditedTo: walletAddress.toString(),
-        });
+        // Read these from chain rather than the snapshot until the publisher
+        // catches up; the refetch below would otherwise pull the pre-write
+        // document. Synchronous, so it adds nothing to the wallet round trip.
+        markDocumentWritten('balances', 'vaults');
 
         queryClient.invalidateQueries({
           queryKey: ['vaults'],
-          refetchType: 'active',
+          refetchType: 'all',
         });
         queryClient.invalidateQueries({
           queryKey: ['balances'],
-          refetchType: 'active',
+          refetchType: 'all',
         });
+
+        setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {

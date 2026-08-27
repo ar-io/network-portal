@@ -9,7 +9,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
-import { refreshBalancesAfterWrite } from '@src/utils/postWriteRefresh';
+import { markDocumentWritten } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -39,7 +39,6 @@ const ReviewStakeModal = ({
 }) => {
   const queryClient = useQueryClient();
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   // Operator top-ups mutate in place (fees only); a first-time delegation
   // to this gateway also deposits rent for the Delegation account.
@@ -89,6 +88,11 @@ const ReviewStakeModal = ({
           log.info(`Increase Delegate Stake txID: ${txID}`);
         }
 
+        // Read these from chain rather than the snapshot until the publisher
+        // catches up; the refetch below would otherwise pull the pre-write
+        // document. Synchronous, so it adds nothing to the wallet round trip.
+        markDocumentWritten('balances');
+
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',
@@ -97,20 +101,9 @@ const ReviewStakeModal = ({
           queryKey: ['gateways'],
           refetchType: 'all',
         });
-        // The receipt is ready; show it before the follow-up read rather than
-        // holding the user on "sign with your wallet" after they already have.
-        setShowBlockingMessageModal(false);
-        setShowSuccessModal(true);
-
-        // Lay the wallet's real balance over the snapshot: the refetch below
-        // would otherwise re-read the document generated before this write.
-        await refreshBalancesAfterWrite(arIOReadSDK, [
-          walletAddress?.toString(),
-        ]);
-
         queryClient.invalidateQueries({
           queryKey: ['balances'],
-          refetchType: 'active',
+          refetchType: 'all',
         });
         queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],
@@ -120,6 +113,8 @@ const ReviewStakeModal = ({
           queryKey: ['gatewayVaults'],
           refetchType: 'all',
         });
+
+        setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {

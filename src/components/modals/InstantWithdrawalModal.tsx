@@ -8,7 +8,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
-import { refreshBalancesAfterWrite } from '@src/utils/postWriteRefresh';
+import { markDocumentWritten } from '@src/utils/snapshotFreshness';
 import { calculateInstantWithdrawalPenaltyRate } from '@src/utils/stake';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -39,7 +39,6 @@ const InstantWithdrawalModal = ({
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
   const [showBlockingMessageModal, setShowBlockingMessageModal] =
@@ -89,24 +88,18 @@ const InstantWithdrawalModal = ({
         );
         setTxid(txID);
 
+        // Read these from chain rather than the snapshot until the publisher
+        // catches up; the refetch below would otherwise pull the pre-write
+        // document. Synchronous, so it adds nothing to the wallet round trip.
+        markDocumentWritten('balances');
+
         queryClient.invalidateQueries({
           queryKey: ['gateways'],
           refetchType: 'all',
         });
-        // The receipt is ready; show it before the follow-up read rather than
-        // holding the user on "sign with your wallet" after they already have.
-        setShowBlockingMessageModal(false);
-        setShowSuccessModal(true);
-
-        // Lay the wallet's real balance over the snapshot: the refetch below
-        // would otherwise re-read the document generated before this write.
-        await refreshBalancesAfterWrite(arIOReadSDK, [
-          walletAddress?.toString(),
-        ]);
-
         queryClient.invalidateQueries({
           queryKey: ['balances'],
-          refetchType: 'active',
+          refetchType: 'all',
         });
         queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],
@@ -116,6 +109,8 @@ const InstantWithdrawalModal = ({
           queryKey: ['gatewayVaults'],
           refetchType: 'all',
         });
+
+        setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {

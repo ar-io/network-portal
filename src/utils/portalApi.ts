@@ -25,7 +25,7 @@
 
 import { PORTAL_API_URL, log } from '@src/constants';
 import { useSettings } from '@src/store/settings';
-import { applyOverlay, noteSnapshotGeneratedAt } from './snapshotOverlay';
+import { shouldReadLive } from './snapshotFreshness';
 
 /**
  * The endpoint to read, which the user can change in Settings.
@@ -228,16 +228,8 @@ export async function fetchPortalDocument<T>(
     // Lay any rows read from chain after a write over the published document.
     // Without this a refetch triggered by that very write re-downloads the
     // pre-write state; the overlay drops itself once a newer snapshot lands.
-    // `ageMs` above already rejected a missing or unparseable `generatedAt`;
-    // parse it directly rather than deriving it back out of `ageMs`, which
-    // skews forward by the gap between the two `Date.now()` samples — in the
-    // direction that expires overlay entries early.
-    const generatedAt = Date.parse(body.generatedAt as string);
-    noteSnapshotGeneratedAt(name, generatedAt);
-    const items = applyOverlay(name, body.items, generatedAt);
-
-    log.debug(`[portalApi] ${name}: ${items.length} items from snapshot`);
-    return items;
+    log.debug(`[portalApi] ${name}: ${body.items.length} items from snapshot`);
+    return body.items;
   } catch (error) {
     // Timeout, DNS failure, CORS, offline — all the same answer.
     log.debug(
@@ -259,6 +251,14 @@ export async function snapshotOrRpc<T>(
   rpcScan: () => Promise<T[]>,
   expectedProgramIds: PortalProgramIds = {},
 ): Promise<T[]> {
+  // A write this session lands here before the publisher has republished, and
+  // the snapshot cannot say whether it contains that write — see
+  // `@src/utils/snapshotFreshness`. Read from chain until the window closes.
+  if (shouldReadLive(name)) {
+    log.debug(`[portalApi] ${name}: recent write, reading live`);
+    return rpcScan();
+  }
+
   const snapshot = await fetchPortalDocument<T>(
     name,
     expectedNetwork,

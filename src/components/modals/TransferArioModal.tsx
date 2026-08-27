@@ -3,7 +3,7 @@ import { WRITE_OPTIONS } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
 import { getTransactionExplorerUrl, isValidSolanaAddress } from '@src/utils';
-import { refreshBalancesAfterWrite } from '@src/utils/postWriteRefresh';
+import { markDocumentWritten } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import {
   LOCK_PRESETS,
@@ -35,7 +35,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const _arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
@@ -78,19 +78,17 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
       // the follow-up reads: these are best-effort cache freshening, and
       // awaiting them here left the user staring at "sign with your wallet"
       // through further round trips behind a 10 req/s bucket.
-      // Re-read both sides from chain and lay them over the snapshot before
-      // invalidating: the refetch would otherwise pull the same pre-write
-      // document and the transfer would be invisible until the next publish.
-      await refreshBalancesAfterWrite(arIOReadSDK, [
-        walletAddress?.toString(),
-        normalizedRecipient,
-      ]);
 
       // 'active' and not 'all': `useAllBalances` answers to this key, and its
       // fallback is a whole-program scan. Refetching it in the background from
       // whatever page the user happens to be on would spend that scan for a
       // table nobody is looking at. Inactive queries are still marked stale and
       // refetch on mount, with the overlay applied.
+      // Read these from chain rather than the snapshot until the publisher
+      // catches up; the refetch below would otherwise pull the pre-write
+      // document. Synchronous, so it adds nothing to the wallet round trip.
+      markDocumentWritten('balances');
+
       queryClient.invalidateQueries({
         queryKey: ['balances'],
         refetchType: 'active',
@@ -242,7 +240,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
             </div>
             {!lockEnabled && (
               <div className="text-xs text-low">
-                Locks the tokens in a vault until a date you choose.
+                Sends the tokens into a vault the recipient cannot access yet.
               </div>
             )}
 
@@ -304,7 +302,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
                     <div className="grow">Let me revoke this vault</div>
                     <div className="text-xs text-low">
                       {revocable
-                        ? 'You can revoke it and take the tokens back.'
+                        ? 'You can revoke it any time before it unlocks.'
                         : 'Once sent, you cannot recover these tokens.'}
                     </div>
                   </div>

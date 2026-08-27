@@ -5,7 +5,7 @@ import type { Rpc, SolanaRpcApi } from '@solana/kit';
 import { SOLANA_FALLBACK_RPC_URL, THEME_TYPES } from '@src/constants';
 import { AoAddress } from '@src/types';
 import type { EpochDataWithCounters } from '@src/utils/epochFetch';
-import { clearOverlays } from '@src/utils/snapshotOverlay';
+import { clearDocumentWrites } from '@src/utils/snapshotFreshness';
 import { getOptionalSolanaAddress } from '@src/utils/solanaAddress';
 import { createThrottledRpc } from '@src/utils/solanaRpc';
 import { create } from 'zustand';
@@ -149,11 +149,9 @@ class GlobalStateActionBase implements GlobalStateActions {
           currentDb.close();
         }
 
-        // Post-write overlay rows are keyed by document, not by network, so a
-        // row read on one network would otherwise be laid over another
-        // network's document — the very thing portalApi's network stamp
-        // exists to prevent.
-        clearOverlays();
+        // The new network's documents were not written by this session, so
+        // reading them live would only spend whole-program scans.
+        clearDocumentWrites();
 
         set({
           rpc,

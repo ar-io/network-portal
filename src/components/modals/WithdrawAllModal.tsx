@@ -1,7 +1,7 @@
 import { Gateway, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
-import { refreshBalancesAfterWrite } from '@src/utils/postWriteRefresh';
+import { markDocumentWritten } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -25,7 +25,6 @@ const WithdrawAllModal = ({
 
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
-  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const ticker = useGlobalState((state) => state.ticker);
 
   const sorted = activeStakes.sort(
@@ -58,6 +57,11 @@ const WithdrawAllModal = ({
           }
         }
 
+        // Read these from chain rather than the snapshot until the publisher
+        // catches up; the refetch below would otherwise pull the pre-write
+        // document. Synchronous, so it adds nothing to the wallet round trip.
+        markDocumentWritten('balances');
+
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',
@@ -70,19 +74,9 @@ const WithdrawAllModal = ({
           queryKey: ['delegateStakes'],
           refetchType: 'all',
         });
-        // The write has landed; drop the wallet prompt before the follow-up
-        // read rather than holding it through another round trip.
-        setShowBlockingMessageModal(false);
-
-        // Lay the wallet's real balance over the snapshot: the refetch below
-        // would otherwise re-read the document generated before this write.
-        await refreshBalancesAfterWrite(arIOReadSDK, [
-          walletAddress?.toString(),
-        ]);
-
         queryClient.invalidateQueries({
           queryKey: ['balances'],
-          refetchType: 'active',
+          refetchType: 'all',
         });
 
         onClose();

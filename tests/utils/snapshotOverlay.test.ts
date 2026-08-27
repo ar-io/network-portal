@@ -242,6 +242,24 @@ describe('snapshotOverlay', () => {
     });
   });
 
+  it('borrows a baseline from another document when its own is unseen', () => {
+    // A transfer from the header happens without /balances ever having been
+    // loaded, so `balances.json` has no baseline of its own. The publisher
+    // writes every document on one cadence, so another document's timestamp
+    // still beats falling back to a possibly-skewed client clock.
+    noteSnapshotGeneratedAt('gateways', BEFORE);
+    const skewedWrite = BEFORE - 15 * 60_000;
+    recordOverlay(
+      'balances',
+      [{ id: 'A', row: balance('A', 900) }],
+      skewedWrite,
+    );
+
+    expect(applyOverlay('balances', [balance('A', 100)], BEFORE)).toEqual([
+      balance('A', 900),
+    ]);
+  });
+
   it('preserves the order of untouched rows', () => {
     recordOverlay('balances', [{ id: 'B', row: balance('B', 50) }], WROTE_AT);
     expect(

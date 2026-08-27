@@ -57,12 +57,27 @@ let generation = 0;
 export const overlayGeneration = (): number => generation;
 
 /** Called by `portalApi` on every successful document fetch. */
+/**
+ * The newest `generatedAt` seen for *any* document. The publisher writes them
+ * on one cadence, so this stands in when a write happens before its own
+ * document has ever been fetched — the Dashboard, for instance, never loads
+ * `balances.json`, so a transfer from the header would otherwise have no
+ * baseline and fall back to the client's clock.
+ */
+let lastSeenAnyGeneratedAt: number | undefined;
+
 export const noteSnapshotGeneratedAt = (
   name: PortalDocumentName,
   generatedAt: number,
 ): void => {
   if (Number.isFinite(generatedAt)) {
     lastSeenGeneratedAt.set(name, generatedAt);
+    if (
+      lastSeenAnyGeneratedAt === undefined ||
+      generatedAt > lastSeenAnyGeneratedAt
+    ) {
+      lastSeenAnyGeneratedAt = generatedAt;
+    }
   }
 };
 
@@ -91,7 +106,7 @@ export const recordOverlay = (
 
   const forDocument = overlays.get(name) ?? new Map<string, OverlayEntry>();
 
-  const baseline = lastSeenGeneratedAt.get(name);
+  const baseline = lastSeenGeneratedAt.get(name) ?? lastSeenAnyGeneratedAt;
   for (const { id, row } of rows) {
     forDocument.set(id, { row, writtenAt, baseline });
   }
@@ -180,5 +195,6 @@ export const applyOverlay = <T>(
 export const clearOverlays = (): void => {
   overlays.clear();
   lastSeenGeneratedAt.clear();
+  lastSeenAnyGeneratedAt = undefined;
   generation += 1;
 };

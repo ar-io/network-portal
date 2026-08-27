@@ -70,7 +70,7 @@ const WithdrawAllModal = ({
         });
         queryClient.invalidateQueries({
           queryKey: ['balances'],
-          refetchType: 'all',
+          refetchType: 'active',
         });
 
         onClose();

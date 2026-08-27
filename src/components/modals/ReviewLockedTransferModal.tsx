@@ -2,13 +2,14 @@ import { ARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import useVaultGasEstimate from '@src/hooks/useVaultGasEstimate';
-import { useGlobalState } from '@src/store';
+import { useGlobalState, useSettings } from '@src/store';
 import {
   formatAddress,
   formatDate,
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
+import { refreshVaultAfterCreate } from '@src/utils/postWriteRefresh';
 import { showErrorToast } from '@src/utils/toast';
 import { describeVaultError } from '@src/utils/vaultErrors';
 import {
@@ -55,6 +56,9 @@ const ReviewLockedTransferModal = ({
   const ticker = useGlobalState((state) => state.ticker);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
+  const rpc = useGlobalState((state) => state.rpc);
+  const coreProgramId = useSettings((state) => state.solanaCoreProgramId);
   const { data: balances } = useBalances(walletAddress);
 
   const { data: gasEstimate, isLoading: isLoadingGas } = useVaultGasEstimate({
@@ -100,16 +104,31 @@ const ReviewLockedTransferModal = ({
 
       setTxid(txID);
 
+      setShowBlockingMessageModal(false);
+      setShowSuccessModal(true);
+
+      // The transaction has landed and the receipt is ready, so show it before
+      // the follow-up reads: these are best-effort cache freshening, and
+      // awaiting them here left the user staring at "sign with your wallet"
+      // through further round trips behind a 10 req/s bucket.
+      // Read the vault back off its own account before invalidating, so the
+      // row that appears carries the real vault id and end timestamp rather
+      // than the snapshot's pre-write view.
+      await refreshVaultAfterCreate(
+        rpc,
+        coreProgramId,
+        { recipient, sender: walletAddress?.toString() },
+        arIOReadSDK,
+      );
+
       queryClient.invalidateQueries({
         queryKey: ['vaults'],
-        refetchType: 'all',
+        refetchType: 'active',
       });
       queryClient.invalidateQueries({
         queryKey: ['balances'],
-        refetchType: 'all',
+        refetchType: 'active',
       });
-
-      setShowSuccessModal(true);
     } catch (e) {
       showErrorToast(describeVaultError(e));
     } finally {

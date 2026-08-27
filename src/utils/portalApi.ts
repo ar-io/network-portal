@@ -25,6 +25,7 @@
 
 import { PORTAL_API_URL, log } from '@src/constants';
 import { useSettings } from '@src/store/settings';
+import { applyOverlay, noteSnapshotGeneratedAt } from './snapshotOverlay';
 
 /**
  * The endpoint to read, which the user can change in Settings.
@@ -224,8 +225,19 @@ export async function fetchPortalDocument<T>(
       return null;
     }
 
-    log.debug(`[portalApi] ${name}: ${body.items.length} items from snapshot`);
-    return body.items;
+    // Lay any rows read from chain after a write over the published document.
+    // Without this a refetch triggered by that very write re-downloads the
+    // pre-write state; the overlay drops itself once a newer snapshot lands.
+    // `ageMs` above already rejected a missing or unparseable `generatedAt`;
+    // parse it directly rather than deriving it back out of `ageMs`, which
+    // skews forward by the gap between the two `Date.now()` samples — in the
+    // direction that expires overlay entries early.
+    const generatedAt = Date.parse(body.generatedAt as string);
+    noteSnapshotGeneratedAt(name, generatedAt);
+    const items = applyOverlay(name, body.items, generatedAt);
+
+    log.debug(`[portalApi] ${name}: ${items.length} items from snapshot`);
+    return items;
   } catch (error) {
     // Timeout, DNS failure, CORS, offline — all the same answer.
     log.debug(

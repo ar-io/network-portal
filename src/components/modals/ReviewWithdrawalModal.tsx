@@ -125,7 +125,7 @@ const ReviewWithdrawalModal = ({
         });
         queryClient.invalidateQueries({
           queryKey: ['balances'],
-          refetchType: 'all',
+          refetchType: 'active',
         });
         queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],

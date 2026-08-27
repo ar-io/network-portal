@@ -3,6 +3,7 @@ import { WRITE_OPTIONS } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
 import { getTransactionExplorerUrl, isValidSolanaAddress } from '@src/utils';
+import { refreshBalancesAfterWrite } from '@src/utils/postWriteRefresh';
 import { showErrorToast } from '@src/utils/toast';
 import {
   LOCK_PRESETS,
@@ -34,6 +35,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
@@ -69,12 +71,30 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
 
       setTxid(txID);
 
+      setShowBlockingMessageModal(false);
+      setShowSuccessModal(true);
+
+      // The transaction has landed and the receipt is ready, so show it before
+      // the follow-up reads: these are best-effort cache freshening, and
+      // awaiting them here left the user staring at "sign with your wallet"
+      // through further round trips behind a 10 req/s bucket.
+      // Re-read both sides from chain and lay them over the snapshot before
+      // invalidating: the refetch would otherwise pull the same pre-write
+      // document and the transfer would be invisible until the next publish.
+      await refreshBalancesAfterWrite(arIOReadSDK, [
+        walletAddress?.toString(),
+        normalizedRecipient,
+      ]);
+
+      // 'active' and not 'all': `useAllBalances` answers to this key, and its
+      // fallback is a whole-program scan. Refetching it in the background from
+      // whatever page the user happens to be on would spend that scan for a
+      // table nobody is looking at. Inactive queries are still marked stale and
+      // refetch on mount, with the overlay applied.
       queryClient.invalidateQueries({
         queryKey: ['balances'],
-        refetchType: 'all',
+        refetchType: 'active',
       });
-
-      setShowSuccessModal(true);
     } catch (e: any) {
       showErrorToast(`${e}`);
     } finally {
@@ -222,7 +242,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
             </div>
             {!lockEnabled && (
               <div className="text-xs text-low">
-                The recipient cannot access these tokens until it unlocks.
+                Locks the tokens in a vault until a date you choose.
               </div>
             )}
 

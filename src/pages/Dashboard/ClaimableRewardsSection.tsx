@@ -6,6 +6,7 @@ import useVaults from '@src/hooks/useVaults';
 import useWithdrawals from '@src/hooks/useWithdrawals';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas, getTransactionExplorerUrl } from '@src/utils';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -91,9 +92,8 @@ const ClaimableRewardsSection = () => {
   const totalClaimableAmount = claimableWithdrawalAmount + claimableVaultAmount;
 
   const refreshRelatedQueries = () => {
+    invalidateWrittenDocuments(queryClient, 'balances', 'vaults');
     queryClient.invalidateQueries({ queryKey: ['withdrawals'] });
-    queryClient.invalidateQueries({ queryKey: ['vaults'] });
-    queryClient.invalidateQueries({ queryKey: ['balances'] });
     queryClient.invalidateQueries({ queryKey: ['delegateStakes'] });
     queryClient.invalidateQueries({ queryKey: ['gatewayVaults'] });
   };

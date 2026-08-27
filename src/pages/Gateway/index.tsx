@@ -30,6 +30,7 @@ import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
 import useGateways from '@src/hooks/useGateways';
 import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { TriangleAlertIcon } from 'lucide-react';
@@ -333,12 +334,9 @@ const Gateway = () => {
           log.info(`Update Gateway Settings txID: ${txID}`);
         }
 
+        invalidateWrittenDocuments(queryClient, 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
           refetchType: 'all',
         });
 

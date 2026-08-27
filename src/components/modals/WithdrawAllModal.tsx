@@ -1,6 +1,7 @@
 import { Gateway, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -56,20 +57,22 @@ const WithdrawAllModal = ({
           }
         }
 
+        // `['balances']` also keys `useBalances`, whose `sol` figure funds the
+        // insufficient-SOL guards — every one of these pays fees even when no
+        // ARIO moves. Invalidated but deliberately not marked: the published
+        // balances document did not change, so forcing it live would buy the
+        // most expensive scan on the network for nothing.
+        queryClient.invalidateQueries({
+          queryKey: ['balances'],
+          refetchType: 'active',
+        });
+        invalidateWrittenDocuments(queryClient, 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
           refetchType: 'all',
         });
         queryClient.invalidateQueries({
-          queryKey: ['gateways'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['balances'],
           refetchType: 'all',
         });
 

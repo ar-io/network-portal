@@ -25,6 +25,7 @@
 
 import { PORTAL_API_URL, log } from '@src/constants';
 import { useSettings } from '@src/store/settings';
+import { shouldReadLive } from './snapshotFreshness';
 
 /**
  * The endpoint to read, which the user can change in Settings.
@@ -62,7 +63,7 @@ export type PortalDocumentName =
  * plus slack. Beyond that the data is stale enough that paying for the scan is
  * the better trade.
  */
-const MAX_SNAPSHOT_AGE_MS = 30 * 60 * 1000;
+export const MAX_SNAPSHOT_AGE_MS = 30 * 60 * 1000;
 
 /** A slow API must never be slower than just doing the RPC call. */
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -174,6 +175,23 @@ export async function fetchPortalDocument<T>(
   expectedProgramIds: PortalProgramIds = {},
 ): Promise<T[] | null> {
   if (!isPortalApiEnabled()) return null;
+
+  // A write this session landed after the publisher last ran, and the document
+  // cannot say whether it contains that write — see
+  // `@src/utils/snapshotFreshness`. Refused here rather than in
+  // `snapshotOrRpc` so it covers every caller: `usePrimaryName` reads this
+  // function directly, and a gate one level up could never apply to it.
+  //
+  // Null routes through each caller's own fallback, which is a live read.
+  // Deliberately not falling back to the snapshot if that read fails: React
+  // Query would cache the pre-write document as a *success* for the query's
+  // staleTime — an hour for gateways and vaults, with `retry: 0` and no refetch
+  // on focus — so one transient 429 would hide the user's own write for an
+  // hour. An error is visible and retries on remount, with the mark intact.
+  if (shouldReadLive(name)) {
+    log.debug(`[portalApi] ${name}: recent write, reading live`);
+    return null;
+  }
 
   const url = `${resolvePortalApiUrl().replace(/\/+$/, '')}/api/v1/portal/${name}.json`;
 

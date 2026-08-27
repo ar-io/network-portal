@@ -9,6 +9,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { describeVaultError } from '@src/utils/vaultErrors';
 import {
@@ -100,14 +101,7 @@ const ReviewLockedTransferModal = ({
 
       setTxid(txID);
 
-      queryClient.invalidateQueries({
-        queryKey: ['vaults'],
-        refetchType: 'all',
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['balances'],
-        refetchType: 'all',
-      });
+      invalidateWrittenDocuments(queryClient, 'balances', 'vaults');
 
       setShowSuccessModal(true);
     } catch (e) {

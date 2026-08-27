@@ -3,6 +3,7 @@ import { WRITE_OPTIONS } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import { useGlobalState } from '@src/store';
 import { getTransactionExplorerUrl, isValidSolanaAddress } from '@src/utils';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import {
   LOCK_PRESETS,
@@ -69,10 +70,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
 
       setTxid(txID);
 
-      queryClient.invalidateQueries({
-        queryKey: ['balances'],
-        refetchType: 'all',
-      });
+      invalidateWrittenDocuments(queryClient, 'balances');
 
       setShowSuccessModal(true);
     } catch (e: any) {
@@ -221,8 +219,8 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
               <div className="grow">Lock in a vault</div>
             </div>
             <div className="text-xs text-low">
-              The recipient receives the tokens in a vault they cannot access
-              until it unlocks.
+              Locked tokens sit in a vault the recipient cannot access until it
+              unlocks.
             </div>
 
             {lockEnabled && (
@@ -283,7 +281,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
                     <div className="grow">Let me revoke this vault</div>
                     <div className="text-xs text-low">
                       {revocable
-                        ? 'You can cancel the vault before it unlocks and take the tokens back.'
+                        ? 'You can revoke it before it unlocks and take the tokens back.'
                         : 'Once sent, you cannot recover these tokens.'}
                     </div>
                   </div>
@@ -296,7 +294,7 @@ const TransferArioModal = ({ onClose }: { onClose: () => void }) => {
           </div>
         </div>
 
-        <div className="my-8 flex grow justify-center px-8">
+        <div className="my-6 flex grow justify-center px-8">
           <Button
             onClick={() => {
               // `pointer-events-none` dims the button for a mouse but leaves it

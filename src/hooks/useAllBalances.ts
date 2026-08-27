@@ -47,7 +47,11 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
   );
 
   return useQuery<ProcessedBalance[], Error, ProcessedBalance[]>({
-    queryKey: ['allBalances', solanaRpcUrl],
+    // `['balances', …]` and not `['allBalances', …]`: every write flow
+    // invalidates `['balances']`, and React Query matches by key prefix, so the
+    // old name meant this table was never refetched after a transfer. Same fix
+    // the vaults query already carries.
+    queryKey: ['balances', solanaRpcUrl],
     queryFn: async () => {
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');
@@ -74,7 +78,6 @@ const useAllBalances = (options: UseAllBalancesOptions = {}) => {
       }));
     },
     select,
-    staleTime: 5 * 60 * 1000,
     enabled: !!arIOReadSDK,
     placeholderData: (previousData) => previousData,
   });

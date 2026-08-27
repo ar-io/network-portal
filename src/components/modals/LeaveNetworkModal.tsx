@@ -5,6 +5,7 @@ import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas, getTransactionExplorerUrl } from '@src/utils';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -62,12 +63,9 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
         const { id: txID } = await arIOWriteableSDK.leaveNetwork(WRITE_OPTIONS);
         setTxid(txID);
 
+        invalidateWrittenDocuments(queryClient, 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
           refetchType: 'all',
         });
 

@@ -4,6 +4,7 @@ import useBalances from '@src/hooks/useBalances';
 import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
@@ -212,12 +213,9 @@ const StartGatewayModal = ({ onClose }: { onClose: () => void }) => {
 
         log.info(`Join Network txID: ${txID}`);
 
+        invalidateWrittenDocuments(queryClient, 'gateways', 'balances');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress?.toString()],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
           refetchType: 'all',
         });
 

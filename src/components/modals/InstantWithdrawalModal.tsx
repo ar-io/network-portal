@@ -8,6 +8,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { calculateInstantWithdrawalPenaltyRate } from '@src/utils/stake';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -87,14 +88,7 @@ const InstantWithdrawalModal = ({
         );
         setTxid(txID);
 
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['balances'],
-          refetchType: 'all',
-        });
+        invalidateWrittenDocuments(queryClient, 'balances', 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],
           refetchType: 'all',

@@ -135,11 +135,17 @@ const NetworkStatsPanel = () => {
 
   return (
     <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500">
-      <div className="px-5 pb-3 pt-5">
+      <div className="px-5 pb-2 pt-5">
         <h3 className="text-sm font-semibold text-mid">Network Statistics</h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-4 px-5 pb-5">
+      {/* The card height is shared with every other dashboard panel, so the
+          content has to fit rather than the box grow. Seven stats — the two
+          yield rows only appear once the analyzer has rewards — make four rows,
+          which overflowed the bottom border at the previous type scale.
+          `min-h-0` and `content-start` keep the grid inside the card if a stat
+          is ever added on top of that. */}
+      <div className="grid min-h-0 flex-1 grid-cols-2 content-start gap-x-4 gap-y-3 overflow-hidden px-5 pb-5">
         {stats.map((stat) => (
           <div key={stat.label} className="flex min-w-0 flex-col">
             <div className="flex items-center gap-1">
@@ -151,9 +157,9 @@ const NetworkStatsPanel = () => {
               )}
             </div>
             {stat.isLoading ? (
-              <Placeholder className="mt-1 h-6 w-20" />
+              <Placeholder className="mt-1 h-5 w-20" />
             ) : (
-              <span className="text-2xl font-semibold text-high">
+              <span className="text-xl font-semibold text-high">
                 {stat.value}
               </span>
             )}

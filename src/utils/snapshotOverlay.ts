@@ -44,6 +44,18 @@ const overlays = new Map<PortalDocumentName, Map<string, OverlayEntry>>();
 /** The most recent `generatedAt` seen per document, in publisher time. */
 const lastSeenGeneratedAt = new Map<PortalDocumentName, number>();
 
+/**
+ * Bumped whenever the overlay is discarded — i.e. on a network switch.
+ * `clearOverlays` can only drop entries that already exist, but the post-write
+ * reads are asynchronous: one started against the old endpoint can land after
+ * the switch and record old-network rows into the new network's document.
+ * Callers capture this before their reads and hand it back to `recordOverlay`,
+ * which drops anything from a superseded generation.
+ */
+let generation = 0;
+
+export const overlayGeneration = (): number => generation;
+
 /** Called by `portalApi` on every successful document fetch. */
 export const noteSnapshotGeneratedAt = (
   name: PortalDocumentName,
@@ -70,7 +82,13 @@ export const recordOverlay = (
   name: PortalDocumentName,
   rows: Array<{ id: string; row: unknown | null }>,
   writtenAt: number = Date.now(),
+  expectedGeneration?: number,
 ): void => {
+  // Read against an endpoint we have since switched away from.
+  if (expectedGeneration !== undefined && expectedGeneration !== generation) {
+    return;
+  }
+
   const forDocument = overlays.get(name) ?? new Map<string, OverlayEntry>();
 
   const baseline = lastSeenGeneratedAt.get(name);
@@ -106,10 +124,21 @@ export const applyOverlay = <T>(
   // document had never been fetched.
   if (generatedAt !== undefined && Number.isFinite(generatedAt)) {
     for (const [id, entry] of forDocument) {
-      const superseded =
-        entry.baseline !== undefined
-          ? generatedAt > entry.baseline
-          : entry.writtenAt <= generatedAt;
+      // Both clocks have to agree that the document post-dates the write.
+      //
+      // `baseline` alone is not proof: a snapshot generated after the last one
+      // we saw can still have been produced before the write confirmed, and
+      // expiring on it renders the pre-write document. `writtenAt` alone is not
+      // proof either, because it is the client's clock and a machine minutes
+      // slow would expire every entry on sight.
+      //
+      // Requiring both errs toward keeping the overlay, which is the safe
+      // direction: it holds values read from chain, so applying it a while
+      // longer than strictly necessary still shows the truth.
+      const newerThanBaseline =
+        entry.baseline === undefined || generatedAt > entry.baseline;
+      const newerThanWrite = generatedAt > entry.writtenAt;
+      const superseded = newerThanBaseline && newerThanWrite;
       if (superseded) {
         forDocument.delete(id);
       }
@@ -151,4 +180,5 @@ export const applyOverlay = <T>(
 export const clearOverlays = (): void => {
   overlays.clear();
   lastSeenGeneratedAt.clear();
+  generation += 1;
 };

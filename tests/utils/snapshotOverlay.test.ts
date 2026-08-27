@@ -2,6 +2,7 @@ import {
   applyOverlay,
   clearOverlays,
   noteSnapshotGeneratedAt,
+  overlayGeneration,
   recordOverlay,
 } from '@src/utils/snapshotOverlay';
 
@@ -168,6 +169,73 @@ describe('snapshotOverlay', () => {
         [{ id: 'A', row: balance('A', 900) }],
         WROTE_AT,
       );
+      expect(applyOverlay('balances', [balance('A', 100)], BEFORE)).toEqual([
+        balance('A', 900),
+      ]);
+    });
+  });
+
+  describe('a snapshot newer than the baseline is not proof of the write', () => {
+    it('keeps the overlay when the document predates the write', () => {
+      // Baseline seen at T0, publisher generates at T1, write confirms at T2.
+      // T1 > T0 so a baseline-only check would expire the entry — but that
+      // document was produced before the write and does not contain it.
+      const T0 = 1_000_000;
+      const T1 = 2_000_000;
+      const T2 = 3_000_000;
+      noteSnapshotGeneratedAt('balances', T0);
+      recordOverlay('balances', [{ id: 'A', row: balance('A', 900) }], T2);
+
+      expect(applyOverlay('balances', [balance('A', 100)], T1)).toEqual([
+        balance('A', 900),
+      ]);
+    });
+
+    it('expires once the document post-dates both the baseline and the write', () => {
+      const T0 = 1_000_000;
+      const T2 = 3_000_000;
+      const T3 = 4_000_000;
+      noteSnapshotGeneratedAt('balances', T0);
+      recordOverlay('balances', [{ id: 'A', row: balance('A', 900) }], T2);
+
+      expect(applyOverlay('balances', [balance('A', 900)], T3)).toEqual([
+        balance('A', 900),
+      ]);
+      expect(applyOverlay('balances', [balance('A', 100)], T3)).toEqual([
+        balance('A', 100),
+      ]);
+    });
+  });
+
+  describe('generation guard', () => {
+    it('drops a read that lands after a network switch', () => {
+      // The refresh captures the generation before its reads; clearing on a
+      // network switch bumps it, so an in-flight read cannot inject rows from
+      // the endpoint we just left.
+      const captured = overlayGeneration();
+      clearOverlays();
+
+      recordOverlay(
+        'balances',
+        [{ id: 'A', row: balance('A', 900) }],
+        WROTE_AT,
+        captured,
+      );
+
+      expect(applyOverlay('balances', [balance('A', 100)], BEFORE)).toEqual([
+        balance('A', 100),
+      ]);
+    });
+
+    it('accepts a read from the current generation', () => {
+      const captured = overlayGeneration();
+      recordOverlay(
+        'balances',
+        [{ id: 'A', row: balance('A', 900) }],
+        WROTE_AT,
+        captured,
+      );
+
       expect(applyOverlay('balances', [balance('A', 100)], BEFORE)).toEqual([
         balance('A', 900),
       ]);

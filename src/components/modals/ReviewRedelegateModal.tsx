@@ -10,6 +10,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
+import { refreshBalancesAfterWrite } from '@src/utils/postWriteRefresh';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -48,6 +49,7 @@ const ReviewRedelegateModal = ({
 }: ReviewRedelegateModalProps) => {
   const queryClient = useQueryClient();
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   const [txid, setTxid] = useState<string>();
 
@@ -107,6 +109,17 @@ const ReviewRedelegateModal = ({
           queryKey: ['gateways'],
           refetchType: 'all',
         });
+        // The receipt is ready; show it before the follow-up read rather than
+        // holding the user on "sign with your wallet" after they already have.
+        setShowBlockingMessageModal(false);
+        setShowSuccessModal(true);
+
+        // Lay the wallet's real balance over the snapshot: the refetch below
+        // would otherwise re-read the document generated before this write.
+        await refreshBalancesAfterWrite(arIOReadSDK, [
+          walletAddress?.toString(),
+        ]);
+
         queryClient.invalidateQueries({
           queryKey: ['balances'],
           refetchType: 'active',
@@ -119,8 +132,6 @@ const ReviewRedelegateModal = ({
           queryKey: ['gatewayVaults'],
           refetchType: 'all',
         });
-
-        setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {

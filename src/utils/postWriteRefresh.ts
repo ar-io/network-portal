@@ -9,7 +9,7 @@ import type { Commitment } from '@solana/kit';
 import { address, fetchEncodedAccount } from '@solana/kit';
 import { log } from '@src/constants';
 import { isPortalApiEnabled } from './portalApi';
-import { recordOverlay } from './snapshotOverlay';
+import { overlayGeneration, recordOverlay } from './snapshotOverlay';
 import { getOptionalSolanaAddress } from './solanaAddress';
 
 /**
@@ -53,6 +53,10 @@ export const refreshBalancesAfterWrite = async (
     return;
   }
 
+  // Captured before the reads: if Settings switches networks while they are in
+  // flight, these rows belong to an endpoint we are no longer showing.
+  const generation = overlayGeneration();
+
   try {
     // allSettled, not all: the RPC client is a 10 req/s bucket that halves on
     // a 429, so one address 429ing must not discard the other's good read.
@@ -66,7 +70,7 @@ export const refreshBalancesAfterWrite = async (
       .filter((r) => r.status === 'fulfilled')
       .map((r) => (r as PromiseFulfilledResult<any>).value);
     if (rows.length) {
-      recordOverlay('balances', rows);
+      recordOverlay('balances', rows, Date.now(), generation);
     }
     if (rows.length < targets.length) {
       log.debug('[postWriteRefresh] balances: some reads failed');
@@ -89,11 +93,34 @@ export const refreshAfterVaultClosed = async (
     vaultId,
     creditedTo,
   }: { owner: string; vaultId: string; creditedTo?: string },
+): Promise<void> =>
+  refreshAfterVaultsClosed(sdk, [{ owner, vaultId }], creditedTo);
+
+/**
+ * The batch form. A claim run closes several vaults in one pass, so the
+ * credited balance is re-read once rather than once per vault.
+ */
+export const refreshAfterVaultsClosed = async (
+  sdk: ARIORead | undefined,
+  vaults: Array<{ owner: string; vaultId: string }>,
+  creditedTo?: string,
 ): Promise<void> => {
   if (!isPortalApiEnabled()) {
     return;
   }
-  recordOverlay('vaults', [{ id: `${owner}:${vaultId}`, row: null }]);
+  const generation = overlayGeneration();
+
+  if (vaults.length > 0) {
+    recordOverlay(
+      'vaults',
+      vaults.map(({ owner, vaultId }) => ({
+        id: `${owner}:${vaultId}`,
+        row: null,
+      })),
+      Date.now(),
+      generation,
+    );
+  }
   await refreshBalancesAfterWrite(sdk, [creditedTo]);
 };
 
@@ -122,6 +149,8 @@ export const refreshVaultAfterCreate = async (
   if (!isPortalApiEnabled()) {
     return;
   }
+
+  const generation = overlayGeneration();
 
   // Independent of the vault lookup below, so run them together rather than
   // adding a round trip to a window gated by a 10 req/s bucket.
@@ -162,24 +191,29 @@ export const refreshVaultAfterCreate = async (
 
     const vault = deserializeVault(Buffer.from(vaultAccount.data));
 
-    recordOverlay('vaults', [
-      {
-        // Keyed on `vault.owner`, the value DOCUMENT_ROW_ID.vaults reads —
-        // keying on `recipient` would duplicate the row if they ever differ.
-        id: `${vault.owner}:${vault.vaultId}`,
-        row: {
-          address: vault.owner,
-          cursorId: vaultPda,
-          vaultId: vault.vaultId,
-          balance: vault.balance,
-          // `deserializeVault` does not convert; `getVaults` applies secToMs,
-          // so a raw row spliced in unconverted would render as 1970.
-          startTimestamp: secToMs(vault.startTimestamp),
-          endTimestamp: secToMs(vault.endTimestamp),
-          controller: vault.controller,
+    recordOverlay(
+      'vaults',
+      [
+        {
+          // Keyed on `vault.owner`, the value DOCUMENT_ROW_ID.vaults reads —
+          // keying on `recipient` would duplicate the row if they ever differ.
+          id: `${vault.owner}:${vault.vaultId}`,
+          row: {
+            address: vault.owner,
+            cursorId: vaultPda,
+            vaultId: vault.vaultId,
+            balance: vault.balance,
+            // `deserializeVault` does not convert; `getVaults` applies secToMs,
+            // so a raw row spliced in unconverted would render as 1970.
+            startTimestamp: secToMs(vault.startTimestamp),
+            endTimestamp: secToMs(vault.endTimestamp),
+            controller: vault.controller,
+          },
         },
-      },
-    ]);
+      ],
+      Date.now(),
+      generation,
+    );
   } catch (error) {
     log.debug(`[postWriteRefresh] vault: ${error}`);
   } finally {

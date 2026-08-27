@@ -10,6 +10,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
+import { refreshBalancesAfterWrite } from '@src/utils/postWriteRefresh';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
@@ -45,6 +46,7 @@ const ReviewWithdrawalModal = ({
 }) => {
   const queryClient = useQueryClient();
   const arIOWriteableSDK = useGlobalState((state) => state.arIOWriteableSDK);
+  const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
 
   // A decrease deposits rent for the new withdrawal vault (refunded when
   // claimed); the expedited path sends a second transaction that closes
@@ -123,6 +125,17 @@ const ReviewWithdrawalModal = ({
           queryKey: ['gateways'],
           refetchType: 'all',
         });
+        // The receipt is ready; show it before the follow-up read rather than
+        // holding the user on "sign with your wallet" after they already have.
+        setShowBlockingMessageModal(false);
+        setShowSuccessModal(true);
+
+        // Lay the wallet's real balance over the snapshot: the refetch below
+        // would otherwise re-read the document generated before this write.
+        await refreshBalancesAfterWrite(arIOReadSDK, [
+          walletAddress?.toString(),
+        ]);
+
         queryClient.invalidateQueries({
           queryKey: ['balances'],
           refetchType: 'active',
@@ -135,8 +148,6 @@ const ReviewWithdrawalModal = ({
           queryKey: ['gatewayVaults'],
           refetchType: 'all',
         });
-
-        setShowSuccessModal(true);
       } catch (e: any) {
         showErrorToast(`${e}`);
       } finally {

@@ -91,12 +91,15 @@ const FormRow = ({
   return (
     <>
       <div className="bg-grey-900 pb-px">
-        <div className="text-nowrap bg-grey-1000 px-6 py-3 text-xs text-low">
+        {/* `h-full` so the label's background fills the row when the value
+            beside it wraps — a wallet address does, and the cell used to end
+            at its own text leaving a gap. */}
+        <div className="h-full text-nowrap bg-grey-1000 px-6 py-3 text-xs text-low">
           {label}
         </div>
       </div>
       {readOnly ? (
-        <div className="content-center border-b border-grey-800 px-6 text-sm text-low">
+        <div className="min-w-0 content-center break-all border-b border-grey-800 px-6 py-3 text-sm text-low">
           {value}
         </div>
       ) : typeof value === 'boolean' ? (

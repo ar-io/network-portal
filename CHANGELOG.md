@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2026-08-27
+
+### Added
+
+- You can now send tokens locked. The send dialog has a "Lock in a vault" switch
+  that asks who receives them, how much, and when it unlocks; the recipient holds
+  the tokens from the moment it confirms but cannot move them until that date. A
+  second switch decides whether you can take them back: leave it off and the
+  transfer is final, turn it on and you can revoke the vault any time before it
+  unlocks. Vaults you create show up in the recipient's Vaults table alongside
+  every other one.
+
+  A consequence worth knowing: the network stores a lock *length*, not a moment.
+  It starts counting when the transaction confirms rather than when you press
+  send, so a vault unlocks that long after confirmation — which is why the dates
+  read "on or around" and why the picker works in whole days. On a two-week lock
+  the difference is seconds; there is no way to pin an exact time, so the dialog
+  does not pretend to offer one.
+
+  Two limits come from the network rather than from us: a vault must hold at
+  least 100 ARIO, and you cannot send a locked transfer to yourself. The dialog
+  checks both before asking your wallet to sign, so neither costs you a
+  signature. Locks run from 14 days to 12 years.
+
+  Locking also costs meaningfully more SOL than a plain send — it creates
+  accounts the network charges rent for, roughly a hundred times the fee of an
+  ordinary transfer, and the review step quotes it before you commit.
+
+- The Vaults table shows vaults an address controls, not only the ones it owns.
+  Each row is tagged: "Owned" means the tokens are that address's and land when
+  the vault unlocks, "Sent" means it locked them for someone else and can revoke
+  until then. A Counterparty column names the other side.
+
+  This closes a gap that mattered once locked transfers existed: a revocable
+  vault was visible only to its recipient, never to the person who sent it — the
+  only party who can revoke one — so the Revoke button existed with no way to
+  reach it. Two vaults of the same size sent to different people were also
+  identical on screen until the confirmation dialog named the recipient.
+
+  A consequence worth knowing: "Owned" does not mean spendable. The tokens are
+  locked until the end date, and nothing is credited automatically when it
+  passes — the owner has to press Release. An owned vault can also still be
+  revoked out from under them if it is revocable, which is what the Counterparty
+  column tells you.
+
+### Fixed
+
+- An action you had just taken did not show up. Transfer tokens and the balances
+  table kept the old figure; create a vault and it was missing from the table it
+  belongs in.
+
+  Two separate causes. The balances table was never told to refresh at all, so
+  it sat on whatever it had until it aged out. And the tables read published
+  snapshots that are rebuilt every ten minutes or so, which means refreshing
+  them right after a write just fetches the same data again — the snapshot was
+  generated before the transaction existed.
+
+  After a write, the affected tables now read from the network directly until
+  the published data catches up. A consequence worth knowing: those tables are
+  a little slower for a while after you write to them, which is the cost of
+  showing you your own action instead of a stale copy of it.
+
+- "Total Vaults" was drawn across the bottom edge of the Network Statistics card
+  on the dashboard. The card shares a fixed height with every other panel there,
+  and once the yield figures appeared it held more than fitted. The figures are
+  slightly smaller now and all of them sit inside the card.
+
+- The gateway settings table ran off the right of the page, taking Cancel and
+  Save with it, with no way to scroll or zoom to reach them. A wallet address
+  cannot be broken across lines, so the column holding it refused to narrow and
+  pushed everything past the edge of a page that only scrolls vertically.
+  Addresses now wrap and the columns give way instead.
+
+- The spinner shown while your wallet signs used an old ar.io logo, drawn small
+  and off-centre. It now uses the current mark, with the brand gradient turning
+  around it.
+
 ## [2.10.0] - 2026-08-25
 
 ### Added

@@ -10,6 +10,10 @@ const useAllDelegates = () => {
 
   const portalProgramIds = usePortalProgramIds();
   return useQuery<AllDelegates[]>({
+    // NOTE: still invalidated by nothing — a write to a delegation does not
+    // refresh this table, it just ages out after `staleTime`. Left alone
+    // deliberately: connecting it means adding whole-program scan triggers to
+    // the staking flows, which is its own change with its own cost.
     queryKey: ['allDelegates', solanaRpcUrl],
     queryFn: async () => {
       if (!arIOReadSDK) {
@@ -30,7 +34,6 @@ const useAllDelegates = () => {
         portalProgramIds,
       );
     },
-    staleTime: 5 * 60 * 1000,
     enabled: !!arIOReadSDK,
   });
 };

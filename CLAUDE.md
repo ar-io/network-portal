@@ -25,6 +25,7 @@ yarn lint:fix      # Fix linting and formatting issues automatically
 yarn format:check  # Check formatting only
 yarn format:fix    # Fix formatting only
 yarn tsc --noEmit  # Type check without building
+yarn vis           # Visualize bundle composition (vite-bundle-visualizer)
 
 # Build and deploy
 yarn build         # Full tsc --build type check, then Vite production build (memory-heavy: NODE_OPTIONS max-old-space-size=32768)
@@ -58,6 +59,35 @@ The app runs on Solana (devnet by default, localnet and mainnet also supported):
 - `WalletBridge` (`/src/components/WalletBridge.tsx`) bridges the Solana wallet adapter to the ar.io SDK's signer interface
 - `walletAdapterBridge.ts` (`/src/utils/walletAdapterBridge.ts`) converts wallet-adapter signers to `@solana/kit`-compatible signers
 
+### Solana RPC Client
+
+The kit RPC client is **not** the SDK's `createCircuitBreakerRpc`.
+`/src/utils/solanaRpc.ts` builds it with `createThrottledRpc`, and `getSolanaRpc(url)`
+in `globalState.ts` memoises one instance per endpoint — the rate gate lives *inside*
+the client, so a single instance is what keeps the whole tab under one budget. Never
+construct a second one ad hoc.
+
+Each piece exists because the SDK's breaker measurably failed at it:
+
+- **A token bucket with AIMD** — 10 req/s ceiling, halved on every 429, recovered by
+  +1 after 20 consecutive successes, floored at 1. A 429 always slows down: an
+  advertised `x-ratelimit-rps-limit` may only *lower* the rate further (× 0.9), never
+  hold it up, because the SDK's `min(ceiling, advertised * 0.9)` resolved straight back
+  to the ceiling whenever a provider advertised a high limit — and public mainnet-beta
+  advertises 250. `Retry-After` is honoured; a 429 without one pauses 1s.
+- **No fallback by default.** `VITE_SOLANA_FALLBACK_RPC_URL` is opt-in and shares the
+  same gate, so failing over can never multiply load. The SDK's `defaultFallbackUrl()`
+  resolved to a public endpoint and sent it 100% of the app's traffic — whole-program
+  scans included — for the full 60s reset window, at a flat 10 req/s that its throttle
+  could not even see. Failover engages after 5 consecutive primary failures and
+  re-probes the primary after 30s.
+- **A 30s per-request timeout**, deliberately generous: a whole-program scan
+  legitimately takes seconds, and the SDK's 10s opossum timeout counted those as
+  failures, which is one of the ways the circuit tripped under normal load.
+
+With no fallback configured, a dead endpoint surfaces an error and the user switches
+endpoints in Settings — strictly better than silently flooding a public good.
+
 ### State Management
 
 - **Zustand** for global state:
@@ -71,7 +101,20 @@ The app runs on Solana (devnet by default, localnet and mainnet also supported):
   every returning user kept calling the revoked one and got 401 while new visitors were
   fine. **Bump `SETTINGS_VERSION` whenever a shipped default must reach existing users.**
 - **React Query** for server state; custom `queryKeyHashFn` handles non-serializable Solana `Connection` objects in query keys
-- **IndexedDB** (via Dexie) for persistent caching of observations and epochs (`/src/store/db.ts`); database name derived from network tier (solana-devnet, solana-localnet, solana-mainnet)
+- **IndexedDB** (via Dexie) for persistent caching of observations, epochs and dashboard
+  counts (`/src/store/db.ts`). The database is named for the **network tier**, deliberately
+  not for the endpoint: these are facts about the network, not about whichever provider was
+  asked, so switching providers within a tier reuses the cache instead of re-running three
+  program scans.
+
+Network tier is inferred from the RPC URL string (`localhost`/`127.0.0.1` -> localnet, then
+`devnet`/`testnet`, else mainnet) in both `settings.ts` and `globalState.ts`, and it drives
+the default program IDs, the IndexedDB name (`solana-devnet`, `solana-localnet`,
+`solana-mainnet`), and which portal API preset applies. Program-id overrides are stored per
+tier (`solanaAddressSettingsByNetwork`) so switching networks does not carry the other
+network's addresses across. Changing the RPC URL in Settings rebuilds the RPC client, the
+read SDK and the database handle, and clears `arIOWriteableSDK` — `globalState` subscribes
+to `useSettings` for exactly that.
 
 ### Portal Snapshot API
 
@@ -107,6 +150,29 @@ Two of those are worth their own note:
 
 `withdrawals.json` is GAR `Withdrawal` accounts and is **not** `vaults.json`,
 which is core-program `Vault` accounts — different datasets, not two views.
+
+**A write makes the snapshot wrong, and invalidating does not fix it.** The
+refetch downloads the same document the publisher generated before the write, so
+the user who just signed is the one person guaranteed to see stale data. After a
+write, `@src/utils/snapshotFreshness` makes that document read from chain for a
+bounded window instead.
+
+There is no sound way to ask a document whether it contains a write: it carries
+`generatedAt`, which is when the publisher *uploaded* the file, not when it read
+the chain, and comparing against the browser's clock fails on any machine whose
+clock is off. So the window is a duration measured entirely on the client, long
+enough to outlast `MAX_SNAPSHOT_AGE_MS` plus scan-to-publish latency. A failed
+live read propagates rather than falling back — React Query would otherwise
+cache the pre-write document as a success for the query's `staleTime`, which is
+an hour for gateways and vaults.
+
+**Every write flow must pair invalidation with marking**, and
+`invalidateWrittenDocuments(queryClient, ...names)` does both in one call — the
+query key and the document name are the same string, so they cannot drift. Mark
+only the documents the transaction actually changes: a stake decrease moves
+tokens into a withdrawal account and does not touch `balances`, and `balances`
+is the most expensive scan on the network. Hand-placing the two separately does
+not survive: `gateways` was once invalidated in seven flows and marked in none.
 
 **A snapshot is only worth it for an unfiltered whole-program scan.** The test
 before moving any read: is the RPC call server-side filtered, and is the value
@@ -209,6 +275,31 @@ const useDataHook = (params) => {
 };
 ```
 
+The `QueryClient` defaults (App.tsx) already set `staleTime: 5 * 60 * 1000`,
+`refetchOnWindowFocus: false` and `refetchOnReconnect: false` — restate them in a hook only
+to differ.
+
+**`retry: 0` is a default not to override.** The SDK wraps every read in `withRetry`
+(3 attempts, exponential backoff with jitter, transient transport errors only). React
+Query's default of 3 sits on top and multiplies to 12 attempts per failing query — each
+potentially a whole-program scan — which is how a brief 429 becomes a sustained one. It also
+retries what the SDK deliberately does not (account-not-found, deserialization failures),
+where a re-run can never succeed.
+
+**Prefer a targeted account read over a convenience SDK method.** `fetchEpochLightweight`
+(`/src/utils/epochFetch.ts`) reads the Epoch PDA in one call where `getEpoch()` makes ~55
+(per-gateway weights, name resolution, observations) — the same reasoning that makes
+`ARIO_TICKER` a constant instead of a two-account `getInfo()` round trip. It returns
+`EpochDataWithCounters`, whose `observationsSubmitted` / `rewardsDistributed` live on the
+Epoch account and are the only durable record of participation once observation PDAs are
+closed. Both are optional and the SDK fallback path omits them: treat absent as unknown,
+never as zero.
+
+When two callers need the same account, route both through `queryClient.fetchQuery` on the
+shared key rather than fetching directly — `GlobalDataProvider` does this with
+`epochSettingsQueryKey`, and reading it directly is what made EpochSettings a
+three-times-per-load fetch.
+
 ### App Initialization
 
 `GlobalDataProvider` handles app-wide data initialization:
@@ -232,6 +323,14 @@ new mARIOToken(gateway.operatorStake).toARIO().valueOf()  // reading -> display
 new ARIOToken(amountToStake).toMARIO()                    // form input -> SDK write
 ```
 
+**Timestamps cross a units boundary in the same way.** The programs store unix
+**seconds**; the SDK's read methods convert with `secToMs`, so everything reaching
+the app — `getVaults`, the portal snapshot documents — is in **milliseconds** and
+`new Date(value)` is correct. Raw `deserializeVault` does **not** convert, so a
+value taken straight off an account is in seconds and renders as 1970. Writes go
+the other way: `vaultedTransfer` takes `lockLengthMs` and floors it to seconds
+itself.
+
 ### Writing Transactions
 
 Write flows follow a fixed shape (see `/src/components/modals/ReviewStakeModal.tsx`):
@@ -240,6 +339,37 @@ the call goes through `arIOWriteableSDK` with `WRITE_OPTIONS`, every affected Re
 Query key is invalidated by hand, then `SuccessModal` shows the tx id. Failures go to
 `showErrorToast`. `arIOWriteableSDK` is undefined until a wallet with signing
 capability connects, so guard on it before starting a flow.
+
+### Locked Transfers (Vaults)
+
+`vaultedTransfer` sends tokens into a vault the recipient cannot touch until it
+unlocks. `TransferArioModal` collects it behind a toggle and
+`ReviewLockedTransferModal` commits it. Four things about it are not obvious:
+
+- **It stores a duration, not a date.** The program computes
+  `end_timestamp = clock.unix_timestamp + duration` when the transaction *lands*,
+  so the vault unlocks that long after confirmation, not at an instant the user
+  chose. `@src/utils/vaultLock` therefore works in whole days and the UI says "on
+  or around". Do not add a time-of-day input on top of this — it would promise a
+  precision the protocol cannot keep.
+- **The SDK parameter is `revokable`; the on-chain field is `revocable`.**
+  Misspelling it silently sends a non-revocable vault, which nobody can undo.
+- **The vault address depends on the recipient's vault counter, read before
+  signing.** Another vault created for that recipient in the meantime makes the
+  derived address stale and the transaction fails — a hardware wallet's slower
+  confirmation widens the window. `@src/utils/vaultErrors` maps that to a retry
+  message rather than raw Anchor text.
+- **No SDK estimator covers it.** `getGasEstimate` takes an ArNS `Intent` and
+  `getGarGasEstimate` a `GarGasWorkflow`; a core-program vault is neither, so
+  `useVaultGasEstimate` composes `estimateRentLamports` + `estimateGasFee`
+  directly. Rent dominates — a vault deposits for a Vault PDA (110 bytes) and the
+  vault's own token account, roughly two orders of magnitude more SOL than the
+  plain transfer beside it.
+
+Protocol limits worth knowing before changing the form: a vault must hold at least
+**100 ARIO** (`VaultBelowMinimum`, 6014), a locked transfer to yourself is rejected
+(`SelfTransfer`, 6003), and the lock bounds the portal enforces (14 days to ~12
+years) are the SDK's, not readable from chain.
 
 ### SDK Import Paths
 
@@ -297,6 +427,16 @@ behind it — so it reads as a permanently loading page rather than an error.
 The portal snapshot API is a separate variable, `VITE_PORTAL_API_URL`, and is
 deliberately **outside** that gate: empty is a supported state that falls back to
 direct RPC, and removing the variable is the documented rollback.
+
+Three more variables are opt-in with no usable default:
+
+- `VITE_SOLANA_FALLBACK_RPC_URL` — a second endpoint to fail over to. It once defaulted to
+  the public Solana RPC; only point it at an endpoint you are entitled to saturate (see
+  **Solana RPC Client**).
+- `VITE_PORTAL_MAINNET_API_URL` / `VITE_PORTAL_DEVNET_API_URL` — presets offered in Settings
+  for flipping between published hosts. They fall back to the public hosts when unset and
+  apply only on an explicit choice, so an empty `VITE_PORTAL_API_URL` still ships with the
+  snapshot reads off.
 
 ### Development Notes
 

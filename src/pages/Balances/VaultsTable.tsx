@@ -1,4 +1,3 @@
-import { mARIOToken } from '@ar.io/sdk/web';
 import AddressCell from '@src/components/AddressCell';
 import Button, { ButtonType } from '@src/components/Button';
 import ColumnSelector from '@src/components/ColumnSelector';
@@ -10,29 +9,43 @@ import useVaults from '@src/hooks/useVaults';
 import { useGlobalState } from '@src/store';
 import { AoAddress } from '@src/types';
 import { formatDate, formatDateTime, formatWithCommas } from '@src/utils';
+import {
+  type VaultRole,
+  type VaultRow,
+  vaultRowsFor,
+} from '@src/utils/vaultRows';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
-interface TableData {
-  startTimestamp: number;
-  endTimestamp: number;
+const ROLE_BADGE: Record<VaultRole, { label: string; classes: string }> = {
+  owned: {
+    label: 'Owned',
+    classes: 'border-streak-up/[.56] bg-streak-up/[.1] text-streak-up',
+  },
+  sent: { label: 'Sent', classes: 'border-grey-500 bg-grey-700 text-mid' },
+};
 
-  controller: string;
+/**
+ * Matches `Bubble`'s pill geometry but not its palette — `Bubble` encodes
+ * pass/fail, and these two are categories, not outcomes.
+ */
+const RoleBadge = ({ role }: { role: VaultRole }) => (
+  <div
+    className={`flex w-fit items-center rounded-xl border px-2 py-0.5 text-xs ${ROLE_BADGE[role].classes}`}
+  >
+    {ROLE_BADGE[role].label}
+  </div>
+);
 
-  daysRemaining: number;
-  balance: number;
-  vaultId: string;
-  vaultAddress: string;
-}
-
-const columnHelper = createColumnHelper<TableData>();
+const columnHelper = createColumnHelper<VaultRow>();
 
 const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
   const ticker = useGlobalState((state) => state.ticker);
   const { isLoading, isError, data: vaults } = useVaults();
 
-  const { walletAddress: userWalletAddress } = useGlobalState();
+  // Selector rather than destructuring the store: this component re-rendered
+  // on every theme toggle, slot tick and epoch update to read one field.
+  const userWalletAddress = useGlobalState((state) => state.walletAddress);
 
   const [showRevokeVaultModal, setShowRevokeVaultModal] = useState<
     | {
@@ -53,48 +66,62 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
     | undefined
   >();
 
-  const userCanRevoke = useMemo(() => {
-    return vaults
-      ? vaults.some(
-          (vault) => vault.controller === userWalletAddress?.toString(),
-        )
-      : false;
-  }, [userWalletAddress, vaults]);
+  // Vaults this address owns AND vaults it controls. Filtering on the owner
+  // alone hid every revocable vault from the person who sent it — the only
+  // party who can revoke one — so the action existed with no way to reach it.
+  // The predicate lives in `@src/utils/vaultRows` so it is reachable by a test.
+  const vaultsTableData: Array<VaultRow> = useMemo(
+    () => vaultRowsFor(vaults, walletAddress?.toString()),
+    [vaults, walletAddress],
+  );
+
+  // Derived from the rows on screen, not from every vault on the network:
+  // scanning all of them rendered an empty actions column on pages where
+  // nothing shown was actionable.
+  const userCanRevoke = useMemo(
+    () =>
+      vaultsTableData.some(
+        (vault) =>
+          vault.controller === userWalletAddress?.toString() &&
+          vault.endTimestamp > Date.now(),
+      ),
+    [userWalletAddress, vaultsTableData],
+  );
 
   // Release is owner-signed and only valid after expiry. Show the action when
   // the connected wallet owns an unlocked vault (Solana has no auto-credit at
   // expiry — the owner must call release_vault; see SDK BD-050).
-  const userCanRelease = useMemo(() => {
-    return vaults
-      ? vaults.some(
-          (vault) =>
-            vault.address === userWalletAddress?.toString() &&
-            vault.endTimestamp <= Date.now(),
-        )
-      : false;
-  }, [userWalletAddress, vaults]);
-
-  const vaultsTableData: Array<TableData> = useMemo(() => {
-    return (
-      vaults
-        ?.filter((vault) => vault.address === walletAddress?.toString())
-        .map((vault) => {
-          return {
-            startTimestamp: vault.startTimestamp,
-            endTimestamp: vault.endTimestamp,
-            daysRemaining: dayjs(vault.endTimestamp).diff(dayjs(), 'days'),
-            balance: new mARIOToken(vault.balance).toARIO().valueOf(),
-            controller: vault.controller || 'N/A',
-            vaultId: vault.vaultId,
-            vaultAddress: vault.address,
-          };
-        }) ?? []
-    );
-  }, [vaults, walletAddress]);
+  const userCanRelease = useMemo(
+    () =>
+      vaultsTableData.some(
+        (vault) =>
+          vault.vaultAddress === userWalletAddress?.toString() &&
+          vault.endTimestamp <= Date.now(),
+      ),
+    [userWalletAddress, vaultsTableData],
+  );
 
   // Define columns for the table
-  const columns: ColumnDef<TableData, any>[] = useMemo(() => {
+  const columns: ColumnDef<VaultRow, any>[] = useMemo(() => {
     const base = [
+      columnHelper.accessor('role', {
+        id: 'role',
+        header: 'Type',
+        sortDescFirst: false,
+        cell: ({ row }) => (
+          <Tooltip
+            message={
+              row.original.role === 'owned'
+                ? 'Locked for this address. Once it unlocks they must claim it with Release — nothing is credited automatically.'
+                : 'Locked by this address for someone else. Revocable until it unlocks.'
+            }
+          >
+            <div className="cursor-pointer">
+              <RoleBadge role={row.original.role} />
+            </div>
+          </Tooltip>
+        ),
+      }),
       columnHelper.accessor('startTimestamp', {
         id: 'startTimeStamp',
         header: 'Start Date',
@@ -142,11 +169,27 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
         id: 'daysRemaining',
         header: 'Days Remaining',
         sortDescFirst: false,
+        // Vaults persist until released, so an expired one counts ever further
+        // negative. The number still sorts; only the display is clamped.
+        cell: ({ row }) =>
+          row.original.daysRemaining < 0 ? (
+            <span className="text-low">Unlocked</span>
+          ) : (
+            row.original.daysRemaining
+          ),
       }),
-      columnHelper.accessor('controller', {
-        id: 'controller',
-        header: 'Controller',
-        cell: ({ row }) => <AddressCell address={row.getValue('controller')} />,
+      columnHelper.accessor('counterparty', {
+        id: 'counterparty',
+        header: 'Counterparty',
+        // Was the controller, which on a sent row is the address whose page
+        // this is — so two vaults sent to different people were identical on
+        // screen, and the recipient first appeared inside the revoke modal.
+        cell: ({ row }) =>
+          row.original.counterparty ? (
+            <AddressCell address={row.original.counterparty} />
+          ) : (
+            <span className="text-low">&mdash;</span>
+          ),
       }),
       columnHelper.accessor('balance', {
         id: 'balance',
@@ -209,14 +252,15 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
                       className="w-fit"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (walletAddress) {
-                          setShowRevokeVaultModal({
-                            recipient: walletAddress.toString(),
-                            vaultId: row.original.vaultId,
-                            balance: row.original.balance,
-                            endTimestamp: row.original.endTimestamp,
-                          });
-                        }
+                        // The vault PDA is derived from its OWNER, which is
+                        // not the page address once controlled vaults show up
+                        // here.
+                        setShowRevokeVaultModal({
+                          recipient: row.original.vaultAddress,
+                          vaultId: row.original.vaultId,
+                          balance: row.original.balance,
+                          endTimestamp: row.original.endTimestamp,
+                        });
                       }}
                     />
                   )}
@@ -226,12 +270,12 @@ const VaultsTable = ({ walletAddress }: { walletAddress?: AoAddress }) => {
           }),
         ]
       : base;
-  }, [ticker, userCanRevoke, userCanRelease, walletAddress, userWalletAddress]);
+  }, [ticker, userCanRevoke, userCanRelease, userWalletAddress]);
 
   return (
     <div>
       <div className="flex w-full items-center overflow-x-auto rounded-t-xl border border-grey-600 bg-containerL3 py-2 pl-6 pr-[0.8125rem]">
-        <div className="grow text-sm text-mid">Locked Token Vaults</div>
+        <div className="grow text-sm text-mid">Token Vaults</div>
         <ColumnSelector tableId="vaults" columns={columns} />
       </div>
       <TableView

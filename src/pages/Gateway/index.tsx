@@ -30,6 +30,7 @@ import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
 import useGateways from '@src/hooks/useGateways';
 import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { TriangleAlertIcon } from 'lucide-react';
@@ -333,12 +334,9 @@ const Gateway = () => {
           log.info(`Update Gateway Settings txID: ${txID}`);
         }
 
+        invalidateWrittenDocuments(queryClient, 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
           refetchType: 'all',
         });
 
@@ -440,7 +438,7 @@ const Gateway = () => {
                 </div>
               </div>
             </div>
-            <div className="flex w-full grow flex-col gap-6">
+            <div className="flex w-full min-w-0 grow flex-col gap-6">
               <div className="h-fit w-full overflow-hidden rounded-xl border border-transparent-100-16">
                 <div className="flex items-center bg-containerL3 py-4 pl-6 pr-3">
                   <div className="text-sm text-high">General Information</div>
@@ -490,7 +488,7 @@ const Gateway = () => {
                     ))}
                 </div>
                 {editing ? (
-                  <div className=" grid grid-cols-[14.375rem_auto] overflow-hidden border-t border-grey-500">
+                  <div className="grid grid-cols-[14.375rem_minmax(0,1fr)] overflow-hidden border-t border-grey-500">
                     {formRowDefs.map((rowDef, index) => {
                       return (
                         <FormRow

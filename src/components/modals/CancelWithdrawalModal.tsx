@@ -2,6 +2,7 @@ import { WRITE_OPTIONS } from '@src/constants';
 import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import { useGlobalState } from '@src/store';
 import { getTransactionExplorerUrl } from '@src/utils';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -53,10 +54,7 @@ const CancelWithdrawalModal = ({
         );
         setTxid(txID);
 
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
-          refetchType: 'all',
-        });
+        invalidateWrittenDocuments(queryClient, 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['delegateStakes'],
           refetchType: 'all',

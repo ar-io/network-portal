@@ -9,6 +9,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -87,16 +88,9 @@ const ReviewStakeModal = ({
           log.info(`Increase Delegate Stake txID: ${txID}`);
         }
 
+        invalidateWrittenDocuments(queryClient, 'balances', 'gateways');
         queryClient.invalidateQueries({
           queryKey: ['gateway', walletAddress.toString()],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gateways'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['balances'],
           refetchType: 'all',
         });
         queryClient.invalidateQueries({

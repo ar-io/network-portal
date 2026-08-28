@@ -1,7 +1,7 @@
 {
   "name": "@ar-io/network-portal",
   "private": true,
-  "version": "2.10.0",
+  "version": "2.11.0",
   "type": "module",
   "scripts": {
     "build": "yarn clean && tsc --build tsconfig.build.json && cross-env NODE_OPTIONS=--max-old-space-size=32768 vite build",
@@ -43,7 +43,6 @@
     "file-saver": "^2.0.5",
     "ky": "^1.7.5",
     "loglevel": "^1.9.1",
-    "lottie-react": "^2.4.0",
     "lucide-react": "^0.461.0",
     "markdown-to-jsx": "^7.5.0",
     "react": "^18.2.0",

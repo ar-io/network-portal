@@ -5,6 +5,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
+import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -56,14 +57,7 @@ const ReleaseVaultModal = ({
         );
         setTxid(txID);
 
-        queryClient.invalidateQueries({
-          queryKey: ['vaults'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['balances'],
-          refetchType: 'all',
-        });
+        invalidateWrittenDocuments(queryClient, 'balances', 'vaults');
 
         setShowSuccessModal(true);
       } catch (e: any) {

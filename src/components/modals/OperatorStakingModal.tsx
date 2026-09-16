@@ -1,8 +1,7 @@
 import { ARIOToken, GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
-import useGateways from '@src/hooks/useGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
+import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatPercentage, formatWithCommas } from '@src/utils';
 import { calculateOperatorRewards } from '@src/utils/rewards';
@@ -27,8 +26,7 @@ const OperatorStakingModal = ({
 }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
-  const { data: protocolBalance } = useProtocolBalance();
-  const { data: gateways } = useGateways();
+  const perGatewayReward = usePerGatewayReward();
   const ticker = useGlobalState((state) => state.ticker);
 
   const [currentStake, setCurrentStake] = useState<number>(0);
@@ -69,11 +67,10 @@ const OperatorStakingModal = ({
   }, [amountToStake, validators]);
 
   useEffect(() => {
-    if (protocolBalance && gateways && gateway && isFormValid()) {
+    if (perGatewayReward && gateway && isFormValid()) {
       const newTotalStake = currentStake + parseFloat(amountToStake);
       const { EAY } = calculateOperatorRewards(
-        new mARIOToken(protocolBalance).toARIO(),
-        Object.values(gateways).filter((g) => g.status === 'joined').length,
+        perGatewayReward,
         gateway,
         new ARIOToken(newTotalStake),
       );
@@ -81,14 +78,7 @@ const OperatorStakingModal = ({
     } else {
       setEAY('-');
     }
-  }, [
-    amountToStake,
-    gateway,
-    protocolBalance,
-    gateways,
-    currentStake,
-    isFormValid,
-  ]);
+  }, [amountToStake, gateway, perGatewayReward, currentStake, isFormValid]);
 
   const parsedStake = parseFloat(
     amountToStake.length === 0 ? '0' : amountToStake,

@@ -1,29 +1,23 @@
 import { Gateway, mARIOToken } from '@ar.io/sdk/web';
 import { OperatorRewards, calculateOperatorRewards } from '@src/utils/rewards';
 import { useEffect, useState } from 'react';
-import useGateways from './useGateways';
-import useProtocolBalance from './useProtocolBalance';
+import usePerGatewayReward from './usePerGatewayReward';
 
 const useOperatorRewards = (gateway: Gateway | undefined) => {
-  const { data: gateways } = useGateways();
-  const { data: protocolBalance } = useProtocolBalance();
+  const perGatewayReward = usePerGatewayReward();
 
   const [operatorRewards, setOperatorRewards] = useState<OperatorRewards>();
 
   useEffect(() => {
-    if (gateways && gateway && protocolBalance) {
-      const numGateways = Object.values(gateways).filter(
-        (g) => g.status === 'joined',
-      ).length;
+    if (perGatewayReward && gateway) {
       const operatorRewards = calculateOperatorRewards(
-        new mARIOToken(protocolBalance).toARIO(),
-        numGateways,
+        perGatewayReward,
         gateway,
         new mARIOToken(gateway.operatorStake).toARIO(),
       );
       setOperatorRewards(operatorRewards);
     }
-  }, [gateways, gateway, protocolBalance]);
+  }, [perGatewayReward, gateway]);
 
   return operatorRewards;
 };

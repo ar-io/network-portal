@@ -15,7 +15,7 @@ import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useAllGateways from '@src/hooks/useAllGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
+import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
@@ -99,7 +99,7 @@ const DelegateStake = () => {
     isError,
     data: allGateways,
   } = useAllGateways();
-  const { data: protocolBalance } = useProtocolBalance();
+  const perGatewayReward = usePerGatewayReward();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
@@ -117,13 +117,10 @@ const DelegateStake = () => {
   }, [allGateways]);
 
   useEffect(() => {
-    if (!delegateEnabledGateways.length || !protocolBalance) {
+    if (!delegateEnabledGateways.length) {
       setTableData([]);
       return;
     }
-
-    const protocolBalanceARIO = new mARIOToken(protocolBalance).toARIO();
-    const joinedGatewayCount = delegateEnabledGateways.length;
 
     const processedData: Array<TableData> = delegateEnabledGateways.map(
       (gateway: GatewayWithAddress) => {
@@ -156,16 +153,17 @@ const DelegateStake = () => {
           totalDelegatedStake: totalDelegatedStakeARIO,
           operatorStake: operatorStakeARIO,
           totalStake: totalDelegatedStakeARIO + operatorStakeARIO,
-          eay: calculateGatewayRewards(
-            protocolBalanceARIO,
-            joinedGatewayCount,
-            gateway,
-          ).EAY,
+          // -1 is this table's "no value" sentinel: it renders as a dash and
+          // sorts last. Without the epoch's per-gateway reward the yield is
+          // unknown, not zero, and the rest of the row is still worth showing.
+          eay: perGatewayReward
+            ? calculateGatewayRewards(perGatewayReward, gateway).EAY
+            : -1,
         };
       },
     );
     setTableData(processedData);
-  }, [delegateEnabledGateways, protocolBalance]);
+  }, [delegateEnabledGateways, perGatewayReward]);
 
   // Filter data by search term
   const filteredData = useMemo(() => {

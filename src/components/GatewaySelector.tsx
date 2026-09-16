@@ -1,7 +1,6 @@
 import { GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
-import useGateways from '@src/hooks/useGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
+import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatPercentage, formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
@@ -42,13 +41,12 @@ const GatewaySelectorModal = ({
   const ticker = useGlobalState((state) => state.ticker);
   const [tableData, setTableData] = useState<TableData[]>([]);
 
-  const { data: prototocolBalance } = useProtocolBalance();
-  const { data: totalGateways } = useGateways();
+  const perGatewayReward = usePerGatewayReward();
 
   const [searchText, setSearchText] = useState<string>();
 
   useEffect(() => {
-    if (prototocolBalance && totalGateways && gateways) {
+    if (perGatewayReward && gateways) {
       const tableData: TableData[] = gateways.map((gateway) => {
         return {
           gateway,
@@ -57,12 +55,7 @@ const GatewaySelectorModal = ({
           totalStake: new mARIOToken(gateway.totalDelegatedStake)
             .toARIO()
             .valueOf(),
-          eay: calculateGatewayRewards(
-            new mARIOToken(prototocolBalance).toARIO(),
-            Object.values(totalGateways).filter((g) => g.status === 'joined')
-              .length,
-            gateway,
-          ).EAY,
+          eay: calculateGatewayRewards(perGatewayReward, gateway).EAY,
         };
       });
       if (searchText && searchText.length > 0) {
@@ -82,7 +75,7 @@ const GatewaySelectorModal = ({
         setTableData(tableData);
       }
     }
-  }, [totalGateways, gateways, prototocolBalance, searchText]);
+  }, [gateways, perGatewayReward, searchText]);
 
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = [

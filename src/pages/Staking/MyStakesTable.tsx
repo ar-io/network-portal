@@ -19,7 +19,7 @@ import WithdrawAllModal from '@src/components/modals/WithdrawAllModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
+import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards } from '@src/utils/rewards';
@@ -75,12 +75,12 @@ const MyStakesTable = () => {
   const { isError: delegateStakesError, data: delegateStakes } =
     useDelegateStakes(walletAddress?.toString());
 
-  const { data: protocolBalance } = useProtocolBalance();
+  const perGatewayReward = usePerGatewayReward();
 
   useEffect(() => {
     const unified: Array<UnifiedStakeData> | undefined = isFetching
       ? undefined
-      : !delegateStakes || !gateways || !protocolBalance
+      : !delegateStakes || !gateways
         ? []
         : [
             // Active stakes
@@ -99,12 +99,12 @@ const MyStakesTable = () => {
                       : gateway.stats.failedConsecutiveEpochs > 0
                         ? -gateway.stats.failedConsecutiveEpochs
                         : gateway.stats.passedConsecutiveEpochs,
-                  eay: calculateGatewayRewards(
-                    new mARIOToken(protocolBalance).toARIO(),
-                    Object.values(gateways).filter((g) => g.status === 'joined')
-                      .length,
-                    gateway,
-                  ).EAY,
+                  // -1 renders as a dash and sorts last. A missing epoch read
+                  // makes the yield unknown, not zero, and must not hide a
+                  // wallet's own stakes.
+                  eay: perGatewayReward
+                    ? calculateGatewayRewards(perGatewayReward, gateway).EAY
+                    : -1,
                 };
               }),
             // Pending withdrawals
@@ -126,7 +126,7 @@ const MyStakesTable = () => {
           ];
 
     setUnifiedStakes(unified);
-  }, [delegateStakes, gateways, isFetching, protocolBalance]);
+  }, [delegateStakes, gateways, isFetching, perGatewayReward]);
 
   // Define columns for the unified stakes table
   const columns: ColumnDef<UnifiedStakeData, any>[] = useMemo(

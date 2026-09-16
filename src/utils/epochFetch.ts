@@ -23,6 +23,60 @@ export type EpochDataWithCounters = EpochData & {
   observationsSubmitted?: number;
   /** 1 once `distribute_epoch` has run — the epoch's counters are final. */
   rewardsDistributed?: number;
+  /**
+   * This epoch's reward for one eligible gateway, in mARIO, straight off the
+   * Epoch account.
+   *
+   * The protocol computes it as `total_eligible_rewards *
+   * gateway_reward_ratio / RATE_SCALE / joined_count`, and `joined_count` — the
+   * count of registry slots with a positive composite weight after tally — is
+   * never stored, so this value cannot be reconstructed from a gateway list.
+   * Read it; do not derive it.
+   *
+   * Zero until `prescribe_epoch` has run, and absent on the SDK fallback path,
+   * which returns a plain `EpochData`. Treat both as unknown.
+   */
+  perGatewayReward?: number;
+};
+
+/** The subset of a deserialized Epoch account the reward totals are built from. */
+export type EpochRewardFields = {
+  totalEligibleRewards: number;
+  perObserverReward: number;
+  observerCount: number;
+  activeGatewayCount: number;
+};
+
+/**
+ * Build the epoch's reward totals, in mARIO.
+ *
+ * The gateway pool is the remainder after the observer pool, NOT
+ * `perGatewayReward * activeGatewayCount`. `active_gateway_count` bounds the
+ * distribution traversal and counts every registry slot, leavers included: 620
+ * on mainnet against 306 gateways actually eligible to earn. Multiplying by it
+ * overstated the dashboard's rewards chart by roughly 2x.
+ *
+ * The true divisor is `joined_count`, computed inside `prescribe_epoch` and
+ * never stored, so it cannot be read back. Subtraction avoids needing it: the
+ * protocol requires `gateway_reward_ratio + observer_reward_ratio ==
+ * RATE_SCALE` (`epoch.rs`, `require!(sum == RATE_SCALE)`), so the two pools
+ * partition `total_eligible_rewards` exactly. The observer pool is safe to
+ * compute directly because `observer_count` IS the divisor the protocol used
+ * for `per_observer_reward`.
+ */
+export const epochRewardTotals = (epoch: EpochRewardFields) => {
+  const totalEligibleObserverReward =
+    epoch.perObserverReward * epoch.observerCount;
+
+  return {
+    totalEligibleGateways: epoch.activeGatewayCount,
+    totalEligibleRewards: epoch.totalEligibleRewards,
+    totalEligibleObserverReward,
+    totalEligibleGatewayReward: Math.max(
+      0,
+      epoch.totalEligibleRewards - totalEligibleObserverReward,
+    ),
+  };
 };
 
 /**
@@ -80,6 +134,7 @@ export async function fetchEpochLightweight(
     epochIndex,
     observationsSubmitted: epochData.observationsSubmitted,
     rewardsDistributed: epochData.rewardsDistributed,
+    perGatewayReward: epochData.perGatewayReward,
     startHeight: 0,
     startTimestamp: secToMs(epochData.startTimestamp),
     endTimestamp: secToMs(epochData.endTimestamp),
@@ -87,14 +142,7 @@ export async function fetchEpochLightweight(
     observations: { reports: {}, failureSummaries: {} },
     prescribedObservers,
     prescribedNames: [],
-    distributions: {
-      totalEligibleGateways: epochData.activeGatewayCount,
-      totalEligibleRewards: epochData.totalEligibleRewards,
-      totalEligibleObserverReward:
-        epochData.perObserverReward * epochData.observerCount,
-      totalEligibleGatewayReward:
-        epochData.perGatewayReward * epochData.activeGatewayCount,
-    },
+    distributions: epochRewardTotals(epochData),
     arnsStats: {
       totalReturnedNames: 0,
       totalActiveNames: 0,

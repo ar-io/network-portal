@@ -36,7 +36,8 @@ const Banner = () => {
 
   const { gatewayInfo, gatewayStatus } = useGatewayInfo();
   const ticker = useGlobalState((state) => state.ticker);
-  const { parameters } = useProtocolParameters('operator');
+  const { parameters, isError: parametersError } =
+    useProtocolParameters('operator');
 
   return (
     <div>
@@ -162,6 +163,13 @@ const Banner = () => {
                       </div>
                     ))}
                   </dl>
+                ) : parametersError ? (
+                  // The heading stays because it is still true; only the
+                  // values are missing. A pulse under it would promise numbers
+                  // that are not coming.
+                  <div className="text-sm text-low">
+                    These limits could not be read from the network.
+                  </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                     {Array.from({ length: 5 }, (_, i) => (

@@ -1,7 +1,9 @@
+import PanelUnavailable from '@src/components/PanelUnavailable';
 import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
+import { useGlobalState } from '@src/store';
 import { useEffect, useState } from 'react';
 import {
   Area,
@@ -40,6 +42,7 @@ const CustomTooltip = ({
 const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
 const ObserverPerformancePanel = () => {
+  const epochLoadFailed = useGlobalState((state) => state.epochLoadFailed);
   const { data: epochSettings } = useEpochSettings();
   const { data: historicalObserverStats } = useObserversWithCount(EPOCH_COUNT);
 
@@ -202,6 +205,11 @@ const ObserverPerformancePanel = () => {
         <div className="m-auto pb-12 text-sm italic text-low">
           Historical trend available soon
         </div>
+      ) : epochLoadFailed ? (
+        <PanelUnavailable>
+          Observer performance is unavailable because the current epoch could
+          not be read.
+        </PanelUnavailable>
       ) : (
         <Placeholder className="m-auto" />
       )}

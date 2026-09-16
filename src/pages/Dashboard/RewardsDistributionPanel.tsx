@@ -1,4 +1,5 @@
 import { mARIOToken } from '@ar.io/sdk/web';
+import PanelUnavailable from '@src/components/PanelUnavailable';
 import Placeholder from '@src/components/Placeholder';
 import UnitToggle from '@src/components/UnitToggle';
 import useEpochPrices from '@src/hooks/useEpochPrices';
@@ -204,6 +205,7 @@ const RewardsDistributionPanel = () => {
   const [focusBar, setFocusBar] = useState<number>();
   const [mouseLeave, setMouseLeave] = useState(true);
   const { data: epochs } = useEpochsWithCount(EPOCH_COUNT);
+  const epochLoadFailed = useGlobalState((state) => state.epochLoadFailed);
   const { data: epochSettings } = useEpochSettings();
   const currentEpochIndex = useGlobalState(
     (state) => state.currentEpoch?.epochIndex,
@@ -407,6 +409,11 @@ const RewardsDistributionPanel = () => {
               Awaiting first epoch...
             </div>
           </div>
+        ) : epochLoadFailed ? (
+          <PanelUnavailable>
+            Rewards history is unavailable because the current epoch could not
+            be read.
+          </PanelUnavailable>
         ) : (
           <div className="flex size-full">
             <Placeholder className="m-auto h-4" />

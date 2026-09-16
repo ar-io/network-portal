@@ -20,17 +20,23 @@ yarn vitest                        # Run tests in watch mode
 yarn vitest path/to/test.test.ts   # Run a single test file
 
 # Code quality (uses Biome for linting and formatting)
-yarn lint:check    # Check for linting issues
-yarn lint:fix      # Fix linting and formatting issues automatically
+yarn lint:check    # Check for linting issues (biome check --unsafe)
+yarn lint:fix      # Fix linting and formatting issues automatically (--unsafe)
 yarn format:check  # Check formatting only
 yarn format:fix    # Fix formatting only
-yarn tsc --noEmit  # Type check without building
+yarn tsc --noEmit  # Type check the whole project, tests included (see note below)
 yarn vis           # Visualize bundle composition (vite-bundle-visualizer)
 
 # Build and deploy
-yarn build         # Full tsc --build type check, then Vite production build (memory-heavy: NODE_OPTIONS max-old-space-size=32768)
+yarn build         # rimraf dist, then tsc --build tsconfig.build.json, then Vite production build (memory-heavy: NODE_OPTIONS max-old-space-size=32768)
 yarn deploy        # Build, then deploy to Arweave via @ar.io/deploy (ario-deploy); requires VITE_ARNS_NAME + DEPLOY_KEY (base64 wallet keyfile) env vars
 ```
+
+**A green build does not type check the tests.** `yarn build` uses
+`tsconfig.build.json`, which drops `tests` from `include` and excludes
+`**/*.test.ts(x)`; CI runs `build` but never `tsc --noEmit`. Run
+`yarn tsc --noEmit` (root config) yourself before pushing a change that touches
+test files.
 
 ## Code Conventions
 
@@ -257,6 +263,46 @@ consumers branch on it: an empty `failureSummaries` must never render as "no
 failures", which previously would have shown a green **Passed** for a gateway
 whose result is simply unknown.
 
+### Arweave Data Layer (Reports)
+
+Observation reports are gzipped JSON on Arweave — a fourth data source alongside
+RPC, the portal snapshot and the analyzer archive. `useReport` downloads one by
+transaction id and gunzips it with `fflate`; `useReports` lists them, resolving
+at most `EPOCH_CONCURRENCY` (4) epochs at a time so a long epoch selector neither
+stacks into a visible wait nor arrives as a burst against one endpoint.
+
+**Which gateway serves the data depends on where the app is served from.**
+`arweaveUrl.ts` probes `/ar-io/info` once at load (`GlobalDataProvider`), caches
+the answer for the session and defaults to false. When the app is itself served
+from an ar.io gateway, `arweaveTxUrl` returns a relative `/<txid>` so that
+gateway fetches the data; otherwise it falls back to the configured host.
+`getReferenceGatewayFqdn()` deliberately ignores the serving hostname — the app
+may be reached at an ArNS subdomain, and stacking another name on top of that
+(`arns-name.portal.example.com`) does not resolve.
+
+Report **metadata** comes from an Arweave GraphQL indexer (`arweaveGqlUrl` in
+Settings, goldsky by default) via a **hand-written query, and it must stay that
+way.** `arweave-graphql`'s generated `getTransactions` declares
+`$block: BlockFilter`, a type the configured endpoint's schema does not define —
+it has `RangeFilter` — so every call failed validation before reaching the data,
+which is why the reports table's Generated At, Size and Version were never
+populated. Asking only for the fields the table renders sidesteps the mismatch
+and keeps the query independent of whichever indexer a user points at.
+
+### Extensions
+
+`/extensions` is the one route backed by neither chain, snapshot nor archive.
+`fetchExtensionsData()` derives an ArNS URL from the *current* hostname —
+swapping `extensions_gateways` into the first subdomain, or using
+`extensions_gateways.ar.io` on localhost, `network-portal.app` and Firebase
+preview hosts — then falls back to the bundled `/data/extensions.json` when that
+fetch fails.
+
+Everything passes through `validateExtensionsData`, which drops unknown
+categories and tags and rejects any URL that is not `http(s)`. This is untrusted
+third-party JSON rendered as links, so the validation is the feature, not
+boilerplate.
+
 ### Data Fetching Pattern
 
 Custom hooks in `/src/hooks/` follow this pattern:
@@ -398,7 +444,14 @@ deserializers, program ids). Never import from bare `@ar.io/sdk`.
 ### Testing
 
 - Vitest with globals enabled (no need to import `describe`, `it`, `expect`, etc.)
-- `vitest.config.ts` extends the base Vite config with `test: { globals: true }`
+- **`vitest.config.ts` does not extend `vite.config.ts` — it duplicates it.** Plugins,
+  aliases, `base`, `esbuild: false` and the build options are copy-pasted, so a plugin or
+  path alias added to one silently never reaches the other. The `define` blocks have
+  already drifted: the Vite config imports `packageJson.version` and defines
+  `process.version`; the Vitest one reads `process.env.npm_package_version` and defines
+  neither. Change both.
+- Tests live in `/tests/` mirroring `src` (`tests/utils/`, `tests/hooks/`, `tests/store/`,
+  `tests/components/`). `src/utils/extensionsLoader.test.ts` is the one exception
 - Legacy `jest.config.json` exists but is unused; tests run via vitest only
 
 ### Environment & Secrets

@@ -75,7 +75,7 @@ const calculateIODistribution = (
 const IOTokenDistributionPanel = () => {
   const [data, setData] = useState<IODistribution>();
 
-  const { data: tokenSupply } = useTokenSupply();
+  const { data: tokenSupply, isError: tokenSupplyError } = useTokenSupply();
 
   const ticker = useGlobalState((state) => state.ticker);
 
@@ -169,6 +169,17 @@ const IOTokenDistributionPanel = () => {
               </div>
             </div>
           </>
+        ) : tokenSupplyError ? (
+          // Deliberately not served from the snapshot: `getTokenSupply()` is
+          // three account reads rather than a whole-program scan, and
+          // `protocolBalance` moves with every distribution, so CLAUDE.md's
+          // test says leave it on RPC. What it must not do is shimmer forever
+          // once that read has failed.
+          <div className="flex size-full">
+            <div className="m-auto text-sm text-low">
+              Supply unavailable &mdash; could not be read from the network.
+            </div>
+          </div>
         ) : (
           <div className="flex size-full">
             <Placeholder className="m-auto h-4" />

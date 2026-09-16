@@ -22,6 +22,15 @@ type GlobalState = {
   arIOWriteableSDK?: SolanaARIOWriteable;
   solanaSlot?: number;
   currentEpoch?: EpochDataWithCounters;
+  /**
+   * True once the current-epoch read has definitively failed.
+   *
+   * `currentEpoch` is undefined both while loading and after a failure, so a
+   * consumer could not tell them apart and every dependent tile rendered a
+   * loading skeleton forever. A skeleton promises arrival; this is how a
+   * consumer knows nothing is coming.
+   */
+  epochLoadFailed?: boolean;
   walletAddress?: AoAddress;
   walletStateInitialized: boolean;
   ticker: string;
@@ -33,6 +42,7 @@ type GlobalStateActions = {
   setTheme: (theme: ThemeType) => void;
   setSolanaSlot: (slot: number) => void;
   setCurrentEpoch: (currentEpoch?: EpochDataWithCounters) => void;
+  setEpochLoadFailed: (epochLoadFailed: boolean) => void;
   updateWallet: (walletAddress?: AoAddress) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
@@ -166,6 +176,10 @@ class GlobalStateActionBase implements GlobalStateActions {
 
   setSolanaSlot = (solanaSlot: number) => {
     this.set({ solanaSlot });
+  };
+
+  setEpochLoadFailed = (epochLoadFailed: boolean) => {
+    this.set({ epochLoadFailed });
   };
 
   setCurrentEpoch = (currentEpoch?: EpochDataWithCounters) => {

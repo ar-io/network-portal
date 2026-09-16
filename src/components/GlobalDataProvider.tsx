@@ -48,6 +48,9 @@ const isEpochUnavailableError = (errorMessage: string): boolean => {
 
 const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const setCurrentEpoch = useGlobalState((state) => state.setCurrentEpoch);
+  const setEpochLoadFailed = useGlobalState(
+    (state) => state.setEpochLoadFailed,
+  );
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const setTicker = useGlobalState((state) => state.setTicker);
   const rpc = useGlobalState((state) => state.rpc);
@@ -60,6 +63,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   useEffect(() => {
     const loadCurrentEpoch = async () => {
       setCurrentEpoch(undefined);
+      setEpochLoadFailed(false);
 
       const garProgram = (arioReadSDK as any)?.garProgram as string | undefined;
       const commitment =
@@ -89,6 +93,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           log.error(
             '[GlobalDataProvider] Error fetching current epoch: unexpected array response',
           );
+          setEpochLoadFailed(true);
           showErrorToast(
             'Error fetching current epoch. Application may not function as expected.',
           );
@@ -109,6 +114,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
               errorMessage,
             },
           );
+          setEpochLoadFailed(true);
           return;
         }
 
@@ -117,6 +123,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           errorMessage,
           error,
         });
+        setEpochLoadFailed(true);
         showErrorToast(
           'Error fetching current epoch. Application may not function as expected.',
         );

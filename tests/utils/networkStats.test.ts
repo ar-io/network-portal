@@ -86,6 +86,8 @@ describe('fetchNetworkStatsFromRpc', () => {
 });
 
 describe('network stats cache', () => {
+  const PROGRAMS = '{"core":"CoreProgram11111","gar":"GarProgram111111"}';
+  const OTHER_PROGRAMS = '{"core":"CoreProgram22222","gar":"GarProgram222222"}';
   const stats = {
     totalAddresses: 2352,
     uniqueDelegates: 335,
@@ -94,9 +96,9 @@ describe('network stats cache', () => {
 
   it('returns a row written within the TTL', async () => {
     const db = fakeDb();
-    await writeCachedNetworkStats(db, stats);
+    await writeCachedNetworkStats(db, stats, PROGRAMS);
 
-    expect(await readCachedNetworkStats(db, TTL)).toEqual(stats);
+    expect(await readCachedNetworkStats(db, TTL, PROGRAMS)).toEqual(stats);
     expect(db._row().id).toBe(NETWORK_STATS_CACHE_KEY);
   });
 
@@ -104,10 +106,11 @@ describe('network stats cache', () => {
     const db = fakeDb({
       ...stats,
       id: NETWORK_STATS_CACHE_KEY,
+      programFingerprint: PROGRAMS,
       fetchedAt: Date.now() - (TTL + 1000),
     });
 
-    expect(await readCachedNetworkStats(db, TTL)).toBeUndefined();
+    expect(await readCachedNetworkStats(db, TTL, PROGRAMS)).toBeUndefined();
   });
 
   it('treats a row from the future as a miss', async () => {
@@ -116,33 +119,60 @@ describe('network stats cache', () => {
     const db = fakeDb({
       ...stats,
       id: NETWORK_STATS_CACHE_KEY,
+      programFingerprint: PROGRAMS,
       fetchedAt: Date.now() + 10 * TTL,
     });
 
-    expect(await readCachedNetworkStats(db, TTL)).toBeUndefined();
+    expect(await readCachedNetworkStats(db, TTL, PROGRAMS)).toBeUndefined();
   });
 
   it('returns a miss rather than throwing when IndexedDB is unavailable', async () => {
     // Private windows and blocked site data must degrade to a fetch, not an
     // error — the cache is an optimisation.
-    expect(await readCachedNetworkStats(throwingDb(), TTL)).toBeUndefined();
+    expect(
+      await readCachedNetworkStats(throwingDb(), TTL, PROGRAMS),
+    ).toBeUndefined();
   });
 
   it('does not throw when the cache cannot be written', async () => {
     await expect(
-      writeCachedNetworkStats(throwingDb(), stats),
+      writeCachedNetworkStats(throwingDb(), stats, PROGRAMS),
     ).resolves.toBeUndefined();
+  });
+
+  it('treats a row computed for other program ids as a miss', async () => {
+    // The database is named for the network tier, but program ids are
+    // configurable per tier in Settings, so one tier can address two different
+    // sets of programs. Counts of one must not be served as counts of the other.
+    const db = fakeDb();
+    await writeCachedNetworkStats(db, stats, PROGRAMS);
+
+    expect(
+      await readCachedNetworkStats(db, TTL, OTHER_PROGRAMS),
+    ).toBeUndefined();
+    expect(await readCachedNetworkStats(db, TTL, PROGRAMS)).toEqual(stats);
+  });
+
+  it('treats a row written before the fingerprint existed as a miss', async () => {
+    const db = fakeDb({
+      ...stats,
+      id: NETWORK_STATS_CACHE_KEY,
+      fetchedAt: Date.now(),
+    });
+
+    expect(await readCachedNetworkStats(db, TTL, PROGRAMS)).toBeUndefined();
   });
 
   it('drops fields that are not part of the stats shape', async () => {
     const db = fakeDb({
       ...stats,
       id: NETWORK_STATS_CACHE_KEY,
+      programFingerprint: PROGRAMS,
       fetchedAt: Date.now(),
       strayField: 'should not survive',
     });
 
-    const read = await readCachedNetworkStats(db, TTL);
+    const read = await readCachedNetworkStats(db, TTL, PROGRAMS);
 
     expect(read).toEqual(stats);
     expect(read).not.toHaveProperty('strayField');

@@ -1,4 +1,9 @@
-import { ARIORead } from '@ar.io/sdk/web';
+import { ARIORead, AllDelegates } from '@ar.io/sdk/web';
+import {
+  type PortalProgramIds,
+  fetchPortalDocument,
+  fetchPortalSummary,
+} from './portalApi';
 
 /**
  * The three headline counts on the dashboard's Network Statistics panel.
@@ -20,10 +25,9 @@ export type NetworkStats = {
 /**
  * Derive the stats from chain reads.
  *
- * **This function is the seam.** It is the only place that knows the numbers
- * come from RPC, so pointing the panel at the ar.io backend means adding a
- * backend fetcher and trying it first, with this as the fallback — no changes to
- * the cache, the hook, or the panel.
+ * **This function is the fallback.** `fetchNetworkStatsFromSnapshot` is tried
+ * first; this runs only when the snapshot is off, unreachable, or publishing a
+ * different network.
  *
  * It is also the expensive path, which is why it sits behind a cache: each of
  * these three calls is a whole-program `getProgramAccounts` scan. Together they
@@ -51,5 +55,52 @@ export const fetchNetworkStatsFromRpc = async (
     // Equivalent to summing per-address vault counts, which is what the panel
     // used to do after `useAllVaults` grouped them by address.
     totalVaults: vaults.items.length,
+  };
+};
+
+/**
+ * Derive the same three counts from the published snapshot.
+ *
+ * These are whole-program scans, so they are exactly what the snapshot exists
+ * to absorb. Reading them from RPC meant the panel went blank whenever the
+ * chain was unreachable, even with the snapshot serving every other number on
+ * the page — which is the opposite of what the fallback is for.
+ *
+ * Two of the three are scalars in `summary.json`, a 1.6KB document. The third
+ * is not: `counts.delegates` counts delegation ROWS (542 on devnet) while the
+ * panel has always shown unique delegating ADDRESSES (352), because one address
+ * can delegate to many gateways. That one needs `delegates.json` and a dedupe.
+ *
+ * Returns null if any part is unavailable, so the caller falls back whole
+ * rather than showing two real numbers beside a guess.
+ */
+export const fetchNetworkStatsFromSnapshot = async (
+  expectedNetwork: string,
+  expectedProgramIds: PortalProgramIds = {},
+): Promise<NetworkStats | null> => {
+  const [summary, delegates] = await Promise.all([
+    fetchPortalSummary(expectedNetwork, expectedProgramIds),
+    fetchPortalDocument<AllDelegates>(
+      'delegates',
+      expectedNetwork,
+      expectedProgramIds,
+    ),
+  ]);
+
+  const totalAddresses = summary?.counts?.balances;
+  const totalVaults = summary?.counts?.vaults;
+
+  if (
+    typeof totalAddresses !== 'number' ||
+    typeof totalVaults !== 'number' ||
+    !delegates
+  ) {
+    return null;
+  }
+
+  return {
+    totalAddresses,
+    totalVaults,
+    uniqueDelegates: new Set(delegates.map((item) => item.address)).size,
   };
 };

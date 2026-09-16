@@ -1,9 +1,12 @@
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
 import { readCachedNetworkStats, writeCachedNetworkStats } from '@src/store/db';
 import {
   type NetworkStats,
   fetchNetworkStatsFromRpc,
+  fetchNetworkStatsFromSnapshot,
 } from '@src/utils/networkStats';
+import { networkTierFromRpcUrl } from '@src/utils/portalApi';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -16,10 +19,16 @@ import { useQuery } from '@tanstack/react-query';
  */
 export const NETWORK_STATS_TTL = 60 * 60 * 1000;
 
-export const networkStatsQueryKey = (solanaRpcUrl: string) => [
-  'networkStats',
-  solanaRpcUrl,
-];
+/**
+ * Program ids are part of the key because they are configurable per network
+ * tier in Settings, and the counts are counts OF those programs' accounts.
+ * Keyed on the endpoint alone, changing the ids kept serving the previous
+ * network's numbers for the rest of the TTL.
+ */
+export const networkStatsQueryKey = (
+  solanaRpcUrl: string,
+  programFingerprint = '',
+) => ['networkStats', solanaRpcUrl, programFingerprint];
 
 /**
  * The dashboard's three headline counts, cached across sessions.
@@ -37,26 +46,46 @@ const useNetworkStats = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
+  const portalProgramIds = usePortalProgramIds();
+  const programFingerprint = JSON.stringify(portalProgramIds);
 
   return useQuery<NetworkStats>({
-    queryKey: networkStatsQueryKey(solanaRpcUrl),
+    queryKey: networkStatsQueryKey(solanaRpcUrl, programFingerprint),
     queryFn: async () => {
       const cached = await readCachedNetworkStats(
         networkPortalDB,
         NETWORK_STATS_TTL,
+        programFingerprint,
       );
       if (cached) return cached;
+
+      // Snapshot first: these are the three whole-program scans the published
+      // documents exist to absorb, and reading them from the chain left the
+      // panel blank whenever RPC was down even though every other number on
+      // the dashboard came from the snapshot and rendered fine.
+      const fromSnapshot = await fetchNetworkStatsFromSnapshot(
+        networkTierFromRpcUrl(solanaRpcUrl),
+        portalProgramIds,
+      );
+      if (fromSnapshot) {
+        await writeCachedNetworkStats(
+          networkPortalDB,
+          fromSnapshot,
+          programFingerprint,
+        );
+        return fromSnapshot;
+      }
 
       if (!arIOReadSDK) {
         throw new Error('arIOReadSDK is not initialized');
       }
 
       const stats = await fetchNetworkStatsFromRpc(arIOReadSDK);
-      await writeCachedNetworkStats(networkPortalDB, stats);
+      await writeCachedNetworkStats(networkPortalDB, stats, programFingerprint);
       return stats;
     },
     staleTime: NETWORK_STATS_TTL,
-    enabled: !!arIOReadSDK && !!networkPortalDB,
+    enabled: !!networkPortalDB,
   });
 };
 

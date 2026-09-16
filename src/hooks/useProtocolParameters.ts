@@ -30,8 +30,12 @@ export type ProtocolParametersVariant = 'operator' | 'delegate';
  */
 export const useProtocolParameters = (
   variant: ProtocolParametersVariant,
-): { parameters: ProtocolParameter[] | undefined; isLoading: boolean } => {
-  const { data: settings, isLoading } = useGatewayRegistrySettings();
+): {
+  parameters: ProtocolParameter[] | undefined;
+  isLoading: boolean;
+  isError: boolean;
+} => {
+  const { data: settings, isLoading, isError } = useGatewayRegistrySettings();
   const ticker = useGlobalState((state) => state.ticker);
 
   const parameters = useMemo<ProtocolParameter[] | undefined>(() => {
@@ -108,5 +112,5 @@ export const useProtocolParameters = (
     ];
   }, [settings, ticker, variant]);
 
-  return { parameters, isLoading };
+  return { parameters, isLoading, isError };
 };

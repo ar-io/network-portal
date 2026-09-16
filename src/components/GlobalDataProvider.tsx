@@ -48,6 +48,9 @@ const isEpochUnavailableError = (errorMessage: string): boolean => {
 
 const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const setCurrentEpoch = useGlobalState((state) => state.setCurrentEpoch);
+  const setEpochLoadFailed = useGlobalState(
+    (state) => state.setEpochLoadFailed,
+  );
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const setTicker = useGlobalState((state) => state.setTicker);
   const rpc = useGlobalState((state) => state.rpc);
@@ -58,8 +61,16 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    // The effect reruns whenever the endpoint changes, and the request it
+    // started is not cancellable. Without this, an older request rejecting
+    // after a newer one began would flip `epochLoadFailed` while the newer one
+    // is still in flight, and the header would read Unavailable during a load
+    // that has not failed.
+    let isCurrent = true;
+
     const loadCurrentEpoch = async () => {
       setCurrentEpoch(undefined);
+      setEpochLoadFailed(false);
 
       const garProgram = (arioReadSDK as any)?.garProgram as string | undefined;
       const commitment =
@@ -85,10 +96,13 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           epoch = await arioReadSDK.getCurrentEpoch();
         }
 
+        if (!isCurrent) return;
+
         if (Array.isArray(epoch)) {
           log.error(
             '[GlobalDataProvider] Error fetching current epoch: unexpected array response',
           );
+          setEpochLoadFailed(true);
           showErrorToast(
             'Error fetching current epoch. Application may not function as expected.',
           );
@@ -99,6 +113,8 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
         );
         setCurrentEpoch(epoch);
       } catch (error) {
+        if (!isCurrent) return;
+
         const errorMessage = getErrorMessage(error);
 
         if (isEpochUnavailableError(errorMessage)) {
@@ -109,6 +125,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
               errorMessage,
             },
           );
+          setEpochLoadFailed(true);
           return;
         }
 
@@ -117,6 +134,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           errorMessage,
           error,
         });
+        setEpochLoadFailed(true);
         showErrorToast(
           'Error fetching current epoch. Application may not function as expected.',
         );
@@ -124,7 +142,19 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
     };
 
     loadCurrentEpoch();
-  }, [arioReadSDK, rpc, queryClient, setCurrentEpoch, setTicker, solanaRpcUrl]);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [
+    arioReadSDK,
+    rpc,
+    queryClient,
+    setCurrentEpoch,
+    setEpochLoadFailed,
+    setTicker,
+    solanaRpcUrl,
+  ]);
 
   useEffect(() => {
     if (currentEpoch?.epochIndex && networkPortalDB) {

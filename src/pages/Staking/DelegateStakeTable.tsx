@@ -15,10 +15,10 @@ import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useAllGateways from '@src/hooks/useAllGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
+import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { calculateGatewayRewards } from '@src/utils/rewards';
+import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
 import { compareRowValues } from '@src/utils/tableSort';
 import {
   ColumnDef,
@@ -59,7 +59,7 @@ interface TableData {
   totalDelegatedStake: number;
   totalStake: number;
   operatorStake: number;
-  eay: number;
+  eay?: number;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -99,7 +99,7 @@ const DelegateStake = () => {
     isError,
     data: allGateways,
   } = useAllGateways();
-  const { data: protocolBalance } = useProtocolBalance();
+  const perGatewayReward = usePerGatewayReward();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
@@ -117,13 +117,10 @@ const DelegateStake = () => {
   }, [allGateways]);
 
   useEffect(() => {
-    if (!delegateEnabledGateways.length || !protocolBalance) {
+    if (!delegateEnabledGateways.length) {
       setTableData([]);
       return;
     }
-
-    const protocolBalanceARIO = new mARIOToken(protocolBalance).toARIO();
-    const joinedGatewayCount = delegateEnabledGateways.length;
 
     const processedData: Array<TableData> = delegateEnabledGateways.map(
       (gateway: GatewayWithAddress) => {
@@ -156,16 +153,16 @@ const DelegateStake = () => {
           totalDelegatedStake: totalDelegatedStakeARIO,
           operatorStake: operatorStakeARIO,
           totalStake: totalDelegatedStakeARIO + operatorStakeARIO,
-          eay: calculateGatewayRewards(
-            protocolBalanceARIO,
-            joinedGatewayCount,
-            gateway,
-          ).EAY,
+          // Without the epoch's per-gateway reward the yield is unknown, not
+          // zero, and the rest of the row is still worth showing.
+          eay: perGatewayReward
+            ? knownYield(calculateGatewayRewards(perGatewayReward, gateway).EAY)
+            : undefined,
         };
       },
     );
     setTableData(processedData);
-  }, [delegateEnabledGateways, protocolBalance]);
+  }, [delegateEnabledGateways, perGatewayReward]);
 
   // Filter data by search term
   const filteredData = useMemo(() => {
@@ -273,6 +270,7 @@ const DelegateStake = () => {
 
       columnHelper.accessor('eay', {
         id: 'eay',
+        sortUndefined: 'last',
         meta: {
           displayName: 'Delegate EAY',
         },
@@ -293,7 +291,7 @@ const DelegateStake = () => {
         ),
         cell: ({ row }) => (
           <div>
-            {row.original.eay < 0
+            {row.original.eay === undefined
               ? 'N/A'
               : `${formatWithCommas(row.original.eay * 100)}%`}
           </div>
@@ -444,6 +442,12 @@ const DelegateStake = () => {
           <ColumnSelector tableId="delegate-stake" columns={columns} />
         </div>
       </div>
+      {!perGatewayReward && !isLoading && (
+        <div className="border-x border-grey-600 bg-containerL3 px-6 py-2 text-xs text-low">
+          Yield is unavailable because the current epoch could not be read.
+          Every other column is live.
+        </div>
+      )}
       <ServerSortableTableView
         columns={columns}
         data={paginatedData}

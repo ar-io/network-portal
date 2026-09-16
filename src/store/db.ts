@@ -36,6 +36,17 @@ export interface CachedNetworkStats extends NetworkStats {
   id: string;
   /** When these counts were read, in ms since epoch. */
   fetchedAt: number;
+  /**
+   * The program ids these counts were computed against.
+   *
+   * The database is named for the network tier, which is the right scope for
+   * facts about a network, but program ids are configurable per tier in
+   * Settings. Two different sets of programs on one tier are two different
+   * networks' worth of accounts, so a row computed for one must not be served
+   * for the other. Absent on rows written before this field existed; treat
+   * that as a miss rather than a match.
+   */
+  programFingerprint?: string;
 }
 
 /** The only row id used by {@link readCachedNetworkStats}. */
@@ -178,12 +189,14 @@ export const cleanupDbCache = async (
 export const readCachedNetworkStats = async (
   networkPortalDB: NetworkPortalDB,
   ttlMs: number,
+  programFingerprint: string,
 ): Promise<NetworkStats | undefined> => {
   try {
     const cached = await networkPortalDB.networkStats.get(
       NETWORK_STATS_CACHE_KEY,
     );
     if (!cached) return undefined;
+    if (cached.programFingerprint !== programFingerprint) return undefined;
 
     const age = Date.now() - cached.fetchedAt;
     // A negative age means the row was written by a clock ahead of this one;
@@ -205,12 +218,14 @@ export const readCachedNetworkStats = async (
 export const writeCachedNetworkStats = async (
   networkPortalDB: NetworkPortalDB,
   stats: NetworkStats,
+  programFingerprint: string,
 ): Promise<void> => {
   try {
     await networkPortalDB.networkStats.put({
       ...stats,
       id: NETWORK_STATS_CACHE_KEY,
       fetchedAt: Date.now(),
+      programFingerprint,
     });
   } catch (error) {
     log.warn('[db] could not cache network stats', error);

@@ -4,6 +4,7 @@ import {
   calculateGatewayRewards,
   calculateOperatorRewards,
   calculateUserRewards,
+  knownYield,
 } from '@src/utils/rewards';
 
 /**
@@ -187,6 +188,44 @@ describe('rewards.ts', () => {
         (gatewayRewards.rewardsSharedPerEpoch.valueOf() / 100_000) * 365,
         6,
       );
+    });
+  });
+
+  describe('knownYield', () => {
+    it('passes a real yield through, including zero', () => {
+      expect(knownYield(0.0842)).toEqual(0.0842);
+      expect(knownYield(0)).toEqual(0);
+    });
+
+    /**
+     * -1 is `calculateGatewayRewards`' "no delegated stake" sentinel. A gateway
+     * with no delegates has an undefined yield, not the lowest one, and a table
+     * sorting ascending must not lead with it.
+     */
+    it('treats the no-stake sentinel as unknown rather than as a low yield', () => {
+      expect(knownYield(-1)).toBeUndefined();
+      expect(knownYield(-365)).toBeUndefined();
+    });
+
+    it('treats a non-finite yield as unknown', () => {
+      expect(knownYield(Number.NaN)).toBeUndefined();
+      expect(knownYield(Number.POSITIVE_INFINITY)).toBeUndefined();
+    });
+
+    /** Sorting relies on this: undefined is never comparable to a number. */
+    it('never returns a value that sorts below a real yield', () => {
+      const sentinel = calculateGatewayRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        gatewayWith(50, 0),
+      ).EAY;
+      const real = calculateGatewayRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        gatewayWith(1, 5_000_000),
+      ).EAY;
+
+      expect(sentinel).toBeLessThan(real);
+      expect(knownYield(sentinel)).toBeUndefined();
+      expect(knownYield(real)).toBeGreaterThan(0);
     });
   });
 });

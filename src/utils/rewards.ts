@@ -159,3 +159,20 @@ export const calculateUserRewards = (
     EAY,
   };
 };
+
+/**
+ * An EAY as a number, or `undefined` when there isn't one.
+ *
+ * Two different things produce "no yield" and neither is a small number.
+ * `calculateGatewayRewards` returns -1 for a gateway with no delegated stake,
+ * where the yield is undefined rather than low, and a caller with no
+ * `perGatewayReward` has a yield that is unknown rather than zero.
+ *
+ * Tables must not sort either as a value. A -1 sorts below every real yield,
+ * so ascending order (the direction someone picks to find the weakest
+ * gateways) led with a block of N/A rows; on mainnet that is 134 of 245
+ * gateways. Returning `undefined` lets `sortUndefined: 'last'` pin them to the
+ * bottom in both directions.
+ */
+export const knownYield = (eay: number): number | undefined =>
+  Number.isFinite(eay) && eay >= 0 ? eay : undefined;

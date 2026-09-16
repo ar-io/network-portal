@@ -22,7 +22,7 @@ import useGateways from '@src/hooks/useGateways';
 import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { calculateGatewayRewards } from '@src/utils/rewards';
+import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import dayjs from 'dayjs';
@@ -99,12 +99,13 @@ const MyStakesTable = () => {
                       : gateway.stats.failedConsecutiveEpochs > 0
                         ? -gateway.stats.failedConsecutiveEpochs
                         : gateway.stats.passedConsecutiveEpochs,
-                  // -1 renders as a dash and sorts last. A missing epoch read
-                  // makes the yield unknown, not zero, and must not hide a
-                  // wallet's own stakes.
+                  // A missing epoch read makes the yield unknown, not zero,
+                  // and must not hide a wallet's own stakes.
                   eay: perGatewayReward
-                    ? calculateGatewayRewards(perGatewayReward, gateway).EAY
-                    : -1,
+                    ? knownYield(
+                        calculateGatewayRewards(perGatewayReward, gateway).EAY,
+                      )
+                    : undefined,
                 };
               }),
             // Pending withdrawals
@@ -187,6 +188,7 @@ const MyStakesTable = () => {
       }),
       columnHelper.accessor('eay', {
         id: 'eay',
+        sortUndefined: 'last',
         meta: {
           displayName: 'Delegate EAY',
         },
@@ -209,8 +211,7 @@ const MyStakesTable = () => {
         cell: ({ row }) => (
           <div>
             {row.original.status === 'Withdrawing' ||
-            !row.original.eay ||
-            row.original.eay < 0
+            row.original.eay === undefined
               ? 'N/A'
               : `${formatWithCommas(row.original.eay * 100)}%`}
           </div>

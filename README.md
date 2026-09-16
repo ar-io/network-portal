@@ -39,8 +39,9 @@ yarn test
 Pushing to `main` deploys the application to the network-portal.app domain via
 Firebase Hosting and, permanently, to Arweave via the
 [ar-io-deploy](https://github.com/ar-io/ar-io-deploy) action. Pushing to
-`develop` deploys staging to GitHub Pages, and pull requests get an Arweave
-preview.
+`develop` deploys staging to GitHub Pages. A pull request gets an Arweave
+preview only when it changes files under `content/` or `src/`, so a
+documentation-only change does not get one.
 
 Developers can deploy their own version to Arweave with `yarn deploy`, which
 builds and then runs `ario-deploy` from
@@ -48,9 +49,15 @@ builds and then runs `ario-deploy` from
 variables:
 
 ```shell
-export VITE_ARNS_NAME=[the ArNS name to deploy to]
-export DEPLOY_KEY=[base64-encoded Arweave wallet keyfile]
+export VITE_ARNS_NAME="ARNS_NAME"
+export DEPLOY_KEY="BASE64_ENCODED_ARWEAVE_WALLET_KEYFILE"
 ```
+
+Replace the following:
+
+- `ARNS_NAME` with the ArNS name to deploy to.
+- `BASE64_ENCODED_ARWEAVE_WALLET_KEYFILE` with your Arweave wallet keyfile,
+  base64 encoded.
 
 Keep these out of git along with the rest of your `.env` files. For local
 testing you can put them in a `deploy.sh`, `source deploy.sh`, then run

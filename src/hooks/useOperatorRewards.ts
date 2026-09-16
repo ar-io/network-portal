@@ -16,6 +16,11 @@ const useOperatorRewards = (gateway: Gateway | undefined) => {
         new mARIOToken(gateway.operatorStake).toARIO(),
       );
       setOperatorRewards(operatorRewards);
+    } else {
+      // An unknown per-gateway reward means the yield is unknown. Leaving the
+      // previous value in place would show a figure from another epoch, or
+      // another endpoint, as though it still applied.
+      setOperatorRewards(undefined);
     }
   }, [perGatewayReward, gateway]);
 

@@ -25,6 +25,10 @@ const useRewardsInfo = (
         userStake < 0,
       );
       setUserRewards(userRewards);
+    } else {
+      // See useOperatorRewards: stale is worse than absent, because the modal
+      // renders it as the yield for the amount currently in the field.
+      setUserRewards(undefined);
     }
   }, [perGatewayReward, gateway, userStake]);
 

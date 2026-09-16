@@ -46,7 +46,7 @@ const GatewaySelectorModal = ({
   const [searchText, setSearchText] = useState<string>();
 
   useEffect(() => {
-    if (perGatewayReward && gateways) {
+    if (gateways) {
       const tableData: TableData[] = gateways.map((gateway) => {
         return {
           gateway,
@@ -55,7 +55,13 @@ const GatewaySelectorModal = ({
           totalStake: new mARIOToken(gateway.totalDelegatedStake)
             .toARIO()
             .valueOf(),
-          eay: calculateGatewayRewards(perGatewayReward, gateway).EAY,
+          // -1 is this table's own "no value" sentinel and renders as N/A.
+          // Gating the whole list on the reward emptied the gateway picker in
+          // the redelegate flow, which needs to list gateways whether or not a
+          // yield can be shown for them.
+          eay: perGatewayReward
+            ? calculateGatewayRewards(perGatewayReward, gateway).EAY
+            : -1,
         };
       });
       if (searchText && searchText.length > 0) {

@@ -19,10 +19,16 @@ import { useQuery } from '@tanstack/react-query';
  */
 export const NETWORK_STATS_TTL = 60 * 60 * 1000;
 
-export const networkStatsQueryKey = (solanaRpcUrl: string) => [
-  'networkStats',
-  solanaRpcUrl,
-];
+/**
+ * Program ids are part of the key because they are configurable per network
+ * tier in Settings, and the counts are counts OF those programs' accounts.
+ * Keyed on the endpoint alone, changing the ids kept serving the previous
+ * network's numbers for the rest of the TTL.
+ */
+export const networkStatsQueryKey = (
+  solanaRpcUrl: string,
+  programFingerprint = '',
+) => ['networkStats', solanaRpcUrl, programFingerprint];
 
 /**
  * The dashboard's three headline counts, cached across sessions.
@@ -41,13 +47,15 @@ const useNetworkStats = () => {
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
   const portalProgramIds = usePortalProgramIds();
+  const programFingerprint = JSON.stringify(portalProgramIds);
 
   return useQuery<NetworkStats>({
-    queryKey: networkStatsQueryKey(solanaRpcUrl),
+    queryKey: networkStatsQueryKey(solanaRpcUrl, programFingerprint),
     queryFn: async () => {
       const cached = await readCachedNetworkStats(
         networkPortalDB,
         NETWORK_STATS_TTL,
+        programFingerprint,
       );
       if (cached) return cached;
 
@@ -60,7 +68,11 @@ const useNetworkStats = () => {
         portalProgramIds,
       );
       if (fromSnapshot) {
-        await writeCachedNetworkStats(networkPortalDB, fromSnapshot);
+        await writeCachedNetworkStats(
+          networkPortalDB,
+          fromSnapshot,
+          programFingerprint,
+        );
         return fromSnapshot;
       }
 
@@ -69,7 +81,7 @@ const useNetworkStats = () => {
       }
 
       const stats = await fetchNetworkStatsFromRpc(arIOReadSDK);
-      await writeCachedNetworkStats(networkPortalDB, stats);
+      await writeCachedNetworkStats(networkPortalDB, stats, programFingerprint);
       return stats;
     },
     staleTime: NETWORK_STATS_TTL,

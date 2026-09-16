@@ -97,7 +97,7 @@ const OperatorStakingModal = ({
     stakeAmount: validators.stakeAmount(amountToStake),
     cannotStake:
       (balances?.ario || 0) < minRequiredStakeToAdd
-        ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
+        ? `Insufficient balance, at least ${minRequiredStakeToAdd} ${ticker} required.`
         : undefined,
   };
 

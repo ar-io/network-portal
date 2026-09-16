@@ -29,6 +29,23 @@ import {
   ValueType,
 } from 'recharts/types/component/DefaultTooltipContent';
 
+/**
+ * Legend swatches, one per stacked series.
+ *
+ * The bars are filled with gradients at 0.125-0.3 opacity, which is legible
+ * across a 40px-wide bar and invisible in an 8px dot, so each swatch is the
+ * gradient's own stops at full strength rather than a copy of the fill. Two
+ * stacked series with no key could only be told apart by hovering, while the
+ * supply donut on the same dashboard has always had one.
+ */
+const REWARD_SERIES = [
+  {
+    label: 'Gateway rewards',
+    swatch: 'linear-gradient(135deg, #F7C3A1, #DF9BE8)',
+  },
+  { label: 'Observer rewards', swatch: '#3DB7C2' },
+] as const;
+
 const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
 interface RewardsData {
@@ -396,6 +413,26 @@ const RewardsDistributionPanel = () => {
           </div>
         )}
       </div>
+      {rewardsData && rewardsData.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 pb-4 text-xs text-low">
+          {REWARD_SERIES.map(({ label, swatch }) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-2 min-w-2 rounded-full"
+                style={{ background: swatch }}
+              />
+              <span>{label}</span>
+            </div>
+          ))}
+          {/* The unit toggle only renders once prices exist, so without this
+              the axis is a column of bare numbers on every network that has
+              none, and on mobile where the toggle is easiest to miss. */}
+          <span className="ml-auto">
+            {unit === 'usd' ? 'USD' : ticker || 'ARIO'}
+          </span>
+        </div>
+      )}
       {unit === 'usd' && unpricedCount > 0 && (
         <div className="px-5 pb-4 text-xs text-low">
           {unpricedCount} epoch{unpricedCount === 1 ? '' : 's'} not priced yet —

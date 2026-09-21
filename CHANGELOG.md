@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.1] - 2026-09-21
+
+### Fixed
+
+- Observer reports failing to load, leaving an empty page where the assessments
+  table belongs. Reports are stored compressed, and a gateway that has indexed one
+  hands it to your browser already decompressed — the portal then tried to
+  decompress it a second time and gave up. It now checks first, so a report loads
+  whichever way the gateway serves it. Reports stored as their own transaction were
+  affected on most gateways; reports stored inside a bundle generally were not.
+
+- Switching between Mainnet and Devnet in Settings doing nothing. Both buttons in
+  the published build pointed at the same mainnet endpoint, so "Switch to Devnet"
+  reloaded mainnet and the label never changed. The deploy now refuses to publish
+  a build whose two endpoints don't name the networks they serve.
+
+- Download Report failing without saying so on a report's own page, and saving a
+  gateway's error page as `report-<id>.json` when one came back in place of a
+  report. Both now report the failure instead.
+
 ## [2.11.0] - 2026-08-27
 
 ### Added

@@ -14,8 +14,9 @@ export const downloadReport = async (reportId: string) => {
 
   const arrayBuffer = await response.arrayBuffer();
 
-  const data = gunzipSync(new Uint8Array(arrayBuffer));
-  return data;
+  const data = new Uint8Array(arrayBuffer);
+  // Browsers already decode responses served with Content-Encoding: gzip.
+  return data[0] === 0x1f && data[1] === 0x8b ? gunzipSync(data) : data;
 };
 
 const useReport = (reportId?: string) => {

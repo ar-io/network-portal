@@ -20,6 +20,17 @@ jobs:
   # heavily rate-limited — and it fails *silently* at build time, so a missing
   # secret would ship a degraded production build that looks fine in CI. This
   # deploy is permanent (Arweave), so refuse rather than publish it.
+  #
+  # Non-empty is not enough. `VITE_SOLANA_RPC_URL` is the *devnet* slot despite
+  # its generic name, and during an endpoint rotation the mainnet URL was pasted
+  # into both. Nothing failed: the build was green and the app worked, but
+  # Settings inferred "mainnet" from both endpoints, so "Switch to Devnet"
+  # reloaded mainnet and the network switcher was dead in production for weeks.
+  #
+  # Settings decides the tier by looking for `devnet`/`testnet`/`localhost` in
+  # the URL itself (see `getNetworkTierFromRpcUrl`), so these checks assert
+  # exactly what the app will infer at runtime. An endpoint whose URL does not
+  # say which network it serves cannot drive the switcher, whoever issued it.
   verify-secrets:
     runs-on: ubuntu-latest
     # Same environment as the deploy jobs so this resolves environment-scoped
@@ -29,7 +40,7 @@ jobs:
     steps:
       - name: Require RPC secrets
         env:
-          # Presence checks only — values are never echoed.
+          # Presence and shape checks only — values are never echoed.
           SOLANA_RPC_URL: ${{ secrets.VITE_SOLANA_RPC_URL }}
           SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
         run: |
@@ -42,6 +53,29 @@ jobs:
             echo "::error::secrets.VITE_SOLANA_MAINNET_RPC_URL is empty — the mainnet switcher would fall back to public api.mainnet-beta.solana.com."
             missing=1
           fi
+          if (( missing )); then
+            exit 1
+          fi
+
+          devnet=${SOLANA_RPC_URL,,}
+          mainnet=${SOLANA_MAINNET_RPC_URL,,}
+
+          # A trailing slash is the difference that hid the last mix-up.
+          if [[ "${devnet%/}" == "${mainnet%/}" ]]; then
+            echo "::error::VITE_SOLANA_RPC_URL and VITE_SOLANA_MAINNET_RPC_URL are the same endpoint — the network switcher needs two."
+            missing=1
+          fi
+
+          if [[ "$devnet" != *devnet* ]]; then
+            echo "::error::VITE_SOLANA_RPC_URL is the devnet slot, but its URL does not contain 'devnet' — Settings would infer the wrong network and 'Switch to Devnet' would do nothing."
+            missing=1
+          fi
+
+          if [[ "$mainnet" == *devnet* || "$mainnet" == *testnet* || "$mainnet" == *localhost* || "$mainnet" == *127.0.0.1* ]]; then
+            echo "::error::VITE_SOLANA_MAINNET_RPC_URL does not look like a mainnet endpoint — Settings infers mainnet only when the URL says nothing else."
+            missing=1
+          fi
+
           exit $missing
 
   build:

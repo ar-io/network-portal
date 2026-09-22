@@ -130,7 +130,7 @@ const RedelegateModal = ({
       maxStake - amount < sourceMinStakeARIO
     ) {
       setErrorMessage(
-        `Amount to redelegate must either leave enough stake to meet the source gateway's minimum delegated stake (${formatWithCommas(sourceMinStakeARIO)} ${ticker}) or move the entire stake completely.`,
+        `Amount to redelegate must either leave enough stake to meet the source gateway's minimum delegated stake (${formatARIOExact(sourceMinStakeARIO)} ${ticker}) or move the entire stake completely.`,
       );
       setIsFormValid(false);
       return;
@@ -161,10 +161,18 @@ const RedelegateModal = ({
       feeRatePct,
       minDelegatedStake,
       targetHasPosition: (targetGatewayCurrentStake ?? 0) > 0,
+      maxAmount: maxStake,
+      sourceMinimum: sourceMinStakeARIO,
+      fromVault: vaultId !== undefined,
     });
     if (shortfall) {
+      const arrive = `After the ${formatARIOExact(feeRatePct)}% redelegation fee, ${formatARIOExact(shortfall.net)} ${ticker} would reach this gateway, below its ${formatARIOExact(minDelegatedStake)} ${ticker} minimum.`;
       setErrorMessage(
-        `After the ${formatARIOExact(feeRatePct)}% redelegation fee, ${formatARIOExact(shortfall.net)} ${ticker} would reach this gateway, below its ${formatARIOExact(minDelegatedStake)} ${ticker} minimum. Redelegate at least ${formatARIOExact(shortfall.smallestGross)} ${ticker}.`,
+        shortfall.suggestion === undefined
+          ? `${arrive} Even the full ${formatARIOExact(maxStake)} ${ticker} would not clear it, so this gateway cannot receive this redelegation.`
+          : shortfall.suggestionIsFullAmount
+            ? `${arrive} Redelegate the full ${formatARIOExact(shortfall.suggestion)} ${ticker} to clear it.`
+            : `${arrive} Redelegate at least ${formatARIOExact(shortfall.suggestion)} ${ticker}.`,
       );
       setIsFormValid(false);
       return;

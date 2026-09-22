@@ -3,6 +3,7 @@ import { Assessment } from '@src/types';
 import {
   type EpochDataWithCounters,
   fetchEpochLightweight,
+  upgradeCachedEpoch,
 } from '@src/utils/epochFetch';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import type { NetworkStats } from '@src/utils/networkStats';
@@ -36,7 +37,33 @@ export interface CachedNetworkStats extends NetworkStats {
   id: string;
   /** When these counts were read, in ms since epoch. */
   fetchedAt: number;
+  /**
+   * The program ids these counts were computed against.
+   *
+   * The database is named for the network tier, which is the right scope for
+   * facts about a network, but program ids are configurable per tier in
+   * Settings. Two different sets of programs on one tier are two different
+   * networks' worth of accounts, so a row computed for one must not be served
+   * for the other. Absent on rows written before this field existed; treat
+   * that as a miss rather than a match.
+   */
+  programFingerprint?: string;
+  /**
+   * The snapshot documents whose counts this row read live after a write. A
+   * row only stands in for a post-write read if it was fetched after the
+   * write AND read those counts live: IndexedDB is shared across tabs, and a
+   * tab that did not make the write caches the pre-write snapshot.
+   */
+  liveDocuments?: string[];
 }
+
+/** Conditions under which a cached row may stand in after a write. */
+export type NetworkStatsFreshness = {
+  /** The row must be fetched at or after this time, in ms. */
+  notBefore: number;
+  /** And must have read these documents' counts live. */
+  liveDocuments: string[];
+};
 
 /** The only row id used by {@link readCachedNetworkStats}. */
 export const NETWORK_STATS_CACHE_KEY = 'current';
@@ -109,7 +136,18 @@ export const getEpoch = async (
     .equals(epochIndex)
     .first();
   if (epoch) {
-    return epoch;
+    // Rows outlive releases, so one written under an older reward formula is
+    // upgraded from its own fields before anyone sees it. Written back so the
+    // work happens once; a failed write only means it repeats next read.
+    const upgraded = upgradeCachedEpoch(epoch);
+    if (upgraded !== epoch) {
+      try {
+        await networkPortalDB.epochs.put(upgraded);
+      } catch (e) {
+        log.warn(`[getEpoch] could not rewrite epoch ${epochIndex}`, e);
+      }
+    }
+    return upgraded;
   }
 
   let epochData: EpochDataWithCounters | undefined;
@@ -178,12 +216,22 @@ export const cleanupDbCache = async (
 export const readCachedNetworkStats = async (
   networkPortalDB: NetworkPortalDB,
   ttlMs: number,
+  programFingerprint: string,
+  afterWrite?: NetworkStatsFreshness,
 ): Promise<NetworkStats | undefined> => {
   try {
     const cached = await networkPortalDB.networkStats.get(
       NETWORK_STATS_CACHE_KEY,
     );
     if (!cached) return undefined;
+    if (cached.programFingerprint !== programFingerprint) return undefined;
+    if (afterWrite) {
+      if (cached.fetchedAt < afterWrite.notBefore) return undefined;
+      const readLive = new Set(cached.liveDocuments ?? []);
+      if (!afterWrite.liveDocuments.every((doc) => readLive.has(doc))) {
+        return undefined;
+      }
+    }
 
     const age = Date.now() - cached.fetchedAt;
     // A negative age means the row was written by a clock ahead of this one;
@@ -205,12 +253,16 @@ export const readCachedNetworkStats = async (
 export const writeCachedNetworkStats = async (
   networkPortalDB: NetworkPortalDB,
   stats: NetworkStats,
+  programFingerprint: string,
+  liveDocuments: string[] = [],
 ): Promise<void> => {
   try {
     await networkPortalDB.networkStats.put({
       ...stats,
       id: NETWORK_STATS_CACHE_KEY,
       fetchedAt: Date.now(),
+      programFingerprint,
+      liveDocuments,
     });
   } catch (error) {
     log.warn('[db] could not cache network stats', error);

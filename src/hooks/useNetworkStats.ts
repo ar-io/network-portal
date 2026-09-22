@@ -1,9 +1,13 @@
+import { usePortalProgramIds } from '@src/hooks/usePortalProgramIds';
 import { useGlobalState } from '@src/store';
 import { readCachedNetworkStats, writeCachedNetworkStats } from '@src/store/db';
 import {
   type NetworkStats,
-  fetchNetworkStatsFromRpc,
+  type NetworkStatsDocument,
+  fetchNetworkStats,
 } from '@src/utils/networkStats';
+import { networkTierFromRpcUrl } from '@src/utils/portalApi';
+import { liveWriteAt, shouldReadLive } from '@src/utils/snapshotFreshness';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -16,10 +20,22 @@ import { useQuery } from '@tanstack/react-query';
  */
 export const NETWORK_STATS_TTL = 60 * 60 * 1000;
 
-export const networkStatsQueryKey = (solanaRpcUrl: string) => [
-  'networkStats',
-  solanaRpcUrl,
+const LIVE_SOURCES: NetworkStatsDocument[] = [
+  'balances',
+  'delegates',
+  'vaults',
 ];
+
+/**
+ * Program ids are part of the key because they are configurable per network
+ * tier in Settings, and the counts are counts OF those programs' accounts.
+ * Keyed on the endpoint alone, changing the ids kept serving the previous
+ * network's numbers for the rest of the TTL.
+ */
+export const networkStatsQueryKey = (
+  solanaRpcUrl: string,
+  programFingerprint = '',
+) => ['networkStats', solanaRpcUrl, programFingerprint];
 
 /**
  * The dashboard's three headline counts, cached across sessions.
@@ -37,26 +53,49 @@ const useNetworkStats = () => {
   const arIOReadSDK = useGlobalState((state) => state.arIOReadSDK);
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
   const networkPortalDB = useGlobalState((state) => state.networkPortalDB);
+  const portalProgramIds = usePortalProgramIds();
+  const programFingerprint = JSON.stringify(portalProgramIds);
 
   return useQuery<NetworkStats>({
-    queryKey: networkStatsQueryKey(solanaRpcUrl),
+    queryKey: networkStatsQueryKey(solanaRpcUrl, programFingerprint),
     queryFn: async () => {
+      // After a write, the counts it could have moved are read live once, and
+      // the row that read them may stand in for later reloads inside the
+      // window. Skipping the cache outright re-ran the balances scan, the most
+      // expensive on the network, on every reload for 45 minutes.
+      const liveDocuments = LIVE_SOURCES.filter((doc) => shouldReadLive(doc));
+      const writes = liveDocuments
+        .map((doc) => liveWriteAt(doc))
+        .filter((at): at is number => at !== undefined);
+      const afterWrite =
+        liveDocuments.length > 0
+          ? { notBefore: Math.max(...writes), liveDocuments }
+          : undefined;
+
       const cached = await readCachedNetworkStats(
         networkPortalDB,
         NETWORK_STATS_TTL,
+        programFingerprint,
+        afterWrite,
       );
       if (cached) return cached;
 
-      if (!arIOReadSDK) {
-        throw new Error('arIOReadSDK is not initialized');
-      }
-
-      const stats = await fetchNetworkStatsFromRpc(arIOReadSDK);
-      await writeCachedNetworkStats(networkPortalDB, stats);
+      const stats = await fetchNetworkStats({
+        sdk: arIOReadSDK,
+        expectedNetwork: networkTierFromRpcUrl(solanaRpcUrl),
+        expectedProgramIds: portalProgramIds,
+        readLive: shouldReadLive,
+      });
+      await writeCachedNetworkStats(
+        networkPortalDB,
+        stats,
+        programFingerprint,
+        liveDocuments,
+      );
       return stats;
     },
     staleTime: NETWORK_STATS_TTL,
-    enabled: !!arIOReadSDK && !!networkPortalDB,
+    enabled: !!networkPortalDB,
   });
 };
 

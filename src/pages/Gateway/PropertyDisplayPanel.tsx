@@ -30,6 +30,15 @@ const DisplayRow = ({
       <div className="flex min-w-0 flex-col content-center justify-center break-all border-t border-grey-900 p-2 text-sm text-low lg:p-0">
         {value === undefined ? (
           <Placeholder />
+        ) : value === '' ? (
+          // An operator who set no value is not a value still loading. Without
+          // this, `properties` renders as an empty anchor to
+          // viewblock.io/arweave/tx/ — a labelled row with nothing in it and a
+          // link that goes nowhere.
+          <span className="px-6 py-3 text-low lg:px-0">
+            <span aria-hidden="true">&mdash;</span>
+            <span className="sr-only">Not set</span>
+          </span>
         ) : typeof value === 'boolean' ? (
           <div className="flex items-center">
             <span className={`grow ${value ? 'text-green-600' : undefined}`}>

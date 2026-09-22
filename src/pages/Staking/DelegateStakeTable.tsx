@@ -6,6 +6,7 @@ import CopyButton from '@src/components/CopyButton';
 import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import Streak from '@src/components/Streak';
 import Tooltip from '@src/components/Tooltip';
+import { YieldCell, YieldUnavailableNote } from '@src/components/YieldCell';
 import {
   CaretDoubleRightIcon,
   CaretRightIcon,
@@ -15,10 +16,11 @@ import ConnectModal from '@src/components/modals/ConnectModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useAllGateways from '@src/hooks/useAllGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
+import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
+import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
-import { calculateGatewayRewards } from '@src/utils/rewards';
+import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
 import { compareRowValues } from '@src/utils/tableSort';
 import {
   ColumnDef,
@@ -59,7 +61,7 @@ interface TableData {
   totalDelegatedStake: number;
   totalStake: number;
   operatorStake: number;
-  eay: number;
+  eay?: number;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -99,7 +101,8 @@ const DelegateStake = () => {
     isError,
     data: allGateways,
   } = useAllGateways();
-  const { data: protocolBalance } = useProtocolBalance();
+  const perGatewayReward = usePerGatewayReward();
+  const yieldStatus = useYieldStatus();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
@@ -117,13 +120,10 @@ const DelegateStake = () => {
   }, [allGateways]);
 
   useEffect(() => {
-    if (!delegateEnabledGateways.length || !protocolBalance) {
+    if (!delegateEnabledGateways.length) {
       setTableData([]);
       return;
     }
-
-    const protocolBalanceARIO = new mARIOToken(protocolBalance).toARIO();
-    const joinedGatewayCount = delegateEnabledGateways.length;
 
     const processedData: Array<TableData> = delegateEnabledGateways.map(
       (gateway: GatewayWithAddress) => {
@@ -156,16 +156,16 @@ const DelegateStake = () => {
           totalDelegatedStake: totalDelegatedStakeARIO,
           operatorStake: operatorStakeARIO,
           totalStake: totalDelegatedStakeARIO + operatorStakeARIO,
-          eay: calculateGatewayRewards(
-            protocolBalanceARIO,
-            joinedGatewayCount,
-            gateway,
-          ).EAY,
+          // Without the epoch's per-gateway reward the yield is unknown, not
+          // zero, and the rest of the row is still worth showing.
+          eay: perGatewayReward
+            ? knownYield(calculateGatewayRewards(perGatewayReward, gateway).EAY)
+            : undefined,
         };
       },
     );
     setTableData(processedData);
-  }, [delegateEnabledGateways, protocolBalance]);
+  }, [delegateEnabledGateways, perGatewayReward]);
 
   // Filter data by search term
   const filteredData = useMemo(() => {
@@ -273,6 +273,7 @@ const DelegateStake = () => {
 
       columnHelper.accessor('eay', {
         id: 'eay',
+        sortUndefined: 'last',
         meta: {
           displayName: 'Delegate EAY',
         },
@@ -292,11 +293,7 @@ const DelegateStake = () => {
           </div>
         ),
         cell: ({ row }) => (
-          <div>
-            {row.original.eay < 0
-              ? 'N/A'
-              : `${formatWithCommas(row.original.eay * 100)}%`}
-          </div>
+          <YieldCell eay={row.original.eay} status={yieldStatus} />
         ),
       }),
       columnHelper.accessor('performance', {
@@ -444,6 +441,7 @@ const DelegateStake = () => {
           <ColumnSelector tableId="delegate-stake" columns={columns} />
         </div>
       </div>
+      <YieldUnavailableNote status={yieldStatus} />
       <ServerSortableTableView
         columns={columns}
         data={paginatedData}

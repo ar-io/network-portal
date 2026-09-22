@@ -146,6 +146,15 @@ export const shouldReadLive = (name: PortalDocumentName): boolean => {
   );
 };
 
+/**
+ * When `name` was last written, if that write is still inside the live-read
+ * window; undefined otherwise. Lets a cache tell a row fetched after the write
+ * from one fetched before it, so a post-write live read is paid for once
+ * rather than on every reload for the rest of the window.
+ */
+export const liveWriteAt = (name: PortalDocumentName): number | undefined =>
+  shouldReadLive(name) ? writtenAt.get(scoped(name)) : undefined;
+
 /** Drop every mark. Test seam; the tier scoping makes it unnecessary in app code. */
 export const clearDocumentWrites = (): void => {
   writtenAt.clear();
@@ -181,4 +190,21 @@ export const invalidateWrittenDocuments = (
       refetchType: 'active',
     });
   }
+
+  // Queries derived from a document rather than named for it. The dashboard's
+  // network statistics count three documents, and without this they served
+  // the pre-write figures from React Query for the rest of their hour.
+  const derived = new Set(
+    names.flatMap((name) => DERIVED_QUERY_KEYS[name] ?? []),
+  );
+  for (const key of derived) {
+    queryClient.invalidateQueries({ queryKey: [key], refetchType: 'active' });
+  }
+};
+
+// `delegates` is absent on purpose: no flow marks it (see the docstring above),
+// so an entry for it would never fire.
+const DERIVED_QUERY_KEYS: Partial<Record<PortalDocumentName, string[]>> = {
+  balances: ['networkStats'],
+  vaults: ['networkStats'],
 };

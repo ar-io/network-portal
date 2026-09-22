@@ -26,7 +26,8 @@ const DELEGATED_STAKING_DOCS =
  */
 const Banner = () => {
   const [loginOpen, setLoginOpen] = useState(false);
-  const { parameters } = useProtocolParameters('delegate');
+  const { parameters, isError: parametersError } =
+    useProtocolParameters('delegate');
   const ticker = useGlobalState((state) => state.ticker);
 
   return (
@@ -84,10 +85,19 @@ const Banner = () => {
                   set by the protocol, not by us
                 </span>
               </div>
-              <ProtocolParameterGrid
-                parameters={parameters}
-                columns="grid-cols-2 sm:grid-cols-3"
-              />
+              {parametersError ? (
+                // The heading stays because it is still true; only the values
+                // are missing. Leaving the grid in place would shimmer under a
+                // heading that promises numbers which are not coming.
+                <div className="text-sm text-low">
+                  These limits could not be read from the network.
+                </div>
+              ) : (
+                <ProtocolParameterGrid
+                  parameters={parameters}
+                  columns="grid-cols-2 sm:grid-cols-3"
+                />
+              )}
             </div>
           </div>
         </div>

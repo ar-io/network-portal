@@ -1,10 +1,10 @@
 import { GatewayWithAddress, mARIOToken } from '@ar.io/sdk/web';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
-import useGateways from '@src/hooks/useGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
+import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
+import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatPercentage, formatWithCommas } from '@src/utils';
-import { calculateGatewayRewards } from '@src/utils/rewards';
+import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import { InfoIcon, SearchIcon } from 'lucide-react';
@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import Button, { ButtonType } from './Button';
 import TableView from './TableView';
 import Tooltip from './Tooltip';
+import { YieldCell } from './YieldCell';
 import BaseModal from './modals/BaseModal';
 
 export type GatewaySelectorProps = {
@@ -25,7 +26,7 @@ interface TableData {
   gateway: GatewayWithAddress;
   rewardShareRatio: number;
   totalStake: number;
-  eay: number;
+  eay?: number;
 }
 
 const columnHelper = createColumnHelper<TableData>();
@@ -42,13 +43,13 @@ const GatewaySelectorModal = ({
   const ticker = useGlobalState((state) => state.ticker);
   const [tableData, setTableData] = useState<TableData[]>([]);
 
-  const { data: prototocolBalance } = useProtocolBalance();
-  const { data: totalGateways } = useGateways();
+  const perGatewayReward = usePerGatewayReward();
+  const yieldStatus = useYieldStatus();
 
   const [searchText, setSearchText] = useState<string>();
 
   useEffect(() => {
-    if (prototocolBalance && totalGateways && gateways) {
+    if (gateways) {
       const tableData: TableData[] = gateways.map((gateway) => {
         return {
           gateway,
@@ -57,12 +58,13 @@ const GatewaySelectorModal = ({
           totalStake: new mARIOToken(gateway.totalDelegatedStake)
             .toARIO()
             .valueOf(),
-          eay: calculateGatewayRewards(
-            new mARIOToken(prototocolBalance).toARIO(),
-            Object.values(totalGateways).filter((g) => g.status === 'joined')
-              .length,
-            gateway,
-          ).EAY,
+          // Gating the whole list on the reward emptied the gateway picker in
+          // the redelegate flow, which needs to list gateways whether or not a
+          // yield can be shown for them. Unknown is `undefined`, never -1, so
+          // it sorts last in both directions like the staking tables.
+          eay: perGatewayReward
+            ? knownYield(calculateGatewayRewards(perGatewayReward, gateway).EAY)
+            : undefined,
         };
       });
       if (searchText && searchText.length > 0) {
@@ -82,7 +84,7 @@ const GatewaySelectorModal = ({
         setTableData(tableData);
       }
     }
-  }, [totalGateways, gateways, prototocolBalance, searchText]);
+  }, [gateways, perGatewayReward, searchText]);
 
   // Define columns for the table
   const columns: ColumnDef<TableData, any>[] = [
@@ -114,6 +116,7 @@ const GatewaySelectorModal = ({
     }),
     columnHelper.accessor('eay', {
       id: 'eay',
+      sortUndefined: 'last',
       header: () => (
         <div className="flex gap-1">
           EAY
@@ -131,11 +134,7 @@ const GatewaySelectorModal = ({
       ),
       sortDescFirst: true,
       cell: ({ row }) => (
-        <div>
-          {row.original.eay < 0
-            ? 'N/A'
-            : `${formatWithCommas(row.original.eay * 100)}%`}
-        </div>
+        <YieldCell eay={row.original.eay} status={yieldStatus} />
       ),
     }),
   ];

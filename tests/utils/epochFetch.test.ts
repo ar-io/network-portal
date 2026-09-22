@@ -11,13 +11,14 @@ const EPOCH_546 = {
   perGatewayReward: 158_412_844,
   perObserverReward: 242_371_652,
   observerCount: 50,
+  prescriptionsDone: 1,
 };
 /** Every registry slot, leavers included. Not the reward divisor. */
 const ACTIVE_GATEWAY_COUNT = 620;
 
 describe('epochRewardTotals', () => {
   it('splits the epoch reward into two pools that sum to the total', () => {
-    const t = epochRewardTotals(EPOCH_546);
+    const { distributions: t } = epochRewardTotals(EPOCH_546);
 
     expect(
       t.totalEligibleGatewayReward + t.totalEligibleObserverReward,
@@ -25,7 +26,7 @@ describe('epochRewardTotals', () => {
   });
 
   it('matches the ratios mainnet actually runs, 80/20', () => {
-    const t = epochRewardTotals(EPOCH_546);
+    const { distributions: t } = epochRewardTotals(EPOCH_546);
 
     expect(
       t.totalEligibleGatewayReward / EPOCH_546.totalEligibleRewards,
@@ -41,7 +42,7 @@ describe('epochRewardTotals', () => {
    * earn. On this epoch that is 620 against 306.
    */
   it('does not multiply by the registry slot count, which overstated it 2x', () => {
-    const t = epochRewardTotals(EPOCH_546);
+    const { distributions: t } = epochRewardTotals(EPOCH_546);
     const old = EPOCH_546.perGatewayReward * ACTIVE_GATEWAY_COUNT;
 
     expect(old / t.totalEligibleGatewayReward).toBeCloseTo(2.03, 2);
@@ -49,7 +50,9 @@ describe('epochRewardTotals', () => {
   });
 
   it('reports the 306 gateways the protocol divided by, not 620 slots', () => {
-    expect(epochRewardTotals(EPOCH_546).totalEligibleGateways).toEqual(306);
+    expect(
+      epochRewardTotals(EPOCH_546).distributions.totalEligibleGateways,
+    ).toEqual(306);
   });
 
   /**
@@ -58,12 +61,15 @@ describe('epochRewardTotals', () => {
    * pool as gateway reward; it must report no split instead.
    */
   it('reports no split for an epoch that has not been prescribed', () => {
-    const t = epochRewardTotals({
+    const { distributions: t, splitKnown } = epochRewardTotals({
       totalEligibleRewards: EPOCH_546.totalEligibleRewards,
       perGatewayReward: 0,
       perObserverReward: 0,
       observerCount: 0,
+      prescriptionsDone: 0,
     });
+
+    expect(splitKnown).toBe(false);
 
     expect(t.totalEligibleRewards).toEqual(EPOCH_546.totalEligibleRewards);
     expect(t.totalEligibleGatewayReward).toEqual(0);
@@ -71,8 +77,45 @@ describe('epochRewardTotals', () => {
     expect(t.totalEligibleGateways).toEqual(0);
   });
 
+  /**
+   * A prescribed epoch with no eligible gateway keeps `per_gateway_reward` at
+   * zero (epoch.rs, joined_count == 0). Inferring prescription from a non-zero
+   * reward called that epoch pending forever; it is a known split of zero.
+   */
+  it('treats a prescribed epoch with no eligible gateway as a known zero split', () => {
+    const r = epochRewardTotals({
+      ...EPOCH_546,
+      perGatewayReward: 0,
+      perObserverReward: 0,
+      observerCount: 0,
+    });
+
+    expect(r.splitKnown).toBe(true);
+    expect(r.distributions.totalEligibleGatewayReward).toEqual(0);
+    expect(r.distributions.totalEligibleGateways).toEqual(0);
+  });
+
+  /**
+   * With gateways eligible but no observers selected, the observer share stays
+   * in the treasury, so the remainder is not the gateway pool. It must not be
+   * credited to gateways.
+   */
+  it('reports the split as unknown when no observers were selected', () => {
+    const r = epochRewardTotals({
+      ...EPOCH_546,
+      perObserverReward: 0,
+      observerCount: 0,
+    });
+
+    expect(r.splitKnown).toBe(false);
+    expect(r.distributions.totalEligibleGatewayReward).toEqual(0);
+  });
+
   it('never reports a negative gateway pool', () => {
-    const t = epochRewardTotals({ ...EPOCH_546, totalEligibleRewards: 0 });
+    const { distributions: t } = epochRewardTotals({
+      ...EPOCH_546,
+      totalEligibleRewards: 0,
+    });
 
     expect(t.totalEligibleGatewayReward).toEqual(0);
   });
@@ -90,7 +133,7 @@ const baseRow = (
   }) as EpochDataWithCounters;
 
 describe('upgradeCachedEpoch', () => {
-  const correct = epochRewardTotals(EPOCH_546);
+  const correct = epochRewardTotals(EPOCH_546).distributions;
 
   /**
    * A row cached before this change stored the 2x gateway total and the slot
@@ -112,6 +155,29 @@ describe('upgradeCachedEpoch', () => {
     expect(up.perGatewayReward).toEqual(EPOCH_546.perGatewayReward);
     expect(up.distributions).toEqual(correct);
     expect(up.rewardsPrescribed).toBe(true);
+    expect(up.rewardsSplitKnown).toBe(true);
+    expect(up.rewardTotalsVersion).toEqual(REWARD_TOTALS_VERSION);
+  });
+
+  /**
+   * Version 2 rows inferred prescription from a non-zero reward and carry no
+   * split flag. Every cached row was distributed, so it was prescribed.
+   */
+  it('re-derives a version-2 row, which may have mislabelled a zero-reward epoch', () => {
+    const v2 = baseRow(
+      {
+        totalEligibleGateways: 0,
+        totalEligibleRewards: 1_000,
+        totalEligibleObserverReward: 0,
+        totalEligibleGatewayReward: 0,
+      },
+      { perGatewayReward: 0, rewardsPrescribed: false, rewardTotalsVersion: 2 },
+    );
+
+    const up = upgradeCachedEpoch(v2);
+
+    expect(up.rewardsPrescribed).toBe(true);
+    expect(up.rewardsSplitKnown).toBe(true);
     expect(up.rewardTotalsVersion).toEqual(REWARD_TOTALS_VERSION);
   });
 
@@ -138,13 +204,14 @@ describe('upgradeCachedEpoch', () => {
     const current = baseRow(correct, {
       perGatewayReward: EPOCH_546.perGatewayReward,
       rewardsPrescribed: true,
+      rewardsSplitKnown: true,
       rewardTotalsVersion: REWARD_TOTALS_VERSION,
     });
 
     expect(upgradeCachedEpoch(current)).toBe(current);
   });
 
-  it('upgrades an old row that had no eligible gateways to an unsplit one', () => {
+  it('upgrades an old row that had no eligible gateways to a known zero split', () => {
     const empty = baseRow({
       totalEligibleGateways: 0,
       totalEligibleRewards: 1_000,
@@ -154,7 +221,9 @@ describe('upgradeCachedEpoch', () => {
 
     const up = upgradeCachedEpoch(empty);
 
-    expect(up.rewardsPrescribed).toBe(false);
+    // Distributed, so prescribed; nobody eligible, so a real split of zero.
+    expect(up.rewardsPrescribed).toBe(true);
+    expect(up.rewardsSplitKnown).toBe(true);
     expect(up.distributions.totalEligibleGatewayReward).toEqual(0);
   });
 

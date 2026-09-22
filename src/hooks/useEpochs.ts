@@ -17,7 +17,14 @@ const useEpochs = () => {
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const queryResults = useQuery({
-    queryKey: ['epochs', solanaRpcUrl, startEpoch?.epochIndex],
+    // See useEpochsWithCount: the current epoch is replaced in place when it
+    // is prescribed, so the flag belongs in the key.
+    queryKey: [
+      'epochs',
+      solanaRpcUrl,
+      startEpoch?.epochIndex,
+      startEpoch?.rewardsPrescribed,
+    ],
     queryFn: async () => {
       if (!rpc || !garProgram || startEpoch === undefined) {
         throw new Error('rpc, garProgram, or startEpoch not available');

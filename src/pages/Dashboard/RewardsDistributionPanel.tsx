@@ -62,6 +62,12 @@ interface RewardsData {
    * bar and the tooltip gives the total alone.
    */
   split: boolean;
+  /**
+   * Why there is no split, when there is none. `pending` is the routine case,
+   * an epoch not yet prescribed; `unavailable` is a prescribed epoch whose
+   * split cannot be derived because no observers were selected.
+   */
+  splitReason?: 'pending' | 'unavailable';
   /** The whole pool, in the selected unit; undefined when unpriced in USD. */
   total?: number;
   /** `total`, but only for an unsplit epoch: drawn as an outlined bar. */
@@ -106,8 +112,9 @@ const CustomTooltip = ({
             <p>{`Total eligible: ${money(data.total)}`}</p>
           )}
           <p className="text-low">
-            How this splits between gateways and observers is set on chain
-            shortly after the epoch starts.
+            {data.splitReason === 'unavailable'
+              ? 'This epoch had no observers selected, so its gateway share cannot be shown.'
+              : 'How this splits between gateways and observers is set on chain after the epoch starts.'}
           </p>
         </div>
       );
@@ -290,7 +297,12 @@ const RewardsDistributionPanel = () => {
         // Absent (SDK fallback path) means the source carried no such flag,
         // so trust its totals as before; only an explicit false withholds the
         // split.
-        const split = epoch!.rewardsPrescribed !== false;
+        const split = epoch!.rewardsSplitKnown !== false;
+        const splitReason = split
+          ? undefined
+          : epoch!.rewardsPrescribed === false
+            ? ('pending' as const)
+            : ('unavailable' as const);
 
         return {
           epoch: epoch!.epochIndex,
@@ -300,6 +312,7 @@ const RewardsDistributionPanel = () => {
           gatewayRewards: split ? inUnit(gatewayRewards) : undefined,
           observerRewards: split ? inUnit(observerRewards) : undefined,
           split,
+          splitReason,
           total: inUnit(totalRewards),
           pendingTotal: split ? undefined : inUnit(totalRewards),
           priced: price !== undefined,
@@ -310,7 +323,10 @@ const RewardsDistributionPanel = () => {
       });
   }, [epochs, currentEpochIndex, prices, unit]);
 
-  const hasPending = rewardsData?.some((d) => !d.split) ?? false;
+  const hasPending =
+    rewardsData?.some((d) => d.splitReason === 'pending') ?? false;
+  const hasUnavailable =
+    rewardsData?.some((d) => d.splitReason === 'unavailable') ?? false;
 
   // Offer the switch only when there is something to switch to.
   const pricedCount = rewardsData?.filter((d) => d.priced).length ?? 0;
@@ -503,6 +519,15 @@ const RewardsDistributionPanel = () => {
                 className="size-2 min-w-2 rounded-full border border-dashed border-[rgba(202,202,214,0.6)]"
               />
               <span>Split pending</span>
+            </div>
+          )}
+          {hasUnavailable && (
+            <div className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-2 min-w-2 rounded-full border border-dashed border-[rgba(202,202,214,0.6)]"
+              />
+              <span>Split not available</span>
             </div>
           )}
           {/* The unit toggle only renders once prices exist, so without this

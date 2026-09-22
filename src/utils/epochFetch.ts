@@ -46,6 +46,12 @@ export type EpochDataWithCounters = EpochData & {
    */
   rewardsPrescribed?: boolean;
   /**
+   * Whether `distributions` carries a real gateway/observer split. False while
+   * unprescribed, and also for the edge where an epoch was prescribed with no
+   * observers selected, whose gateway pool cannot be derived.
+   */
+  rewardsSplitKnown?: boolean;
+  /**
    * The formula `distributions` was computed with. IndexedDB keeps distributed
    * epochs across releases, so a row can outlive the code that wrote it; see
    * {@link upgradeCachedEpoch}. Absent on rows written before this field.
@@ -62,8 +68,11 @@ export type EpochDataWithCounters = EpochData & {
  *   registry slot.
  * 2: gateway pool is the remainder after the observer pool; the eligible count
  *   is derived from it; unprescribed epochs carry no split.
+ * 3: prescription is the chain's `prescriptions_done` flag rather than inferred
+ *   from a non-zero reward, and `rewardsSplitKnown` says whether the split is
+ *   real.
  */
-export const REWARD_TOTALS_VERSION = 2;
+export const REWARD_TOTALS_VERSION = 3;
 
 /** The subset of a deserialized Epoch account the reward totals are built from. */
 export type EpochRewardFields = {
@@ -71,30 +80,67 @@ export type EpochRewardFields = {
   perGatewayReward: number;
   perObserverReward: number;
   observerCount: number;
+  /**
+   * The chain's own flag, non-zero once `prescribe_epoch` has run. Read, not
+   * inferred from a non-zero reward: a prescribed epoch with no eligible
+   * gateway keeps `per_gateway_reward` at zero, and inferring would call it
+   * pending forever.
+   */
+  prescriptionsDone: number;
 };
 
 type RewardTotalsInputs = {
+  prescribed: boolean;
   totalEligibleRewards: number;
   perGatewayReward: number;
   observerPool: number;
 };
 
+type RewardTotals = {
+  distributions: EpochDataWithCounters['distributions'];
+  /** False when the pool has not been split, or its split cannot be derived. */
+  splitKnown: boolean;
+};
+
+const NO_SPLIT = (totalEligibleRewards: number) => ({
+  totalEligibleGateways: 0,
+  totalEligibleRewards,
+  totalEligibleObserverReward: 0,
+  totalEligibleGatewayReward: 0,
+});
+
 const buildRewardTotals = ({
+  prescribed,
   totalEligibleRewards,
   perGatewayReward,
   observerPool,
-}: RewardTotalsInputs) => {
-  // Not yet prescribed: the pool exists but has not been split, so report no
-  // split rather than attribute all of it to gateways. The remainder formula
-  // below would otherwise count 100% of the pool as gateway reward, because
-  // the observer pool is still zero.
+}: RewardTotalsInputs): RewardTotals => {
+  // Not yet prescribed: the pool exists but has not been split. The remainder
+  // formula below would otherwise credit all of it to gateways, because the
+  // observer pool is still zero.
+  if (!prescribed) {
+    return { distributions: NO_SPLIT(totalEligibleRewards), splitKnown: false };
+  }
+
+  // Prescribed with no eligible gateway (`joined_count == 0`): the protocol
+  // leaves `per_gateway_reward` at zero, and gateways earn nothing. That is a
+  // known split of zero, not a pending one.
   if (!(perGatewayReward > 0)) {
     return {
-      totalEligibleGateways: 0,
-      totalEligibleRewards,
-      totalEligibleObserverReward: 0,
-      totalEligibleGatewayReward: 0,
+      distributions: {
+        ...NO_SPLIT(totalEligibleRewards),
+        totalEligibleObserverReward: observerPool,
+      },
+      splitKnown: true,
     };
+  }
+
+  // Prescribed with gateways but no observers selected: the observer share
+  // stays in the treasury, so the remainder is NOT the gateway pool, and the
+  // divisor that would give it is never stored. Report the split as unknown
+  // rather than credit the observer share to gateways.
+  if (!(observerPool > 0)) {
+    return { distributions: NO_SPLIT(totalEligibleRewards), splitKnown: false };
   }
 
   const totalEligibleGatewayReward = Math.max(
@@ -103,38 +149,25 @@ const buildRewardTotals = ({
   );
 
   return {
-    // The protocol's divisor, `joined_count`, is never stored, but it is
-    // recoverable: the gateway pool is `per_gateway_reward * joined_count` up
-    // to integer-division dust. `active_gateway_count` is not a substitute; it
-    // counts every registry slot, leavers included.
-    totalEligibleGateways: Math.round(
-      totalEligibleGatewayReward / perGatewayReward,
-    ),
-    totalEligibleRewards,
-    totalEligibleObserverReward: observerPool,
-    totalEligibleGatewayReward,
+    distributions: {
+      // The protocol's divisor, `joined_count`, is never stored, but it is
+      // recoverable: the gateway pool is `per_gateway_reward * joined_count`
+      // up to integer-division dust. `active_gateway_count` is not a
+      // substitute; it counts every registry slot, leavers included.
+      totalEligibleGateways: Math.round(
+        totalEligibleGatewayReward / perGatewayReward,
+      ),
+      totalEligibleRewards,
+      totalEligibleObserverReward: observerPool,
+      totalEligibleGatewayReward,
+    },
+    splitKnown: true,
   };
 };
 
-/**
- * Build the epoch's reward totals, in mARIO.
- *
- * The gateway pool is the remainder after the observer pool, NOT
- * `perGatewayReward * activeGatewayCount`. `active_gateway_count` bounds the
- * distribution traversal and counts every registry slot, leavers included: 620
- * on mainnet against 306 gateways actually eligible to earn. Multiplying by it
- * overstated the dashboard's rewards chart by roughly 2x.
- *
- * The true divisor is `joined_count`, computed inside `prescribe_epoch` and
- * never stored, so it cannot be read back. Subtraction avoids needing it: the
- * protocol requires `gateway_reward_ratio + observer_reward_ratio ==
- * RATE_SCALE` (`epoch.rs`, `require!(sum == RATE_SCALE)`), so the two pools
- * partition `total_eligible_rewards` exactly. The observer pool is safe to
- * compute directly because `observer_count` IS the divisor the protocol used
- * for `per_observer_reward`.
- */
 export const epochRewardTotals = (epoch: EpochRewardFields) =>
   buildRewardTotals({
+    prescribed: epoch.prescriptionsDone !== 0,
     totalEligibleRewards: epoch.totalEligibleRewards,
     perGatewayReward: epoch.perGatewayReward,
     observerPool: epoch.perObserverReward * epoch.observerCount,
@@ -169,19 +202,22 @@ export const upgradeCachedEpoch = (
       ? d.totalEligibleGatewayReward / d.totalEligibleGateways
       : 0);
 
+  // Only distributed epochs are ever cached, and `distribute_epoch` requires
+  // `prescriptions_done`, so every cached row was prescribed.
+  const totals = buildRewardTotals({
+    prescribed: true,
+    totalEligibleRewards: d.totalEligibleRewards,
+    perGatewayReward,
+    observerPool: d.totalEligibleObserverReward,
+  });
+
   return {
     ...row,
     perGatewayReward,
-    rewardsPrescribed: perGatewayReward > 0,
+    rewardsPrescribed: true,
+    rewardsSplitKnown: totals.splitKnown,
     rewardTotalsVersion: REWARD_TOTALS_VERSION,
-    distributions: {
-      ...d,
-      ...buildRewardTotals({
-        totalEligibleRewards: d.totalEligibleRewards,
-        perGatewayReward,
-        observerPool: d.totalEligibleObserverReward,
-      }),
-    },
+    distributions: { ...d, ...totals.distributions },
   };
 };
 
@@ -214,6 +250,8 @@ export async function fetchEpochLightweight(
   }
   const epochData = deserializeEpoch(Buffer.from(epochAccount.data));
 
+  const totals = epochRewardTotals(epochData);
+
   const prescribedObservers = [];
   for (let i = 0; i < epochData.observerCount; i++) {
     const observerAddress = epochData.prescribedObservers[i] as string;
@@ -241,7 +279,8 @@ export async function fetchEpochLightweight(
     observationsSubmitted: epochData.observationsSubmitted,
     rewardsDistributed: epochData.rewardsDistributed,
     perGatewayReward: epochData.perGatewayReward,
-    rewardsPrescribed: epochData.perGatewayReward > 0,
+    rewardsPrescribed: epochData.prescriptionsDone !== 0,
+    rewardsSplitKnown: totals.splitKnown,
     rewardTotalsVersion: REWARD_TOTALS_VERSION,
     startHeight: 0,
     startTimestamp: secToMs(epochData.startTimestamp),
@@ -250,7 +289,7 @@ export async function fetchEpochLightweight(
     observations: { reports: {}, failureSummaries: {} },
     prescribedObservers,
     prescribedNames: [],
-    distributions: epochRewardTotals(epochData),
+    distributions: totals.distributions,
     arnsStats: {
       totalReturnedNames: 0,
       totalActiveNames: 0,

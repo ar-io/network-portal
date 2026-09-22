@@ -7,7 +7,7 @@ import CopyButton from '@src/components/CopyButton';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
-import { YieldCell } from '@src/components/YieldCell';
+import { YieldCell, YieldUnavailableNote } from '@src/components/YieldCell';
 import { InfoIcon, ThreeDotsIcon } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
@@ -386,6 +386,10 @@ const MyStakesTable = () => {
           <ColumnSelector tableId="my-stakes-unified" columns={columns} />
         </div>
       </div>
+      {/* Only with stakes to show: an empty table needs no yield caveat. */}
+      {(unifiedStakes?.length ?? 0) > 0 && (
+        <YieldUnavailableNote status={yieldStatus} />
+      )}
       <TableView
         key="unifiedStakesTable"
         columns={columns}

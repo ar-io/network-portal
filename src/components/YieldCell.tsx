@@ -35,22 +35,32 @@ export const YieldCell = ({
   return <div>N/A</div>;
 };
 
+const NOTE: Partial<Record<YieldStatus, string>> = {
+  failed:
+    'Yield is unavailable because the current epoch could not be read. Every other column is live.',
+  pending:
+    'Yield will appear once this epoch’s rewards are set on chain. Every other column is live.',
+  provisional:
+    'Yields use the previous epoch’s reward until this epoch’s is set on chain. Every other column is live.',
+  unavailable:
+    'Yield is not available for this epoch. Every other column is live.',
+};
+
 /**
- * Says once, above a table, why its yield column is empty.
+ * Says once, above a table, why its yield column reads as it does.
  *
- * Renders nothing while loading or when yields are available, so it can never
- * flash a failure during a normal page load. Only a failed read or an epoch
- * still awaiting prescription gets a sentence, and they get different ones,
- * because "could not be read" is false for the second.
+ * Renders nothing while loading or when yields are the current epoch's own, so
+ * it can never flash a failure during a normal page load. Every other state
+ * gets its own sentence, because "could not be read" is false for all of them
+ * but one, and a provisional yield should not pass as a final one.
  */
 export const YieldUnavailableNote = ({ status }: { status: YieldStatus }) => {
-  if (status !== 'failed' && status !== 'pending') return null;
+  const message = NOTE[status];
+  if (!message) return null;
 
   return (
     <div className="border-x border-grey-600 bg-containerL3 px-6 py-2 text-xs text-low">
-      {status === 'failed'
-        ? 'Yield is unavailable because the current epoch could not be read. Every other column is live.'
-        : 'Yield will appear once this epoch’s rewards are set on chain. Every other column is live.'}
+      {message}
     </div>
   );
 };

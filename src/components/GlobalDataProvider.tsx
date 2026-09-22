@@ -43,9 +43,14 @@ async function fetchCurrentEpochLightweight(
   return fetchEpochLightweight(rpc, garProgram, epochIndex, commitment);
 }
 
-/** How often, and for how long, to re-read an epoch awaiting prescription. */
+/**
+ * How often, and for how long, to re-read an epoch awaiting prescription. Six
+ * hours, not the few minutes prescription usually takes: devnet has been seen
+ * unprescribed well over an hour into an epoch, and one account read a minute
+ * is cheap next to leaving an open tab on stand-in yields until it reloads.
+ */
 const PRESCRIPTION_POLL_MS = 60 * 1000;
-const PRESCRIPTION_POLL_ATTEMPTS = 30;
+const PRESCRIPTION_POLL_ATTEMPTS = 6 * 60;
 
 const isEpochUnavailableError = (errorMessage: string): boolean => {
   const lowerMessage = errorMessage.toLowerCase();
@@ -80,38 +85,44 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
     let pollTimer: ReturnType<typeof setTimeout> | undefined;
 
     /**
-     * Cover the window between `create_epoch` and `prescribe_epoch`, in which
-     * the newest epoch exists but carries no per-gateway reward yet.
-     *
-     * Two things happen, and neither resets the page: the previous epoch's
-     * reward stands in for yields straight away, and the current epoch is
-     * re-read until it is prescribed, at which point it replaces itself. The
-     * cranker normally prescribes within minutes, so the poll is bounded.
+     * The previous epoch's per-gateway reward, to stand in for yields while the
+     * newest epoch awaits `prescribe_epoch`. Awaited BEFORE the unprescribed
+     * epoch is published, so tables go straight from a loading skeleton to a
+     * value rather than flashing a "yield will appear" note in between.
      */
-    const coverUnprescribedWindow = async (
+    const loadReferenceReward = async (
       epochIndex: number,
       garProgram: string,
       commitment: Commitment,
     ) => {
-      if (epochIndex > 0) {
-        try {
-          const previous = await fetchEpochLightweight(
-            rpc,
-            garProgram,
-            epochIndex - 1,
-            commitment,
-          );
-          if (isCurrent && (previous.perGatewayReward ?? 0) > 0) {
-            setReferencePerGatewayReward(previous.perGatewayReward);
-          }
-        } catch (error) {
-          log.warn(
-            '[GlobalDataProvider] could not read the previous epoch for a reference reward',
-            error,
-          );
+      if (epochIndex <= 0) return;
+      try {
+        const previous = await fetchEpochLightweight(
+          rpc,
+          garProgram,
+          epochIndex - 1,
+          commitment,
+        );
+        if (isCurrent && (previous.perGatewayReward ?? 0) > 0) {
+          setReferencePerGatewayReward(previous.perGatewayReward);
         }
+      } catch (error) {
+        log.warn(
+          '[GlobalDataProvider] could not read the previous epoch for a reference reward',
+          error,
+        );
       }
+    };
 
+    /**
+     * Re-read an unprescribed epoch until it is prescribed, then replace it in
+     * place. Bounded by PRESCRIPTION_POLL_ATTEMPTS.
+     */
+    const pollUntilPrescribed = (
+      epochIndex: number,
+      garProgram: string,
+      commitment: Commitment,
+    ) => {
       let attempts = 0;
       const poll = async () => {
         if (!isCurrent || attempts >= PRESCRIPTION_POLL_ATTEMPTS) return;
@@ -180,14 +191,20 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
         log.info(
           `[GlobalDataProvider] Current epoch loaded: ${epoch.epochIndex} (RPC: ${solanaRpcUrl})`,
         );
+        const awaitingPrescription =
+          !!garProgram &&
+          !!rpc &&
+          (epoch as EpochDataWithCounters).rewardsPrescribed === false;
+
+        if (awaitingPrescription) {
+          await loadReferenceReward(epoch.epochIndex, garProgram, commitment);
+          if (!isCurrent) return;
+        }
+
         setCurrentEpoch(epoch);
 
-        if (
-          garProgram &&
-          rpc &&
-          (epoch as EpochDataWithCounters).rewardsPrescribed === false
-        ) {
-          coverUnprescribedWindow(epoch.epochIndex, garProgram, commitment);
+        if (awaitingPrescription) {
+          pollUntilPrescribed(epoch.epochIndex, garProgram, commitment);
         }
       } catch (error) {
         if (!isCurrent) return;

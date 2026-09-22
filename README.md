@@ -39,9 +39,9 @@ yarn test
 Pushing to `main` deploys the application to the network-portal.app domain via
 Firebase Hosting and, permanently, to Arweave via the
 [ar-io-deploy](https://github.com/ar-io/ar-io-deploy) action. Pushing to
-`develop` deploys staging to GitHub Pages. A pull request gets an Arweave
-preview only when it changes files under `content/` or `src/`, so a
-documentation-only change does not get one.
+`develop` deploys staging to GitHub Pages. A pull request preview workflow
+exists but is disabled, so pull requests are not deployed anywhere before
+merge.
 
 Developers can deploy their own version to Arweave with `yarn deploy`, which
 builds and then runs `ario-deploy` from

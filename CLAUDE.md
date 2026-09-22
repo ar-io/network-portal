@@ -145,6 +145,7 @@ Hooks reading the snapshot:
 | `useAllDelegates` | `delegates.json` | — |
 | `usePrimaryName` | `primaryNames.json` | `owner` |
 | `useArNSStats` | `summary.json` | `counts.arnsRecords` |
+| `useNetworkStats` | `summary.json` + `delegates.json` | per count, see below |
 
 Two of those are worth their own note:
 
@@ -156,6 +157,16 @@ Two of those are worth their own note:
 
 `withdrawals.json` is GAR `Withdrawal` accounts and is **not** `vaults.json`,
 which is core-program `Vault` accounts — different datasets, not two views.
+
+`useNetworkStats` is the one hook that reads each value from its own source. Its
+three dashboard counts are whole-program scans, so they come from the snapshot:
+addresses and vaults as scalars in `summary.json`, delegates by deduping
+`delegates.json` on address, because `counts.delegates` counts delegation *rows*
+(542 on devnet) where the panel shows unique delegating *addresses* (352). The two
+documents must share a `generatedAt` — the publisher stamps a whole cycle alike —
+and a mismatch is retried once, then read live, rather than mixing two cycles in one
+panel. After a write, only the counts that write could have moved are read live;
+a vaulted transfer re-reads vaults, never balances.
 
 **A write makes the snapshot wrong, and invalidating does not fix it.** The
 refetch downloads the same document the publisher generated before the write, so
@@ -174,7 +185,10 @@ an hour for gateways and vaults.
 
 **Every write flow must pair invalidation with marking**, and
 `invalidateWrittenDocuments(queryClient, ...names)` does both in one call — the
-query key and the document name are the same string, so they cannot drift. Mark
+query key and the document name are the same string, so they cannot drift. A query
+*derived* from a document rather than named for it goes in `DERIVED_QUERY_KEYS`
+(`snapshotFreshness.ts`); `networkStats` is there, because otherwise it served the
+pre-write counts for the rest of its hour. Mark
 only the documents the transaction actually changes: a stake decrease moves
 tokens into a withdrawal account and does not touch `balances`, and `balances`
 is the most expensive scan on the network. Hand-placing the two separately does
@@ -267,7 +281,12 @@ whose result is simply unknown.
 
 Observation reports are gzipped JSON on Arweave — a fourth data source alongside
 RPC, the portal snapshot and the analyzer archive. `useReport` downloads one by
-transaction id and gunzips it with `fflate`; `useReports` lists them, resolving
+transaction id and reads it either way a gateway serves it: with
+`Content-Encoding: gzip` the browser has already decompressed the body, so JSON
+arrives as-is; without the header the gzip bytes arrive untouched and `fflate`
+decompresses them. Anything that is neither gzip nor JSON is rejected rather than
+saved as a `.json` file, which is what a gateway's HTML error page used to become.
+`useReports` lists them, resolving
 at most `EPOCH_CONCURRENCY` (4) epochs at a time so a long epoch selector neither
 stacks into a visible wait nor arrives as a burst against one endpoint.
 
@@ -350,8 +369,63 @@ three-times-per-load fetch.
 
 `GlobalDataProvider` handles app-wide data initialization:
 - Fetches current epoch and ticker on load
+- Covers the window before that epoch is prescribed (see **Epoch Rewards**)
 - Updates Solana slot periodically
 - Cleans up stale IndexedDB cache
+
+### Epoch Rewards
+
+**Read `per_gateway_reward` from the Epoch account; never derive it.** Every yield
+in the app divides it, and it cannot be reconstructed from anything a browser can
+see: the protocol computes `total_eligible_rewards * gateway_reward_ratio /
+RATE_SCALE / joined_count`, where `joined_count` (registry slots with a positive
+composite weight after tally) is never stored, `reward_rate` decays between 0.1%
+and 0.05% per epoch, and `gateway_reward_ratio` is governance-set — mainnet runs
+80/20 against a program default of 90/10. The app once hardcoded 0.0005 and 0.9 and
+counted gateways itself, two different ways; the staking table and modal disagreed
+by 25% and both overstated. `usePerGatewayReward()` is the only way to read it.
+
+`epoch.active_gateway_count` is **not** the divisor. It bounds the distribution
+traversal and counts every registry slot, leavers included (620 against 306
+eligible on mainnet). Multiplying by it overstated the rewards chart about 2x.
+
+**An epoch has a window with no split.** `create_epoch` sets
+`total_eligible_rewards` immediately but leaves both per-unit rewards at zero until
+`prescribe_epoch` runs. `rewardsPrescribed: false` marks that state, and it renders
+as *pending*, never as a split of zero or of everything — the remainder formula
+alone would credit 100% of the pool to gateways. While the newest epoch is
+unprescribed, `referencePerGatewayReward` (the previous epoch's figure) stands in for
+yields and `GlobalDataProvider` re-reads the epoch until it is prescribed.
+
+**Cached epochs are versioned, not migrated.** IndexedDB keeps distributed epochs
+across releases, so a row can outlive the formula that wrote it. `getEpoch` passes
+every cached row through `upgradeCachedEpoch`, which recomputes `distributions` from
+the row's own fields and writes it back. **Bump `REWARD_TOTALS_VERSION` whenever the
+meaning of `distributions` changes, and teach `upgradeCachedEpoch` the old shape.**
+Deliberately not a Dexie schema bump: clearing the table would throw away rows that
+may be the only copy once an epoch account is closed, and Dexie refuses to open a
+database older than the one on disk, so reverting past a schema bump silently turns
+caching off for everyone who loaded the newer build.
+
+**Yield has four states, and `useYieldStatus` names them**: `loading` (placeholder,
+no message), `pending` (read but unprescribed, no stand-in), `failed` (the epoch read
+failed), `available`. Collapsing the first and third is how a table once told users
+the epoch "could not be read" during every normal page load. An unknown yield is
+`undefined`, never a negative sentinel — `knownYield` converts, `YieldCell` renders,
+and EAY columns set `sortUndefined: 'last'` so unknowns never lead an ascending sort.
+
+**`currentEpoch` is undefined both while loading and after a failure;**
+`epochLoadFailed` tells them apart. A query gated on `currentEpoch` is *disabled*,
+not failed, when the epoch never arrives — it stays pending forever and its
+`isError` never fires — so panels downstream of the epoch branch on
+`epochLoadFailed`, not on their own query's error. A failed read renders
+`PanelUnavailable` or reads "Unavailable"; a skeleton promises arrival and must not
+be left shimmering for a read that has failed.
+
+Two splits the protocol makes that the yields follow: the delegate pool is carved
+out only when the gateway had delegated stake at tally (`split_scaled_reward`), so a
+gateway with delegation on and no delegators pays its operator everything; and the
+observer reward is excluded from both yields, which the EAY tooltip states.
 
 ### Routing
 
@@ -509,5 +583,9 @@ Three more variables are opt-in with no usable default:
 - Sourcemaps are deliberately not emitted — they were ~13MB per deploy, stored
   permanently on Arweave, and only existed to symbolicate Sentry traces
 - Pre-commit hooks run Biome via Husky
-- CI/CD: `develop` -> GitHub Pages (staging); `main` -> Firebase + Arweave (production, permanent). PRs publish an Arweave preview
+- CI/CD: `develop` -> GitHub Pages (staging); `main` -> Firebase + Arweave (production, permanent).
+  `build_and_test.yml` runs on push to `develop`, not on pull requests, so nothing
+  type-checks, lints, tests or builds a PR before merge — run them yourself. The
+  PR preview workflow (`pr-preview.yml`) exists but is disabled in the repository,
+  so PRs get no Arweave preview.
 - Tailwind CSS with custom design tokens in `/tokens/`, Rubik font, dark mode via `selector` strategy

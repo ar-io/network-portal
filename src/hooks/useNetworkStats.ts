@@ -3,10 +3,11 @@ import { useGlobalState } from '@src/store';
 import { readCachedNetworkStats, writeCachedNetworkStats } from '@src/store/db';
 import {
   type NetworkStats,
-  fetchNetworkStatsFromRpc,
-  fetchNetworkStatsFromSnapshot,
+  type NetworkStatsDocument,
+  fetchNetworkStats,
 } from '@src/utils/networkStats';
 import { networkTierFromRpcUrl } from '@src/utils/portalApi';
+import { shouldReadLive } from '@src/utils/snapshotFreshness';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -18,6 +19,12 @@ import { useQuery } from '@tanstack/react-query';
  * caching elsewhere is acceptable for three informational tiles.
  */
 export const NETWORK_STATS_TTL = 60 * 60 * 1000;
+
+const LIVE_SOURCES: NetworkStatsDocument[] = [
+  'balances',
+  'delegates',
+  'vaults',
+];
 
 /**
  * Program ids are part of the key because they are configurable per network
@@ -52,35 +59,26 @@ const useNetworkStats = () => {
   return useQuery<NetworkStats>({
     queryKey: networkStatsQueryKey(solanaRpcUrl, programFingerprint),
     queryFn: async () => {
-      const cached = await readCachedNetworkStats(
-        networkPortalDB,
-        NETWORK_STATS_TTL,
-        programFingerprint,
-      );
-      if (cached) return cached;
+      // A write this session could have moved a count, and the cached row
+      // predates it. Skip the cache so `fetchNetworkStats` can re-read just the
+      // counts that write touched.
+      const anyLive = LIVE_SOURCES.some((document) => shouldReadLive(document));
 
-      // Snapshot first: these are the three whole-program scans the published
-      // documents exist to absorb, and reading them from the chain left the
-      // panel blank whenever RPC was down even though every other number on
-      // the dashboard came from the snapshot and rendered fine.
-      const fromSnapshot = await fetchNetworkStatsFromSnapshot(
-        networkTierFromRpcUrl(solanaRpcUrl),
-        portalProgramIds,
-      );
-      if (fromSnapshot) {
-        await writeCachedNetworkStats(
+      if (!anyLive) {
+        const cached = await readCachedNetworkStats(
           networkPortalDB,
-          fromSnapshot,
+          NETWORK_STATS_TTL,
           programFingerprint,
         );
-        return fromSnapshot;
+        if (cached) return cached;
       }
 
-      if (!arIOReadSDK) {
-        throw new Error('arIOReadSDK is not initialized');
-      }
-
-      const stats = await fetchNetworkStatsFromRpc(arIOReadSDK);
+      const stats = await fetchNetworkStats({
+        sdk: arIOReadSDK,
+        expectedNetwork: networkTierFromRpcUrl(solanaRpcUrl),
+        expectedProgramIds: portalProgramIds,
+        readLive: shouldReadLive,
+      });
       await writeCachedNetworkStats(networkPortalDB, stats, programFingerprint);
       return stats;
     },

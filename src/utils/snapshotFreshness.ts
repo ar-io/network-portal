@@ -181,4 +181,20 @@ export const invalidateWrittenDocuments = (
       refetchType: 'active',
     });
   }
+
+  // Queries derived from a document rather than named for it. The dashboard's
+  // network statistics count three documents, and without this they served
+  // the pre-write figures from React Query for the rest of their hour.
+  const derived = new Set(
+    names.flatMap((name) => DERIVED_QUERY_KEYS[name] ?? []),
+  );
+  for (const key of derived) {
+    queryClient.invalidateQueries({ queryKey: [key], refetchType: 'active' });
+  }
+};
+
+const DERIVED_QUERY_KEYS: Partial<Record<PortalDocumentName, string[]>> = {
+  balances: ['networkStats'],
+  delegates: ['networkStats'],
+  vaults: ['networkStats'],
 };

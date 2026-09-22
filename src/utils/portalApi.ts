@@ -174,6 +174,26 @@ export async function fetchPortalDocument<T>(
   expectedNetwork: string,
   expectedProgramIds: PortalProgramIds = {},
 ): Promise<T[] | null> {
+  const stamped = await fetchStampedPortalDocument<T>(
+    name,
+    expectedNetwork,
+    expectedProgramIds,
+  );
+  return stamped?.items ?? null;
+}
+
+/**
+ * {@link fetchPortalDocument}, keeping the document's `generatedAt`.
+ *
+ * The publisher stamps every document of one cycle with the same
+ * `generatedAt`, so a caller combining two documents can compare stamps to
+ * know it is not mixing two cycles. Same trust checks, same null contract.
+ */
+export async function fetchStampedPortalDocument<T>(
+  name: PortalDocumentName,
+  expectedNetwork: string,
+  expectedProgramIds: PortalProgramIds = {},
+): Promise<{ items: T[]; generatedAt: string } | null> {
   if (!isPortalApiEnabled()) return null;
 
   // A write this session landed after the publisher last ran, and the document
@@ -243,7 +263,8 @@ export async function fetchPortalDocument<T>(
     }
 
     log.debug(`[portalApi] ${name}: ${body.items.length} items from snapshot`);
-    return body.items;
+    // `ageMs` is finite, so `generatedAt` is present and parsed.
+    return { items: body.items, generatedAt: body.generatedAt as string };
   } catch (error) {
     // Timeout, DNS failure, CORS, offline — all the same answer.
     log.debug(

@@ -1,8 +1,8 @@
 import { ARIORead, AllDelegates } from '@ar.io/sdk/web';
 import {
   type PortalProgramIds,
-  fetchPortalDocument,
   fetchPortalSummary,
+  fetchStampedPortalDocument,
 } from './portalApi';
 
 /**
@@ -25,9 +25,10 @@ export type NetworkStats = {
 /**
  * Derive the stats from chain reads.
  *
- * **This function is the fallback.** `fetchNetworkStatsFromSnapshot` is tried
- * first; this runs only when the snapshot is off, unreachable, or publishing a
- * different network.
+ * All three counts at once, straight from RPC. `fetchNetworkStats` is what the
+ * panel calls; it reads each count from the snapshot where it can and from
+ * RPC per count where it cannot, so this full sweep is kept as a single-call
+ * reference for the RPC shape rather than the app's path.
  *
  * It is also the expensive path, which is why it sits behind a cache: each of
  * these three calls is a whole-program `getProgramAccounts` scan. Together they
@@ -58,49 +59,139 @@ export const fetchNetworkStatsFromRpc = async (
   };
 };
 
+/** A snapshot document whose freshness can override a count. */
+export type NetworkStatsDocument = 'balances' | 'delegates' | 'vaults';
+
+type Counts = Partial<NetworkStats>;
+
+const countUniqueDelegates = (items: AllDelegates[]) =>
+  new Set(items.map((item) => item.address)).size;
+
 /**
- * Derive the same three counts from the published snapshot.
- *
- * These are whole-program scans, so they are exactly what the snapshot exists
- * to absorb. Reading them from RPC meant the panel went blank whenever the
- * chain was unreachable, even with the snapshot serving every other number on
- * the page — which is the opposite of what the fallback is for.
+ * The counts the snapshot can supply, as a partial, never a guess.
  *
  * Two of the three are scalars in `summary.json`, a 1.6KB document. The third
  * is not: `counts.delegates` counts delegation ROWS (542 on devnet) while the
  * panel has always shown unique delegating ADDRESSES (352), because one address
  * can delegate to many gateways. That one needs `delegates.json` and a dedupe.
  *
- * Returns null if any part is unavailable, so the caller falls back whole
- * rather than showing two real numbers beside a guess.
+ * When both documents are needed they must come from one publish cycle. The
+ * publisher stamps every document of a cycle with the same `generatedAt`, so
+ * unequal stamps mean a publish landed between the two parallel fetches; that
+ * is retried once, and a second mismatch drops the delegate count rather than
+ * pair it with another cycle's totals.
  */
-export const fetchNetworkStatsFromSnapshot = async (
+const snapshotCounts = async (
   expectedNetwork: string,
-  expectedProgramIds: PortalProgramIds = {},
-): Promise<NetworkStats | null> => {
-  const [summary, delegates] = await Promise.all([
-    fetchPortalSummary(expectedNetwork, expectedProgramIds),
-    fetchPortalDocument<AllDelegates>(
-      'delegates',
-      expectedNetwork,
-      expectedProgramIds,
-    ),
-  ]);
+  expectedProgramIds: PortalProgramIds,
+  wantDelegates: boolean,
+): Promise<Counts> => {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const [summary, delegates] = await Promise.all([
+      fetchPortalSummary(expectedNetwork, expectedProgramIds),
+      wantDelegates
+        ? fetchStampedPortalDocument<AllDelegates>(
+            'delegates',
+            expectedNetwork,
+            expectedProgramIds,
+          )
+        : Promise.resolve(null),
+    ]);
 
-  const totalAddresses = summary?.counts?.balances;
-  const totalVaults = summary?.counts?.vaults;
+    const counts: Counts = {
+      totalAddresses: summary?.counts?.balances,
+      totalVaults: summary?.counts?.vaults,
+    };
 
-  if (
-    typeof totalAddresses !== 'number' ||
-    typeof totalVaults !== 'number' ||
-    !delegates
-  ) {
-    return null;
+    if (!delegates) return counts;
+    if (!summary || summary.generatedAt === delegates.generatedAt) {
+      return {
+        ...counts,
+        uniqueDelegates: countUniqueDelegates(delegates.items),
+      };
+    }
   }
 
+  const summary = await fetchPortalSummary(expectedNetwork, expectedProgramIds);
   return {
-    totalAddresses,
-    totalVaults,
-    uniqueDelegates: new Set(delegates.map((item) => item.address)).size,
+    totalAddresses: summary?.counts?.balances,
+    totalVaults: summary?.counts?.vaults,
   };
+};
+
+const LIVE_READERS: Record<
+  keyof NetworkStats,
+  (sdk: ARIORead) => Promise<number>
+> = {
+  totalAddresses: async (sdk) =>
+    (await sdk.getBalances({ limit: Number.MAX_SAFE_INTEGER })).items.length,
+  uniqueDelegates: async (sdk) =>
+    countUniqueDelegates(
+      (await sdk.getAllDelegates({ limit: Number.MAX_SAFE_INTEGER })).items,
+    ),
+  totalVaults: async (sdk) =>
+    (await sdk.getVaults({ limit: Number.MAX_SAFE_INTEGER })).items.length,
+};
+
+/** Which document each count is published in, for the post-write check. */
+const SOURCE: Record<keyof NetworkStats, NetworkStatsDocument> = {
+  totalAddresses: 'balances',
+  uniqueDelegates: 'delegates',
+  totalVaults: 'vaults',
+};
+
+/**
+ * The three counts, each from the cheapest source that can be trusted.
+ *
+ * Snapshot first: these are three whole-program scans, exactly what the
+ * published documents exist to absorb, and reading them from the chain left
+ * the panel blank whenever RPC was down even though the rest of the dashboard
+ * rendered from the snapshot.
+ *
+ * Per count, not all-or-nothing. After a write, only the counts that write
+ * could have moved are read live, because CLAUDE.md's rule is to mark only
+ * the documents a transaction changes and `balances` is the most expensive
+ * scan on the network. A vaulted transfer re-reads vaults, not balances. Any
+ * count the snapshot cannot supply is read live too.
+ *
+ * `expectedProgramIds` is required, not defaulted: an empty object silently
+ * turns the snapshot's program-id check into a no-op.
+ */
+export const fetchNetworkStats = async ({
+  sdk,
+  expectedNetwork,
+  expectedProgramIds,
+  readLive,
+}: {
+  sdk?: ARIORead;
+  expectedNetwork: string;
+  expectedProgramIds: PortalProgramIds;
+  readLive: (document: NetworkStatsDocument) => boolean;
+}): Promise<NetworkStats> => {
+  const keys = Object.keys(SOURCE) as Array<keyof NetworkStats>;
+  const live = new Set(keys.filter((key) => readLive(SOURCE[key])));
+
+  const snapshot: Counts =
+    live.size === keys.length
+      ? {}
+      : await snapshotCounts(
+          expectedNetwork,
+          expectedProgramIds,
+          !live.has('uniqueDelegates'),
+        );
+
+  const values = await Promise.all(
+    keys.map(async (key) => {
+      const fromSnapshot = snapshot[key];
+      if (!live.has(key) && typeof fromSnapshot === 'number') {
+        return fromSnapshot;
+      }
+      if (!sdk) throw new Error('arIOReadSDK is not initialized');
+      return LIVE_READERS[key](sdk);
+    }),
+  );
+
+  return Object.fromEntries(
+    keys.map((key, i) => [key, values[i]]),
+  ) as NetworkStats;
 };

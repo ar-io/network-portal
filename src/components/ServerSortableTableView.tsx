@@ -1,4 +1,6 @@
-import useHorizontalScrollHint from '@src/hooks/useHorizontalScrollHint';
+import useHorizontalScrollHint, {
+  edgeFadeStyle,
+} from '@src/hooks/useHorizontalScrollHint';
 import { useColumnPreferences } from '@src/store/columnPreferences';
 import {
   ColumnDef,
@@ -121,156 +123,139 @@ const ServerSortableTableView = <T, S>({
   } = useHorizontalScrollHint<HTMLDivElement>();
 
   return (
-    <div className="relative">
-      <div
-        ref={scrollRef}
-        className={`overflow-x-auto scrollbar ${maxHeightRemClass}`}
-      >
-        <table className="w-full table-auto border-x border-b border-grey-500">
-          <thead className="sticky top-0 z-10 bg-containerL0 text-xs text-low">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  const sortState = header.column.getIsSorted();
-                  const canSort =
-                    header.column.columnDef.enableSorting !== false;
+    <div
+      ref={scrollRef}
+      style={edgeFadeStyle({ canScrollLeft, canScrollRight })}
+      className={`overflow-x-auto scrollbar ${maxHeightRemClass}`}
+    >
+      <table className="w-full table-auto border-x border-b border-grey-500">
+        <thead className="sticky top-0 z-10 bg-containerL0 text-xs text-low">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                const sortState = header.column.getIsSorted();
+                const canSort = header.column.columnDef.enableSorting !== false;
 
-                  return (
-                    <th key={header.id} className="py-2 pl-6">
-                      {header.isPlaceholder ? null : canSort ? (
-                        <button
-                          className="flex items-center gap-1 text-left"
-                          onClick={() => {
-                            const isDesc = sortState === 'desc';
-                            const isAsc = sortState === 'asc';
-                            let nextSort: 'asc' | 'desc' | false = false;
+                return (
+                  <th key={header.id} className="py-2 pl-6">
+                    {header.isPlaceholder ? null : canSort ? (
+                      <button
+                        className="flex items-center gap-1 text-left"
+                        onClick={() => {
+                          const isDesc = sortState === 'desc';
+                          const isAsc = sortState === 'asc';
+                          let nextSort: 'asc' | 'desc' | false = false;
 
-                            if (!isAsc && !isDesc) {
-                              // No sort -> asc/desc based on column preference
-                              nextSort = header.column.columnDef.sortDescFirst
-                                ? 'desc'
-                                : 'asc';
-                            } else if (isAsc) {
-                              // asc -> desc
-                              nextSort = 'desc';
-                            } else if (isDesc) {
-                              // desc -> asc
-                              nextSort = 'asc';
-                            }
+                          if (!isAsc && !isDesc) {
+                            // No sort -> asc/desc based on column preference
+                            nextSort = header.column.columnDef.sortDescFirst
+                              ? 'desc'
+                              : 'asc';
+                          } else if (isAsc) {
+                            // asc -> desc
+                            nextSort = 'desc';
+                          } else if (isDesc) {
+                            // desc -> asc
+                            nextSort = 'asc';
+                          }
 
-                            if (nextSort) {
-                              handleSortingChange([
-                                {
-                                  id: header.id,
-                                  desc: nextSort === 'desc',
-                                },
-                              ]);
-                            }
-                          }}
-                        >
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                          {sortState ? (
-                            sortState === 'desc' ? (
-                              <SortDesc />
-                            ) : (
-                              <SortAsc />
-                            )
+                          if (nextSort) {
+                            handleSortingChange([
+                              {
+                                id: header.id,
+                                desc: nextSort === 'desc',
+                              },
+                            ]);
+                          }
+                        }}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                        {sortState ? (
+                          sortState === 'desc' ? (
+                            <SortDesc />
                           ) : (
-                            <div className="w-4" />
-                          )}
-                        </button>
-                      ) : (
-                        <div className="text-left">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                        </div>
-                      )}
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="overflow-y-auto text-sm">
-            {isLoading || isFetching ? (
-              // Show skeleton rows when loading or fetching
-              Array.from({ length: loadingRows }, (_, index) => (
-                <TableSkeletonRow
-                  key={index}
-                  columns={
-                    table.getAllColumns().filter((col) => col.getIsVisible())
-                      .length
-                  }
-                />
-              ))
-            ) : isError ? (
-              // Show error message
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="p-4 text-center text-sm text-mid"
-                >
-                  {errorText}
-                </td>
-              </tr>
-            ) : data.length === 0 ? (
-              // Show no data message
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="p-4 text-center text-sm text-mid"
-                >
-                  {noDataFoundText}
-                </td>
-              </tr>
-            ) : (
-              // Show actual data rows when not loading
-              table
-                .getRowModel()
-                .rows.map((row) => {
-                  return (
-                    <tr
-                      key={row.id}
-                      className={`border-t border-grey-500 text-low *:py-4 *:pl-6 transition-all duration-200 ${onRowClick ? 'cursor-pointer hover:bg-gradient-to-r hover:from-transparent hover:via-[#E19EE505] hover:to-transparent' : ''}`}
-                      onClick={
-                        onRowClick ? () => onRowClick(row.original) : undefined
-                      }
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })
-            )}
-          </tbody>
-        </table>
-      </div>
-      {/* Overlay scrollbars stay hidden until you already scroll, so a wide
-          table gives no sign that six of its nine columns are off to the
-          right. Each fade shows only while there is content past that edge. */}
-      {canScrollLeft && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-containerL0 to-transparent"
-        />
-      )}
-      {canScrollRight && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-containerL0 to-transparent"
-        />
-      )}
+                            <SortAsc />
+                          )
+                        ) : (
+                          <div className="w-4" />
+                        )}
+                      </button>
+                    ) : (
+                      <div className="text-left">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </div>
+                    )}
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
+        </thead>
+        <tbody className="overflow-y-auto text-sm">
+          {isLoading || isFetching ? (
+            // Show skeleton rows when loading or fetching
+            Array.from({ length: loadingRows }, (_, index) => (
+              <TableSkeletonRow
+                key={index}
+                columns={
+                  table.getAllColumns().filter((col) => col.getIsVisible())
+                    .length
+                }
+              />
+            ))
+          ) : isError ? (
+            // Show error message
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="p-4 text-center text-sm text-mid"
+              >
+                {errorText}
+              </td>
+            </tr>
+          ) : data.length === 0 ? (
+            // Show no data message
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="p-4 text-center text-sm text-mid"
+              >
+                {noDataFoundText}
+              </td>
+            </tr>
+          ) : (
+            // Show actual data rows when not loading
+            table
+              .getRowModel()
+              .rows.map((row) => {
+                return (
+                  <tr
+                    key={row.id}
+                    className={`border-t border-grey-500 text-low *:py-4 *:pl-6 transition-all duration-200 ${onRowClick ? 'cursor-pointer hover:bg-gradient-to-r hover:from-transparent hover:via-[#E19EE505] hover:to-transparent' : ''}`}
+                    onClick={
+                      onRowClick ? () => onRowClick(row.original) : undefined
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };

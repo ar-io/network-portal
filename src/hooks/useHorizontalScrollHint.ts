@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 export type HorizontalScrollHint = {
   /** Content is wider than its box, so there is something to scroll to. */
@@ -11,6 +17,33 @@ export type HorizontalScrollHint = {
 
 /** Sub-pixel layout rounding means the ends never land on exactly 0. */
 const EDGE_TOLERANCE_PX = 2;
+
+/** How far into the content each edge fades. */
+const FADE_PX = 32;
+
+/**
+ * A mask that fades the scroll container's own edges to transparent.
+ *
+ * A mask rather than a gradient overlay, because an overlay has to be painted
+ * in the colour behind the table, and a guess is visibly wrong: the first
+ * version drew `containerL0` (#09090a) over rows that sit on `grey-1000`
+ * (#0e0e0f), which reads as a darker band rather than a fade. Masking reveals
+ * whatever is really behind, so it cannot mismatch.
+ */
+export const edgeFadeStyle = ({
+  canScrollLeft,
+  canScrollRight,
+}: Pick<HorizontalScrollHint, 'canScrollLeft' | 'canScrollRight'>):
+  | CSSProperties
+  | undefined => {
+  if (!canScrollLeft && !canScrollRight) return undefined;
+
+  const left = canScrollLeft ? 'transparent 0' : '#000 0';
+  const right = canScrollRight ? 'transparent 100%' : '#000 100%';
+  const gradient = `linear-gradient(to right, ${left}, #000 ${FADE_PX}px, #000 calc(100% - ${FADE_PX}px), ${right})`;
+
+  return { maskImage: gradient, WebkitMaskImage: gradient };
+};
 
 /**
  * Track whether a scroll container has content off-screen horizontally.

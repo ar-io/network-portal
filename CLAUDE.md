@@ -464,8 +464,19 @@ The endpoint is protected at the provider (referrer allowlist, per-method rate l
 not by keeping the token out of git.
 
 Both deploy workflows pass `VITE_SOLANA_RPC_URL` and `VITE_SOLANA_MAINNET_RPC_URL` from
-repository secrets. Production has a `verify-secrets` gate that fails the run when either
-is empty, and ships a permanent build, so it must not be weakened.
+repository secrets. Production has a `verify-secrets` gate, and ships a permanent build,
+so it must not be weakened.
+
+**`VITE_SOLANA_RPC_URL` is the devnet slot, despite the generic name.** The gate checks
+shape as well as presence, because non-empty was not enough: during an endpoint rotation
+the mainnet URL went into both slots, the build stayed green, and the app worked — but
+Settings infers the tier from the URL text, read "mainnet" from both, and "Switch to
+Devnet" silently reloaded mainnet. The gate now also fails when the two resolve to the
+same endpoint (ignoring a trailing slash, which is what hid it), when the devnet slot's
+URL does not say `devnet`, or when the mainnet slot's does. Those assert exactly what
+`getNetworkTierFromRpcUrl` will infer at runtime: an endpoint whose URL does not name its
+network cannot drive the switcher. Staging has no such gate, so it can still ship the
+mix-up.
 
 **The public fallbacks are not a safety net, and the mainnet one is not usable at
 all.** `api.mainnet-beta.solana.com` answers `403 Access forbidden` to any request

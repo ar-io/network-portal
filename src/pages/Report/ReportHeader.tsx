@@ -5,6 +5,7 @@ import Profile from '@src/components/Profile';
 import { downloadReport } from '@src/hooks/useReport';
 import { ReportData } from '@src/types';
 import { formatDateTime } from '@src/utils';
+import { showErrorToast } from '@src/utils/toast';
 import { saveAs } from 'file-saver';
 import { ChevronRightIcon, Download, NotebookText } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
@@ -64,11 +65,17 @@ const ReportHeader = ({
             active={true}
             onClick={async () => {
               if (reportId && reportData) {
-                const reportData = await downloadReport(reportId);
-                const blob = new Blob([reportData], {
-                  type: 'application/json',
-                });
-                saveAs(blob, `report-${reportId}.json`);
+                try {
+                  const reportData = await downloadReport(reportId);
+                  const blob = new Blob([reportData], {
+                    type: 'application/json',
+                  });
+                  saveAs(blob, `report-${reportId}.json`);
+                } catch (_e) {
+                  showErrorToast(
+                    `Error: Unable to download report ${reportId}`,
+                  );
+                }
               }
             }}
           />

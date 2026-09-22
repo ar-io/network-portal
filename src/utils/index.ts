@@ -47,6 +47,19 @@ export const formatWithCommas = (num: number) => {
   return COMMA_NUMBER_FORMAT.format(num);
 };
 
+const EXACT_ARIO_FORMAT = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 6,
+});
+
+/**
+ * An ARIO amount with thousands separators and no rounding beyond mARIO.
+ *
+ * For a limit a user has to type against. `formatWithCommas` rounds to one
+ * decimal, which is fine for display and wrong for a bound: a 1,234.56 ARIO
+ * balance shown as "1,234.6" invites an amount the form then rejects.
+ */
+export const formatARIOExact = (num: number) => EXACT_ARIO_FORMAT.format(num);
+
 /**
  * Format a lamport amount as SOL for display (1 SOL = 1e9 lamports),
  * rounded to the nearest 5th decimal (0.00000).

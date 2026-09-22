@@ -4,7 +4,8 @@ import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
-import { formatWithCommas } from '@src/utils';
+import { formatARIOExact, formatWithCommas } from '@src/utils';
+import { redelegationShortfall } from '@src/utils/stake';
 import { InfoIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
@@ -152,14 +153,34 @@ const RedelegateModal = ({
       return;
     }
 
+    // The fee comes off before the target's minimum is checked; see
+    // `redelegationShortfall`.
+    const feeRatePct = redelegationFee?.redelegationFeeRate ?? 0;
+    const shortfall = redelegationShortfall({
+      amount,
+      feeRatePct,
+      minDelegatedStake,
+      targetHasPosition: (targetGatewayCurrentStake ?? 0) > 0,
+    });
+    if (shortfall) {
+      setErrorMessage(
+        `After the ${formatARIOExact(feeRatePct)}% redelegation fee, ${formatARIOExact(shortfall.net)} ${ticker} would reach this gateway, below its ${formatARIOExact(minDelegatedStake)} ${ticker} minimum. Redelegate at least ${formatARIOExact(shortfall.smallestGross)} ${ticker}.`,
+      );
+      setIsFormValid(false);
+      return;
+    }
+
     setErrorMessage(undefined);
     setIsFormValid(true);
   }, [
     amountToRedelegate,
     maxRedelegationStake,
+    minDelegatedStake,
     minRequiredStakeToAdd,
+    redelegationFee,
     sourceGateway.settings.minDelegatedStake,
     targetGateway,
+    targetGatewayCurrentStake,
     ticker,
     validators,
     vaultId,

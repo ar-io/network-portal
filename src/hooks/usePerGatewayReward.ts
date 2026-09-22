@@ -10,15 +10,22 @@ import { useGlobalState } from '@src/store';
  * `EpochDataWithCounters.perGatewayReward` for why reconstruction is not
  * possible: the divisor the protocol uses is never published.
  *
- * Undefined has two causes and callers treat them the same way, by showing no
- * yield rather than a guess: the SDK fallback path returns a plain `EpochData`
- * without the field, and a freshly created epoch carries zero until
- * `prescribe_epoch` runs.
+ * Before the current epoch is prescribed it carries zero, and the previous
+ * epoch's reward (`referencePerGatewayReward`) stands in, so yields do not blank
+ * out for the first minutes of every epoch. Undefined means neither is known:
+ * the epoch is still loading, its read failed, or the SDK fallback path returned
+ * a plain `EpochData` without the field. `useYieldStatus` tells those apart.
  */
 const usePerGatewayReward = (): ARIOToken | undefined => {
-  const perGatewayReward = useGlobalState(
+  const current = useGlobalState(
     (state) => state.currentEpoch?.perGatewayReward,
   );
+  // Only consulted before the current epoch is prescribed; see
+  // `referencePerGatewayReward` in global state.
+  const reference = useGlobalState((state) => state.referencePerGatewayReward);
+
+  const perGatewayReward =
+    current !== undefined && current > 0 ? current : reference;
 
   if (perGatewayReward === undefined || perGatewayReward <= 0) {
     return undefined;

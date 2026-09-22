@@ -6,6 +6,7 @@ import CopyButton from '@src/components/CopyButton';
 import ServerSortableTableView from '@src/components/ServerSortableTableView';
 import Streak from '@src/components/Streak';
 import Tooltip from '@src/components/Tooltip';
+import { YieldCell, YieldUnavailableNote } from '@src/components/YieldCell';
 import {
   CaretDoubleRightIcon,
   CaretRightIcon,
@@ -16,6 +17,7 @@ import StakingModal from '@src/components/modals/StakingModal';
 import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useAllGateways from '@src/hooks/useAllGateways';
 import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
+import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
@@ -100,6 +102,7 @@ const DelegateStake = () => {
     data: allGateways,
   } = useAllGateways();
   const perGatewayReward = usePerGatewayReward();
+  const yieldStatus = useYieldStatus();
   const [tableData, setTableData] = useState<Array<TableData>>([]);
 
   const [stakingModalWalletAddress, setStakingModalWalletAddress] =
@@ -290,11 +293,7 @@ const DelegateStake = () => {
           </div>
         ),
         cell: ({ row }) => (
-          <div>
-            {row.original.eay === undefined
-              ? 'N/A'
-              : `${formatWithCommas(row.original.eay * 100)}%`}
-          </div>
+          <YieldCell eay={row.original.eay} status={yieldStatus} />
         ),
       }),
       columnHelper.accessor('performance', {
@@ -442,12 +441,7 @@ const DelegateStake = () => {
           <ColumnSelector tableId="delegate-stake" columns={columns} />
         </div>
       </div>
-      {!perGatewayReward && !isLoading && (
-        <div className="border-x border-grey-600 bg-containerL3 px-6 py-2 text-xs text-low">
-          Yield is unavailable because the current epoch could not be read.
-          Every other column is live.
-        </div>
-      )}
+      <YieldUnavailableNote status={yieldStatus} />
       <ServerSortableTableView
         columns={columns}
         data={paginatedData}

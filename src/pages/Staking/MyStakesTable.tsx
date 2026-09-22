@@ -7,6 +7,7 @@ import CopyButton from '@src/components/CopyButton';
 import Streak from '@src/components/Streak';
 import TableView from '@src/components/TableView';
 import Tooltip from '@src/components/Tooltip';
+import { YieldCell } from '@src/components/YieldCell';
 import { InfoIcon, ThreeDotsIcon } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
@@ -20,6 +21,7 @@ import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
 import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
+import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
@@ -76,6 +78,7 @@ const MyStakesTable = () => {
     useDelegateStakes(walletAddress?.toString());
 
   const perGatewayReward = usePerGatewayReward();
+  const yieldStatus = useYieldStatus();
 
   useEffect(() => {
     const unified: Array<UnifiedStakeData> | undefined = isFetching
@@ -208,14 +211,13 @@ const MyStakesTable = () => {
           </div>
         ),
         sortDescFirst: true,
-        cell: ({ row }) => (
-          <div>
-            {row.original.status === 'Withdrawing' ||
-            row.original.eay === undefined
-              ? 'N/A'
-              : `${formatWithCommas(row.original.eay * 100)}%`}
-          </div>
-        ),
+        cell: ({ row }) =>
+          // A withdrawal earns nothing, whatever the gateway's yield.
+          row.original.status === 'Withdrawing' ? (
+            <div>N/A</div>
+          ) : (
+            <YieldCell eay={row.original.eay} status={yieldStatus} />
+          ),
       }),
       columnHelper.accessor('streak', {
         id: 'streak',

@@ -31,6 +31,17 @@ type GlobalState = {
    * consumer knows nothing is coming.
    */
   epochLoadFailed?: boolean;
+  /**
+   * The per-gateway reward, in mARIO, of the most recent epoch that has been
+   * prescribed, used only while `currentEpoch` has not been.
+   *
+   * `create_epoch` leaves `per_gateway_reward` at zero until `prescribe_epoch`
+   * runs, so a visit in that window would otherwise show every yield in the app
+   * as unknown until reload. The previous epoch's figure is the right stand-in:
+   * yields are estimates either way, and this one moves by well under 1% from
+   * epoch to epoch as the reward rate decays.
+   */
+  referencePerGatewayReward?: number;
   walletAddress?: AoAddress;
   walletStateInitialized: boolean;
   ticker: string;
@@ -43,6 +54,7 @@ type GlobalStateActions = {
   setSolanaSlot: (slot: number) => void;
   setCurrentEpoch: (currentEpoch?: EpochDataWithCounters) => void;
   setEpochLoadFailed: (epochLoadFailed: boolean) => void;
+  setReferencePerGatewayReward: (reward?: number) => void;
   updateWallet: (walletAddress?: AoAddress) => void;
   setWalletStateInitialized: (initialized: boolean) => void;
   setTicker: (ticker: string) => void;
@@ -180,6 +192,10 @@ class GlobalStateActionBase implements GlobalStateActions {
 
   setEpochLoadFailed = (epochLoadFailed: boolean) => {
     this.set({ epochLoadFailed });
+  };
+
+  setReferencePerGatewayReward = (referencePerGatewayReward?: number) => {
+    this.set({ referencePerGatewayReward });
   };
 
   setCurrentEpoch = (currentEpoch?: EpochDataWithCounters) => {

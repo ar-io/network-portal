@@ -120,12 +120,19 @@ const ServerSortableTableView = <T, S>({
     ref: scrollRef,
     canScrollLeft,
     canScrollRight,
+    scrollbarHeight,
+    scrollbarWidth,
   } = useHorizontalScrollHint<HTMLDivElement>();
 
   return (
     <div
       ref={scrollRef}
-      style={edgeFadeStyle({ canScrollLeft, canScrollRight })}
+      style={edgeFadeStyle({
+        canScrollLeft,
+        canScrollRight,
+        scrollbarHeight,
+        scrollbarWidth,
+      })}
       className={`overflow-x-auto scrollbar ${maxHeightRemClass}`}
     >
       <table className="w-full table-auto border-x border-b border-grey-500">

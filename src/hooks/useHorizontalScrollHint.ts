@@ -13,6 +13,10 @@ export type HorizontalScrollHint = {
   canScrollLeft: boolean;
   /** Not yet at the right edge. */
   canScrollRight: boolean;
+  /** Height of a classic scrollbar along the bottom; 0 for overlay scrollbars. */
+  scrollbarHeight: number;
+  /** Width of a classic vertical scrollbar on the right; 0 when none. */
+  scrollbarWidth: number;
 };
 
 /** Sub-pixel layout rounding means the ends never land on exactly 0. */
@@ -29,11 +33,18 @@ const FADE_PX = 32;
  * version drew `containerL0` (#09090a) over rows that sit on `grey-1000`
  * (#0e0e0f), which reads as a darker band rather than a fade. Masking reveals
  * whatever is really behind, so it cannot mismatch.
+ *
+ * The mask covers the whole box, scrollbar included, so a classic scrollbar
+ * would fade at its ends too. A solid layer over each scrollbar strip keeps it
+ * opaque: mask layers add, so wherever any layer is opaque, it shows.
  */
 export const edgeFadeStyle = ({
   canScrollLeft,
   canScrollRight,
-}: Pick<HorizontalScrollHint, 'canScrollLeft' | 'canScrollRight'>):
+  scrollbarHeight = 0,
+  scrollbarWidth = 0,
+}: Pick<HorizontalScrollHint, 'canScrollLeft' | 'canScrollRight'> &
+  Partial<Pick<HorizontalScrollHint, 'scrollbarHeight' | 'scrollbarWidth'>>):
   | CSSProperties
   | undefined => {
   if (!canScrollLeft && !canScrollRight) return undefined;
@@ -42,7 +53,39 @@ export const edgeFadeStyle = ({
   const right = canScrollRight ? 'transparent 100%' : '#000 100%';
   const gradient = `linear-gradient(to right, ${left}, #000 ${FADE_PX}px, #000 calc(100% - ${FADE_PX}px), ${right})`;
 
-  return { maskImage: gradient, WebkitMaskImage: gradient };
+  if (scrollbarHeight <= 0 && scrollbarWidth <= 0) {
+    return { maskImage: gradient, WebkitMaskImage: gradient };
+  }
+
+  const solid = 'linear-gradient(#000, #000)';
+  const layers = [{ image: gradient, size: '100% 100%', position: '0 0' }];
+  if (scrollbarHeight > 0) {
+    layers.push({
+      image: solid,
+      size: `100% ${scrollbarHeight}px`,
+      position: '0 100%',
+    });
+  }
+  if (scrollbarWidth > 0) {
+    layers.push({
+      image: solid,
+      size: `${scrollbarWidth}px 100%`,
+      position: '100% 0',
+    });
+  }
+  const mask = layers.map((l) => l.image).join(', ');
+  const size = layers.map((l) => l.size).join(', ');
+  const position = layers.map((l) => l.position).join(', ');
+  return {
+    maskImage: mask,
+    WebkitMaskImage: mask,
+    maskSize: size,
+    WebkitMaskSize: size,
+    maskPosition: position,
+    WebkitMaskPosition: position,
+    maskRepeat: 'no-repeat',
+    WebkitMaskRepeat: 'no-repeat',
+  };
 };
 
 /**
@@ -64,6 +107,8 @@ export const useHorizontalScrollHint = <T extends HTMLElement>() => {
     scrollable: false,
     canScrollLeft: false,
     canScrollRight: false,
+    scrollbarHeight: 0,
+    scrollbarWidth: 0,
   });
 
   const measure = useCallback(() => {
@@ -72,6 +117,16 @@ export const useHorizontalScrollHint = <T extends HTMLElement>() => {
 
     const maxScroll = el.scrollWidth - el.clientWidth;
     const scrollable = maxScroll > EDGE_TOLERANCE_PX;
+    // offset* includes borders; client{Top,Left} covers one side and the
+    // opposite border matches it on these containers.
+    const scrollbarHeight = Math.max(
+      0,
+      el.offsetHeight - el.clientHeight - 2 * el.clientTop,
+    );
+    const scrollbarWidth = Math.max(
+      0,
+      el.offsetWidth - el.clientWidth - 2 * el.clientLeft,
+    );
 
     setHint((prev) => {
       const next = {
@@ -79,11 +134,15 @@ export const useHorizontalScrollHint = <T extends HTMLElement>() => {
         canScrollLeft: scrollable && el.scrollLeft > EDGE_TOLERANCE_PX,
         canScrollRight:
           scrollable && el.scrollLeft < maxScroll - EDGE_TOLERANCE_PX,
+        scrollbarHeight,
+        scrollbarWidth,
       };
 
       return prev.scrollable === next.scrollable &&
         prev.canScrollLeft === next.canScrollLeft &&
-        prev.canScrollRight === next.canScrollRight
+        prev.canScrollRight === next.canScrollRight &&
+        prev.scrollbarHeight === next.scrollbarHeight &&
+        prev.scrollbarWidth === next.scrollbarWidth
         ? prev
         : next;
     });

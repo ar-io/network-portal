@@ -22,7 +22,13 @@ export interface UserRewards {
 }
 
 /**
- * Split a gateway's epoch reward between its operator and its delegates.
+ * The delegates' share of a gateway's epoch reward, before dilution.
+ *
+ * This is the gateway reward only. A prescribed observer that submits also
+ * earns `per_observer_reward`, split under the same ratio, and neither yield
+ * here includes it; the EAY tooltip says so. It is left out because it depends
+ * on being prescribed, which is a lottery weighted by stake, and a yield that
+ * assumed it would overstate most gateways' returns.
  *
  * `perGatewayReward` is read from the Epoch account, never reconstructed. The
  * protocol computes it as
@@ -73,12 +79,19 @@ export const calculateOperatorRewards = (
     };
   }
 
+  // The protocol carves out the delegate pool only when the gateway carried
+  // delegated stake at tally (`split_scaled_reward`, `had_delegation_at_tally`
+  // in distribution.rs). With no delegates the operator keeps the whole
+  // reward, whatever the share ratio says. Live delegated stake stands in for
+  // the tally snapshot, which the app does not read; the two differ only for a
+  // gateway whose delegates all arrived or left within the current epoch.
+  const delegatePool =
+    (gateway.totalDelegatedStake ?? 0) > 0
+      ? delegateRewardsPerEpoch(perGatewayReward, gateway)
+      : 0;
+
   const rewardsSharedPerEpoch = new ARIOToken(
-    Math.max(
-      0,
-      perGatewayReward.valueOf() -
-        delegateRewardsPerEpoch(perGatewayReward, gateway),
-    ),
+    Math.max(0, perGatewayReward.valueOf() - delegatePool),
   );
 
   // Return -1 if operatorStake is 0. This signals 0 stake and allows calling

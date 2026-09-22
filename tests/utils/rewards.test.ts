@@ -120,6 +120,21 @@ describe('rewards.ts', () => {
       expect(result.EEY).toBeCloseTo(0.0075, 6);
     });
 
+    /**
+     * The protocol pays a delegate pool only when the gateway had delegated
+     * stake at tally. Subtracting a share nobody is owed understated the
+     * operator's yield for every gateway with delegation on and no delegates.
+     */
+    it('keeps the whole epoch reward when nobody delegates', () => {
+      const result = calculateOperatorRewards(
+        new ARIOToken(150),
+        gatewayWith(50, 0),
+        new ARIOToken(10_000),
+      );
+
+      expect(result.rewardsSharedPerEpoch.valueOf()).toBeCloseTo(150, 6);
+    });
+
     it('keeps the whole epoch reward at a zero share ratio', () => {
       const result = calculateOperatorRewards(
         new ARIOToken(150),

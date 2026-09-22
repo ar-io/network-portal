@@ -165,8 +165,14 @@ addresses and vaults as scalars in `summary.json`, delegates by deduping
 (542 on devnet) where the panel shows unique delegating *addresses* (352). The two
 documents must share a `generatedAt` — the publisher stamps a whole cycle alike —
 and a mismatch is retried once, then read live, rather than mixing two cycles in one
-panel. After a write, only the counts that write could have moved are read live;
-a vaulted transfer re-reads vaults, never balances.
+panel. After a write, only the counts whose documents the write marked are read
+live — a locked transfer marks `balances` and `vaults`, so it re-reads both; a stake
+decrease marks neither. The delegates count follows the snapshot even after a
+delegation, by design: no flow marks `delegates` (its query key is
+`allDelegates`), and paying the costliest scan on the network to move one
+dashboard figure a few minutes early is not worth it. The IndexedDB row records
+which counts it read live, so a reload inside the window reuses a post-write row
+and misses a pre-write one, rather than rescanning on every load.
 
 **A write makes the snapshot wrong, and invalidating does not fix it.** The
 refetch downloads the same document the publisher generated before the write, so
@@ -391,11 +397,25 @@ eligible on mainnet). Multiplying by it overstated the rewards chart about 2x.
 
 **An epoch has a window with no split.** `create_epoch` sets
 `total_eligible_rewards` immediately but leaves both per-unit rewards at zero until
-`prescribe_epoch` runs. `rewardsPrescribed: false` marks that state, and it renders
-as *pending*, never as a split of zero or of everything — the remainder formula
-alone would credit 100% of the pool to gateways. While the newest epoch is
-unprescribed, `referencePerGatewayReward` (the previous epoch's figure) stands in for
-yields and `GlobalDataProvider` re-reads the epoch until it is prescribed.
+`prescribe_epoch` runs. `rewardsPrescribed` comes from the account's own
+`prescriptions_done` flag — never inferred from a non-zero reward, because a
+prescribed epoch with no eligible gateway keeps `per_gateway_reward` at zero and
+would read as pending forever. Unprescribed renders as *Split pending*, never as a
+split of zero or of everything: the remainder formula alone would credit 100% of
+the pool to gateways.
+
+`rewardsSplitKnown: false` covers the other unsplittable case: prescribed, gateways
+eligible, but no observers selected. The observer share then stays in the
+treasury, so the remainder is not the gateway pool; the chart shows *Split not
+available*. Prescribed with nobody eligible is a *known* split of zero gateway
+reward.
+
+While the newest epoch is unprescribed, `referencePerGatewayReward` (the previous
+epoch's figure) stands in for yields, labelled provisional. `GlobalDataProvider`
+reads that reference **before** publishing the epoch, so tables never flash a
+"pending" note that is replaced a moment later, then re-reads the epoch until it
+is prescribed. The epochs query keys include `rewardsPrescribed`, so the chart
+refetches the moment it flips.
 
 **Cached epochs are versioned, not migrated.** IndexedDB keeps distributed epochs
 across releases, so a row can outlive the formula that wrote it. `getEpoch` passes
@@ -407,10 +427,14 @@ may be the only copy once an epoch account is closed, and Dexie refuses to open 
 database older than the one on disk, so reverting past a schema bump silently turns
 caching off for everyone who loaded the newer build.
 
-**Yield has four states, and `useYieldStatus` names them**: `loading` (placeholder,
-no message), `pending` (read but unprescribed, no stand-in), `failed` (the epoch read
-failed), `available`. Collapsing the first and third is how a table once told users
-the epoch "could not be read" during every normal page load. An unknown yield is
+**Yield has six states, and `resolveYieldStatus` (behind `useYieldStatus`) names
+them**: `loading` (placeholder, no message), `available`, `provisional` (unprescribed,
+previous epoch's reward standing in), `pending` (unprescribed, no stand-in),
+`unavailable` (prescribed with no reward to divide, or the SDK fallback path, which
+carries no reward field) and `failed` (the epoch read failed). Collapsing `loading`
+and `failed` is how a table once told users the epoch "could not be read" during
+every normal page load; collapsing `unavailable` into `pending` promised a yield
+that was never coming. An unknown yield is
 `undefined`, never a negative sentinel — `knownYield` converts, `YieldCell` renders,
 and EAY columns set `sortUndefined: 'last'` so unknowns never lead an ascending sort.
 

@@ -3,6 +3,7 @@ import { Assessment } from '@src/types';
 import {
   type EpochDataWithCounters,
   fetchEpochLightweight,
+  upgradeCachedEpoch,
 } from '@src/utils/epochFetch';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import type { NetworkStats } from '@src/utils/networkStats';
@@ -120,7 +121,18 @@ export const getEpoch = async (
     .equals(epochIndex)
     .first();
   if (epoch) {
-    return epoch;
+    // Rows outlive releases, so one written under an older reward formula is
+    // upgraded from its own fields before anyone sees it. Written back so the
+    // work happens once; a failed write only means it repeats next read.
+    const upgraded = upgradeCachedEpoch(epoch);
+    if (upgraded !== epoch) {
+      try {
+        await networkPortalDB.epochs.put(upgraded);
+      } catch (e) {
+        log.warn(`[getEpoch] could not rewrite epoch ${epochIndex}`, e);
+      }
+    }
+    return upgraded;
   }
 
   let epochData: EpochDataWithCounters | undefined;

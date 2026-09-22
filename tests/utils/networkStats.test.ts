@@ -163,6 +163,55 @@ describe('network stats cache', () => {
     expect(await readCachedNetworkStats(db, TTL, PROGRAMS)).toBeUndefined();
   });
 
+  /**
+   * After a write, a row fetched before it holds the pre-write counts. Without
+   * this, a reload inside the live-read window served them for the full TTL.
+   */
+  it('misses a row fetched before a write the caller is waiting on', async () => {
+    const db = fakeDb({
+      ...stats,
+      id: NETWORK_STATS_CACHE_KEY,
+      programFingerprint: PROGRAMS,
+      fetchedAt: Date.now() - 1000,
+      liveDocuments: ['balances'],
+    });
+
+    expect(
+      await readCachedNetworkStats(db, TTL, PROGRAMS, {
+        notBefore: Date.now(),
+        liveDocuments: ['balances'],
+      }),
+    ).toBeUndefined();
+  });
+
+  /**
+   * A row fetched after the write but from the snapshot can still predate it;
+   * only a row that read the written documents live is post-write.
+   */
+  it('misses a post-write row that did not read the written documents live', async () => {
+    const db = fakeDb();
+    await writeCachedNetworkStats(db, stats, PROGRAMS, ['vaults']);
+
+    expect(
+      await readCachedNetworkStats(db, TTL, PROGRAMS, {
+        notBefore: Date.now() - 1000,
+        liveDocuments: ['balances', 'vaults'],
+      }),
+    ).toBeUndefined();
+  });
+
+  it('serves a post-write row that read the written documents live', async () => {
+    const db = fakeDb();
+    await writeCachedNetworkStats(db, stats, PROGRAMS, ['balances', 'vaults']);
+
+    expect(
+      await readCachedNetworkStats(db, TTL, PROGRAMS, {
+        notBefore: Date.now() - 1000,
+        liveDocuments: ['balances'],
+      }),
+    ).toEqual(stats);
+  });
+
   it('drops fields that are not part of the stats shape', async () => {
     const db = fakeDb({
       ...stats,

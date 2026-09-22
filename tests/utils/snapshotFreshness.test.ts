@@ -5,6 +5,7 @@ import {
   LIVE_READ_WINDOW_MS,
   clearDocumentWrites,
   invalidateWrittenDocuments,
+  liveWriteAt,
   markDocumentWritten,
   shouldReadLive,
 } from '@src/utils/snapshotFreshness';
@@ -93,6 +94,29 @@ describe('snapshotFreshness', () => {
       markDocumentWritten('balances');
       vi.advanceTimersByTime(LIVE_READ_WINDOW_MS - 1000);
       expect(shouldReadLive('balances')).toBe(true);
+    });
+  });
+
+  describe('liveWriteAt', () => {
+    it('is undefined for a document nobody wrote', () => {
+      expect(liveWriteAt('balances')).toBeUndefined();
+    });
+
+    it('is the time of the write while the window is open', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(1_700_000_000_000);
+      markDocumentWritten('vaults');
+      vi.advanceTimersByTime(1000);
+
+      expect(liveWriteAt('vaults')).toEqual(1_700_000_000_000);
+    });
+
+    it('is undefined once the window closes', () => {
+      vi.useFakeTimers();
+      markDocumentWritten('vaults');
+      vi.advanceTimersByTime(LIVE_READ_WINDOW_MS + 1000);
+
+      expect(liveWriteAt('vaults')).toBeUndefined();
     });
   });
 

@@ -7,7 +7,7 @@ import {
   fetchNetworkStats,
 } from '@src/utils/networkStats';
 import { networkTierFromRpcUrl } from '@src/utils/portalApi';
-import { shouldReadLive } from '@src/utils/snapshotFreshness';
+import { liveWriteAt, shouldReadLive } from '@src/utils/snapshotFreshness';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -59,19 +59,26 @@ const useNetworkStats = () => {
   return useQuery<NetworkStats>({
     queryKey: networkStatsQueryKey(solanaRpcUrl, programFingerprint),
     queryFn: async () => {
-      // A write this session could have moved a count, and the cached row
-      // predates it. Skip the cache so `fetchNetworkStats` can re-read just the
-      // counts that write touched.
-      const anyLive = LIVE_SOURCES.some((document) => shouldReadLive(document));
+      // After a write, the counts it could have moved are read live once, and
+      // the row that read them may stand in for later reloads inside the
+      // window. Skipping the cache outright re-ran the balances scan, the most
+      // expensive on the network, on every reload for 45 minutes.
+      const liveDocuments = LIVE_SOURCES.filter((doc) => shouldReadLive(doc));
+      const writes = liveDocuments
+        .map((doc) => liveWriteAt(doc))
+        .filter((at): at is number => at !== undefined);
+      const afterWrite =
+        liveDocuments.length > 0
+          ? { notBefore: Math.max(...writes), liveDocuments }
+          : undefined;
 
-      if (!anyLive) {
-        const cached = await readCachedNetworkStats(
-          networkPortalDB,
-          NETWORK_STATS_TTL,
-          programFingerprint,
-        );
-        if (cached) return cached;
-      }
+      const cached = await readCachedNetworkStats(
+        networkPortalDB,
+        NETWORK_STATS_TTL,
+        programFingerprint,
+        afterWrite,
+      );
+      if (cached) return cached;
 
       const stats = await fetchNetworkStats({
         sdk: arIOReadSDK,
@@ -79,7 +86,12 @@ const useNetworkStats = () => {
         expectedProgramIds: portalProgramIds,
         readLive: shouldReadLive,
       });
-      await writeCachedNetworkStats(networkPortalDB, stats, programFingerprint);
+      await writeCachedNetworkStats(
+        networkPortalDB,
+        stats,
+        programFingerprint,
+        liveDocuments,
+      );
       return stats;
     },
     staleTime: NETWORK_STATS_TTL,

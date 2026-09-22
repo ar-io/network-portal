@@ -48,7 +48,22 @@ export interface CachedNetworkStats extends NetworkStats {
    * that as a miss rather than a match.
    */
   programFingerprint?: string;
+  /**
+   * The snapshot documents whose counts this row read live after a write. A
+   * row only stands in for a post-write read if it was fetched after the
+   * write AND read those counts live: IndexedDB is shared across tabs, and a
+   * tab that did not make the write caches the pre-write snapshot.
+   */
+  liveDocuments?: string[];
 }
+
+/** Conditions under which a cached row may stand in after a write. */
+export type NetworkStatsFreshness = {
+  /** The row must be fetched at or after this time, in ms. */
+  notBefore: number;
+  /** And must have read these documents' counts live. */
+  liveDocuments: string[];
+};
 
 /** The only row id used by {@link readCachedNetworkStats}. */
 export const NETWORK_STATS_CACHE_KEY = 'current';
@@ -202,6 +217,7 @@ export const readCachedNetworkStats = async (
   networkPortalDB: NetworkPortalDB,
   ttlMs: number,
   programFingerprint: string,
+  afterWrite?: NetworkStatsFreshness,
 ): Promise<NetworkStats | undefined> => {
   try {
     const cached = await networkPortalDB.networkStats.get(
@@ -209,6 +225,13 @@ export const readCachedNetworkStats = async (
     );
     if (!cached) return undefined;
     if (cached.programFingerprint !== programFingerprint) return undefined;
+    if (afterWrite) {
+      if (cached.fetchedAt < afterWrite.notBefore) return undefined;
+      const readLive = new Set(cached.liveDocuments ?? []);
+      if (!afterWrite.liveDocuments.every((doc) => readLive.has(doc))) {
+        return undefined;
+      }
+    }
 
     const age = Date.now() - cached.fetchedAt;
     // A negative age means the row was written by a clock ahead of this one;
@@ -231,6 +254,7 @@ export const writeCachedNetworkStats = async (
   networkPortalDB: NetworkPortalDB,
   stats: NetworkStats,
   programFingerprint: string,
+  liveDocuments: string[] = [],
 ): Promise<void> => {
   try {
     await networkPortalDB.networkStats.put({
@@ -238,6 +262,7 @@ export const writeCachedNetworkStats = async (
       id: NETWORK_STATS_CACHE_KEY,
       fetchedAt: Date.now(),
       programFingerprint,
+      liveDocuments,
     });
   } catch (error) {
     log.warn('[db] could not cache network stats', error);

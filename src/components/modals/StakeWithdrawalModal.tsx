@@ -208,7 +208,7 @@ const StakeWithdrawalModal = ({
                     <Label>Expedited Withdrawal</Label>
                   </div>
                   <p className="pl-6 text-left text-xs text-mid">
-                    Instant withdrawal with 50% fee.
+                    Expedited withdrawal with 50% fee.
                   </p>
                 </div>
               </Radio>

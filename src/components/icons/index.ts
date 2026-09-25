@@ -19,13 +19,13 @@ import CopyCheckedIcon from './copy_checked.svg?react';
 import DashboardIcon from './dashboard.svg?react';
 import DocsIcon from './docs.svg?react';
 import EditIcon from './edit_icon.svg?react';
+import ExpeditedWithdrawalIcon from './expedited_withdrawal.svg?react';
 import FailSquareIcon from './fail_square.svg?react';
 import FormErrorIcon from './form_error.svg?react';
 import GatewayIcon from './gateway.svg?react';
 import GatewayHoverIcon from './gateway_hover.svg?react';
 import GatewaysIcon from './gateways.svg?react';
 import InfoIcon from './info_icon.svg?react';
-import InstantWithdrawalIcon from './instant_withdrawal.svg?react';
 import LinkArrowIcon from './link_arrow.svg?react';
 import LogoutIcon from './logout.svg?react';
 import ObserversBgIcon from './observers_bg.svg?react';
@@ -68,13 +68,13 @@ export {
   DashboardIcon,
   DocsIcon,
   EditIcon,
+  ExpeditedWithdrawalIcon,
   FailSquareIcon,
   FormErrorIcon,
   GatewayHoverIcon,
   GatewayIcon,
   GatewaysIcon,
   InfoIcon,
-  InstantWithdrawalIcon,
   LinkArrowIcon,
   LogoutIcon,
   ObserversBgIcon,

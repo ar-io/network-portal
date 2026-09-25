@@ -48,7 +48,7 @@ const WithdrawAllModal = ({
             const { id: txID } = await arIOWriteableSDK.decreaseDelegateStake(
               {
                 target: stake.owner,
-                decreaseQty: stake.delegatedStake, // read and write value both in mIO
+                decreaseQty: stake.delegatedStake, // read and write value both in mARIO
               },
               WRITE_OPTIONS,
             );

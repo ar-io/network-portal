@@ -79,7 +79,7 @@ const ReviewWithdrawalModal = ({
   useEffect(() => {
     setDateOfReturn(
       withdrawalType === 'expedited'
-        ? 'Instant'
+        ? 'Immediate'
         : formatDateTime(dayjs(new Date()).add(30, 'day').toDate()),
     );
   }, [withdrawalType]);

@@ -30,6 +30,11 @@ import useGatewayArioInfo from '@src/hooks/useGatewayArioInfo';
 import useGateways from '@src/hooks/useGateways';
 import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
+import {
+  effectiveOperationsAddress,
+  operationsAddressUpdate,
+  validateOperationsAddress,
+} from '@src/utils/operationsAddress';
 import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -209,6 +214,14 @@ const Gateway = () => {
       validateProperty: validateWalletAddress('Observer Wallet'),
     },
     {
+      formPropertyName: 'operationsAddress',
+      label: 'Operations Address:',
+      rowType: RowType.MIDDLE,
+      // The program refuses to change it on a leaving gateway.
+      readOnly: gateway?.status === 'leaving',
+      validateProperty: validateOperationsAddress('Operations Address'),
+    },
+    {
       formPropertyName: 'properties',
       label: 'Properties ID:',
       rowType: RowType.MIDDLE,
@@ -265,6 +278,7 @@ const Gateway = () => {
       fqdn: gateway.settings.fqdn || '',
       ownerId: ownerId || '',
       observerAddress: gateway.observerAddress || '',
+      operationsAddress: effectiveOperationsAddress(gateway, ownerId) || '',
       properties: gateway.settings.properties || '',
       status: gateway.status || '',
       note: gateway.settings.note || '',
@@ -332,6 +346,20 @@ const Gateway = () => {
             WRITE_OPTIONS,
           );
           log.info(`Update Gateway Settings txID: ${txID}`);
+        }
+
+        // A separate, operator-only instruction: updateGatewaySettings does not
+        // carry the operations address.
+        const operationsUpdate = operationsAddressUpdate(
+          initialState.operationsAddress as string | undefined,
+          formState.operationsAddress as string | undefined,
+        );
+        if (operationsUpdate) {
+          const { id: txID } = await arIOWriteableSDK.updateOperationsAddress(
+            operationsUpdate,
+            WRITE_OPTIONS,
+          );
+          log.info(`Update Operations Address txID: ${txID}`);
         }
 
         invalidateWrittenDocuments(queryClient, 'gateways');

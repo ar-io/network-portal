@@ -6,6 +6,11 @@ import LeaveNetworkModal from '@src/components/modals/LeaveNetworkModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { useGlobalState } from '@src/store';
 import { getBlockExplorerUrlForAddress } from '@src/utils';
+import {
+  NOT_DELEGATED_LABEL,
+  effectiveOperationsAddress,
+  isDelegated,
+} from '@src/utils/operationsAddress';
 import { useState } from 'react';
 import { ReactNode } from 'react';
 
@@ -123,6 +128,9 @@ const PropertyDisplayPanel = ({
       ]
     : [];
 
+  const operationsAddress = effectiveOperationsAddress(gateway, ownerId);
+  const delegated = isDelegated(operationsAddress, ownerId);
+
   const gatewayRows: DisplayRowProps[] = [
     { label: 'Label:', value: gateway?.settings.label },
     { label: 'Address:', value: gatewayAddress, type: 'link' },
@@ -131,6 +139,16 @@ const PropertyDisplayPanel = ({
       label: 'Observer Wallet:',
       value: gateway?.observerAddress,
       type: 'address',
+    },
+    {
+      label: 'Operations Address:',
+      value:
+        operationsAddress === undefined
+          ? undefined
+          : delegated
+            ? operationsAddress
+            : NOT_DELEGATED_LABEL,
+      type: delegated ? 'address' : undefined,
     },
     {
       label: 'Properties ID:',

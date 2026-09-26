@@ -31,6 +31,7 @@ import useGateways from '@src/hooks/useGateways';
 import useObserverBalances from '@src/hooks/useObserverBalances';
 import { useGlobalState } from '@src/store';
 import {
+  baselineAfterSettings,
   effectiveOperationsAddress,
   operationsAddressUpdate,
   validateOperationsAddress,
@@ -346,6 +347,11 @@ const Gateway = () => {
             WRITE_OPTIONS,
           );
           log.info(`Update Gateway Settings txID: ${txID}`);
+          // The settings are on chain now. If the operations address
+          // transaction below fails, a retry must not send them again.
+          setInitialState((current) =>
+            baselineAfterSettings(current, formState),
+          );
         }
 
         // A separate, operator-only instruction: updateGatewaySettings does not

@@ -1,5 +1,6 @@
 import {
   ZERO_ADDRESS,
+  baselineAfterSettings,
   effectiveOperationsAddress,
   isDelegated,
   operationsAddressUpdate,
@@ -91,6 +92,31 @@ describe('operationsAddressUpdate', () => {
   it('produces a call when revoking back to the owner', () => {
     expect(operationsAddressUpdate(DELEGATE, OWNER)).toEqual({
       operationsAddress: OWNER,
+    });
+  });
+});
+
+describe('baselineAfterSettings', () => {
+  const initial = { label: 'old', note: 'old note', operationsAddress: OWNER };
+  const submitted = {
+    label: 'new',
+    note: 'new note',
+    operationsAddress: DELEGATE,
+  };
+
+  it('moves every submitted setting into the baseline', () => {
+    const next = baselineAfterSettings(initial, submitted);
+    expect(next.label).toBe('new');
+    expect(next.note).toBe('new note');
+  });
+
+  it('keeps the old operations address until its own transaction succeeds', () => {
+    // If the operations address transaction fails, the retry must still see
+    // it as changed, while the settings already on chain must not be resent.
+    const next = baselineAfterSettings(initial, submitted);
+    expect(next.operationsAddress).toBe(OWNER);
+    expect(operationsAddressUpdate(next.operationsAddress, DELEGATE)).toEqual({
+      operationsAddress: DELEGATE,
     });
   });
 });

@@ -65,3 +65,20 @@ export const operationsAddressUpdate = (
   if (!value || value === initial) return undefined;
   return { operationsAddress: value };
 };
+
+/**
+ * The form baseline once the settings transaction has succeeded but before
+ * the operations address transaction has.
+ *
+ * The two are separate transactions. If the second fails, the settings are
+ * already on chain, so a retry must not send them again: every submitted
+ * field moves into the baseline except `operationsAddress`, which stays at its
+ * old value until its own transaction succeeds.
+ */
+export const baselineAfterSettings = <T extends Record<string, unknown>>(
+  initial: T,
+  submitted: T,
+): T => ({
+  ...submitted,
+  operationsAddress: initial.operationsAddress,
+});

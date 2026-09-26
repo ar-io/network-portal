@@ -206,11 +206,12 @@ const PropertyDisplayPanel = ({
 
   return (
     <div className="grid grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[14.375rem_minmax(0,1fr)]">
-      {gatewayRows.map(({ label, value, rightComponent }, index) => (
+      {gatewayRows.map(({ label, value, type, rightComponent }, index) => (
         <DisplayRow
           key={index}
           label={label}
           value={value}
+          type={type}
           rightComponent={rightComponent}
         />
       ))}

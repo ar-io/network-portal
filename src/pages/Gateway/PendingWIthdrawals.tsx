@@ -15,11 +15,12 @@ import RedelegateModal, {
   RedelegateModalProps,
 } from '@src/components/modals/RedelegateModal';
 import useGatewayVaults from '@src/hooks/useGatewayVaults';
+import { nextFutureTimestamp, useTickAt } from '@src/hooks/useTickAt';
 import { useGlobalState } from '@src/store';
 import { formatDateTime, formatWithCommas } from '@src/utils';
 import { isWithdrawalUnlocked } from '@src/utils/stake';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import CollapsiblePanel from './CollapsiblePanel';
 
 type PendingWithdrawalProps = {
@@ -60,6 +61,17 @@ const PendingWithdrawals = ({
 
   const [showRedelegateModal, setShowRedelegateModal] =
     useState<RedelegateModalProps>();
+
+  // See MyStakesTable: maturity is a clock event, not a refetch.
+  useTickAt(
+    useMemo(
+      () =>
+        nextFutureTimestamp(
+          (gatewayVaults ?? []).map((vault) => vault.endTimestamp),
+        ),
+      [gatewayVaults],
+    ),
+  );
 
   // Define columns for the table
   const columns: ColumnDef<GatewayVault, any>[] = [
@@ -178,40 +190,55 @@ const PendingWithdrawals = ({
     }),
   ];
 
-  return walletAddress === gateway?.gatewayAddress &&
-    ((gatewayVaults && gatewayVaults.length > 0) || isLoading) ? (
-    <CollapsiblePanel
-      title="Pending Withdrawals"
-      titleRight={
-        <div className="flex items-center gap-2">
-          <div className="text-high">Total Pending:</div>
-          <div className="text-gradient-red">
-            <div>
-              {formatWithCommas(
-                new mARIOToken(
-                  gatewayVaults?.reduce((a, b) => a + b.balance, 0) || 0,
-                )
-                  .toARIO()
-                  .valueOf(),
-              )}{' '}
-              {ticker}
+  // The panel disappears once the last withdrawal is gone, so the modals live
+  // outside it. Claiming the final one empties this list, and a modal mounted
+  // inside used to unmount mid-flow — taking its success message and
+  // transaction id with it, at the one moment the user needs to read them.
+  const isOwner = walletAddress === gateway?.gatewayAddress;
+  const showPanel =
+    isOwner && ((gatewayVaults && gatewayVaults.length > 0) || isLoading);
+
+  if (!isOwner) {
+    return <></>;
+  }
+
+  return (
+    <>
+      {showPanel && (
+        <CollapsiblePanel
+          title="Pending Withdrawals"
+          titleRight={
+            <div className="flex items-center gap-2">
+              <div className="text-high">Total Pending:</div>
+              <div className="text-gradient-red">
+                <div>
+                  {formatWithCommas(
+                    new mARIOToken(
+                      gatewayVaults?.reduce((a, b) => a + b.balance, 0) || 0,
+                    )
+                      .toARIO()
+                      .valueOf(),
+                  )}{' '}
+                  {ticker}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      }
-    >
-      {(isLoading || (gatewayVaults && gatewayVaults.length > 0)) && (
-        <TableView
-          columns={columns}
-          data={gatewayVaults || []}
-          defaultSortingState={{ id: 'endTimestamp', desc: false }}
-          isLoading={isLoading}
-          isError={isError}
-          noDataFoundText="No pending withdrawals found."
-          errorText="Unable to load pending withdrawals."
-          loadingRows={10}
-          shortTable={true}
-        />
+          }
+        >
+          {(isLoading || (gatewayVaults && gatewayVaults.length > 0)) && (
+            <TableView
+              columns={columns}
+              data={gatewayVaults || []}
+              defaultSortingState={{ id: 'endTimestamp', desc: false }}
+              isLoading={isLoading}
+              isError={isError}
+              noDataFoundText="No pending withdrawals found."
+              errorText="Unable to load pending withdrawals."
+              loadingRows={10}
+              shortTable={true}
+            />
+          )}
+        </CollapsiblePanel>
       )}
 
       {confirmClaimWithdrawal && (
@@ -239,9 +266,7 @@ const PendingWithdrawals = ({
         />
       )}
       {showRedelegateModal && <RedelegateModal {...showRedelegateModal} />}
-    </CollapsiblePanel>
-  ) : (
-    <></>
+    </>
   );
 };
 

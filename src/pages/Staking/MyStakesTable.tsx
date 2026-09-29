@@ -22,6 +22,7 @@ import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
 import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
+import { nextFutureTimestamp, useTickAt } from '@src/hooks/useTickAt';
 import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
@@ -96,6 +97,19 @@ const MyStakesTable = () => {
 
   const perGatewayReward = usePerGatewayReward();
   const yieldStatus = useYieldStatus();
+
+  // Unlock is a clock event, so re-render when the soonest withdrawal matures
+  // — otherwise a row that unlocks while the page is open keeps offering
+  // Expedite until something else triggers a render.
+  useTickAt(
+    useMemo(
+      () =>
+        nextFutureTimestamp(
+          (unifiedStakes ?? []).map((row) => row.withdrawalDate?.getTime()),
+        ),
+      [unifiedStakes],
+    ),
+  );
 
   useEffect(() => {
     const unified: Array<UnifiedStakeData> | undefined = isFetching

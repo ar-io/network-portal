@@ -7,6 +7,7 @@ import useEpochSettings from '@src/hooks/useEpochSettings';
 import useEpochsWithCount from '@src/hooks/useEpochsWithCount';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
+import { latestPricedEpoch, resolveEpochPrice } from '@src/utils/epochPrice';
 import {
   type RewardUnit,
   formatRewardAmount,
@@ -54,8 +55,13 @@ interface RewardsData {
   /** Undefined when the epoch has no published price and USD is selected. */
   gatewayRewards?: number;
   observerRewards?: number;
-  /** Whether the analyzer has published a closing price for this epoch. */
+  /** Whether a USD figure could be produced for this epoch at all. */
   priced: boolean;
+  /**
+   * Set when the figure uses the latest close rather than this epoch's own,
+   * which only happens for the epoch still running.
+   */
+  pricedFromEpoch?: number;
   /**
    * Whether `prescribe_epoch` has split this epoch's pool. Before it has, the
    * total is known and the gateway/observer split is not, so the epoch draws no
@@ -111,6 +117,11 @@ const CustomTooltip = ({
           {data.total !== undefined && (
             <p>{`Total eligible: ${money(data.total)}`}</p>
           )}
+          {data.pricedFromEpoch !== undefined && (
+            <p className="text-low">
+              {`Valued at epoch ${data.pricedFromEpoch}'s close — this epoch has not closed yet.`}
+            </p>
+          )}
           <p className="text-low">
             {data.splitReason === 'skipped'
               ? 'No observations were submitted for this epoch, so it paid nothing and the rewards stayed in the treasury. The figure above is what it would have paid.'
@@ -131,6 +142,11 @@ const CustomTooltip = ({
         <p>{`Gateway Rewards: ${money(gateway)}`}</p>
         <p>{`Observer Rewards: ${money(observer)}`}</p>
         <p>{`Total: ${money(gateway + observer)}`}</p>
+        {data.pricedFromEpoch !== undefined && (
+          <p className="max-w-60 text-low">
+            {`Valued at epoch ${data.pricedFromEpoch}'s close — this epoch has not closed yet.`}
+          </p>
+        )}
       </div>
     );
   }
@@ -256,6 +272,7 @@ const RewardsDistributionPanel = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const [unit, setUnit] = useState<RewardUnit>('ario');
   const prices = useEpochPrices();
+  const latest = useMemo(() => latestPricedEpoch(prices), [prices]);
 
   const [focusBar, setFocusBar] = useState<number>();
   const [mouseLeave, setMouseLeave] = useState(true);
@@ -291,10 +308,16 @@ const RewardsDistributionPanel = () => {
         // Each epoch is valued at its own close. Converting a total at
         // today's price is a different figure — about 16% apart over the
         // current window — and would move history whenever the price moved.
-        const price = prices.get(epoch!.epochIndex);
-        const priced = unit === 'usd';
+        const resolved = resolveEpochPrice({
+          ownPrice: prices.get(epoch!.epochIndex),
+          epochIndex: epoch!.epochIndex,
+          currentEpochIndex,
+          latest,
+        });
+        const price = resolved.price;
+        const inUsd = unit === 'usd';
         const inUnit = (ario: number) =>
-          priced ? (price === undefined ? undefined : ario * price) : ario;
+          inUsd ? (price === undefined ? undefined : ario * price) : ario;
 
         // Absent (SDK fallback path) means the source carried no such flag,
         // so trust its totals as before; only an explicit false withholds the
@@ -324,6 +347,9 @@ const RewardsDistributionPanel = () => {
           total: inUnit(totalRewards),
           pendingTotal: split ? undefined : inUnit(totalRewards),
           priced: price !== undefined,
+          ...(resolved.basis === 'latest'
+            ? { pricedFromEpoch: resolved.fromEpoch }
+            : {}),
           status: (skipped
             ? 'Not paid'
             : epoch!.epochIndex === currentEpochIndex
@@ -331,7 +357,7 @@ const RewardsDistributionPanel = () => {
               : 'Distributed') as RewardsData['status'],
         };
       });
-  }, [epochs, currentEpochIndex, prices, unit]);
+  }, [epochs, currentEpochIndex, prices, latest, unit]);
 
   const hasPending =
     rewardsData?.some((d) => d.splitReason === 'pending') ?? false;

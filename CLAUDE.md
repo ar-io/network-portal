@@ -404,6 +404,18 @@ would read as pending forever. Unprescribed renders as *Split pending*, never as
 split of zero or of everything: the remainder formula alone would credit 100% of
 the pool to gateways.
 
+**An epoch nobody observed pays nothing, and must not be charted as if it did.**
+`distribute_epoch` marks a zero-observation epoch complete and returns without
+paying (ADR-0034 addendum) — no treasury transfer, no gateway stats, tokens
+retained. But the skip is gated *behind* `prescriptions_done`, so the epoch keeps
+the complete, non-zero split `prescribe_epoch` wrote, and every reward branch
+reads it as a real payout. `rewardsSkipped` comes from `observationsSubmitted === 0`
+on a distributed epoch — the same predicate the program branches on, read from
+durable state. `EpochSkippedNoObservationsEvent` is the discriminator for an
+*indexer*; a browser cannot retrieve it for a historical epoch, and does not need
+to. Guard on `rewardsDistributed`: zero observations on a live epoch just means
+nobody has submitted yet.
+
 `rewardsSplitKnown: false` covers the other unsplittable case: prescribed, gateways
 eligible, but no observers selected. The observer share then stays in the
 treasury, so the remainder is not the gateway pool; the chart shows *Split not

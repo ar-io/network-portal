@@ -67,12 +67,12 @@ interface RewardsData {
    * an epoch not yet prescribed; `unavailable` is a prescribed epoch whose
    * split cannot be derived because no observers were selected.
    */
-  splitReason?: 'pending' | 'unavailable';
+  splitReason?: 'pending' | 'unavailable' | 'skipped';
   /** The whole pool, in the selected unit; undefined when unpriced in USD. */
   total?: number;
   /** `total`, but only for an unsplit epoch: drawn as an outlined bar. */
   pendingTotal?: number;
-  status: 'Distributed' | 'Pending';
+  status: 'Distributed' | 'Pending' | 'Skipped';
 }
 
 const CustomTooltip = ({
@@ -112,9 +112,11 @@ const CustomTooltip = ({
             <p>{`Total eligible: ${money(data.total)}`}</p>
           )}
           <p className="text-low">
-            {data.splitReason === 'unavailable'
-              ? 'This epoch had no observers selected, so its gateway share cannot be shown.'
-              : 'How this splits between gateways and observers is set on chain after the epoch starts.'}
+            {data.splitReason === 'skipped'
+              ? 'No observations were submitted for this epoch, so it paid nothing. The rewards stayed in the treasury.'
+              : data.splitReason === 'unavailable'
+                ? 'This epoch had no observers selected, so its gateway share cannot be shown.'
+                : 'How this splits between gateways and observers is set on chain after the epoch starts.'}
           </p>
         </div>
       );
@@ -297,12 +299,18 @@ const RewardsDistributionPanel = () => {
         // Absent (SDK fallback path) means the source carried no such flag,
         // so trust its totals as before; only an explicit false withholds the
         // split.
-        const split = epoch!.rewardsSplitKnown !== false;
-        const splitReason = split
-          ? undefined
-          : epoch!.rewardsPrescribed === false
-            ? ('pending' as const)
-            : ('unavailable' as const);
+        // A skipped epoch's split IS known — nothing was paid — but it must
+        // not draw the stacked bar, because the pool it was prescribed never
+        // left the treasury. Checked first for that reason.
+        const skipped = epoch!.rewardsSkipped === true;
+        const split = !skipped && epoch!.rewardsSplitKnown !== false;
+        const splitReason = skipped
+          ? ('skipped' as const)
+          : split
+            ? undefined
+            : epoch!.rewardsPrescribed === false
+              ? ('pending' as const)
+              : ('unavailable' as const);
 
         return {
           epoch: epoch!.epochIndex,
@@ -316,9 +324,11 @@ const RewardsDistributionPanel = () => {
           total: inUnit(totalRewards),
           pendingTotal: split ? undefined : inUnit(totalRewards),
           priced: price !== undefined,
-          status: (epoch!.epochIndex === currentEpochIndex
-            ? 'Pending'
-            : 'Distributed') as RewardsData['status'],
+          status: (skipped
+            ? 'Skipped'
+            : epoch!.epochIndex === currentEpochIndex
+              ? 'Pending'
+              : 'Distributed') as RewardsData['status'],
         };
       });
   }, [epochs, currentEpochIndex, prices, unit]);
@@ -327,6 +337,8 @@ const RewardsDistributionPanel = () => {
     rewardsData?.some((d) => d.splitReason === 'pending') ?? false;
   const hasUnavailable =
     rewardsData?.some((d) => d.splitReason === 'unavailable') ?? false;
+  const hasSkipped =
+    rewardsData?.some((d) => d.splitReason === 'skipped') ?? false;
 
   // Offer the switch only when there is something to switch to.
   const pricedCount = rewardsData?.filter((d) => d.priced).length ?? 0;
@@ -528,6 +540,15 @@ const RewardsDistributionPanel = () => {
                 className="size-2 min-w-2 rounded-full border border-dashed border-[rgba(202,202,214,0.6)]"
               />
               <span>Split not available</span>
+            </div>
+          )}
+          {hasSkipped && (
+            <div className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-2 min-w-2 rounded-full border border-dashed border-[rgba(202,202,214,0.6)]"
+              />
+              <span>Not paid — no observations</span>
             </div>
           )}
           {/* The unit toggle only renders once prices exist, so without this

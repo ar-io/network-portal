@@ -12,6 +12,8 @@ const EPOCH_546 = {
   perObserverReward: 242_371_652,
   observerCount: 50,
   prescriptionsDone: 1,
+  observationsSubmitted: 43,
+  rewardsDistributed: 1,
 };
 /** Every registry slot, leavers included. Not the reward divisor. */
 const ACTIVE_GATEWAY_COUNT = 620;
@@ -67,6 +69,8 @@ describe('epochRewardTotals', () => {
       perObserverReward: 0,
       observerCount: 0,
       prescriptionsDone: 0,
+      observationsSubmitted: 0,
+      rewardsDistributed: 0,
     });
 
     expect(splitKnown).toBe(false);
@@ -75,6 +79,41 @@ describe('epochRewardTotals', () => {
     expect(t.totalEligibleGatewayReward).toEqual(0);
     expect(t.totalEligibleObserverReward).toEqual(0);
     expect(t.totalEligibleGateways).toEqual(0);
+  });
+
+  /**
+   * ADR-0034 addendum: an epoch nobody observed is marked complete and pays
+   * nothing. It is prescribed first, so it keeps a full, plausible split that
+   * was never paid — the reason this needs its own branch rather than falling
+   * through to the real-split arithmetic below.
+   */
+  it('reports a distributed epoch with no observations as paying nothing', () => {
+    const r = epochRewardTotals({ ...EPOCH_546, observationsSubmitted: 0 });
+
+    expect(r.skipped).toBe(true);
+    expect(r.distributions.totalEligibleGatewayReward).toEqual(0);
+    expect(r.distributions.totalEligibleObserverReward).toEqual(0);
+    expect(r.distributions.totalEligibleGateways).toEqual(0);
+    // The withheld pool is still reported, so the chart can show its size.
+    expect(r.distributions.totalEligibleRewards).toEqual(
+      EPOCH_546.totalEligibleRewards,
+    );
+  });
+
+  /** Nobody has submitted *yet* is routine early in a live epoch. */
+  it('does not call an undistributed epoch with no observations skipped', () => {
+    const r = epochRewardTotals({
+      ...EPOCH_546,
+      observationsSubmitted: 0,
+      rewardsDistributed: 0,
+    });
+
+    expect(r.skipped).toBe(false);
+    expect(r.distributions.totalEligibleGatewayReward).toBeGreaterThan(0);
+  });
+
+  it('leaves an observed epoch alone', () => {
+    expect(epochRewardTotals(EPOCH_546).skipped).toBe(false);
   });
 
   /**
@@ -128,6 +167,7 @@ const baseRow = (
   ({
     epochIndex: 546,
     rewardsDistributed: 1,
+    observationsSubmitted: 43,
     distributions,
     ...extra,
   }) as EpochDataWithCounters;
@@ -239,5 +279,36 @@ describe('upgradeCachedEpoch', () => {
     const once = upgradeCachedEpoch(v1);
 
     expect(upgradeCachedEpoch(once)).toBe(once);
+  });
+});
+
+describe('upgradeCachedEpoch, skipped epochs', () => {
+  /** A v3 row cached before the skip was understood reported a full payout. */
+  it('relabels a cached zero-observation epoch as paying nothing', () => {
+    const v3 = baseRow(epochRewardTotals(EPOCH_546).distributions, {
+      observationsSubmitted: 0,
+      perGatewayReward: EPOCH_546.perGatewayReward,
+      rewardsPrescribed: true,
+      rewardsSplitKnown: true,
+      rewardTotalsVersion: 3,
+    });
+
+    const up = upgradeCachedEpoch(v3);
+
+    expect(up.rewardsSkipped).toBe(true);
+    expect(up.distributions.totalEligibleGatewayReward).toEqual(0);
+    expect(up.rewardTotalsVersion).toEqual(REWARD_TOTALS_VERSION);
+  });
+
+  it('leaves an observed cached epoch as a real split', () => {
+    const v3 = baseRow(epochRewardTotals(EPOCH_546).distributions, {
+      perGatewayReward: EPOCH_546.perGatewayReward,
+      rewardTotalsVersion: 3,
+    });
+
+    const up = upgradeCachedEpoch(v3);
+
+    expect(up.rewardsSkipped).toBe(false);
+    expect(up.distributions.totalEligibleGatewayReward).toBeGreaterThan(0);
   });
 });

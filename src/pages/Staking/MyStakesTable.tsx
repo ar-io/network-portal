@@ -10,6 +10,7 @@ import Tooltip from '@src/components/Tooltip';
 import { YieldCell, YieldUnavailableNote } from '@src/components/YieldCell';
 import { InfoIcon, ThreeDotsIcon } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
+import ClaimWithdrawalModal from '@src/components/modals/ClaimWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
 import RedelegateModal, {
   RedelegateModalProps,
@@ -21,10 +22,12 @@ import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
 import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
+import { nextFutureTimestamp, useTickAt } from '@src/hooks/useTickAt';
 import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
+import { canStillExpedite, isWithdrawalUnlocked } from '@src/utils/stake';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import dayjs from 'dayjs';
@@ -43,6 +46,16 @@ interface UnifiedStakeData {
   withdrawal?: VaultData;
 }
 
+/**
+ * A withdrawal row whose lock has elapsed. Claiming it returns the full
+ * amount; nothing credits it automatically (see `isWithdrawalUnlocked`).
+ */
+const isRowUnlocked = (row: UnifiedStakeData) =>
+  row.status === 'Withdrawing' &&
+  !!row.withdrawalId &&
+  !!row.withdrawalDate &&
+  isWithdrawalUnlocked(row.withdrawalDate.getTime());
+
 const columnHelper = createColumnHelper<UnifiedStakeData>();
 
 const MyStakesTable = () => {
@@ -60,6 +73,11 @@ const MyStakesTable = () => {
   const [showRedelegateModal, setShowRedelegateModal] =
     useState<RedelegateModalProps>();
 
+  const [confirmClaimWithdrawal, setConfirmClaimWithdrawal] = useState<{
+    withdrawalId: string;
+    balance: number;
+    endTimestamp: number;
+  }>();
   const [confirmCancelWithdrawal, setConfirmCancelWithdrawal] = useState<{
     gatewayAddress: string;
     vaultId: string;
@@ -79,6 +97,15 @@ const MyStakesTable = () => {
 
   const perGatewayReward = usePerGatewayReward();
   const yieldStatus = useYieldStatus();
+
+  // Unlock is a clock event, so re-render when the soonest withdrawal matures
+  // — otherwise a row that unlocks while the page is open keeps offering
+  // Expedite until something else triggers a render.
+  useTickAt(
+    nextFutureTimestamp(
+      (unifiedStakes ?? []).map((row) => row.withdrawalDate?.getTime()),
+    ),
+  );
 
   useEffect(() => {
     const unified: Array<UnifiedStakeData> | undefined = isFetching
@@ -139,15 +166,24 @@ const MyStakesTable = () => {
         id: 'status',
         header: 'Status',
         sortDescFirst: false,
-        cell: ({ row }) => (
-          <div
-            className={
-              row.original.status === 'Active' ? 'text-primary' : 'text-warning'
-            }
-          >
-            {row.original.status}
-          </div>
-        ),
+        cell: ({ row }) => {
+          // Derived at render, not stored on the row: a withdrawal matures
+          // while the page is open, and the row is only rebuilt on a refetch.
+          const unlocked = isRowUnlocked(row.original);
+          return (
+            <div
+              className={
+                row.original.status === 'Active'
+                  ? 'text-primary'
+                  : unlocked
+                    ? 'text-green-600'
+                    : 'text-warning'
+              }
+            >
+              {unlocked ? 'Unlocked' : row.original.status}
+            </div>
+          );
+        },
       }),
       columnHelper.accessor('gateway.settings.label', {
         id: 'label',
@@ -302,20 +338,44 @@ const MyStakesTable = () => {
                     </>
                   ) : (
                     <>
-                      <DropdownMenu.Item
-                        className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmInstantWithdrawal({
-                            gateway: row.original.gateway,
-                            gatewayAddress: row.original.owner,
-                            vault: row.original.withdrawal!,
-                            vaultId: row.original.withdrawalId!,
-                          });
-                        }}
-                      >
-                        Expedite Withdrawal
-                      </DropdownMenu.Item>
+                      {isRowUnlocked(row.original) && (
+                        // Matured: claiming returns the full amount, so this
+                        // leads. Expediting the same tokens costs 10%.
+                        <DropdownMenu.Item
+                          className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmClaimWithdrawal({
+                              withdrawalId: row.original.withdrawalId!,
+                              balance: row.original.amount,
+                              endTimestamp:
+                                row.original.withdrawalDate!.getTime(),
+                            });
+                          }}
+                        >
+                          Claim Withdrawal
+                        </DropdownMenu.Item>
+                      )}
+
+                      {(!row.original.withdrawalDate ||
+                        canStillExpedite(
+                          row.original.withdrawalDate.getTime(),
+                        )) && (
+                        <DropdownMenu.Item
+                          className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmInstantWithdrawal({
+                              gateway: row.original.gateway,
+                              gatewayAddress: row.original.owner,
+                              vault: row.original.withdrawal!,
+                              vaultId: row.original.withdrawalId!,
+                            });
+                          }}
+                        >
+                          Expedite Withdrawal
+                        </DropdownMenu.Item>
+                      )}
 
                       <DropdownMenu.Item
                         className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
@@ -436,6 +496,14 @@ const MyStakesTable = () => {
             setWithdrawalModalWalletAddress(undefined);
           }}
           ownerWallet={withdrawalModalWalletAddress}
+        />
+      )}
+      {confirmClaimWithdrawal && (
+        <ClaimWithdrawalModal
+          withdrawalId={confirmClaimWithdrawal.withdrawalId}
+          balance={confirmClaimWithdrawal.balance}
+          endTimestamp={confirmClaimWithdrawal.endTimestamp}
+          onClose={() => setConfirmClaimWithdrawal(undefined)}
         />
       )}
       {confirmCancelWithdrawal && (

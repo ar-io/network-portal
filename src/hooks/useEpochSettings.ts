@@ -45,7 +45,10 @@ export const fetchEpochSettings = async (
 /** Project the on-chain account onto the shape the UI consumes. */
 export const toPublicEpochSettings = (
   settings: EpochSettingsFull,
-): EpochSettings & { hasEpochZeroStarted: boolean } => {
+): EpochSettings & {
+  hasEpochZeroStarted: boolean;
+  maxConsecutiveFailures: number;
+} => {
   const epochZeroStartTimestamp = settings.genesisTimestamp * 1000;
 
   return {
@@ -54,6 +57,10 @@ export const toPublicEpochSettings = (
     prescribedNameCount: settings.prescribedNameCount,
     maxObservers: settings.prescribedObserverCount,
     hasEpochZeroStarted: dayjs().isAfter(new Date(epochZeroStartTimestamp)),
+    // Lives on EpochSettings, not on the GAR settings account the registry
+    // reader projects — where the SDK reports a hardcoded 30 under the name
+    // `failedEpochCountMax`. This is the value the program enforces.
+    maxConsecutiveFailures: settings.maxConsecutiveFailures,
   };
 };
 

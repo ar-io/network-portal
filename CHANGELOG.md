@@ -5,6 +5,92 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0] - 2026-09-29
+
+### Added
+
+- A gateway can now name an **operations address**: a second wallet allowed to
+  update the gateway's routing and presentation settings and to spend its ArNS
+  discount. It cannot move stake, change the reward share, or leave the network
+  — those stay with the owner. The gateway's page shows it, and the owner can
+  set, change, or revoke it by entering their own wallet again. A gateway that
+  has never set one reads "Not delegated (owner wallet)".
+
+### Fixed
+
+- **Matured withdrawals could not be claimed from My Stakes.** Nothing returns
+  a matured withdrawal to your wallet by itself — on this network it takes a
+  transaction you sign — and the only place that offered one was a bulk button
+  on the Balances page, hidden unless you had something to claim. My Stakes
+  showed "Withdrawing" with a date in the past and offered Expedite, Cancel and
+  Redelegate, none of which pays you. A matured withdrawal now reads "Unlocked"
+  and offers **Claim Withdrawal**, in My Stakes and in a gateway's Pending
+  Withdrawals.
+
+- **Expedite under-quoted its own fee on a matured withdrawal**, and offered
+  itself where it should not. The fee stops falling at 10% and never reaches
+  zero, but the quote kept dropping past that — 7.3% two days after a
+  withdrawal matured, and below zero from six weeks on, while the network still
+  charged 10%. Once a withdrawal unlocks, claiming returns the full amount, so
+  Expedite is withdrawn rather than left as a way to pay 10% for nothing.
+
+- **The leave period was stated as 30 days when it is 90.** A departing
+  gateway's stake splits across two vaults: the minimum operator stake is held
+  for 90 days and cannot be released early, and anything above it follows the
+  30-day withdrawal period. The Gateways page said 30 for both, and the Leave
+  Network dialog said 90 for all three of its lines. Both now describe what
+  actually happens. An operator who read the old figure and expected their
+  stake back after 30 days is the reason this was found.
+
+- **"No stake is slashed on removal" was wrong.** A gateway removed for failing
+  30 consecutive epochs is slashed its entire minimum operator stake. The
+  tooltip said the opposite, in the panel that explains what failing costs.
+
+- **Yields were overstated and disagreed with each other.** Delegate EAY was
+  computed from figures the app filled in itself rather than the epoch's own
+  reward, and the staking table and the staking dialog differed by about 25%
+  while both read high. Every yield now comes from the epoch on chain. A yield
+  that cannot be known yet says so instead of showing a number, and the few
+  minutes at the start of an epoch before its rewards are set show the previous
+  epoch's rate, labelled.
+
+- **The rewards chart overstated every epoch by roughly double**, and drew an
+  epoch whose rewards had not been split yet as though they had all gone to
+  gateways. Totals now come from the epoch account, an unsplit epoch draws an
+  outline rather than a bar, and the chart has a legend and a unit.
+
+- **An epoch nobody observed was charted as a completed payout.** Such an epoch
+  pays nothing and the rewards stay in the treasury, but it still carries the
+  split it was assigned, so the chart showed gateway and observer rewards that
+  were never paid. It now reads "Not paid".
+
+- **Observer Performance opened on the epoch in progress**, which minutes after
+  a rollover legitimately reads 0 of 50 — shown as a large 0.00% beside a red
+  fall, which looks like the network has stopped. It leads with the most recent
+  finished epoch, and says "in progress" when you hover the live one.
+
+- **Switching the rewards chart to USD made the current epoch's bar vanish.**
+  Each epoch is valued at its own closing price and the epoch in progress has
+  not closed, so there was no price to use and the bar simply disappeared,
+  which reads as paying nothing. It is valued at the most recent close and the
+  tooltip says which epoch that came from.
+
+- **Redelegating could be rejected after passing every check on screen.** The
+  fee is taken first and the remainder must still clear the destination
+  gateway's minimum, which the form did not account for. It now checks the
+  amount that actually arrives, and suggests one that works.
+
+- Delegating to a gateway now applies that gateway's own minimum rather than
+  the network's, so the amount the form accepts is the amount the network does.
+
+- Tokens are named **ARIO** throughout, retiring the pre-rebrand IO, tIO and
+  mIO. The fee-based early release is called an **expedited withdrawal**
+  everywhere, matching the network's own wording.
+
+- Values that fail to load now say so instead of shimmering indefinitely, wide
+  tables hint that they scroll, and a table's edges fade without a colour
+  mismatch on scrollbars.
+
 ## [2.11.1] - 2026-09-21
 
 ### Fixed

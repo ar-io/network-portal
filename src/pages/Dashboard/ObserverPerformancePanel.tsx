@@ -164,9 +164,10 @@ const ObserverPerformancePanel = () => {
               }
             }}
             onMouseLeave={() => {
-              if (chartData) {
-                setActiveIndex(chartData.length - 1);
-              }
+              // Back to the settled epoch, not the last point — resetting to
+              // the live one would undo the default above the moment anyone
+              // hovered the chart and moved away.
+              setActiveIndex(settledIndex);
             }}
           >
             <defs>

@@ -72,7 +72,7 @@ interface RewardsData {
   total?: number;
   /** `total`, but only for an unsplit epoch: drawn as an outlined bar. */
   pendingTotal?: number;
-  status: 'Distributed' | 'Pending' | 'Skipped';
+  status: 'Distributed' | 'Pending' | 'Not paid';
 }
 
 const CustomTooltip = ({
@@ -113,7 +113,7 @@ const CustomTooltip = ({
           )}
           <p className="text-low">
             {data.splitReason === 'skipped'
-              ? 'No observations were submitted for this epoch, so it paid nothing. The rewards stayed in the treasury.'
+              ? 'No observations were submitted for this epoch, so it paid nothing and the rewards stayed in the treasury. The figure above is what it would have paid.'
               : data.splitReason === 'unavailable'
                 ? 'This epoch had no observers selected, so its gateway share cannot be shown.'
                 : 'How this splits between gateways and observers is set on chain after the epoch starts.'}
@@ -325,7 +325,7 @@ const RewardsDistributionPanel = () => {
           pendingTotal: split ? undefined : inUnit(totalRewards),
           priced: price !== undefined,
           status: (skipped
-            ? 'Skipped'
+            ? 'Not paid'
             : epoch!.epochIndex === currentEpochIndex
               ? 'Pending'
               : 'Distributed') as RewardsData['status'],
@@ -548,7 +548,7 @@ const RewardsDistributionPanel = () => {
                 aria-hidden="true"
                 className="size-2 min-w-2 rounded-full border border-dashed border-[rgba(202,202,214,0.6)]"
               />
-              <span>Not paid — no observations</span>
+              <span>Not paid</span>
             </div>
           )}
           {/* The unit toggle only renders once prices exist, so without this

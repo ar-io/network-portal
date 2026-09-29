@@ -97,10 +97,20 @@ export type EpochRewardFields = {
    */
   prescriptionsDone: number;
   /**
-   * Zero for an epoch nobody observed. The program branches on exactly this
-   * field, so reading it is the same predicate the chain applied — not an
-   * approximation of `EpochSkippedNoObservationsEvent`, which a browser
-   * cannot retrieve for a historical epoch anyway.
+   * Zero for an epoch nobody observed.
+   *
+   * The program's own condition is `observations_submitted == 0 &&
+   * distribution_index == 0`, and the second half is **not recoverable after
+   * the fact**: a skipped epoch ends with `distribution_index ==
+   * active_gateway_count`, the same as a paid one. So this is a close
+   * approximation, not the chain's branch. It differs for one case, which the
+   * program's own comment describes: an epoch the pre-Wave-2 program had
+   * already begun paying falls through the skip and is finished the old way,
+   * ending zero-observation and fully paid. Such an epoch reads as skipped
+   * here, and nothing on the account can say otherwise.
+   *
+   * The alternative is `EpochSkippedNoObservationsEvent`, which a browser
+   * cannot retrieve for a historical epoch at any price.
    */
   observationsSubmitted: number;
   /** 1 once distribution has run. A live epoch has simply not been paid yet. */
@@ -109,8 +119,6 @@ export type EpochRewardFields = {
 
 type RewardTotalsInputs = {
   prescribed: boolean;
-  /** Distributed, but with no observations: nothing was paid. */
-  skipped: boolean;
   totalEligibleRewards: number;
   perGatewayReward: number;
   observerPool: number;
@@ -120,8 +128,6 @@ type RewardTotals = {
   distributions: EpochDataWithCounters['distributions'];
   /** False when the pool has not been split, or its split cannot be derived. */
   splitKnown: boolean;
-  /** The epoch paid nothing because it collected no observations. */
-  skipped: boolean;
 };
 
 const NO_SPLIT = (totalEligibleRewards: number) => ({
@@ -133,33 +139,10 @@ const NO_SPLIT = (totalEligibleRewards: number) => ({
 
 const buildRewardTotals = ({
   prescribed,
-  skipped,
   totalEligibleRewards,
   perGatewayReward,
   observerPool,
 }: RewardTotalsInputs): RewardTotals => {
-  // Distributed with no observations (ADR-0034 addendum): the protocol marks
-  // the epoch complete and pays nothing, leaving the tokens in the treasury.
-  //
-  // Checked FIRST, and checked at all, because the skip happens *after*
-  // prescription — `distribute_epoch` requires `prescriptions_done` before it
-  // can reach this case. Such an epoch therefore keeps the complete, non-zero
-  // split `prescribe_epoch` wrote, and every branch below would read it as a
-  // real payout: a full stacked bar, labelled Distributed, for rewards nobody
-  // received. Asserting a payment that never happened is the mirror of the
-  // false zero the rest of this function exists to avoid, and the worse
-  // direction — a solid bar closes the question that a dashed one invites.
-  //
-  // What was paid is known exactly: nothing. `totalEligibleRewards` is kept so
-  // the chart can show the size of what was withheld.
-  if (skipped) {
-    return {
-      distributions: NO_SPLIT(totalEligibleRewards),
-      splitKnown: true,
-      skipped: true,
-    };
-  }
-
   // Not yet prescribed: the pool exists but has not been split. The remainder
   // formula below would otherwise credit all of it to gateways, because the
   // observer pool is still zero.
@@ -167,7 +150,6 @@ const buildRewardTotals = ({
     return {
       distributions: NO_SPLIT(totalEligibleRewards),
       splitKnown: false,
-      skipped: false,
     };
   }
 
@@ -181,7 +163,6 @@ const buildRewardTotals = ({
         totalEligibleObserverReward: observerPool,
       },
       splitKnown: true,
-      skipped: false,
     };
   }
 
@@ -193,7 +174,6 @@ const buildRewardTotals = ({
     return {
       distributions: NO_SPLIT(totalEligibleRewards),
       splitKnown: false,
-      skipped: false,
     };
   }
 
@@ -216,7 +196,6 @@ const buildRewardTotals = ({
       totalEligibleGatewayReward,
     },
     splitKnown: true,
-    skipped: false,
   };
 };
 
@@ -234,17 +213,27 @@ export const isSkippedEpoch = (
   rewardsDistributed !== 0 &&
   observationsSubmitted === 0;
 
-export const epochRewardTotals = (epoch: EpochRewardFields) =>
-  buildRewardTotals({
+/**
+ * The epoch's split, and whether it was actually paid.
+ *
+ * `skipped` rides alongside the split rather than replacing it. What
+ * `prescribe_epoch` wrote stays on the row — it is a real fact about the
+ * epoch, `totalEligibleGateways` is a count other panels read, and for a
+ * cached row this is the only surviving copy once the account is closed. The
+ * renderer decides what to draw; the data layer does not destroy it.
+ */
+export const epochRewardTotals = (epoch: EpochRewardFields) => ({
+  ...buildRewardTotals({
     prescribed: epoch.prescriptionsDone !== 0,
-    skipped: isSkippedEpoch(
-      epoch.observationsSubmitted,
-      epoch.rewardsDistributed,
-    ),
     totalEligibleRewards: epoch.totalEligibleRewards,
     perGatewayReward: epoch.perGatewayReward,
     observerPool: epoch.perObserverReward * epoch.observerCount,
-  });
+  }),
+  skipped: isSkippedEpoch(
+    epoch.observationsSubmitted,
+    epoch.rewardsDistributed,
+  ),
+});
 
 /**
  * Bring a cached epoch row up to {@link REWARD_TOTALS_VERSION}, from its own
@@ -279,28 +268,26 @@ export const upgradeCachedEpoch = (
   // `prescriptions_done`, so every cached row was prescribed.
   //
   // The counters are on the row (the cache was cleared of rows predating
-  // them), so a skipped epoch is recoverable here without re-reading chain.
-  //
-  // One transitional inaccuracy, accepted: before the Wave 2 upgrade the
-  // program paid a zero-observation epoch normally, so a cached row from
-  // before 2026-09-27 that really was paid is now relabelled as skipped. That
-  // errs toward under-claiming a payout rather than asserting one, and ages
-  // out of the chart's window within a week; an epoch-index or timestamp
-  // cutoff would outlive the transient it guards.
+  // them), so the skip is recoverable here without re-reading chain — and
+  // because it only sets a flag, a row this gets wrong is not destroyed and
+  // can be re-derived by a later version.
   const totals = buildRewardTotals({
     prescribed: true,
-    skipped: isSkippedEpoch(row.observationsSubmitted, row.rewardsDistributed),
     totalEligibleRewards: d.totalEligibleRewards,
     perGatewayReward,
     observerPool: d.totalEligibleObserverReward,
   });
+  const skipped = isSkippedEpoch(
+    row.observationsSubmitted,
+    row.rewardsDistributed,
+  );
 
   return {
     ...row,
     perGatewayReward,
     rewardsPrescribed: true,
     rewardsSplitKnown: totals.splitKnown,
-    rewardsSkipped: totals.skipped,
+    rewardsSkipped: skipped,
     rewardTotalsVersion: REWARD_TOTALS_VERSION,
     distributions: { ...d, ...totals.distributions },
   };

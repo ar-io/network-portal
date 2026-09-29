@@ -87,17 +87,27 @@ describe('epochRewardTotals', () => {
    * was never paid — the reason this needs its own branch rather than falling
    * through to the real-split arithmetic below.
    */
-  it('reports a distributed epoch with no observations as paying nothing', () => {
+  it('flags a distributed epoch with no observations as unpaid', () => {
     const r = epochRewardTotals({ ...EPOCH_546, observationsSubmitted: 0 });
 
     expect(r.skipped).toBe(true);
-    expect(r.distributions.totalEligibleGatewayReward).toEqual(0);
-    expect(r.distributions.totalEligibleObserverReward).toEqual(0);
-    expect(r.distributions.totalEligibleGateways).toEqual(0);
-    // The withheld pool is still reported, so the chart can show its size.
-    expect(r.distributions.totalEligibleRewards).toEqual(
-      EPOCH_546.totalEligibleRewards,
-    );
+  });
+
+  /**
+   * The split it was prescribed is a real fact about the epoch, the eligible
+   * count is read by other panels, and for a cached row this is the only
+   * surviving copy once the account closes. Flagging the epoch must not
+   * destroy it — the renderer decides what to draw.
+   */
+  it('keeps the split it was prescribed rather than zeroing it', () => {
+    const skipped = epochRewardTotals({
+      ...EPOCH_546,
+      observationsSubmitted: 0,
+    });
+    const paid = epochRewardTotals(EPOCH_546);
+
+    expect(skipped.distributions).toEqual(paid.distributions);
+    expect(skipped.distributions.totalEligibleGateways).toBeGreaterThan(0);
   });
 
   /** Nobody has submitted *yet* is routine early in a live epoch. */
@@ -284,7 +294,7 @@ describe('upgradeCachedEpoch', () => {
 
 describe('upgradeCachedEpoch, skipped epochs', () => {
   /** A v3 row cached before the skip was understood reported a full payout. */
-  it('relabels a cached zero-observation epoch as paying nothing', () => {
+  it('relabels a cached zero-observation epoch as unpaid', () => {
     const v3 = baseRow(epochRewardTotals(EPOCH_546).distributions, {
       observationsSubmitted: 0,
       perGatewayReward: EPOCH_546.perGatewayReward,
@@ -296,7 +306,8 @@ describe('upgradeCachedEpoch, skipped epochs', () => {
     const up = upgradeCachedEpoch(v3);
 
     expect(up.rewardsSkipped).toBe(true);
-    expect(up.distributions.totalEligibleGatewayReward).toEqual(0);
+    // Non-destructive: a row this gets wrong can still be re-derived later.
+    expect(up.distributions.totalEligibleGatewayReward).toBeGreaterThan(0);
     expect(up.rewardTotalsVersion).toEqual(REWARD_TOTALS_VERSION);
   });
 

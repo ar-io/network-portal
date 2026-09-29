@@ -47,6 +47,7 @@ const mapWithConcurrency = async <T, R>(
   items: T[],
   limit: number,
   run: (item: T) => Promise<R>,
+  signal?: AbortSignal,
 ): Promise<R[]> => {
   const results: R[] = new Array(items.length);
   let next = 0;
@@ -54,6 +55,9 @@ const mapWithConcurrency = async <T, R>(
     { length: Math.min(limit, items.length) },
     async () => {
       for (;;) {
+        // Switching epochs abandons this queue rather than leaving it racing
+        // the new one for the gateway's rate limit.
+        signal?.throwIfAborted();
         const index = next++;
         if (index >= items.length) return;
         results[index] = await run(items[index]);
@@ -100,7 +104,7 @@ const useGatewayObservationReports = ({
     // Reports are immutable once uploaded, so never refetch within a session.
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: 30 * 60 * 1000,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!fqdn || !reports) {
         throw new Error('fqdn and reports are required');
       }
@@ -118,7 +122,8 @@ const useGatewayObservationReports = ({
         REPORT_CONCURRENCY,
         async (txId) => {
           const read = async () => {
-            const bytes = await downloadReport(txId);
+            // `retry: 0` because the single retry below is this hook's own.
+            const bytes = await downloadReport(txId, { signal, retry: 0 });
             const parsed = JSON.parse(strFromU8(bytes)) as {
               gatewayAssessments?: Record<string, unknown>;
             };
@@ -130,13 +135,17 @@ const useGatewayObservationReports = ({
 
           try {
             return await read();
-          } catch {
+          } catch (first) {
+            // A cancelled read is not a refused one: let it end the sweep.
+            if (signal.aborted) throw first;
             // A refusal is usually the rate limit rather than a missing
             // report, so pause and ask once more before giving up on it.
             await sleep(RETRY_DELAY_MS);
+            signal.throwIfAborted();
             try {
               return await read();
             } catch (error) {
+              if (signal.aborted) throw error;
               return {
                 txId,
                 unreadable:
@@ -145,6 +154,7 @@ const useGatewayObservationReports = ({
             }
           }
         },
+        signal,
       );
 
       const verdicts: ObserverVerdict[] = [];

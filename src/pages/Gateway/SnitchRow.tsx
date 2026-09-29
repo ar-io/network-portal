@@ -61,6 +61,7 @@ const ReportedOnByCard = ({
     data: fromReports,
     isFetching: readingReports,
     isError: reportsFailed,
+    refetch: rereadReports,
   } = useGatewayObservationReports({
     epochIndex: selectedEpoch?.epochIndex,
     fqdn: gateway?.settings.fqdn,
@@ -184,12 +185,29 @@ const ReportedOnByCard = ({
         {observations && !hasAttribution ? (
           fromReports ? (
             <>
-              <div className="border-b border-grey-500 px-6 py-2 text-xs text-low">
-                {fromReports.failedCount > 0
-                  ? `${fromReports.failedCount} of ${fromReports.readCount} reports read failed this gateway.`
-                  : `None of the ${fromReports.readCount} reports read failed this gateway.`}
-                {fromReports.unreadableCount > 0 &&
-                  ` ${fromReports.unreadableCount} could not be read.`}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-grey-500 px-6 py-2 text-xs text-low">
+                <span>
+                  {fromReports.readCount === 0
+                    ? 'No report could be read.'
+                    : fromReports.failedCount > 0
+                      ? `${fromReports.failedCount} of ${fromReports.readCount} reports read failed this gateway.`
+                      : `None of the ${fromReports.readCount} reports read failed this gateway.`}
+                  {fromReports.unreadableCount > 0 &&
+                    ` ${fromReports.unreadableCount} could not be read.`}
+                </span>
+                {/* The gateway serving these rate-limits, so a refusal is
+                    usually temporary — but the result is cached, so without
+                    this there is no way back to it. */}
+                {fromReports.unreadableCount > 0 && (
+                  <button
+                    type="button"
+                    className="text-link underline"
+                    onClick={() => rereadReports()}
+                    disabled={readingReports}
+                  >
+                    {readingReports ? 'Retrying…' : 'Try the rest again'}
+                  </button>
+                )}
               </div>
               {fromReports.verdicts
                 .filter((v) => v.outcome?.pass === false)

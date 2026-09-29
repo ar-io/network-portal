@@ -24,10 +24,25 @@ const looksLikeJson = (data: Uint8Array) => {
   return false;
 };
 
-export const downloadReport = async (reportId: string) => {
+export const downloadReport = async (
+  reportId: string,
+  options?: {
+    signal?: AbortSignal;
+    /**
+     * Ky retries an eligible GET twice by default. A caller doing its own
+     * retrying must turn that off, or the two policies multiply — the report
+     * sweep measured its concurrency against the gateway's rate limit, and
+     * silently tripling the requests would invalidate it.
+     */
+    retry?: number;
+  },
+) => {
   const reportURL = arweaveTxUrl(reportId);
 
-  const response = await ky.get(reportURL);
+  const response = await ky.get(reportURL, {
+    ...(options?.signal ? { signal: options.signal } : {}),
+    ...(options?.retry === undefined ? {} : { retry: options.retry }),
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch report: ${response.statusText}`);

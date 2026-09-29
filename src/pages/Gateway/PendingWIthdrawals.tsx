@@ -9,6 +9,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import TableView from '@src/components/TableView';
 import { ThreeDotsIcon } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
+import ClaimWithdrawalModal from '@src/components/modals/ClaimWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
 import RedelegateModal, {
   RedelegateModalProps,
@@ -16,6 +17,7 @@ import RedelegateModal, {
 import useGatewayVaults from '@src/hooks/useGatewayVaults';
 import { useGlobalState } from '@src/store';
 import { formatDateTime, formatWithCommas } from '@src/utils';
+import { isWithdrawalUnlocked } from '@src/utils/stake';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
 import CollapsiblePanel from './CollapsiblePanel';
@@ -37,6 +39,12 @@ const PendingWithdrawals = ({
     isError,
     data: gatewayVaults,
   } = useGatewayVaults(gateway?.gatewayAddress);
+
+  const [confirmClaimWithdrawal, setConfirmClaimWithdrawal] = useState<{
+    withdrawalId: string;
+    balance: number;
+    endTimestamp: number;
+  }>();
 
   const [confirmCancelWithdrawal, setConfirmCancelWithdrawal] = useState<{
     gatewayAddress: string;
@@ -68,7 +76,14 @@ const PendingWithdrawals = ({
       id: 'endTimestamp',
       header: 'Date of Return',
       sortDescFirst: true,
-      cell: ({ row }) => formatDateTime(new Date(row.original.endTimestamp)),
+      cell: ({ row }) => (
+        <div>
+          {formatDateTime(new Date(row.original.endTimestamp))}
+          {isWithdrawalUnlocked(row.original.endTimestamp) && (
+            <span className="ml-2 text-green-600">Unlocked</span>
+          )}
+        </div>
+      ),
     }),
     columnHelper.display({
       id: 'actions',
@@ -87,22 +102,40 @@ const PendingWithdrawals = ({
                 </div>
               </DropdownMenu.Trigger>
               <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
-                <DropdownMenu.Item
-                  className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (gateway) {
-                      setConfirmInstantWithdrawal({
-                        gateway: gateway,
-                        gatewayAddress: gateway.gatewayAddress,
-                        vault: row.original,
-                        vaultId: row.original.vaultId,
+                {isWithdrawalUnlocked(row.original.endTimestamp) ? (
+                  // Matured: claiming returns the full amount, so expediting
+                  // the same tokens for a 10% fee is never the right action.
+                  <DropdownMenu.Item
+                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmClaimWithdrawal({
+                        withdrawalId: row.original.vaultId,
+                        balance: row.original.balance,
+                        endTimestamp: row.original.endTimestamp,
                       });
-                    }
-                  }}
-                >
-                  Expedite Withdrawal
-                </DropdownMenu.Item>
+                    }}
+                  >
+                    Claim Withdrawal
+                  </DropdownMenu.Item>
+                ) : (
+                  <DropdownMenu.Item
+                    className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (gateway) {
+                        setConfirmInstantWithdrawal({
+                          gateway: gateway,
+                          gatewayAddress: gateway.gatewayAddress,
+                          vault: row.original,
+                          vaultId: row.original.vaultId,
+                        });
+                      }
+                    }}
+                  >
+                    Expedite Withdrawal
+                  </DropdownMenu.Item>
+                )}
 
                 <DropdownMenu.Item
                   className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
@@ -181,6 +214,14 @@ const PendingWithdrawals = ({
         />
       )}
 
+      {confirmClaimWithdrawal && (
+        <ClaimWithdrawalModal
+          withdrawalId={confirmClaimWithdrawal.withdrawalId}
+          balance={confirmClaimWithdrawal.balance}
+          endTimestamp={confirmClaimWithdrawal.endTimestamp}
+          onClose={() => setConfirmClaimWithdrawal(undefined)}
+        />
+      )}
       {confirmCancelWithdrawal && (
         <CancelWithdrawalModal
           gatewayAddress={confirmCancelWithdrawal.gatewayAddress}

@@ -10,6 +10,7 @@ import Tooltip from '@src/components/Tooltip';
 import { YieldCell, YieldUnavailableNote } from '@src/components/YieldCell';
 import { InfoIcon, ThreeDotsIcon } from '@src/components/icons';
 import CancelWithdrawalModal from '@src/components/modals/CancelWithdrawalModal';
+import ClaimWithdrawalModal from '@src/components/modals/ClaimWithdrawalModal';
 import InstantWithdrawalModal from '@src/components/modals/InstantWithdrawalModal';
 import RedelegateModal, {
   RedelegateModalProps,
@@ -25,6 +26,7 @@ import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
+import { isWithdrawalUnlocked } from '@src/utils/stake';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import dayjs from 'dayjs';
@@ -43,6 +45,16 @@ interface UnifiedStakeData {
   withdrawal?: VaultData;
 }
 
+/**
+ * A withdrawal row whose lock has elapsed. Claiming it returns the full
+ * amount; nothing credits it automatically (see `isWithdrawalUnlocked`).
+ */
+const isRowUnlocked = (row: UnifiedStakeData) =>
+  row.status === 'Withdrawing' &&
+  !!row.withdrawalId &&
+  !!row.withdrawalDate &&
+  isWithdrawalUnlocked(row.withdrawalDate.getTime());
+
 const columnHelper = createColumnHelper<UnifiedStakeData>();
 
 const MyStakesTable = () => {
@@ -60,6 +72,11 @@ const MyStakesTable = () => {
   const [showRedelegateModal, setShowRedelegateModal] =
     useState<RedelegateModalProps>();
 
+  const [confirmClaimWithdrawal, setConfirmClaimWithdrawal] = useState<{
+    withdrawalId: string;
+    balance: number;
+    endTimestamp: number;
+  }>();
   const [confirmCancelWithdrawal, setConfirmCancelWithdrawal] = useState<{
     gatewayAddress: string;
     vaultId: string;
@@ -139,15 +156,24 @@ const MyStakesTable = () => {
         id: 'status',
         header: 'Status',
         sortDescFirst: false,
-        cell: ({ row }) => (
-          <div
-            className={
-              row.original.status === 'Active' ? 'text-primary' : 'text-warning'
-            }
-          >
-            {row.original.status}
-          </div>
-        ),
+        cell: ({ row }) => {
+          // Derived at render, not stored on the row: a withdrawal matures
+          // while the page is open, and the row is only rebuilt on a refetch.
+          const unlocked = isRowUnlocked(row.original);
+          return (
+            <div
+              className={
+                row.original.status === 'Active'
+                  ? 'text-primary'
+                  : unlocked
+                    ? 'text-green-600'
+                    : 'text-warning'
+              }
+            >
+              {unlocked ? 'Unlocked' : row.original.status}
+            </div>
+          );
+        },
       }),
       columnHelper.accessor('gateway.settings.label', {
         id: 'label',
@@ -238,9 +264,18 @@ const MyStakesTable = () => {
           <div
             className={row.original.withdrawalDate ? 'text-high' : 'text-low'}
           >
-            {row.original.withdrawalDate
-              ? dayjs(row.original.withdrawalDate).format('YYYY-MM-DD')
-              : 'N/A'}
+            {row.original.withdrawalDate ? (
+              <>
+                {dayjs(row.original.withdrawalDate).format('YYYY-MM-DD')}
+                {isRowUnlocked(row.original) && (
+                  // A past date alone read as a stuck row, which is how this
+                  // looked to the operator who reported it.
+                  <span className="ml-2 text-green-600">Unlocked</span>
+                )}
+              </>
+            ) : (
+              'N/A'
+            )}
           </div>
         ),
       }),
@@ -302,20 +337,40 @@ const MyStakesTable = () => {
                     </>
                   ) : (
                     <>
-                      <DropdownMenu.Item
-                        className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmInstantWithdrawal({
-                            gateway: row.original.gateway,
-                            gatewayAddress: row.original.owner,
-                            vault: row.original.withdrawal!,
-                            vaultId: row.original.withdrawalId!,
-                          });
-                        }}
-                      >
-                        Expedite Withdrawal
-                      </DropdownMenu.Item>
+                      {isRowUnlocked(row.original) ? (
+                        // Matured: claiming returns the full amount, so
+                        // expediting the same tokens for a 10% fee is never
+                        // the right action and is not offered.
+                        <DropdownMenu.Item
+                          className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmClaimWithdrawal({
+                              withdrawalId: row.original.withdrawalId!,
+                              balance: row.original.amount,
+                              endTimestamp:
+                                row.original.withdrawalDate!.getTime(),
+                            });
+                          }}
+                        >
+                          Claim Withdrawal
+                        </DropdownMenu.Item>
+                      ) : (
+                        <DropdownMenu.Item
+                          className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmInstantWithdrawal({
+                              gateway: row.original.gateway,
+                              gatewayAddress: row.original.owner,
+                              vault: row.original.withdrawal!,
+                              vaultId: row.original.withdrawalId!,
+                            });
+                          }}
+                        >
+                          Expedite Withdrawal
+                        </DropdownMenu.Item>
+                      )}
 
                       <DropdownMenu.Item
                         className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
@@ -436,6 +491,14 @@ const MyStakesTable = () => {
             setWithdrawalModalWalletAddress(undefined);
           }}
           ownerWallet={withdrawalModalWalletAddress}
+        />
+      )}
+      {confirmClaimWithdrawal && (
+        <ClaimWithdrawalModal
+          withdrawalId={confirmClaimWithdrawal.withdrawalId}
+          balance={confirmClaimWithdrawal.balance}
+          endTimestamp={confirmClaimWithdrawal.endTimestamp}
+          onClose={() => setConfirmClaimWithdrawal(undefined)}
         />
       )}
       {confirmCancelWithdrawal && (

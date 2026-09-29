@@ -47,10 +47,14 @@ export const useProtocolParameters = (
 } => {
   const { data: settings, isLoading, isError } = useGatewayRegistrySettings();
   // `maxConsecutiveFailures` is the one displayed value that lives on the
-  // EpochSettings account. A failed read there renders that row as
-  // Unavailable rather than blocking the panel or showing the SDK's
-  // hardcoded stand-in.
-  const { data: epochSettings } = useEpochSettings();
+  // EpochSettings account, and it resolves independently of the registry
+  // settings beside it. A *failed* read renders that row as Unavailable
+  // rather than showing the SDK's hardcoded stand-in; a read still in flight
+  // renders an em dash, because the other query can resolve first and
+  // "Unavailable" for a read that has not failed is the mistake the epoch
+  // panels already made once.
+  const { data: epochSettings, isError: epochSettingsError } =
+    useEpochSettings();
   const maxConsecutiveFailures = epochSettings?.maxConsecutiveFailures;
   const ticker = useGlobalState((state) => state.ticker);
 
@@ -76,19 +80,21 @@ export const useProtocolParameters = (
         {
           label: 'Leave period',
           value: formatDurationDays(GATEWAY_LEAVE_PERIOD_MS),
-          tooltip: `On leaving the network, a gateway's stake splits across two vaults, and each unlocks on its own schedule. The minimum operator stake — the security bond — is vaulted for ${formatDurationDays(
+          tooltip: `A departing gateway's stake splits across two vaults that unlock separately: one holding the minimum operator stake for ${formatDurationDays(
             GATEWAY_LEAVE_PERIOD_MS,
-          )} and cannot be expedited. Anything above it follows the ${formatDurationDays(
+          )}, which cannot be expedited, and one holding the rest for the ${formatDurationDays(
             operators.withdrawLengthMs,
-          )} withdrawal period and can be. The same applies whether the operator left voluntarily or was removed.`,
+          )} withdrawal period, which can. A gateway removed for failed epochs is slashed the minimum operator stake first; whatever survives is then split the same way.`,
         },
         {
           label: 'Max failed epochs',
           value:
-            maxConsecutiveFailures === undefined
-              ? 'Unavailable'
-              : formatWithCommas(maxConsecutiveFailures),
-          tooltip: `A gateway that fails this many consecutive epochs is removed from the registry, and its minimum operator stake is slashed in full. Stake above the minimum is returned through the vaults described under Leave period.`,
+            maxConsecutiveFailures !== undefined
+              ? formatWithCommas(maxConsecutiveFailures)
+              : epochSettingsError
+                ? 'Unavailable'
+                : '—',
+          tooltip: `A gateway that fails this many consecutive epochs is removed from the registry, and its minimum operator stake is slashed in full. Whatever survives the slash is vaulted as described under Leave period.`,
         },
         {
           label: 'Max reward share',
@@ -128,7 +134,7 @@ export const useProtocolParameters = (
         tooltip: `Claiming a vaulted withdrawal early costs a penalty on this scale — nearest the low end when the vault is almost mature, the high end right after it opens. It stops falling at the low end and never reaches zero, so once a withdrawal matures, claim it instead: that returns the full amount and costs no penalty. Minimum ${formatWithCommas(new mARIOToken(expeditedWithdrawals.minExpeditedWithdrawalAmount).toARIO().valueOf())} ${ticker}.`,
       },
     ];
-  }, [settings, ticker, variant, maxConsecutiveFailures]);
+  }, [settings, ticker, variant, maxConsecutiveFailures, epochSettingsError]);
 
   return { parameters, isLoading, isError };
 };

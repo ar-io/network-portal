@@ -1,6 +1,8 @@
 import { VaultData } from '@ar.io/sdk/web';
 import {
+  UNLOCK_SKEW_MARGIN_MS,
   calculateInstantWithdrawalPenaltyRate,
+  canStillExpedite,
   isWithdrawalUnlocked,
 } from '@src/utils/stake';
 
@@ -82,5 +84,35 @@ describe('isWithdrawalUnlocked', () => {
 
   it('is unlocked after the end timestamp', () => {
     expect(isWithdrawalUnlocked(START, START + DAY)).toBe(true);
+  });
+});
+
+describe('canStillExpedite', () => {
+  const END = START + THIRTY_DAYS;
+
+  it('is offered while the withdrawal is locked', () => {
+    expect(canStillExpedite(END, END - DAY)).toBe(true);
+  });
+
+  /**
+   * The margin exists because the chain gates on its own clock. Claim appears
+   * at maturity, but the alternative is not taken away until the two clocks
+   * cannot plausibly disagree.
+   */
+  it('is still offered just past maturity', () => {
+    expect(canStillExpedite(END, END + 1000)).toBe(true);
+  });
+
+  it('is withdrawn once the margin has passed', () => {
+    expect(canStillExpedite(END, END + UNLOCK_SKEW_MARGIN_MS + 1)).toBe(false);
+  });
+
+  /**
+   * The instant both tables must schedule a re-render for: the margin is
+   * exclusive, so the option is gone the moment it is reached.
+   */
+  it('turns over at the margin, exclusive', () => {
+    expect(canStillExpedite(END, END + UNLOCK_SKEW_MARGIN_MS - 1)).toBe(true);
+    expect(canStillExpedite(END, END + UNLOCK_SKEW_MARGIN_MS)).toBe(false);
   });
 });

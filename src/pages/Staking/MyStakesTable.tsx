@@ -27,7 +27,11 @@ import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
-import { canStillExpedite, isWithdrawalUnlocked } from '@src/utils/stake';
+import {
+  UNLOCK_SKEW_MARGIN_MS,
+  canStillExpedite,
+  isWithdrawalUnlocked,
+} from '@src/utils/stake';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import dayjs from 'dayjs';
@@ -101,9 +105,14 @@ const MyStakesTable = () => {
   // Unlock is a clock event, so re-render when the soonest withdrawal matures
   // — otherwise a row that unlocks while the page is open keeps offering
   // Expedite until something else triggers a render.
+  // Both boundaries, not just maturity: Expedite is withdrawn a margin later,
+  // and a row left open would otherwise keep offering it past that point.
   useTickAt(
     nextFutureTimestamp(
-      (unifiedStakes ?? []).map((row) => row.withdrawalDate?.getTime()),
+      (unifiedStakes ?? []).flatMap((row) => {
+        const at = row.withdrawalDate?.getTime();
+        return at === undefined ? [] : [at, at + UNLOCK_SKEW_MARGIN_MS];
+      }),
     ),
   );
 

@@ -72,7 +72,17 @@ const ClaimWithdrawalModal = ({
     balances !== undefined &&
     balances.sol * 1_000_000_000 < gasEstimate.totalLamports;
 
+  // `insufficientSol` is false while either read is still in flight, and
+  // `Button` has no disabled state of its own — so without this the user can
+  // sign before the check that exists to stop them has an answer. Only the
+  // in-flight case blocks: if the estimate *failed* we cannot prove they are
+  // short, and refusing to let them try on our own failed read is worse than
+  // letting the wallet answer.
+  const checksPending = isLoadingGas || balances === undefined;
+  const blocked = insufficientSol || checksPending;
+
   const processClaimWithdrawal = async () => {
+    if (blocked) return;
     if (!walletAddress || !arIOWriteableSDK) {
       showErrorToast('Connect a signing wallet before claiming.');
       return;

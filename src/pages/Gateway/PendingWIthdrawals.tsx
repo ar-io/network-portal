@@ -18,7 +18,11 @@ import useGatewayVaults from '@src/hooks/useGatewayVaults';
 import { nextFutureTimestamp, useTickAt } from '@src/hooks/useTickAt';
 import { useGlobalState } from '@src/store';
 import { formatDateTime, formatWithCommas } from '@src/utils';
-import { canStillExpedite, isWithdrawalUnlocked } from '@src/utils/stake';
+import {
+  UNLOCK_SKEW_MARGIN_MS,
+  canStillExpedite,
+  isWithdrawalUnlocked,
+} from '@src/utils/stake';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
 import CollapsiblePanel from './CollapsiblePanel';
@@ -63,8 +67,14 @@ const PendingWithdrawals = ({
     useState<RedelegateModalProps>();
 
   // See MyStakesTable: maturity is a clock event, not a refetch.
+  // See MyStakesTable: maturity AND the expedite boundary a margin later.
   useTickAt(
-    nextFutureTimestamp((gatewayVaults ?? []).map((v) => v.endTimestamp)),
+    nextFutureTimestamp(
+      (gatewayVaults ?? []).flatMap((v) => [
+        v.endTimestamp,
+        v.endTimestamp + UNLOCK_SKEW_MARGIN_MS,
+      ]),
+    ),
   );
 
   // Define columns for the table

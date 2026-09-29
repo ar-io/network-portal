@@ -27,7 +27,7 @@ import useYieldStatus from '@src/hooks/useYieldStatus';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import { calculateGatewayRewards, knownYield } from '@src/utils/rewards';
-import { isWithdrawalUnlocked } from '@src/utils/stake';
+import { canStillExpedite, isWithdrawalUnlocked } from '@src/utils/stake';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { MathJax } from 'better-react-mathjax';
 import dayjs from 'dayjs';
@@ -102,12 +102,8 @@ const MyStakesTable = () => {
   // — otherwise a row that unlocks while the page is open keeps offering
   // Expedite until something else triggers a render.
   useTickAt(
-    useMemo(
-      () =>
-        nextFutureTimestamp(
-          (unifiedStakes ?? []).map((row) => row.withdrawalDate?.getTime()),
-        ),
-      [unifiedStakes],
+    nextFutureTimestamp(
+      (unifiedStakes ?? []).map((row) => row.withdrawalDate?.getTime()),
     ),
   );
 
@@ -278,18 +274,9 @@ const MyStakesTable = () => {
           <div
             className={row.original.withdrawalDate ? 'text-high' : 'text-low'}
           >
-            {row.original.withdrawalDate ? (
-              <>
-                {dayjs(row.original.withdrawalDate).format('YYYY-MM-DD')}
-                {isRowUnlocked(row.original) && (
-                  // A past date alone read as a stuck row, which is how this
-                  // looked to the operator who reported it.
-                  <span className="ml-2 text-green-600">Unlocked</span>
-                )}
-              </>
-            ) : (
-              'N/A'
-            )}
+            {row.original.withdrawalDate
+              ? dayjs(row.original.withdrawalDate).format('YYYY-MM-DD')
+              : 'N/A'}
           </div>
         ),
       }),
@@ -351,10 +338,9 @@ const MyStakesTable = () => {
                     </>
                   ) : (
                     <>
-                      {isRowUnlocked(row.original) ? (
-                        // Matured: claiming returns the full amount, so
-                        // expediting the same tokens for a 10% fee is never
-                        // the right action and is not offered.
+                      {isRowUnlocked(row.original) && (
+                        // Matured: claiming returns the full amount, so this
+                        // leads. Expediting the same tokens costs 10%.
                         <DropdownMenu.Item
                           className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
                           onClick={(e) => {
@@ -369,7 +355,12 @@ const MyStakesTable = () => {
                         >
                           Claim Withdrawal
                         </DropdownMenu.Item>
-                      ) : (
+                      )}
+
+                      {(!row.original.withdrawalDate ||
+                        canStillExpedite(
+                          row.original.withdrawalDate.getTime(),
+                        )) && (
                         <DropdownMenu.Item
                           className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
                           onClick={(e) => {

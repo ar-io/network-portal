@@ -15,6 +15,13 @@ const MIN_EXPEDITED_WITHDRAWAL_PENALTY_RATE = 0.1;
  * past a 30-day period, and negative from 42 days on — while the chain still
  * charged 10%. A withdrawal that has matured should be claimed in full
  * instead; see `isWithdrawalUnlocked`.
+ *
+ * The decay is measured across this vault's own start and end. The program
+ * measures it across `settings.withdrawal_period` from `created_at`, which is
+ * the same span for every vault this quote is offered on — a stake decrease.
+ * It diverges for the 90-day protected exit vault, where `instant_withdrawal`
+ * refuses outright (`ProtectedVault`), and for a vault outliving an
+ * `admin_set_withdrawal_period` change.
  */
 export const calculateInstantWithdrawalPenaltyRate = (
   vault: VaultData,
@@ -41,6 +48,19 @@ export const calculateInstantWithdrawalPenaltyRate = (
 };
 
 /**
+ * How far past maturity a withdrawal must be before the expedited option is
+ * withdrawn.
+ *
+ * The chain gates on `Clock::unix_timestamp`, a stake-weighted validator
+ * estimate, while this comparison uses the browser's clock, which is whatever
+ * the machine says. Claim is offered the moment the browser thinks it is due —
+ * a rejected claim costs nothing but a retry — but expediting is only taken
+ * away once the two clocks cannot plausibly disagree, so a user whose clock
+ * runs fast is never left with no working action.
+ */
+export const UNLOCK_SKEW_MARGIN_MS = 2 * 60 * 1000;
+
+/**
  * Whether a withdrawal has matured and can be claimed in full.
  *
  * Nothing credits it automatically: on Solana `claim_withdrawal` must be
@@ -55,6 +75,12 @@ export const isWithdrawalUnlocked = (
   endTimestamp: number,
   now: number = Date.now(),
 ) => endTimestamp <= now;
+
+/** Whether expediting is still worth offering — see `UNLOCK_SKEW_MARGIN_MS`. */
+export const canStillExpedite = (
+  endTimestamp: number,
+  now: number = Date.now(),
+) => endTimestamp + UNLOCK_SKEW_MARGIN_MS > now;
 
 /**
  * Whether a redelegation clears the target gateway's minimum AFTER the fee,

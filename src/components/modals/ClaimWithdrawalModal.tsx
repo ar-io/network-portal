@@ -1,5 +1,6 @@
 import { mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS } from '@src/constants';
+import useBalances from '@src/hooks/useBalances';
 import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import { useGlobalState } from '@src/store';
 import {
@@ -7,6 +8,7 @@ import {
   formatWithCommas,
   getTransactionExplorerUrl,
 } from '@src/utils';
+import { describeGarError } from '@src/utils/garErrors';
 import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -61,8 +63,22 @@ const ClaimWithdrawalModal = ({
     vaultId: withdrawalId,
   });
 
+  // The wallet most likely to be short of SOL is the one whose ARIO is
+  // stranded in a matured withdrawal, so say so rather than letting the
+  // wallet fail.
+  const { data: balances } = useBalances(walletAddress);
+  const insufficientSol =
+    !!gasEstimate &&
+    balances !== undefined &&
+    balances.sol * 1_000_000_000 < gasEstimate.totalLamports;
+
   const processClaimWithdrawal = async () => {
-    if (walletAddress && arIOWriteableSDK) {
+    if (!walletAddress || !arIOWriteableSDK) {
+      showErrorToast('Connect a signing wallet before claiming.');
+      return;
+    }
+
+    {
       setShowBlockingMessageModal(true);
 
       try {
@@ -76,22 +92,19 @@ const ClaimWithdrawalModal = ({
         // account for the user's wallet. Gateway stake totals dropped when
         // the withdrawal was created, not now.
         invalidateWrittenDocuments(queryClient, 'balances');
-        queryClient.invalidateQueries({
-          queryKey: ['delegateStakes'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['gatewayVaults'],
-          refetchType: 'all',
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['withdrawals'],
-          refetchType: 'all',
-        });
+        // Default `refetchType: 'active'`, matching `invalidateWrittenDocuments`
+        // above: each of these is a program scan, and refetching one from a
+        // page where its table is not mounted spends that scan on nothing.
+        // They are marked stale either way and reload when next rendered.
+        queryClient.invalidateQueries({ queryKey: ['delegateStakes'] });
+        queryClient.invalidateQueries({ queryKey: ['gatewayVaults'] });
+        queryClient.invalidateQueries({ queryKey: ['withdrawals'] });
 
         setShowSuccessModal(true);
       } catch (e: any) {
-        showErrorToast(`${e}`);
+        // A browser clock ahead of the network's can offer a claim the chain
+        // still refuses; `describeGarError` says so in words.
+        showErrorToast(describeGarError(e));
       } finally {
         setShowBlockingMessageModal(false);
       }
@@ -130,6 +143,7 @@ const ClaimWithdrawalModal = ({
               <GasEstimateRows
                 gasEstimate={gasEstimate}
                 isLoading={isLoadingGas}
+                insufficientSol={insufficientSol}
               />
             </div>
           </div>
@@ -139,9 +153,17 @@ const ClaimWithdrawalModal = ({
               <Button
                 onClick={processClaimWithdrawal}
                 buttonType={ButtonType.PRIMARY}
-                title="Claim Withdrawal"
-                text={<div className="py-2">Claim Withdrawal</div>}
-                className="w-full"
+                title={
+                  insufficientSol ? 'Insufficient SOL' : 'Claim Withdrawal'
+                }
+                text={
+                  <div className="py-2">
+                    {insufficientSol ? 'Insufficient SOL' : 'Claim Withdrawal'}
+                  </div>
+                }
+                className={`w-full ${
+                  insufficientSol ? 'pointer-events-none opacity-30' : ''
+                }`}
               />
             </div>
           </div>

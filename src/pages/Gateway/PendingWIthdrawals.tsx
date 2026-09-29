@@ -18,9 +18,9 @@ import useGatewayVaults from '@src/hooks/useGatewayVaults';
 import { nextFutureTimestamp, useTickAt } from '@src/hooks/useTickAt';
 import { useGlobalState } from '@src/store';
 import { formatDateTime, formatWithCommas } from '@src/utils';
-import { isWithdrawalUnlocked } from '@src/utils/stake';
+import { canStillExpedite, isWithdrawalUnlocked } from '@src/utils/stake';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import CollapsiblePanel from './CollapsiblePanel';
 
 type PendingWithdrawalProps = {
@@ -64,13 +64,7 @@ const PendingWithdrawals = ({
 
   // See MyStakesTable: maturity is a clock event, not a refetch.
   useTickAt(
-    useMemo(
-      () =>
-        nextFutureTimestamp(
-          (gatewayVaults ?? []).map((vault) => vault.endTimestamp),
-        ),
-      [gatewayVaults],
-    ),
+    nextFutureTimestamp((gatewayVaults ?? []).map((v) => v.endTimestamp)),
   );
 
   // Define columns for the table
@@ -114,9 +108,9 @@ const PendingWithdrawals = ({
                 </div>
               </DropdownMenu.Trigger>
               <DropdownMenu.Content className="z-50 rounded border border-grey-500 bg-containerL0 text-sm">
-                {isWithdrawalUnlocked(row.original.endTimestamp) ? (
-                  // Matured: claiming returns the full amount, so expediting
-                  // the same tokens for a 10% fee is never the right action.
+                {isWithdrawalUnlocked(row.original.endTimestamp) && (
+                  // Matured: claiming returns the full amount, so this leads.
+                  // Expediting the same tokens costs 10%.
                   <DropdownMenu.Item
                     className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
                     onClick={(e) => {
@@ -130,7 +124,9 @@ const PendingWithdrawals = ({
                   >
                     Claim Withdrawal
                   </DropdownMenu.Item>
-                ) : (
+                )}
+
+                {canStillExpedite(row.original.endTimestamp) && (
                   <DropdownMenu.Item
                     className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
                     onClick={(e) => {

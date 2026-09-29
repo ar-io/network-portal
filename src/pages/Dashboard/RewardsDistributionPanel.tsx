@@ -310,7 +310,8 @@ const RewardsDistributionPanel = () => {
         // current window — and would move history whenever the price moved.
         const resolved = resolveEpochPrice({
           ownPrice: prices.get(epoch!.epochIndex),
-          isCurrentEpoch: epoch!.epochIndex === currentEpochIndex,
+          epochIndex: epoch!.epochIndex,
+          currentEpochIndex,
           latest,
         });
         const price = resolved.price;

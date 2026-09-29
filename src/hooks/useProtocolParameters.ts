@@ -82,9 +82,9 @@ export const useProtocolParameters = (
           value: formatDurationDays(GATEWAY_LEAVE_PERIOD_MS),
           tooltip: `A departing gateway's stake splits across two vaults that unlock separately: one holding the minimum operator stake for ${formatDurationDays(
             GATEWAY_LEAVE_PERIOD_MS,
-          )}, which cannot be expedited, and one holding the rest for the ${formatDurationDays(
+          )}, which cannot be expedited, and one holding the rest for the withdrawal period (${formatDurationDays(
             operators.withdrawLengthMs,
-          )} withdrawal period, which can. A gateway removed for failed epochs is slashed the minimum operator stake first; whatever survives is then split the same way.`,
+          )}), which can. A gateway removed for failed epochs is slashed the minimum operator stake first; whatever survives is then split the same way.`,
         },
         {
           label: 'Max failed epochs',

@@ -4,6 +4,7 @@ import Dropdown from '@src/components/Dropdown';
 import Placeholder from '@src/components/Placeholder';
 import { StatsArrowIcon } from '@src/components/icons';
 import useEpochs from '@src/hooks/useEpochs';
+import useGatewayObservationReports from '@src/hooks/useGatewayObservationReports';
 import useObservations from '@src/hooks/useObservations';
 import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
 import {
@@ -45,6 +46,27 @@ const ReportedOnByCard = ({
 
   const selectedEpoch = epochs?.[selectedEpochIndex];
   const { data: observations } = useObservations(selectedEpoch);
+
+  /**
+   * Reading the reports answers what the bitmap cannot, but costs megabytes,
+   * so it is asked for rather than assumed. Reset on every epoch change — the
+   * answer belongs to the epoch that was open when it was requested.
+   */
+  const [readReports, setReadReports] = useState(false);
+  useEffect(() => {
+    setReadReports(false);
+  }, [selectedEpochIndex]);
+
+  const {
+    data: fromReports,
+    isFetching: readingReports,
+    isError: reportsFailed,
+  } = useGatewayObservationReports({
+    epochIndex: selectedEpoch?.epochIndex,
+    fqdn: gateway?.settings.fqdn,
+    reports: observations?.reports,
+    enabled: readReports,
+  });
 
   useEffect(() => {
     if (observations) {
@@ -160,15 +182,74 @@ const ReportedOnByCard = ({
       </div>
       <div className="h-80 overflow-hidden overflow-y-auto scrollbar scrollbar-thin">
         {observations && !hasAttribution ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-10 text-center">
-            <CircleHelpIcon className="size-5 text-low" />
-            <div className="text-xs text-low">
-              This epoch is served from the published archive, which records how
-              many gateways each observer passed but not which ones. Naming them
-              would mean reading the results against today&apos;s registry
-              order, which has since changed.
+          fromReports ? (
+            <>
+              <div className="border-b border-grey-500 px-6 py-2 text-xs text-low">
+                {fromReports.failedCount > 0
+                  ? `${fromReports.failedCount} of ${fromReports.readCount} reports read failed this gateway.`
+                  : `None of the ${fromReports.readCount} reports read failed this gateway.`}
+                {fromReports.unreadableCount > 0 &&
+                  ` ${fromReports.unreadableCount} could not be read.`}
+              </div>
+              {fromReports.verdicts
+                .filter((v) => v.outcome?.pass === false)
+                .map((v) => (
+                  <div
+                    key={v.observer}
+                    className="border-t border-grey-500 px-6 py-2.5 text-xs"
+                  >
+                    <Link
+                      className="text-low hover:text-mid"
+                      to={`/gateways/${
+                        observerToGatewayMap?.[v.observer] ?? v.observer
+                      }`}
+                    >
+                      {v.observer}
+                    </Link>
+                    <ul className="mt-1 list-disc pl-4 text-mid">
+                      {v.outcome?.reasons.length ? (
+                        v.outcome.reasons.map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))
+                      ) : (
+                        <li>Failed, with no reason recorded in the report.</li>
+                      )}
+                    </ul>
+                  </div>
+                ))}
+            </>
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-2 px-10 text-center">
+              <CircleHelpIcon className="size-5 text-low" />
+              <div className="text-xs text-low">
+                This epoch is served from the published archive, which records
+                how many gateways each observer passed but not which ones.
+                Naming them would mean reading the results against today&apos;s
+                registry order, which has since changed.
+              </div>
+              <div className="text-xs text-low">
+                The observers&apos; own reports say which, and why.
+              </div>
+              <Button
+                className="mt-1"
+                onClick={() => setReadReports(true)}
+                active={true}
+                title="Read the observers' reports for this epoch"
+                text={
+                  readingReports
+                    ? 'Reading reports…'
+                    : reportsFailed
+                      ? 'Reading failed — try again'
+                      : "Read the observers' reports"
+                }
+              />
+              {readingReports && (
+                <div className="text-xs text-low">
+                  Each report is about half a megabyte; this takes a moment.
+                </div>
+              )}
             </div>
-          </div>
+          )
         ) : observations && failureObservers.length === 0 ? (
           <div className="flex h-full items-center justify-center px-10 text-center text-xs text-low">
             No observer reported this gateway as failing in this epoch.

@@ -404,6 +404,28 @@ would read as pending forever. Unprescribed renders as *Split pending*, never as
 split of zero or of everything: the remainder formula alone would credit 100% of
 the pool to gateways.
 
+**An epoch nobody observed pays nothing, and must not be charted as if it did.**
+`distribute_epoch` marks a zero-observation epoch complete and returns without
+paying (ADR-0034 addendum) — no treasury transfer, no gateway stats, tokens
+retained. But the skip is gated *behind* `prescriptions_done`, so the epoch keeps
+the complete, non-zero split `prescribe_epoch` wrote, and every reward branch
+reads it as a real payout. `rewardsSkipped` comes from `observationsSubmitted === 0`
+on a distributed epoch, which **approximates** the program's condition rather
+than reproducing it: the chain also requires `distribution_index == 0`, and that
+half cannot be recovered afterwards because a skipped epoch ends with the cursor
+at `active_gateway_count` just as a paid one does. The gap is one case — an epoch
+the pre-Wave-2 program had begun paying, which falls through the skip and
+finishes the old way — and it reads as unpaid here with nothing on the account to
+say otherwise. `EpochSkippedNoObservationsEvent` is the exact discriminator, for
+an *indexer*; a browser cannot retrieve it for a historical epoch at any price.
+Guard on `rewardsDistributed`: zero observations on a live epoch just means
+nobody has submitted yet.
+
+**Flagging it must not rewrite the split.** What `prescribe_epoch` wrote stays on
+the row — it is a real fact, `totalEligibleGateways` is a count other panels read,
+and for a cached row it is the only surviving copy once the account closes. The
+renderer draws the outline; the data layer keeps the numbers.
+
 `rewardsSplitKnown: false` covers the other unsplittable case: prescribed, gateways
 eligible, but no observers selected. The observer share then stays in the
 treasury, so the remainder is not the gateway pool; the chart shows *Split not

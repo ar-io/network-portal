@@ -12,6 +12,10 @@ import {
   summarizeCapture,
 } from '@src/utils/observationCapture';
 import {
+  classifyReportReadout,
+  describeReportReadout,
+} from '@src/utils/reportReadout';
+import {
   CheckCircleIcon,
   CircleHelpIcon,
   NotebookText,
@@ -105,12 +109,31 @@ const ReportedOnByCard = ({
       )
     : undefined;
 
-  /** How many of the failing observers' reports actually explain the failure. */
-  const explainedCount = reasonsByObserver
-    ? failureObservers.filter((entry) =>
-        reasonsByObserver.has(entry.observerId),
-      ).length
-    : 0;
+  /**
+   * Observers whose report records this gateway as PASSING, though the
+   * on-chain result says they failed it. Kept apart from the map above
+   * because it is a different statement, not a missing one.
+   */
+  const passingByObserver = fromReports
+    ? new Set(
+        fromReports.verdicts
+          .filter((verdict) => verdict.outcome?.pass === true)
+          .map((verdict) => verdict.observer),
+      )
+    : undefined;
+
+  /** What the reports actually said, as one line. */
+  const reportReadout = fromReports
+    ? describeReportReadout({
+        readout: classifyReportReadout(
+          fromReports.verdicts,
+          failureObservers.map((entry) => entry.observerId),
+        ),
+        failingObservers: failureObservers.length,
+        readCount: fromReports.readCount,
+        unreadableCount: fromReports.unreadableCount,
+      })
+    : undefined;
 
   useEffect(() => {
     if (observations) {
@@ -332,20 +355,8 @@ const ReportedOnByCard = ({
             of every one submitted this epoch. */}
         {hasAttribution && failureObservers.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-grey-500 px-6 py-2 text-xs text-low">
-            {fromReports ? (
-              <span>
-                {fromReports.readCount === 0
-                  ? 'No report could be read.'
-                  : explainedCount === 0
-                    ? // Read, but none of them records a result for this
-                      // gateway. Saying "reasons read from 3 of 3" above an
-                      // unexplained list would credit the reports with an
-                      // answer they did not give.
-                      `Read ${fromReports.readCount} report${fromReports.readCount === 1 ? '' : 's'}; none records a result for this gateway.`
-                    : `Reasons read from ${explainedCount} of ${failureObservers.length} report${failureObservers.length === 1 ? '' : 's'}.`}
-                {fromReports.unreadableCount > 0 &&
-                  ` ${fromReports.unreadableCount} could not be read.`}
-              </span>
+            {reportReadout ? (
+              <span>{reportReadout}</span>
             ) : (
               <span>
                 The results say these observers failed this gateway, not why.
@@ -440,6 +451,14 @@ const ReportedOnByCard = ({
                   <li>Failed, with no reason recorded in the report.</li>
                 )}
               </ul>
+            )}
+            {passingByObserver?.has(entry.observerId) && (
+              // The two sources disagree. Rendering nothing here would read
+              // as an unexplained failure and quietly drop the fact that the
+              // report says the opposite.
+              <div className="ml-5 mt-1 pl-4 text-mid">
+                This observer&apos;s report records this gateway as passing.
+              </div>
             )}
           </div>
         ))}

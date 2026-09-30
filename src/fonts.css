@@ -1,0 +1,67 @@
+/**
+ * Rubik, declared by hand instead of `import '@fontsource/rubik'`.
+ *
+ * Two reasons, both about what a permanent deploy pays for.
+ *
+ * **Subsets.** The package's bare entry point declares all six subsets —
+ * Arabic, Hebrew, Cyrillic, Cyrillic-ext, Latin and Latin-ext. Their
+ * `unicode-range` rules mean a visitor never *downloads* the ones their text
+ * does not need, so nothing about that is wasteful at runtime. But every file
+ * is uploaded to Arweave and paid for once, forever, whether or not a browser
+ * ever asks for it. The portal's interface is English and the data it renders
+ * is base58 addresses, hostnames and numbers.
+ *
+ * **Formats.** Fontsource declares `woff2` with a `woff` fallback, which is
+ * another whole copy of every face. `woff2` has been supported everywhere
+ * since 2016, and this app cannot run at all without a browser wallet
+ * extension, so the fallback can never be the thing that saves a session.
+ *
+ * Together: twelve files and 146 KB become four and 74 KB.
+ *
+ * **The weights are not the same set as before, deliberately.** The bare
+ * import declares weight 400 only, while the interface asks for `font-medium`,
+ * `font-semibold` and `font-bold` in a few dozen places — so those were
+ * rendering as browser-synthesised fakes. Declaring the four real weights
+ * costs less than the six subsets did and draws what the design asks for.
+ *
+ * Adding a weight here means adding the `font-<weight>` class somewhere too;
+ * an unused face is pure permanent cost. A glyph outside the Latin subset
+ * falls back to the system sans-serif, which is the correct outcome for a
+ * label the portal does not control.
+ */
+
+@font-face {
+  font-family: "Rubik";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("@fontsource/rubik/files/rubik-latin-400-normal.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Rubik";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("@fontsource/rubik/files/rubik-latin-500-normal.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Rubik";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url("@fontsource/rubik/files/rubik-latin-600-normal.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Rubik";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url("@fontsource/rubik/files/rubik-latin-700-normal.woff2")
+    format("woff2");
+}

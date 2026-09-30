@@ -125,6 +125,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and how many survived, and a partially captured epoch no longer presents its
   count as a total.
 
+- **The deploy carried a lot it never used.** The font package was pulling all
+  six of its alphabets — Arabic, Hebrew, Cyrillic and the rest — in two file
+  formats each, twelve files where four will do. A reader never downloaded the
+  alphabets they had no use for, but every one of them was published to
+  Arweave and paid for permanently. Only the weight the interface asks for
+  least often was actually included, so bold and semibold text was being
+  faked by the browser; the real weights now ship and cost less than the
+  unused alphabets did. An example data file that nothing referenced is gone
+  too, and dependencies are now published separately from the app's own code,
+  so a release no longer republishes several megabytes that did not change.
+  Text is slightly crisper and a release costs a fraction of what it did.
+
 ## [2.11.1] - 2026-09-21
 
 ### Fixed

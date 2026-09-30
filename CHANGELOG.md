@@ -104,6 +104,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tables hint that they scroll, and a table's edges fade without a colour
   mismatch on scrollbars.
 
+- **Every holder's share of supply was measured against the genesis billion.**
+  Balance Distribution declared a fixed 1,000,000,000 ARIO total supply while
+  the dashboard beside it read the live figure from the mint, so the two
+  disagreed — and the same constant was the denominator for every percentage
+  on the panel. ArNS purchases burn ARIO, so the real supply only moves
+  further from that number, and each holder's share was understated by a
+  little more each day. Both now read the mint's own supply. When it cannot be
+  read the panel says so and omits the percentages rather than dividing by a
+  guess; a slice still shows the amount it holds.
+
 - **An epoch whose reports were never archived read as an epoch nobody
   observed.** Observation accounts are deleted once an epoch distributes, so
   for a past epoch the published archive is the only record. Where that record

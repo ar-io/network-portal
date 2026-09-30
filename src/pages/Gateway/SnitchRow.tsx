@@ -8,6 +8,10 @@ import useGatewayObservationReports from '@src/hooks/useGatewayObservationReport
 import useObservations from '@src/hooks/useObservations';
 import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
 import {
+  describeCaptureShortfall,
+  summarizeCapture,
+} from '@src/utils/observationCapture';
+import {
   CheckCircleIcon,
   CircleHelpIcon,
   NotebookText,
@@ -46,6 +50,18 @@ const ReportedOnByCard = ({
 
   const selectedEpoch = epochs?.[selectedEpochIndex];
   const { data: observations } = useObservations(selectedEpoch);
+
+  /**
+   * Set when the archive holds fewer reports than the chain counted, in which
+   * case the held count is a floor and must not be stated as the total.
+   */
+  const captureShortfall = describeCaptureShortfall(
+    summarizeCapture({
+      capture: observations?.capture,
+      held: observations?.observationCount ?? 0,
+      chainObservationsSubmitted: observations?.chainObservationsSubmitted,
+    }),
+  );
 
   /**
    * Reading the reports answers what the bitmap cannot, but costs megabytes,
@@ -116,9 +132,18 @@ const ReportedOnByCard = ({
                   // Short, like every other state in this header. The reason
                   // the list below is empty belongs in the empty list, not
                   // crammed onto a nowrap row beside the epoch selector.
+                  //
+                  // The shortfall line replaces the count rather than sitting
+                  // beside it: "0 reports submitted" for an epoch ten
+                  // observers reported on is not a count in need of a caveat,
+                  // it is the wrong number.
                   <div className="text-mid">
-                    {totalReportsForEpoch} report
-                    {totalReportsForEpoch === 1 ? '' : 's'} submitted
+                    {captureShortfall ?? (
+                      <>
+                        {totalReportsForEpoch} report
+                        {totalReportsForEpoch === 1 ? '' : 's'} submitted
+                      </>
+                    )}
                   </div>
                 ) : failureObservers.length === 0 ? (
                   <div className="text-mid">No Failures Reported</div>
@@ -347,6 +372,14 @@ const ReportedOnCard = ({
   const selectedEpoch = epochs?.[selectedEpochIndex];
   const { data: observations } = useObservations(selectedEpoch);
 
+  /** See the sibling card: a held count short of the chain's is not a total. */
+  const captureIsShort =
+    summarizeCapture({
+      capture: observations?.capture,
+      held: observations?.observationCount ?? 0,
+      chainObservationsSubmitted: observations?.chainObservationsSubmitted,
+    }).kind === 'shortfall';
+
   useEffect(() => {
     if (selectedEpoch && observations) {
       if (gateway) {
@@ -472,9 +505,15 @@ const ReportedOnCard = ({
           <div className="flex h-full items-center justify-center px-10 text-center text-xs text-low">
             {!selectedForObservation
               ? 'This gateway was not selected to observe in this epoch.'
-              : !hasAttribution
-                ? 'The archive records how many gateways this observer failed, but not which ones.'
-                : 'This observer reported no gateways as failing in this epoch.'}
+              : captureIsShort
+                ? // Distinct from the line below it. That one says the archive
+                  // has this observer's results but not their breakdown; this
+                  // one says the epoch's reports were never captured at all,
+                  // so there is nothing to break down either way.
+                  'This epoch was not fully captured, so whether this observer reported is not recorded.'
+                : !hasAttribution
+                  ? 'The archive records how many gateways this observer failed, but not which ones.'
+                  : 'This observer reported no gateways as failing in this epoch.'}
           </div>
         )}
         {snitchedOn?.map((observer) => (

@@ -14,6 +14,10 @@ import useGateways from '@src/hooks/useGateways';
 import useObservations from '@src/hooks/useObservations';
 import useObserverRollup from '@src/hooks/useObserverRollup';
 import { formatPercentage, formatWithCommas } from '@src/utils';
+import {
+  describeCaptureShortfall,
+  summarizeCapture,
+} from '@src/utils/observationCapture';
 import EpochFindings from './EpochFindings';
 
 interface TableData {
@@ -63,6 +67,13 @@ const ObserversTable = () => {
 
   const { isError: observationsError, data: observations } =
     useObservations(selectedEpoch);
+  const captureShortfall = describeCaptureShortfall(
+    summarizeCapture({
+      capture: observations?.capture,
+      held: observations?.observationCount ?? 0,
+      chainObservationsSubmitted: observations?.chainObservationsSubmitted,
+    }),
+  );
   // Additive: absent whenever the analyzer endpoint is unset, in which case the
   // independence column simply renders as unavailable.
   const { data: observerRollup } = useObserverRollup();
@@ -336,6 +347,14 @@ const ObserversTable = () => {
                   Observers citing the same report are worth a look, not proof
                   of coordination — independent observers can legitimately reach
                   the same one.
+                  {/* The ratio stays valid under a shortfall — both halves come
+                      from the rows we hold — but it stops describing the whole
+                      epoch, and a reader has no way to tell from the chip. */}
+                  {captureShortfall && (
+                    <div className="pt-2 text-warning">
+                      {captureShortfall}. This counts only what was captured.
+                    </div>
+                  )}
                 </div>
               }
             >

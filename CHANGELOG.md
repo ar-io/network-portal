@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Observation Chance and Observer Performance read 0.00% for every
+  observer.** The Observers table took both figures from the epoch's list of
+  prescribed observers, and that list carries only their addresses — the
+  weights beside them are placeholder zeros. So both columns showed 0.00% in
+  every epoch, and sorting by either did nothing. They now come from the
+  gateway records the page had already loaded, which carry the real weights,
+  so the figures match what a gateway's own page shows and the columns sort.
+  An observer whose gateway is missing from the roster reads "—" rather than
+  0.00%, which would have claimed it could never be selected.
+
 - **The coin beside "$ARIO Balances" was the pre-rebrand mark**, and it was a
   photograph of one: a bitmap embedded in an SVG, 406 KB, drawn at 19 pixels
   across. It has been replaced with the official ARIO token logo from the

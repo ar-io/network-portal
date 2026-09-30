@@ -1,12 +1,13 @@
 import Placeholder from '@src/components/Placeholder';
 import useAllBalances from '@src/hooks/useAllBalances';
+import useTokenSupply from '@src/hooks/useTokenSupply';
 import { useGlobalState, useSettings } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 import { sequentialRamp } from '@src/utils/chartRamp';
 import { useEffect, useMemo, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
-const TOTAL_SUPPLY = 1_000_000_000;
+import { mARIOToken } from '@ar.io/sdk/web';
 
 /**
  * The bridge is not a holder, so it does not belong on the holder ramp. Uses
@@ -28,7 +29,8 @@ interface BalanceData {
   value: number;
   /** The pooled remainder, which is not a holder and must not sit on the ramp. */
   isAggregate?: boolean;
-  percentage: number;
+  /** Undefined when the total supply could not be read. */
+  percentage?: number;
   address: string;
   ticker?: string;
 }
@@ -42,9 +44,11 @@ const CustomTooltip = ({ active, payload }: any) => {
         <p className="text-xs text-mid">
           {formatWithCommas(data.value)} {data.ticker}
         </p>
-        <p className="text-xs text-low">
-          {formatPercentage(data.percentage)} of total supply
-        </p>
+        {data.percentage !== undefined && (
+          <p className="text-xs text-low">
+            {formatPercentage(data.percentage)} of total supply
+          </p>
+        )}
         {data.address && (
           <p className="mt-1 break-all text-xs font-mono text-low opacity-70">
             {data.address}
@@ -61,6 +65,28 @@ const BalanceFragmentationChart = () => {
   const [activeIndex, setActiveIndex] = useState<number>();
   const { data: allBalances, isLoading } = useAllBalances();
   const ticker = useGlobalState((state) => state.ticker);
+
+  /**
+   * The live supply from the mint, not the billion written at genesis.
+   *
+   * This panel hardcoded 1,000,000,000 and divided every holder's balance by
+   * it, so each share was measured against a number the network had already
+   * moved away from — ArNS purchases burn ARIO, and the dashboard next door
+   * reads the mint and shows the smaller figure. Two panels disagreeing about
+   * the supply is the visible half; the quiet half is that every percentage
+   * here was computed against the wrong denominator.
+   */
+  const { data: totalSupplyMario } = useTokenSupply((supply) => supply.total);
+  const totalSupply =
+    totalSupplyMario === undefined
+      ? undefined
+      : new mARIOToken(totalSupplyMario).toARIO().valueOf();
+
+  // No denominator, no percentage — the share is unknown, not zero.
+  const share = (value: number) =>
+    totalSupply === undefined || totalSupply <= 0
+      ? undefined
+      : value / totalSupply;
   const bridgeBalanceAddress = useSettings(
     (state) => state.bridgeBalanceAddress,
   );
@@ -91,7 +117,7 @@ const BalanceFragmentationChart = () => {
         balanceData.push({
           name: 'Bridge Balance',
           value: bridgeValue,
-          percentage: bridgeValue / TOTAL_SUPPLY,
+          percentage: share(bridgeValue),
           address: bridgeBalanceAddress,
           ticker,
         });
@@ -106,7 +132,7 @@ const BalanceFragmentationChart = () => {
         balanceData.push({
           name: `Wallet ${index + 1}`,
           value: holder.arioBalance,
-          percentage: holder.arioBalance / TOTAL_SUPPLY,
+          percentage: share(holder.arioBalance),
           address: holder.address,
           ticker,
         });
@@ -125,7 +151,7 @@ const BalanceFragmentationChart = () => {
         balanceData.push({
           name: `Others (${othersCount} addresses)`,
           value: othersTotal,
-          percentage: othersTotal / TOTAL_SUPPLY,
+          percentage: share(othersTotal),
           address: '',
           ticker,
           isAggregate: true,
@@ -144,9 +170,15 @@ const BalanceFragmentationChart = () => {
     setActiveIndex(undefined);
   };
 
+  const activePercentage =
+    activeIndex === undefined ? undefined : data[activeIndex]?.percentage;
   const centerValue =
-    data && activeIndex !== undefined
-      ? formatPercentage(data[activeIndex].percentage)
+    activeIndex !== undefined
+      ? // Hovering a slice whose share cannot be computed shows the amount
+        // rather than a percentage of a supply we do not have.
+        activePercentage !== undefined
+        ? formatPercentage(activePercentage)
+        : `${formatWithCommas(data[activeIndex]?.value ?? 0)} ${ticker ?? ''}`.trim()
       : data.length > 0
         ? `${formatWithCommas(allBalances?.length || 0)} holders`
         : '0 holders';
@@ -163,7 +195,9 @@ const BalanceFragmentationChart = () => {
           Balance Distribution
         </h3>
         <p className="mt-1 text-xs text-low">
-          {formatWithCommas(TOTAL_SUPPLY)} {ticker} total supply
+          {totalSupply === undefined
+            ? 'Total supply unavailable'
+            : `${formatWithCommas(totalSupply)} ${ticker} total supply`}
         </p>
       </div>
 

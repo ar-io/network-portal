@@ -261,8 +261,38 @@ describe('fetchAnalyzerAvailability', () => {
       networkMatches: true,
       documents: [],
       archivedEpochs: [],
+      registryEpochs: [],
       network: 'devnet',
     });
+  });
+
+  it('lists the epochs that publish a registry slot order', async () => {
+    // A strict subset of the archived epochs: 522 has one, 523 does not, and
+    // asking for a registry that is not published costs a 404 per view.
+    mockHosts(
+      { network: 'mainnet' },
+      {
+        documents: {
+          epochs: [{ epochIndex: 523 }, { epochIndex: 522 }],
+          registry: [{ epochIndex: 522 }],
+        },
+      },
+    );
+    const result = await fetchAnalyzerAvailability('mainnet');
+
+    expect(result.archivedEpochs).toEqual([523, 522]);
+    expect(result.registryEpochs).toEqual([522]);
+    expect(result.documents).toContain('registry');
+  });
+
+  it('reports no registry epochs when the manifest lists none', async () => {
+    mockHosts(
+      { network: 'mainnet' },
+      { documents: { epochs: [{ epochIndex: 522 }] } },
+    );
+    expect((await fetchAnalyzerAvailability('mainnet')).registryEpochs).toEqual(
+      [],
+    );
   });
 });
 

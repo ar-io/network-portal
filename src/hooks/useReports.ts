@@ -188,6 +188,13 @@ const useReports = (ownerId?: string, gateway?: Gateway) => {
               epochIndex,
               currentEpochIndex: currentEpoch?.epochIndex,
               archiveAvailable,
+              // This page needs `totalsByObserver` and `reports`, never
+              // `failureSummaries` — the count below reads the observer's own
+              // totals, which both paths carry. Pulling a registry slot order
+              // per epoch would add a document the size of the epoch's own to
+              // every row in the selector, to attribute failures nothing here
+              // renders.
+              registryAvailable: false,
             });
             return { epochIndex, observations };
           } catch (error) {

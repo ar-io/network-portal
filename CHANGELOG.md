@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.12.0] - 2026-09-29
+## [2.12.0] - 2026-09-30
 
 ### Added
 
@@ -122,6 +122,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Values that fail to load now say so instead of shimmering indefinitely, wide
   tables hint that they scroll, and a table's edges fade without a colour
   mismatch on scrollbars.
+
+- **None of the info bubbles could be read on a phone.** The tooltip library
+  opens on hover and closes on press, so on a touchscreen the tap meant to
+  open an explanation was the same gesture dismissing it — not one of them
+  could be opened. They now open on tap and close on a tap elsewhere, and a
+  long explanation no longer runs off the side of the screen. The breadcrumb
+  above the page title is reachable on a phone too.
 
 - **Every holder's share of supply was measured against the genesis billion.**
   Balance Distribution declared a fixed 1,000,000,000 ARIO total supply while

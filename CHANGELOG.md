@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   set, change, or revoke it by entering their own wallet again. A gateway that
   has never set one reads "Not delegated (owner wallet)".
 
+- A gateway's **"Observations of this gateway"** panel can now say *why* an
+  observer failed it, not only that one did. Past epochs are served from the
+  published archive, which records how many gateways each observer passed but
+  not which ones — so the panel could only report "Unknown". The reports those
+  observers uploaded name each gateway and give the reason, and the panel now
+  offers to read them: "Response code 503 (Service Unavailable) — ownership
+  check and 10 ArNS names" is an outage during the assessment window, and
+  reads very differently from a failing configuration.
+
+  Reading them is a deliberate step rather than automatic, because it fetches
+  each observer's report. What it could not read it says it could not read,
+  rather than counting silence as a pass.
+
 ### Fixed
 
 - **Matured withdrawals could not be claimed from My Stakes.** Nothing returns

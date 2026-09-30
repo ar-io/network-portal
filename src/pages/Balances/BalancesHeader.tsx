@@ -1,12 +1,15 @@
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
+import { MOBILE_MENU_CLEARANCE } from '@src/layout/mobileMenu';
 import { ChevronRightIcon, HandCoins } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const BalancesHeader = ({ walletAddress }: { walletAddress?: string }) => {
   return (
     <header className="flex-col text-clip rounded-xl border leading-[1.4] lg:mt-6 dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
-      <div className="flex items-center gap-3 py-5 pl-6 pr-4 text-sm">
+      <div
+        className={`flex min-w-0 items-center gap-3 py-5 pr-4 text-sm ${MOBILE_MENU_CLEARANCE}`}
+      >
         <div className="hidden items-center gap-3 lg:flex">
           <div className="text-mid">
             <Link to={'/balances'}>Balances</Link>

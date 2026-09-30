@@ -139,8 +139,53 @@ describe('fetchObservationsFromArchive', () => {
     expect(await fetchObservationsFromArchive(1)).toBeNull();
   });
 
-  it('returns null for a published epoch that carries no observations', async () => {
-    mockJson({ ...EPOCH_522, observations: [] });
-    expect(await fetchObservationsFromArchive(522)).toBeNull();
+  it('answers for a complete epoch that genuinely nobody observed', async () => {
+    // Epochs 550, 553 and 554 are real: `complete` with zero observations,
+    // and the chain counted zero too. Returning null here would send the
+    // caller to a live scan to rediscover the same zero.
+    mockJson({
+      ...EPOCH_522,
+      observations: [],
+      observationCount: 0,
+      distinctReportTxIds: 0,
+      capture: 'complete',
+      chain: { observationsSubmitted: 0 },
+    });
+    const result = await fetchObservationsFromArchive(522);
+
+    expect(result).not.toBeNull();
+    expect(result?.capture).toBe('complete');
+    expect(result?.observationCount).toBe(0);
+    expect(result?.chainObservationsSubmitted).toBe(0);
+  });
+
+  it('keeps the chain tally for an epoch whose reports were never captured', async () => {
+    // Epoch 509: the chain counted eight observations and the archive holds
+    // none. This is the case the whole module turns on — the live read agrees
+    // with the zero because `close_observation` deleted the accounts, so
+    // without the tally there is nothing left to contradict "nobody
+    // reported".
+    mockJson({
+      ...EPOCH_522,
+      observations: [],
+      observationCount: 0,
+      distinctReportTxIds: 0,
+      capture: 'missing',
+      chain: { observationsSubmitted: 8 },
+    });
+    const result = await fetchObservationsFromArchive(522);
+
+    expect(result?.capture).toBe('missing');
+    expect(result?.observationCount).toBe(0);
+    expect(result?.chainObservationsSubmitted).toBe(8);
+  });
+
+  it('leaves capture undefined when the document does not state one', async () => {
+    // Absent must not be read as complete; the consumer treats it as unknown.
+    mockJson(EPOCH_522);
+    const result = await fetchObservationsFromArchive(522);
+
+    expect(result?.capture).toBeUndefined();
+    expect(result?.chainObservationsSubmitted).toBeUndefined();
   });
 });

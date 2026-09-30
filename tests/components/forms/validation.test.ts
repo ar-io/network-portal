@@ -96,12 +96,12 @@ describe('Form Validation Functions', () => {
     });
   });
 
-  describe('validateIOAmount', () => {
-    const validator = validateARIOAmount('tIO Amount', 'tIO', 10, 100);
+  describe('validateARIOAmount', () => {
+    const validator = validateARIOAmount('ARIO Amount', 'ARIO', 10, 100);
 
     it('should fail for empty string', () => {
       expect(validator('')).toEqual(
-        `tIO Amount must be a number from 10 to 100 tIO.`,
+        `ARIO Amount must be a number from 10 to 100 ARIO.`,
       );
     });
 
@@ -110,8 +110,8 @@ describe('Form Validation Functions', () => {
     });
 
     it('should fail for invalid number string', () => {
-      expect(validator('true')).toEqual(`tIO Amount must be a number.`);
-      expect(validator('10 IO')).toEqual(`tIO Amount must be a number.`);
+      expect(validator('true')).toEqual(`ARIO Amount must be a number.`);
+      expect(validator('10 ARIO')).toEqual(`ARIO Amount must be a number.`);
     });
   });
 
@@ -139,7 +139,7 @@ describe('Form Validation Functions', () => {
   });
 
   describe('validateUnstakeAmount', () => {
-    const validator = validateWithdrawAmount('Unstake Amount', 'tIO', 100, 10);
+    const validator = validateWithdrawAmount('Unstake Amount', 'ARIO', 100, 10);
 
     it('should fail for empty string', () => {
       expect(validator('')).toEqual('Unstake Amount must be a number.');
@@ -152,7 +152,7 @@ describe('Form Validation Functions', () => {
     it('should fail for invalid unstake amount', () => {
       expect(validator('true')).toEqual('Unstake Amount must be a number.');
       expect(validator('1000')).toEqual(
-        `Unstake Amount cannot be greater than your current stake of 100 tIO.`,
+        `Unstake Amount cannot be greater than your current stake of 100 ARIO.`,
       );
     });
   });

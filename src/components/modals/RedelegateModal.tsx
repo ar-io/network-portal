@@ -4,7 +4,8 @@ import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateways from '@src/hooks/useGateways';
 import useRedelegationFee from '@src/hooks/useRedelegationFee';
 import { useGlobalState } from '@src/store';
-import { formatWithCommas } from '@src/utils';
+import { formatARIOExact, formatWithCommas } from '@src/utils';
+import { redelegationShortfall } from '@src/utils/stake';
 import { InfoIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import Button, { ButtonType } from '../Button';
@@ -129,7 +130,7 @@ const RedelegateModal = ({
       maxStake - amount < sourceMinStakeARIO
     ) {
       setErrorMessage(
-        `Amount to redelegate must either leave enough stake to meet the source gateway's minimum delegated stake (${formatWithCommas(sourceMinStakeARIO)} ${ticker}) or move the entire stake completely.`,
+        `Amount to redelegate must either leave enough stake to meet the source gateway's minimum delegated stake (${formatARIOExact(sourceMinStakeARIO)} ${ticker}) or move the entire stake completely.`,
       );
       setIsFormValid(false);
       return;
@@ -152,14 +153,42 @@ const RedelegateModal = ({
       return;
     }
 
+    // The fee comes off before the target's minimum is checked; see
+    // `redelegationShortfall`.
+    const feeRatePct = redelegationFee?.redelegationFeeRate ?? 0;
+    const shortfall = redelegationShortfall({
+      amount,
+      feeRatePct,
+      minDelegatedStake,
+      targetHasPosition: (targetGatewayCurrentStake ?? 0) > 0,
+      maxAmount: maxStake,
+      sourceMinimum: sourceMinStakeARIO,
+      fromVault: vaultId !== undefined,
+    });
+    if (shortfall) {
+      const arrive = `After the ${formatARIOExact(feeRatePct)}% redelegation fee, ${formatARIOExact(shortfall.net)} ${ticker} would reach this gateway, below its ${formatARIOExact(minDelegatedStake)} ${ticker} minimum.`;
+      setErrorMessage(
+        shortfall.suggestion === undefined
+          ? `${arrive} Even the full ${formatARIOExact(maxStake)} ${ticker} would not clear it, so this gateway cannot receive this redelegation.`
+          : shortfall.suggestionIsFullAmount
+            ? `${arrive} Redelegate the full ${formatARIOExact(shortfall.suggestion)} ${ticker} to clear it.`
+            : `${arrive} Redelegate at least ${formatARIOExact(shortfall.suggestion)} ${ticker}.`,
+      );
+      setIsFormValid(false);
+      return;
+    }
+
     setErrorMessage(undefined);
     setIsFormValid(true);
   }, [
     amountToRedelegate,
     maxRedelegationStake,
+    minDelegatedStake,
     minRequiredStakeToAdd,
+    redelegationFee,
     sourceGateway.settings.minDelegatedStake,
     targetGateway,
+    targetGatewayCurrentStake,
     ticker,
     validators,
     vaultId,

@@ -1,4 +1,5 @@
 import { mARIOToken } from '@ar.io/sdk/web';
+import PanelUnavailable from '@src/components/PanelUnavailable';
 import Placeholder from '@src/components/Placeholder';
 import UnitToggle from '@src/components/UnitToggle';
 import useEpochPrices from '@src/hooks/useEpochPrices';
@@ -6,6 +7,7 @@ import useEpochSettings from '@src/hooks/useEpochSettings';
 import useEpochsWithCount from '@src/hooks/useEpochsWithCount';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
+import { latestPricedEpoch, resolveEpochPrice } from '@src/utils/epochPrice';
 import {
   type RewardUnit,
   formatRewardAmount,
@@ -29,6 +31,23 @@ import {
   ValueType,
 } from 'recharts/types/component/DefaultTooltipContent';
 
+/**
+ * Legend swatches, one per stacked series.
+ *
+ * The bars are filled with gradients at 0.125-0.3 opacity, which is legible
+ * across a 40px-wide bar and invisible in an 8px dot, so each swatch is the
+ * gradient's own stops at full strength rather than a copy of the fill. Two
+ * stacked series with no key could only be told apart by hovering, while the
+ * supply donut on the same dashboard has always had one.
+ */
+const REWARD_SERIES = [
+  {
+    label: 'Gateway rewards',
+    swatch: 'linear-gradient(135deg, #F7C3A1, #DF9BE8)',
+  },
+  { label: 'Observer rewards', swatch: '#3DB7C2' },
+] as const;
+
 const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
 interface RewardsData {
@@ -36,9 +55,30 @@ interface RewardsData {
   /** Undefined when the epoch has no published price and USD is selected. */
   gatewayRewards?: number;
   observerRewards?: number;
-  /** Whether the analyzer has published a closing price for this epoch. */
+  /** Whether a USD figure could be produced for this epoch at all. */
   priced: boolean;
-  status: 'Distributed' | 'Pending';
+  /**
+   * Set when the figure uses the latest close rather than this epoch's own,
+   * which only happens for the epoch still running.
+   */
+  pricedFromEpoch?: number;
+  /**
+   * Whether `prescribe_epoch` has split this epoch's pool. Before it has, the
+   * total is known and the gateway/observer split is not, so the epoch draws no
+   * bar and the tooltip gives the total alone.
+   */
+  split: boolean;
+  /**
+   * Why there is no split, when there is none. `pending` is the routine case,
+   * an epoch not yet prescribed; `unavailable` is a prescribed epoch whose
+   * split cannot be derived because no observers were selected.
+   */
+  splitReason?: 'pending' | 'unavailable' | 'skipped';
+  /** The whole pool, in the selected unit; undefined when unpriced in USD. */
+  total?: number;
+  /** `total`, but only for an unsplit epoch: drawn as an outlined bar. */
+  pendingTotal?: number;
+  status: 'Distributed' | 'Pending' | 'Not paid';
 }
 
 const CustomTooltip = ({
@@ -65,12 +105,36 @@ const CustomTooltip = ({
       );
     }
 
-    const gateway = data.gatewayRewards ?? 0;
-    const observer = data.observerRewards ?? 0;
     // Shares its formatter with the axis so the two cannot disagree — showing
     // converted figures under an ARIO label was the bug this replaces.
     const money = (value: number) =>
       formatRewardAmount(value, unit ?? 'ario', ticker);
+
+    if (!data.split) {
+      return (
+        <div className="max-w-60 rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
+          <p>{`Epoch ${label} (${data.status})`}</p>
+          {data.total !== undefined && (
+            <p>{`Total eligible: ${money(data.total)}`}</p>
+          )}
+          {data.pricedFromEpoch !== undefined && (
+            <p className="text-low">
+              {`Valued at epoch ${data.pricedFromEpoch}'s close — this epoch has not closed yet.`}
+            </p>
+          )}
+          <p className="text-low">
+            {data.splitReason === 'skipped'
+              ? 'No observations were submitted for this epoch, so it paid nothing and the rewards stayed in the treasury. The figure above is what it would have paid.'
+              : data.splitReason === 'unavailable'
+                ? 'This epoch had no observers selected, so its gateway share cannot be shown.'
+                : 'How this splits between gateways and observers is set on chain after the epoch starts.'}
+          </p>
+        </div>
+      );
+    }
+
+    const gateway = data.gatewayRewards ?? 0;
+    const observer = data.observerRewards ?? 0;
 
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
@@ -78,12 +142,37 @@ const CustomTooltip = ({
         <p>{`Gateway Rewards: ${money(gateway)}`}</p>
         <p>{`Observer Rewards: ${money(observer)}`}</p>
         <p>{`Total: ${money(gateway + observer)}`}</p>
+        {data.pricedFromEpoch !== undefined && (
+          <p className="max-w-60 text-low">
+            {`Valued at epoch ${data.pricedFromEpoch}'s close — this epoch has not closed yet.`}
+          </p>
+        )}
       </div>
     );
   }
 
   return null;
 };
+
+/**
+ * An epoch whose total is known but whose split is not: an outline at the
+ * total's height. An empty slot read as zero rewards, or as missing data, and
+ * the tooltip that explains it cannot be hovered on a phone.
+ */
+const PendingBar = ({ x, y, width, height }: Props) =>
+  height ? (
+    <rect
+      x={Number(x) + 0.5}
+      y={Number(y) + 0.5}
+      width={Math.max(0, Number(width) - 1)}
+      height={Math.max(0, Number(height) - 1)}
+      fill="rgba(202, 202, 214, 0.04)"
+      stroke="rgba(202, 202, 214, 0.45)"
+      strokeDasharray="4 3"
+    />
+  ) : (
+    <></>
+  );
 
 const CustomBar = (borderHeight: number, borderColor: string) => {
   const renderFunc = ({ fill, x, y, width, height }: Props) => {
@@ -183,10 +272,12 @@ const RewardsDistributionPanel = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const [unit, setUnit] = useState<RewardUnit>('ario');
   const prices = useEpochPrices();
+  const latest = useMemo(() => latestPricedEpoch(prices), [prices]);
 
   const [focusBar, setFocusBar] = useState<number>();
   const [mouseLeave, setMouseLeave] = useState(true);
   const { data: epochs } = useEpochsWithCount(EPOCH_COUNT);
+  const epochLoadFailed = useGlobalState((state) => state.epochLoadFailed);
   const { data: epochSettings } = useEpochSettings();
   const currentEpochIndex = useGlobalState(
     (state) => state.currentEpoch?.epochIndex,
@@ -208,33 +299,72 @@ const RewardsDistributionPanel = () => {
           .toARIO()
           .valueOf();
 
+        const totalRewards = new mARIOToken(
+          epoch!.distributions.totalEligibleRewards,
+        )
+          .toARIO()
+          .valueOf();
+
         // Each epoch is valued at its own close. Converting a total at
         // today's price is a different figure — about 16% apart over the
         // current window — and would move history whenever the price moved.
-        const price = prices.get(epoch!.epochIndex);
-        const priced = unit === 'usd';
+        const resolved = resolveEpochPrice({
+          ownPrice: prices.get(epoch!.epochIndex),
+          epochIndex: epoch!.epochIndex,
+          currentEpochIndex,
+          latest,
+        });
+        const price = resolved.price;
+        const inUsd = unit === 'usd';
+        const inUnit = (ario: number) =>
+          inUsd ? (price === undefined ? undefined : ario * price) : ario;
+
+        // Absent (SDK fallback path) means the source carried no such flag,
+        // so trust its totals as before; only an explicit false withholds the
+        // split.
+        // A skipped epoch's split IS known — nothing was paid — but it must
+        // not draw the stacked bar, because the pool it was prescribed never
+        // left the treasury. Checked first for that reason.
+        const skipped = epoch!.rewardsSkipped === true;
+        const split = !skipped && epoch!.rewardsSplitKnown !== false;
+        const splitReason = skipped
+          ? ('skipped' as const)
+          : split
+            ? undefined
+            : epoch!.rewardsPrescribed === false
+              ? ('pending' as const)
+              : ('unavailable' as const);
 
         return {
           epoch: epoch!.epochIndex,
-          // An epoch the analyzer has not priced yet draws no bar rather than
-          // a zero one. The epoch in progress is routinely in this state.
-          gatewayRewards: priced
-            ? price === undefined
-              ? undefined
-              : gatewayRewards * price
-            : gatewayRewards,
-          observerRewards: priced
-            ? price === undefined
-              ? undefined
-              : observerRewards * price
-            : observerRewards,
+          // An epoch the analyzer has not priced yet, or that has not been
+          // split yet, draws no bar rather than a zero one. The epoch in
+          // progress is routinely in both states.
+          gatewayRewards: split ? inUnit(gatewayRewards) : undefined,
+          observerRewards: split ? inUnit(observerRewards) : undefined,
+          split,
+          splitReason,
+          total: inUnit(totalRewards),
+          pendingTotal: split ? undefined : inUnit(totalRewards),
           priced: price !== undefined,
-          status: (epoch!.epochIndex === currentEpochIndex
-            ? 'Pending'
-            : 'Distributed') as RewardsData['status'],
+          ...(resolved.basis === 'latest'
+            ? { pricedFromEpoch: resolved.fromEpoch }
+            : {}),
+          status: (skipped
+            ? 'Not paid'
+            : epoch!.epochIndex === currentEpochIndex
+              ? 'Pending'
+              : 'Distributed') as RewardsData['status'],
         };
       });
-  }, [epochs, currentEpochIndex, prices, unit]);
+  }, [epochs, currentEpochIndex, prices, latest, unit]);
+
+  const hasPending =
+    rewardsData?.some((d) => d.splitReason === 'pending') ?? false;
+  const hasUnavailable =
+    rewardsData?.some((d) => d.splitReason === 'unavailable') ?? false;
+  const hasSkipped =
+    rewardsData?.some((d) => d.splitReason === 'skipped') ?? false;
 
   // Offer the switch only when there is something to switch to.
   const pricedCount = rewardsData?.filter((d) => d.priced).length ?? 0;
@@ -381,6 +511,13 @@ const RewardsDistributionPanel = () => {
                     />
                   ))}
                 </Bar>
+                <Bar
+                  dataKey="pendingTotal"
+                  name="Split pending"
+                  stackId="rewards"
+                  shape={PendingBar}
+                  isAnimationActive={false}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -390,12 +527,64 @@ const RewardsDistributionPanel = () => {
               Awaiting first epoch...
             </div>
           </div>
+        ) : epochLoadFailed ? (
+          <PanelUnavailable>
+            Rewards history is unavailable because the current epoch could not
+            be read.
+          </PanelUnavailable>
         ) : (
           <div className="flex size-full">
             <Placeholder className="m-auto h-4" />
           </div>
         )}
       </div>
+      {rewardsData && rewardsData.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 pb-4 text-xs text-low">
+          {REWARD_SERIES.map(({ label, swatch }) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-2 min-w-2 rounded-full"
+                style={{ background: swatch }}
+              />
+              <span>{label}</span>
+            </div>
+          ))}
+          {hasPending && (
+            <div className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-2 min-w-2 rounded-full border border-dashed border-[rgba(202,202,214,0.6)]"
+              />
+              <span>Split pending</span>
+            </div>
+          )}
+          {hasUnavailable && (
+            <div className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-2 min-w-2 rounded-full border border-dashed border-[rgba(202,202,214,0.6)]"
+              />
+              <span>Split not available</span>
+            </div>
+          )}
+          {hasSkipped && (
+            <div className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="size-2 min-w-2 rounded-full border border-dashed border-[rgba(202,202,214,0.6)]"
+              />
+              <span>Not paid</span>
+            </div>
+          )}
+          {/* The unit toggle only renders once prices exist, so without this
+              the axis is a column of bare numbers on every network that has
+              none, and on mobile where the toggle is easiest to miss. */}
+          <span className="ml-auto">
+            {unit === 'usd' ? 'USD' : ticker || 'ARIO'}
+          </span>
+        </div>
+      )}
       {unit === 'usd' && unpricedCount > 0 && (
         <div className="px-5 pb-4 text-xs text-low">
           {unpricedCount} epoch{unpricedCount === 1 ? '' : 's'} not priced yet —

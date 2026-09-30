@@ -5,6 +5,7 @@ import {
   LIVE_READ_WINDOW_MS,
   clearDocumentWrites,
   invalidateWrittenDocuments,
+  liveWriteAt,
   markDocumentWritten,
   shouldReadLive,
 } from '@src/utils/snapshotFreshness';
@@ -96,6 +97,29 @@ describe('snapshotFreshness', () => {
     });
   });
 
+  describe('liveWriteAt', () => {
+    it('is undefined for a document nobody wrote', () => {
+      expect(liveWriteAt('balances')).toBeUndefined();
+    });
+
+    it('is the time of the write while the window is open', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(1_700_000_000_000);
+      markDocumentWritten('vaults');
+      vi.advanceTimersByTime(1000);
+
+      expect(liveWriteAt('vaults')).toEqual(1_700_000_000_000);
+    });
+
+    it('is undefined once the window closes', () => {
+      vi.useFakeTimers();
+      markDocumentWritten('vaults');
+      vi.advanceTimersByTime(LIVE_READ_WINDOW_MS + 1000);
+
+      expect(liveWriteAt('vaults')).toBeUndefined();
+    });
+  });
+
   describe('invalidateWrittenDocuments', () => {
     it('marks and invalidates together, which is the whole point', () => {
       // Hand-placing these separately is what left `gateways` invalidated in
@@ -105,15 +129,43 @@ describe('snapshotFreshness', () => {
         typeof invalidateWrittenDocuments
       >[0];
 
-      invalidateWrittenDocuments(qc, 'balances', 'gateways');
+      invalidateWrittenDocuments(qc, 'gateways');
 
-      expect(shouldReadLive('balances')).toBe(true);
       expect(shouldReadLive('gateways')).toBe(true);
-      expect(invalidateQueries).toHaveBeenCalledTimes(2);
+      expect(invalidateQueries).toHaveBeenCalledTimes(1);
       expect(invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['balances'],
+        queryKey: ['gateways'],
         refetchType: 'active',
       });
+    });
+
+    /**
+     * The dashboard's network statistics are counted from these documents but
+     * keyed under their own name, so invalidating by document name alone left
+     * them serving pre-write counts for the rest of their hour.
+     */
+    it('also invalidates queries derived from a written document, once', () => {
+      const invalidateQueries = vi.fn();
+      const qc = { invalidateQueries } as unknown as Parameters<
+        typeof invalidateWrittenDocuments
+      >[0];
+
+      invalidateWrittenDocuments(qc, 'balances', 'vaults', 'gateways');
+
+      const keys = invalidateQueries.mock.calls.map(([arg]) => arg.queryKey[0]);
+      expect(keys).toEqual(['balances', 'vaults', 'gateways', 'networkStats']);
+    });
+
+    it('does not invalidate derived queries a write could not have moved', () => {
+      const invalidateQueries = vi.fn();
+      const qc = { invalidateQueries } as unknown as Parameters<
+        typeof invalidateWrittenDocuments
+      >[0];
+
+      invalidateWrittenDocuments(qc, 'gateways', 'primaryNames');
+
+      const keys = invalidateQueries.mock.calls.map(([arg]) => arg.queryKey[0]);
+      expect(keys).not.toContain('networkStats');
     });
 
     it('never refetches a whole-program scan from a page that is not showing it', () => {

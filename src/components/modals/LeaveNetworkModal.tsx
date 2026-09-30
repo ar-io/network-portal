@@ -5,6 +5,10 @@ import useGarGasEstimate from '@src/hooks/useGarGasEstimate';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas, getTransactionExplorerUrl } from '@src/utils';
+import {
+  GATEWAY_LEAVE_PERIOD_MS,
+  formatDurationDays,
+} from '@src/utils/protocolSettings';
 import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -46,6 +50,17 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
     !!gasEstimate &&
     balances !== undefined &&
     balances.sol * 1_000_000_000 < gasEstimate.totalLamports;
+
+  /**
+   * The two periods are NOT the same, and this modal said 90 days for all
+   * three lines. Only the minimum stake is held for the leave period; the
+   * excess and every delegation follow the ordinary withdrawal period
+   * (ADR-0038). This is the screen an operator reads while typing the
+   * confirmation, so it has to agree with the parameters card.
+   */
+  const withdrawalPeriod = formatDurationDays(
+    gatewayRegistrySettings?.operators.withdrawLengthMs ?? 30 * 86_400_000,
+  );
 
   const minOperatorStake = useMemo(() => {
     return gatewayRegistrySettings
@@ -99,16 +114,17 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
               <li>
                 Your gateway&apos;s primary stake (
                 {formatWithCommas(minOperatorStake)} {ticker}) will be vaulted
-                and subject to a 90-day withdrawal period.
+                for {formatDurationDays(GATEWAY_LEAVE_PERIOD_MS)} and cannot be
+                released early.
               </li>
               <li>
                 Any additional operator stake above the minimum (
                 {formatWithCommas(minOperatorStake)} {ticker}) will be vaulted
-                and subject to a 90-day withdrawal period.
+                for {withdrawalPeriod}, and can be released early for a fee.
               </li>
               <li>
-                Any existing delegated stakes will be vaulted and subject to
-                90-day withdrawal period.{' '}
+                Any existing delegated stakes will be vaulted for{' '}
+                {withdrawalPeriod}.
               </li>
               <li>
                 Your gateway status will change to leaving and will no longer be

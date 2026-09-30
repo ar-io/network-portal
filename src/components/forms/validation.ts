@@ -1,5 +1,9 @@
 import { FQDN_REGEX } from '@ar.io/sdk/web';
-import { isArweaveTransactionID, isValidSolanaAddress } from '@src/utils';
+import {
+  formatARIOExact,
+  isArweaveTransactionID,
+  isValidSolanaAddress,
+} from '@src/utils';
 
 /* Higher-order functions that return a FormValidationFunction for use with FormRowDefs */
 
@@ -60,15 +64,15 @@ export const validateARIOAmount = (
       if (isNaN(value)) {
         return `${propertyName} must be a number.`;
       } else if (max <= min && value < min) {
-        return `${propertyName} must be a number >= ${min} ${ticker}.`;
+        return `${propertyName} must be a number >= ${formatARIOExact(min)} ${ticker}.`;
       }
 
       return value < min || value > max
-        ? `${propertyName} must be a number from ${min} to ${max} ${ticker}.`
+        ? `${propertyName} must be a number from ${formatARIOExact(min)} to ${formatARIOExact(max)} ${ticker}.`
         : undefined;
     }
     return value < min || isNaN(value)
-      ? `${propertyName} must be a number >= ${min} ${ticker}.`
+      ? `${propertyName} must be a number >= ${formatARIOExact(min)} ${ticker}.`
       : undefined;
   };
 };

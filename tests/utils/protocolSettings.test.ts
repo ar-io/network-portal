@@ -1,4 +1,5 @@
 import {
+  GATEWAY_LEAVE_PERIOD_MS,
   formatDurationDays,
   formatPpmPercent,
 } from '@src/utils/protocolSettings';
@@ -44,5 +45,17 @@ describe('formatDurationDays', () => {
 
   it('shows one decimal for a partial day rather than rounding it away', () => {
     expect(formatDurationDays(129_600_000)).toBe('1.5 days');
+  });
+});
+
+describe('GATEWAY_LEAVE_PERIOD_MS', () => {
+  /**
+   * The program's `GATEWAY_LEAVE_PERIOD`, asserted at 7,776,000 seconds. The
+   * SDK reports this as the 30-day withdrawal period, which is what sent a
+   * pruned operator looking for stake that was locked for another 60 days.
+   */
+  it('is the 90 days the program enforces, not the withdrawal period', () => {
+    expect(GATEWAY_LEAVE_PERIOD_MS).toEqual(7_776_000 * 1000);
+    expect(formatDurationDays(GATEWAY_LEAVE_PERIOD_MS)).toEqual('90 days');
   });
 });

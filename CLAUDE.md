@@ -20,17 +20,23 @@ yarn vitest                        # Run tests in watch mode
 yarn vitest path/to/test.test.ts   # Run a single test file
 
 # Code quality (uses Biome for linting and formatting)
-yarn lint:check    # Check for linting issues
-yarn lint:fix      # Fix linting and formatting issues automatically
+yarn lint:check    # Check for linting issues (biome check --unsafe)
+yarn lint:fix      # Fix linting and formatting issues automatically (--unsafe)
 yarn format:check  # Check formatting only
 yarn format:fix    # Fix formatting only
-yarn tsc --noEmit  # Type check without building
+yarn tsc --noEmit  # Type check the whole project, tests included (see note below)
 yarn vis           # Visualize bundle composition (vite-bundle-visualizer)
 
 # Build and deploy
-yarn build         # Full tsc --build type check, then Vite production build (memory-heavy: NODE_OPTIONS max-old-space-size=32768)
+yarn build         # rimraf dist, then tsc --build tsconfig.build.json, then Vite production build (memory-heavy: NODE_OPTIONS max-old-space-size=32768)
 yarn deploy        # Build, then deploy to Arweave via @ar.io/deploy (ario-deploy); requires VITE_ARNS_NAME + DEPLOY_KEY (base64 wallet keyfile) env vars
 ```
+
+**A green build does not type check the tests.** `yarn build` uses
+`tsconfig.build.json`, which drops `tests` from `include` and excludes
+`**/*.test.ts(x)`; CI runs `build` but never `tsc --noEmit`. Run
+`yarn tsc --noEmit` (root config) yourself before pushing a change that touches
+test files.
 
 ## Code Conventions
 
@@ -139,6 +145,7 @@ Hooks reading the snapshot:
 | `useAllDelegates` | `delegates.json` | — |
 | `usePrimaryName` | `primaryNames.json` | `owner` |
 | `useArNSStats` | `summary.json` | `counts.arnsRecords` |
+| `useNetworkStats` | `summary.json` + `delegates.json` | per count, see below |
 
 Two of those are worth their own note:
 
@@ -150,6 +157,22 @@ Two of those are worth their own note:
 
 `withdrawals.json` is GAR `Withdrawal` accounts and is **not** `vaults.json`,
 which is core-program `Vault` accounts — different datasets, not two views.
+
+`useNetworkStats` is the one hook that reads each value from its own source. Its
+three dashboard counts are whole-program scans, so they come from the snapshot:
+addresses and vaults as scalars in `summary.json`, delegates by deduping
+`delegates.json` on address, because `counts.delegates` counts delegation *rows*
+(542 on devnet) where the panel shows unique delegating *addresses* (352). The two
+documents must share a `generatedAt` — the publisher stamps a whole cycle alike —
+and a mismatch is retried once, then read live, rather than mixing two cycles in one
+panel. After a write, only the counts whose documents the write marked are read
+live — a locked transfer marks `balances` and `vaults`, so it re-reads both; a stake
+decrease marks neither. The delegates count follows the snapshot even after a
+delegation, by design: no flow marks `delegates` (its query key is
+`allDelegates`), and paying the costliest scan on the network to move one
+dashboard figure a few minutes early is not worth it. The IndexedDB row records
+which counts it read live, so a reload inside the window reuses a post-write row
+and misses a pre-write one, rather than rescanning on every load.
 
 **A write makes the snapshot wrong, and invalidating does not fix it.** The
 refetch downloads the same document the publisher generated before the write, so
@@ -168,7 +191,10 @@ an hour for gateways and vaults.
 
 **Every write flow must pair invalidation with marking**, and
 `invalidateWrittenDocuments(queryClient, ...names)` does both in one call — the
-query key and the document name are the same string, so they cannot drift. Mark
+query key and the document name are the same string, so they cannot drift. A query
+*derived* from a document rather than named for it goes in `DERIVED_QUERY_KEYS`
+(`snapshotFreshness.ts`); `networkStats` is there, because otherwise it served the
+pre-write counts for the rest of its hour. Mark
 only the documents the transaction actually changes: a stake decrease moves
 tokens into a withdrawal account and does not touch `balances`, and `balances`
 is the most expensive scan on the network. Hand-placing the two separately does
@@ -247,15 +273,108 @@ Two contract traps the publisher documents and the UI honours: `economics` is
 always null, and `infrastructure` is zeroed when a run skips geolocation —
 `uniqueAsns: 0` is a degraded run, not a decentralised network.
 
-**Results bitmaps: count, never attribute.** An observation's
-`gatewayResultsBase64` (`gar-bitmap-v1-lsb`) indexes into the gateway
-registry's slot order *for that epoch*, and the archive publishes only a digest
-of that ordering. A population count is therefore exact — `countGatewayResults`
-— while naming *which* gateway failed would mean indexing historical bits
-against today's registry. `ObservationData.hasGatewayAttribution` exists so
-consumers branch on it: an empty `failureSummaries` must never render as "no
-failures", which previously would have shown a green **Passed** for a gateway
-whose result is simply unknown.
+**An empty observation list has three meanings, and `capture` is the only
+thing that separates them.** `complete` with zero observations is a real zero
+(mainnet epochs 550, 553, 554). `missing` means reports existed and were never
+captured — 508 and 509 held ten and eight. `unknown` is the running epoch,
+which starts empty because nobody has reported yet. The trap is that **the
+live read cannot break the tie**: `close_observation` has deleted the
+accounts, so a scan of a lost epoch returns the same zero and confirms the
+wrong answer. So `fetchObservationsFromArchive` returns a result for a
+document holding no observations — null now means no document at all — and
+`resolveEpochObservations` prefers the archive when both come back empty,
+because only the archive can say why. `@src/utils/observationCapture` turns
+`capture` plus `chain.observationsSubmitted` into the one line a panel may
+state; **never state a count, a rate or an absence without it.** Absent
+`capture` is unknown, never complete.
+
+**Results bitmaps: a SET bit is a PASS; the failure is the CLEARED bit.** An
+observation's `gatewayResultsBase64` (`gar-bitmap-v1-lsb`) indexes into the
+gateway registry's slot order *for that epoch*. Counting is unconditional —
+`countGatewayResults`, and a population count does not depend on which gateway
+sits in which slot. **Attributing needs `registry/<n>.json`**, the slot order
+itself, which the archive began publishing in September 2026; before that only
+a digest was available and naming a gateway was impossible.
+
+`attributeGatewayResults` does the mapping and refuses on any of five guards,
+each for a case in the published data. **`ObservationData.hasGatewayAttribution`
+stays the discriminator** — an empty `failureSummaries` must never render as "no
+failures", which would show a green **Passed** for a gateway whose result is
+merely unknown.
+
+Three of those guards are not obvious and were each found in live data:
+
+- **The slot count is `failureCounts.length`, never
+  `registry.gateways.length`.** It equals every observation's `gatewayCount`
+  and the chain's `activeGatewayCount`. On epochs **523 and 533 the registry
+  carries one gateway MORE than the epoch's bitmap covers**, and both pass the
+  digest check, so **the digest proves the documents belong together and
+  nothing about their lengths**. Iterating the registry reads one slot past the
+  bitmap, where an absent bit is 0 — a failure — and reports that gateway as
+  failed by every observer.
+- **`registry.inEpoch` must be true.** False means the order was captured after
+  the epoch closed, so bit `i` may not name `gateways[i]`. Epochs 510 and 511.
+- **The decoded tally must equal `epoch.failureCounts`**, the protocol's own
+  per-slot count. This is ~20k operations and it makes an inverted or drifted
+  decoder impossible to ship: the UI degrades to "Unknown" instead of drawing a
+  confident wrong verdict. Keep it — it is the cheapest guard in the codebase.
+
+`registryEpochs` on `AnalyzerAvailability` is a **strict subset** of
+`archivedEpochs`; six mainnet epochs are archived without a slot order, so the
+fetch is gated rather than paying a 404 per view. `useReports` passes
+`registryAvailable: false` outright — it reads per-observer totals and never
+`failureSummaries`, so a registry per epoch would double that page's downloads
+for nothing.
+
+**Attribution does not replace the reports.** The bitmap says *who* failed a
+gateway; only the observer's own Arweave report says *why*. What changes is
+cost: `useGatewayObservationReports` takes an `observers` list, so an attributed
+epoch reads three or four reports instead of every one submitted.
+
+### Arweave Data Layer (Reports)
+
+Observation reports are gzipped JSON on Arweave — a fourth data source alongside
+RPC, the portal snapshot and the analyzer archive. `useReport` downloads one by
+transaction id and reads it either way a gateway serves it: with
+`Content-Encoding: gzip` the browser has already decompressed the body, so JSON
+arrives as-is; without the header the gzip bytes arrive untouched and `fflate`
+decompresses them. Anything that is neither gzip nor JSON is rejected rather than
+saved as a `.json` file, which is what a gateway's HTML error page used to become.
+`useReports` lists them, resolving
+at most `EPOCH_CONCURRENCY` (4) epochs at a time so a long epoch selector neither
+stacks into a visible wait nor arrives as a burst against one endpoint.
+
+**Which gateway serves the data depends on where the app is served from.**
+`arweaveUrl.ts` probes `/ar-io/info` once at load (`GlobalDataProvider`), caches
+the answer for the session and defaults to false. When the app is itself served
+from an ar.io gateway, `arweaveTxUrl` returns a relative `/<txid>` so that
+gateway fetches the data; otherwise it falls back to the configured host.
+`getReferenceGatewayFqdn()` deliberately ignores the serving hostname — the app
+may be reached at an ArNS subdomain, and stacking another name on top of that
+(`arns-name.portal.example.com`) does not resolve.
+
+Report **metadata** comes from an Arweave GraphQL indexer (`arweaveGqlUrl` in
+Settings, goldsky by default) via a **hand-written query, and it must stay that
+way.** `arweave-graphql`'s generated `getTransactions` declares
+`$block: BlockFilter`, a type the configured endpoint's schema does not define —
+it has `RangeFilter` — so every call failed validation before reaching the data,
+which is why the reports table's Generated At, Size and Version were never
+populated. Asking only for the fields the table renders sidesteps the mismatch
+and keeps the query independent of whichever indexer a user points at.
+
+### Extensions
+
+`/extensions` is the one route backed by neither chain, snapshot nor archive.
+`fetchExtensionsData()` derives an ArNS URL from the *current* hostname —
+swapping `extensions_gateways` into the first subdomain, or using
+`extensions_gateways.ar.io` on localhost, `network-portal.app` and Firebase
+preview hosts — then falls back to the bundled `/data/extensions.json` when that
+fetch fails.
+
+Everything passes through `validateExtensionsData`, which drops unknown
+categories and tags and rejects any URL that is not `http(s)`. This is untrusted
+third-party JSON rendered as links, so the validation is the feature, not
+boilerplate.
 
 ### Data Fetching Pattern
 
@@ -304,8 +423,103 @@ three-times-per-load fetch.
 
 `GlobalDataProvider` handles app-wide data initialization:
 - Fetches current epoch and ticker on load
+- Covers the window before that epoch is prescribed (see **Epoch Rewards**)
 - Updates Solana slot periodically
 - Cleans up stale IndexedDB cache
+
+### Epoch Rewards
+
+**Read `per_gateway_reward` from the Epoch account; never derive it.** Every yield
+in the app divides it, and it cannot be reconstructed from anything a browser can
+see: the protocol computes `total_eligible_rewards * gateway_reward_ratio /
+RATE_SCALE / joined_count`, where `joined_count` (registry slots with a positive
+composite weight after tally) is never stored, `reward_rate` decays between 0.1%
+and 0.05% per epoch, and `gateway_reward_ratio` is governance-set — mainnet runs
+80/20 against a program default of 90/10. The app once hardcoded 0.0005 and 0.9 and
+counted gateways itself, two different ways; the staking table and modal disagreed
+by 25% and both overstated. `usePerGatewayReward()` is the only way to read it.
+
+`epoch.active_gateway_count` is **not** the divisor. It bounds the distribution
+traversal and counts every registry slot, leavers included (620 against 306
+eligible on mainnet). Multiplying by it overstated the rewards chart about 2x.
+
+**An epoch has a window with no split.** `create_epoch` sets
+`total_eligible_rewards` immediately but leaves both per-unit rewards at zero until
+`prescribe_epoch` runs. `rewardsPrescribed` comes from the account's own
+`prescriptions_done` flag — never inferred from a non-zero reward, because a
+prescribed epoch with no eligible gateway keeps `per_gateway_reward` at zero and
+would read as pending forever. Unprescribed renders as *Split pending*, never as a
+split of zero or of everything: the remainder formula alone would credit 100% of
+the pool to gateways.
+
+**An epoch nobody observed pays nothing, and must not be charted as if it did.**
+`distribute_epoch` marks a zero-observation epoch complete and returns without
+paying (ADR-0034 addendum) — no treasury transfer, no gateway stats, tokens
+retained. But the skip is gated *behind* `prescriptions_done`, so the epoch keeps
+the complete, non-zero split `prescribe_epoch` wrote, and every reward branch
+reads it as a real payout. `rewardsSkipped` comes from `observationsSubmitted === 0`
+on a distributed epoch, which **approximates** the program's condition rather
+than reproducing it: the chain also requires `distribution_index == 0`, and that
+half cannot be recovered afterwards because a skipped epoch ends with the cursor
+at `active_gateway_count` just as a paid one does. The gap is one case — an epoch
+the pre-Wave-2 program had begun paying, which falls through the skip and
+finishes the old way — and it reads as unpaid here with nothing on the account to
+say otherwise. `EpochSkippedNoObservationsEvent` is the exact discriminator, for
+an *indexer*; a browser cannot retrieve it for a historical epoch at any price.
+Guard on `rewardsDistributed`: zero observations on a live epoch just means
+nobody has submitted yet.
+
+**Flagging it must not rewrite the split.** What `prescribe_epoch` wrote stays on
+the row — it is a real fact, `totalEligibleGateways` is a count other panels read,
+and for a cached row it is the only surviving copy once the account closes. The
+renderer draws the outline; the data layer keeps the numbers.
+
+`rewardsSplitKnown: false` covers the other unsplittable case: prescribed, gateways
+eligible, but no observers selected. The observer share then stays in the
+treasury, so the remainder is not the gateway pool; the chart shows *Split not
+available*. Prescribed with nobody eligible is a *known* split of zero gateway
+reward.
+
+While the newest epoch is unprescribed, `referencePerGatewayReward` (the previous
+epoch's figure) stands in for yields, labelled provisional. `GlobalDataProvider`
+reads that reference **before** publishing the epoch, so tables never flash a
+"pending" note that is replaced a moment later, then re-reads the epoch until it
+is prescribed. The epochs query keys include `rewardsPrescribed`, so the chart
+refetches the moment it flips.
+
+**Cached epochs are versioned, not migrated.** IndexedDB keeps distributed epochs
+across releases, so a row can outlive the formula that wrote it. `getEpoch` passes
+every cached row through `upgradeCachedEpoch`, which recomputes `distributions` from
+the row's own fields and writes it back. **Bump `REWARD_TOTALS_VERSION` whenever the
+meaning of `distributions` changes, and teach `upgradeCachedEpoch` the old shape.**
+Deliberately not a Dexie schema bump: clearing the table would throw away rows that
+may be the only copy once an epoch account is closed, and Dexie refuses to open a
+database older than the one on disk, so reverting past a schema bump silently turns
+caching off for everyone who loaded the newer build.
+
+**Yield has six states, and `resolveYieldStatus` (behind `useYieldStatus`) names
+them**: `loading` (placeholder, no message), `available`, `provisional` (unprescribed,
+previous epoch's reward standing in), `pending` (unprescribed, no stand-in),
+`unavailable` (prescribed with no reward to divide, or the SDK fallback path, which
+carries no reward field) and `failed` (the epoch read failed). Collapsing `loading`
+and `failed` is how a table once told users the epoch "could not be read" during
+every normal page load; collapsing `unavailable` into `pending` promised a yield
+that was never coming. An unknown yield is
+`undefined`, never a negative sentinel — `knownYield` converts, `YieldCell` renders,
+and EAY columns set `sortUndefined: 'last'` so unknowns never lead an ascending sort.
+
+**`currentEpoch` is undefined both while loading and after a failure;**
+`epochLoadFailed` tells them apart. A query gated on `currentEpoch` is *disabled*,
+not failed, when the epoch never arrives — it stays pending forever and its
+`isError` never fires — so panels downstream of the epoch branch on
+`epochLoadFailed`, not on their own query's error. A failed read renders
+`PanelUnavailable` or reads "Unavailable"; a skeleton promises arrival and must not
+be left shimmering for a read that has failed.
+
+Two splits the protocol makes that the yields follow: the delegate pool is carved
+out only when the gateway had delegated stake at tally (`split_scaled_reward`), so a
+gateway with delegation on and no delegators pays its operator everything; and the
+observer reward is excluded from both yields, which the EAY tooltip states.
 
 ### Routing
 
@@ -398,7 +612,14 @@ deserializers, program ids). Never import from bare `@ar.io/sdk`.
 ### Testing
 
 - Vitest with globals enabled (no need to import `describe`, `it`, `expect`, etc.)
-- `vitest.config.ts` extends the base Vite config with `test: { globals: true }`
+- **`vitest.config.ts` does not extend `vite.config.ts` — it duplicates it.** Plugins,
+  aliases, `base`, `esbuild: false` and the build options are copy-pasted, so a plugin or
+  path alias added to one silently never reaches the other. The `define` blocks have
+  already drifted: the Vite config imports `packageJson.version` and defines
+  `process.version`; the Vitest one reads `process.env.npm_package_version` and defines
+  neither. Change both.
+- Tests live in `/tests/` mirroring `src` (`tests/utils/`, `tests/hooks/`, `tests/store/`,
+  `tests/components/`). `src/utils/extensionsLoader.test.ts` is the one exception
 - Legacy `jest.config.json` exists but is unused; tests run via vitest only
 
 ### Environment & Secrets
@@ -456,5 +677,9 @@ Three more variables are opt-in with no usable default:
 - Sourcemaps are deliberately not emitted — they were ~13MB per deploy, stored
   permanently on Arweave, and only existed to symbolicate Sentry traces
 - Pre-commit hooks run Biome via Husky
-- CI/CD: `develop` -> GitHub Pages (staging); `main` -> Firebase + Arweave (production, permanent). PRs publish an Arweave preview
+- CI/CD: `develop` -> GitHub Pages (staging); `main` -> Firebase + Arweave (production, permanent).
+  `build_and_test.yml` runs on push to `develop`, not on pull requests, so nothing
+  type-checks, lints, tests or builds a PR before merge — run them yourself. The
+  PR preview workflow (`pr-preview.yml`) exists but is disabled in the repository,
+  so PRs get no Arweave preview.
 - Tailwind CSS with custom design tokens in `/tokens/`, Rubik font, dark mode via `selector` strategy

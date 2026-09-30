@@ -1,3 +1,6 @@
+import useHorizontalScrollHint, {
+  edgeFadeStyle,
+} from '@src/hooks/useHorizontalScrollHint';
 import { useColumnPreferences } from '@src/store/columnPreferences';
 import {
   ColumnDef,
@@ -113,8 +116,25 @@ const ServerSortableTableView = <T, S>({
 
   const maxHeightRemClass = shortTable ? `max-h-[16rem]` : undefined;
 
+  const {
+    ref: scrollRef,
+    canScrollLeft,
+    canScrollRight,
+    scrollbarHeight,
+    scrollbarWidth,
+  } = useHorizontalScrollHint<HTMLDivElement>();
+
   return (
-    <div className={`overflow-x-auto scrollbar ${maxHeightRemClass}`}>
+    <div
+      ref={scrollRef}
+      style={edgeFadeStyle({
+        canScrollLeft,
+        canScrollRight,
+        scrollbarHeight,
+        scrollbarWidth,
+      })}
+      className={`overflow-x-auto scrollbar ${maxHeightRemClass}`}
+    >
       <table className="w-full table-auto border-x border-b border-grey-500">
         <thead className="sticky top-0 z-10 bg-containerL0 text-xs text-low">
           {table.getHeaderGroups().map((headerGroup) => (

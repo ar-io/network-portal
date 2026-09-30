@@ -87,7 +87,7 @@ const OperatorStakingModal = ({
     withdrawAmount: validators.withdrawAmount(amountToWithdraw),
     cannotStake:
       (balances?.ario || 0) < minRequiredStakeToAdd
-        ? `Insufficient balance, at least ${minRequiredStakeToAdd} IO required.`
+        ? `Insufficient balance, at least ${minRequiredStakeToAdd} ${ticker} required.`
         : undefined,
   };
 
@@ -196,7 +196,7 @@ const OperatorStakingModal = ({
                     <Label>Expedited Withdrawal</Label>
                   </div>
                   <p className="pl-6 text-left text-xs text-mid">
-                    Instant withdrawal with 50% fee.
+                    Immediate return with a 50% fee.
                   </p>
                 </div>
               </Radio>

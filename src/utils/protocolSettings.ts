@@ -2,6 +2,24 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const MS_PER_HOUR = 60 * 60 * 1000;
 
 /**
+ * How long a departing operator's *minimum stake* stays vaulted: the security
+ * bond, 90 days.
+ *
+ * A constant because the program's is (`GATEWAY_LEAVE_PERIOD`, asserted at
+ * 7,776,000 seconds), with no settings field behind it and no governance lever
+ * — `admin_set_withdrawal_period` moves the other vault, not this one.
+ *
+ * **The SDK's `operators.leaveLengthMs` is not this value.** It aliases
+ * `withdrawalPeriod`, so it reports 30 days where the chain enforces 90. An
+ * operator pruned from mainnet read that figure here, expected their stake
+ * back after 30 days, and filed a support ticket when it did not arrive; the
+ * contracts team traced it to this field (ADR-0038, which names the SDK fix as
+ * required downstream). Until that lands, reading the constant is the only way
+ * to show the truth.
+ */
+export const GATEWAY_LEAVE_PERIOD_MS = 90 * MS_PER_DAY;
+
+/**
  * Protocol rate limits are stored in parts-per-million, not percent:
  * 600_000 is 60%, not 600%. Every rate field on GatewayRegistrySettings
  * (`*PenaltyRate`, `failedGatewaySlashRate`) uses this scale, so reading one as

@@ -5,6 +5,7 @@ import Profile from '@src/components/Profile';
 import { BinocularsGradientIcon, BinocularsIcon } from '@src/components/icons';
 import { log } from '@src/constants';
 import usePrescribedNames from '@src/hooks/usePrescribedNames';
+import { MOBILE_MENU_CLEARANCE } from '@src/layout/mobileMenu';
 import { useGlobalState } from '@src/store';
 import { Assessment } from '@src/types';
 import { performAssessment } from '@src/utils/observations';
@@ -80,7 +81,9 @@ const ObserveHeader = ({
 
   return (
     <header className="mt-6 flex-col text-clip rounded-xl border leading-[1.4] dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
-      <div className="flex items-center gap-3 py-5 pl-6 pr-4 text-sm">
+      <div
+        className={`flex min-w-0 items-center gap-3 py-5 pr-4 text-sm ${MOBILE_MENU_CLEARANCE}`}
+      >
         <div className="text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>

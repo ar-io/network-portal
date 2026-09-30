@@ -1,8 +1,10 @@
 import { mARIOToken } from '@ar.io/sdk/web';
+import useEpochSettings from '@src/hooks/useEpochSettings';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import { useGlobalState } from '@src/store';
 import { formatWithCommas } from '@src/utils';
 import {
+  GATEWAY_LEAVE_PERIOD_MS,
   formatDurationDays,
   formatPpmPercent,
 } from '@src/utils/protocolSettings';
@@ -21,17 +23,39 @@ export type ProtocolParametersVariant = 'operator' | 'delegate';
  *
  * Shared rather than duplicated because these numbers appear in two places
  * that must never disagree: the standalone card, and the join banner that
- * tells a prospective operator what it takes to join. They come from the same
+ * tells a prospective operator what it takes to join. Most come from the same
  * settings account the write modals validate against, so what a user reads is
  * by construction what their transaction is held to.
+ *
+ * Two do not, because that account does not hold them and the SDK substitutes
+ * a literal: the leave period is a program constant
+ * (`GATEWAY_LEAVE_PERIOD_MS`), and the failure limit is read from
+ * EpochSettings. Both are called out where they are used. Before adding a
+ * parameter, check that the SDK reads it from chain rather than reporting a
+ * hardcoded value — several of its `GatewayRegistrySettings` fields are
+ * literals, and two of them are wrong.
  *
  * `parameters` is undefined until the read succeeds; callers render nothing or
  * a skeleton rather than inventing defaults.
  */
 export const useProtocolParameters = (
   variant: ProtocolParametersVariant,
-): { parameters: ProtocolParameter[] | undefined; isLoading: boolean } => {
-  const { data: settings, isLoading } = useGatewayRegistrySettings();
+): {
+  parameters: ProtocolParameter[] | undefined;
+  isLoading: boolean;
+  isError: boolean;
+} => {
+  const { data: settings, isLoading, isError } = useGatewayRegistrySettings();
+  // `maxConsecutiveFailures` is the one displayed value that lives on the
+  // EpochSettings account, and it resolves independently of the registry
+  // settings beside it. A *failed* read renders that row as Unavailable
+  // rather than showing the SDK's hardcoded stand-in; a read still in flight
+  // renders an em dash, because the other query can resolve first and
+  // "Unavailable" for a read that has not failed is the mistake the epoch
+  // panels already made once.
+  const { data: epochSettings, isError: epochSettingsError } =
+    useEpochSettings();
+  const maxConsecutiveFailures = epochSettings?.maxConsecutiveFailures;
   const ticker = useGlobalState((state) => state.ticker);
 
   const parameters = useMemo<ProtocolParameter[] | undefined>(() => {
@@ -55,18 +79,22 @@ export const useProtocolParameters = (
         },
         {
           label: 'Leave period',
-          value: formatDurationDays(operators.leaveLengthMs),
-          tooltip:
-            'After leaving the network, how long a gateway’s remaining stake stays vaulted before it can be withdrawn.',
+          value: formatDurationDays(GATEWAY_LEAVE_PERIOD_MS),
+          tooltip: `A departing gateway's stake splits across two vaults that unlock separately: one holding the minimum operator stake for ${formatDurationDays(
+            GATEWAY_LEAVE_PERIOD_MS,
+          )}, which cannot be expedited, and one holding the rest for the withdrawal period (${formatDurationDays(
+            operators.withdrawLengthMs,
+          )}), which can. A gateway removed for failed epochs is slashed the minimum operator stake first; whatever survives is then split the same way.`,
         },
         {
           label: 'Max failed epochs',
-          value: formatWithCommas(operators.failedEpochCountMax),
-          tooltip: `A gateway that fails this many consecutive epochs is removed from the registry. ${
-            operators.failedGatewaySlashRate > 0
-              ? `Its stake is slashed ${formatPpmPercent(operators.failedGatewaySlashRate)} on removal.`
-              : 'No stake is slashed on removal at the current settings.'
-          }`,
+          value:
+            maxConsecutiveFailures !== undefined
+              ? formatWithCommas(maxConsecutiveFailures)
+              : epochSettingsError
+                ? 'Unavailable'
+                : '—',
+          tooltip: `A gateway that fails this many consecutive epochs is removed from the registry, and its minimum operator stake is slashed in full. Whatever survives the slash is vaulted as described under Leave period.`,
         },
         {
           label: 'Max reward share',
@@ -103,10 +131,10 @@ export const useProtocolParameters = (
       {
         label: 'Expedited withdrawal',
         value: `${formatPpmPercent(expeditedWithdrawals.minExpeditedWithdrawalPenaltyRate)}–${formatPpmPercent(expeditedWithdrawals.maxExpeditedWithdrawalPenaltyRate)}`,
-        tooltip: `Claiming a vaulted withdrawal early costs a penalty on this scale — nearest the low end when the vault is almost mature, the high end right after it opens. Minimum ${formatWithCommas(new mARIOToken(expeditedWithdrawals.minExpeditedWithdrawalAmount).toARIO().valueOf())} ${ticker}.`,
+        tooltip: `Claiming a vaulted withdrawal early costs a penalty on this scale — nearest the low end when the vault is almost mature, the high end right after it opens. It stops falling at the low end and never reaches zero, so once a withdrawal matures, claim it instead: that returns the full amount and costs no penalty. Minimum ${formatWithCommas(new mARIOToken(expeditedWithdrawals.minExpeditedWithdrawalAmount).toARIO().valueOf())} ${ticker}.`,
       },
     ];
-  }, [settings, ticker, variant]);
+  }, [settings, ticker, variant, maxConsecutiveFailures, epochSettingsError]);
 
-  return { parameters, isLoading };
+  return { parameters, isLoading, isError };
 };

@@ -14,6 +14,8 @@ interface HeaderItemProps {
   value?: ReactNode;
   label: string;
   loading?: boolean;
+  /** The read failed, so render text rather than a skeleton that never lands. */
+  unavailable?: boolean;
 
   leftPadding?: boolean;
 }
@@ -22,6 +24,7 @@ const HeaderItem = ({
   value,
   label,
   loading = false,
+  unavailable = false,
   leftPadding = true,
 }: HeaderItemProps) => {
   return (
@@ -29,7 +32,13 @@ const HeaderItem = ({
       className={`inline-flex  h-[2.375rem] flex-col items-start justify-start gap-1 border-r lg:block ${leftPadding ? 'px-6' : 'pr-6'} dark:border-transparent-100-8`}
     >
       <div className="text-xs text-high">
-        {loading ? (
+        {unavailable ? (
+          // A skeleton promises arrival. Once the read has failed, nothing is
+          // coming, and shimmering forever is the more misleading of the two.
+          <span className="text-low" title="Could not be read from the network">
+            Unavailable
+          </span>
+        ) : loading ? (
           <Placeholder className="h-[1.0625rem]" />
         ) : value !== undefined ? (
           typeof value === 'number' ? (
@@ -48,11 +57,13 @@ const HeaderItem = ({
 
 const Header = () => {
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
+  const epochLoadFailed = useGlobalState((state) => state.epochLoadFailed);
   const epochCountdown = useEpochCountdown();
   const ticker = useGlobalState((state) => state.ticker);
   const { isLoading: gatewaysLoading, data: gateways } = useGateways();
 
-  const { data: protocolBalance } = useProtocolBalance();
+  const { data: protocolBalance, isError: protocolBalanceError } =
+    useProtocolBalance();
 
   const { data: epochSettings } = useEpochSettings();
 
@@ -72,13 +83,15 @@ const Header = () => {
         <HeaderItem
           value={currentEpochLabel}
           label="AR.IO EPOCH"
-          loading={currentEpochLabel === undefined}
+          loading={currentEpochLabel === undefined && !epochLoadFailed}
+          unavailable={currentEpochLabel === undefined && epochLoadFailed}
           leftPadding={false}
         />
         <HeaderItem
           value={epochCountdown}
           label="NEXT EPOCH"
-          loading={epochCountdown === undefined}
+          loading={epochCountdown === undefined && !epochLoadFailed}
+          unavailable={epochCountdown === undefined && epochLoadFailed}
         />
         <HeaderItem
           value={
@@ -104,7 +117,8 @@ const Header = () => {
             ) : undefined
           }
           label="PROTOCOL BALANCE"
-          loading={!protocolBalance}
+          loading={!protocolBalance && !protocolBalanceError}
+          unavailable={!protocolBalance && protocolBalanceError}
         />
       </div>
       <div className="grow" />

@@ -4,8 +4,17 @@ import Dropdown from '@src/components/Dropdown';
 import Placeholder from '@src/components/Placeholder';
 import { StatsArrowIcon } from '@src/components/icons';
 import useEpochs from '@src/hooks/useEpochs';
+import useGatewayObservationReports from '@src/hooks/useGatewayObservationReports';
 import useObservations from '@src/hooks/useObservations';
 import useObserverToGatewayMap from '@src/hooks/useObserverToGatewayMap';
+import {
+  describeCaptureShortfall,
+  summarizeCapture,
+} from '@src/utils/observationCapture';
+import {
+  classifyReportReadout,
+  describeReportReadout,
+} from '@src/utils/reportReadout';
 import {
   CheckCircleIcon,
   CircleHelpIcon,
@@ -45,6 +54,86 @@ const ReportedOnByCard = ({
 
   const selectedEpoch = epochs?.[selectedEpochIndex];
   const { data: observations } = useObservations(selectedEpoch);
+
+  /**
+   * Set when the archive holds fewer reports than the chain counted, in which
+   * case the held count is a floor and must not be stated as the total.
+   */
+  const captureShortfall = describeCaptureShortfall(
+    summarizeCapture({
+      capture: observations?.capture,
+      held: observations?.observationCount ?? 0,
+      chainObservationsSubmitted: observations?.chainObservationsSubmitted,
+    }),
+  );
+
+  /**
+   * Reading the reports answers what the bitmap cannot, but costs megabytes,
+   * so it is asked for rather than assumed. Reset on every epoch change — the
+   * answer belongs to the epoch that was open when it was requested.
+   */
+  const [readReports, setReadReports] = useState(false);
+  useEffect(() => {
+    setReadReports(false);
+  }, [selectedEpochIndex]);
+
+  const {
+    data: fromReports,
+    isFetching: readingReports,
+    isError: reportsFailed,
+    refetch: rereadReports,
+  } = useGatewayObservationReports({
+    epochIndex: selectedEpoch?.epochIndex,
+    fqdn: gateway?.settings.fqdn,
+    reports: observations?.reports,
+    // With attribution the bitmap already names who failed, so only those
+    // reports are worth the download — three or four instead of nineteen.
+    // Without it there is no way to know which ones matter, so all are read.
+    observers: hasAttribution
+      ? failureObservers.map((entry) => entry.observerId)
+      : undefined,
+    enabled: readReports,
+  });
+
+  /**
+   * Observer -> the reasons their report gives for failing this gateway.
+   *
+   * Absent from the map means the report was not read or could not be read,
+   * which the row must not render as a pass or as an unexplained failure.
+   */
+  const reasonsByObserver = fromReports
+    ? new Map(
+        fromReports.verdicts
+          .filter((verdict) => verdict.outcome?.pass === false)
+          .map((verdict) => [verdict.observer, verdict.outcome?.reasons ?? []]),
+      )
+    : undefined;
+
+  /**
+   * Observers whose report records this gateway as PASSING, though the
+   * on-chain result says they failed it. Kept apart from the map above
+   * because it is a different statement, not a missing one.
+   */
+  const passingByObserver = fromReports
+    ? new Set(
+        fromReports.verdicts
+          .filter((verdict) => verdict.outcome?.pass === true)
+          .map((verdict) => verdict.observer),
+      )
+    : undefined;
+
+  /** What the reports actually said, as one line. */
+  const reportReadout = fromReports
+    ? describeReportReadout({
+        readout: classifyReportReadout(
+          fromReports.verdicts,
+          failureObservers.map((entry) => entry.observerId),
+        ),
+        failingObservers: failureObservers.length,
+        readCount: fromReports.readCount,
+        unreadableCount: fromReports.unreadableCount,
+      })
+    : undefined;
 
   useEffect(() => {
     if (observations) {
@@ -93,9 +182,18 @@ const ReportedOnByCard = ({
                   // Short, like every other state in this header. The reason
                   // the list below is empty belongs in the empty list, not
                   // crammed onto a nowrap row beside the epoch selector.
+                  //
+                  // The shortfall line replaces the count rather than sitting
+                  // beside it: "0 reports submitted" for an epoch ten
+                  // observers reported on is not a count in need of a caveat,
+                  // it is the wrong number.
                   <div className="text-mid">
-                    {totalReportsForEpoch} report
-                    {totalReportsForEpoch === 1 ? '' : 's'} submitted
+                    {captureShortfall ?? (
+                      <>
+                        {totalReportsForEpoch} report
+                        {totalReportsForEpoch === 1 ? '' : 's'} submitted
+                      </>
+                    )}
                   </div>
                 ) : failureObservers.length === 0 ? (
                   <div className="text-mid">No Failures Reported</div>
@@ -160,61 +258,208 @@ const ReportedOnByCard = ({
       </div>
       <div className="h-80 overflow-hidden overflow-y-auto scrollbar scrollbar-thin">
         {observations && !hasAttribution ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-10 text-center">
-            <CircleHelpIcon className="size-5 text-low" />
-            <div className="text-xs text-low">
-              This epoch is served from the published archive, which records how
-              many gateways each observer passed but not which ones. Naming them
-              would mean reading the results against today&apos;s registry
-              order, which has since changed.
+          fromReports ? (
+            <>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-grey-500 px-6 py-2 text-xs text-low">
+                <span>
+                  {fromReports.readCount === 0
+                    ? 'No report could be read.'
+                    : fromReports.failedCount > 0
+                      ? `${fromReports.failedCount} of ${fromReports.readCount} reports read failed this gateway.`
+                      : `None of the ${fromReports.readCount} reports read failed this gateway.`}
+                  {fromReports.unreadableCount > 0 &&
+                    ` ${fromReports.unreadableCount} could not be read.`}
+                </span>
+                {/* The gateway serving these rate-limits, so a refusal is
+                    usually temporary — but the result is cached, so without
+                    this there is no way back to it. */}
+                {fromReports.unreadableCount > 0 && (
+                  <button
+                    type="button"
+                    className="text-link underline"
+                    onClick={() => rereadReports()}
+                    disabled={readingReports}
+                  >
+                    {readingReports ? 'Retrying…' : 'Try the rest again'}
+                  </button>
+                )}
+              </div>
+              {fromReports.verdicts
+                .filter((v) => v.outcome?.pass === false)
+                .map((v) => (
+                  <div
+                    key={v.observer}
+                    className="border-t border-grey-500 px-6 py-2.5 text-xs"
+                  >
+                    <Link
+                      className="text-low hover:text-mid"
+                      to={`/gateways/${
+                        observerToGatewayMap?.[v.observer] ?? v.observer
+                      }`}
+                    >
+                      {v.observer}
+                    </Link>
+                    <ul className="mt-1 list-disc pl-4 text-mid">
+                      {v.outcome?.reasons.length ? (
+                        v.outcome.reasons.map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))
+                      ) : (
+                        <li>Failed, with no reason recorded in the report.</li>
+                      )}
+                    </ul>
+                  </div>
+                ))}
+            </>
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-2 px-10 text-center">
+              <CircleHelpIcon className="size-5 text-low" />
+              <div className="text-xs text-low">
+                This epoch is served from the published archive, which records
+                how many gateways each observer passed but not which ones.
+                Naming them would mean reading the results against today&apos;s
+                registry order, which has since changed.
+              </div>
+              <div className="text-xs text-low">
+                The observers&apos; own reports say which, and why.
+              </div>
+              <Button
+                className="mt-1"
+                onClick={() => setReadReports(true)}
+                active={true}
+                title="Read the observers' reports for this epoch"
+                text={
+                  readingReports
+                    ? 'Reading reports…'
+                    : reportsFailed
+                      ? 'Reading failed — try again'
+                      : "Read the observers' reports"
+                }
+              />
+              {readingReports && (
+                <div className="text-xs text-low">
+                  Each report is about half a megabyte; this takes a moment.
+                </div>
+              )}
             </div>
-          </div>
+          )
         ) : observations && failureObservers.length === 0 ? (
           <div className="flex h-full items-center justify-center px-10 text-center text-xs text-low">
             No observer reported this gateway as failing in this epoch.
           </div>
         ) : null}
+        {/* Attribution names who failed this gateway; only the observer's own
+            report says why. Offered rather than taken automatically, on the
+            same reasoning as the unattributed branch above — but narrowed to
+            the observers that actually failed, so it is a few reports instead
+            of every one submitted this epoch. */}
+        {hasAttribution && failureObservers.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-grey-500 px-6 py-2 text-xs text-low">
+            {reportReadout ? (
+              <span>{reportReadout}</span>
+            ) : (
+              <span>
+                The results say these observers failed this gateway, not why.
+              </span>
+            )}
+            {fromReports && fromReports.unreadableCount > 0 ? (
+              <button
+                type="button"
+                className="text-link underline"
+                onClick={() => rereadReports()}
+                disabled={readingReports}
+              >
+                {readingReports ? 'Retrying…' : 'Try the rest again'}
+              </button>
+            ) : (
+              !fromReports && (
+                <button
+                  type="button"
+                  className="text-link underline"
+                  onClick={() => setReadReports(true)}
+                  disabled={readingReports}
+                >
+                  {readingReports
+                    ? 'Reading reports…'
+                    : reportsFailed
+                      ? 'Reading failed — try again'
+                      : 'Read why'}
+                </button>
+              )
+            )}
+          </div>
+        )}
         {failureObservers?.map((entry) => (
           <div
             key={entry.observerId}
-            className="flex items-center gap-1 border-t border-grey-500 py-2.5 pl-6 pr-2 text-xs text-low"
+            className="min-w-0 border-t border-grey-500 py-2.5 pl-6 pr-2 text-xs text-low"
           >
-            <StatsArrowIcon className="size-4" />
-            <div className="flex w-full items-center">
-              {observerToGatewayMap && epochs ? (
-                <>
-                  <Link
-                    className="grow"
-                    to={`/gateways/${observerToGatewayMap[entry.observerId]}`}
-                  >
-                    {entry.observerId}
-                  </Link>
+            <div className="flex min-w-0 items-center gap-1">
+              <StatsArrowIcon className="size-4 shrink-0" />
+              <div className="flex w-full min-w-0 items-center gap-2">
+                {observerToGatewayMap && epochs ? (
+                  <>
+                    {/* An observer address is 44 characters and does not wrap.
+                        Without truncation it pushes the View Report button off
+                        the card at phone width — which is where this list now
+                        appears for past epochs too. */}
+                    <Link
+                      className="grow truncate"
+                      title={entry.observerId}
+                      to={`/gateways/${observerToGatewayMap[entry.observerId]}`}
+                    >
+                      {entry.observerId}
+                    </Link>
 
-                  {entry.reportId && (
-                    <Button
-                      className="h-fit last:p-2"
-                      active={true}
-                      text={
-                        <NotebookText
-                          className="size-3 text-mid"
-                          strokeWidth={1.5}
-                        />
-                      }
-                      onClick={() => {
-                        if (entry.reportId) {
-                          navigate(
-                            `/gateways/${observerToGatewayMap[entry.observerId]}/reports/${entry.reportId}`,
-                          );
+                    {entry.reportId && (
+                      <Button
+                        className="h-fit shrink-0 last:p-2"
+                        active={true}
+                        text={
+                          <NotebookText
+                            className="size-3 text-mid"
+                            strokeWidth={1.5}
+                          />
                         }
-                      }}
-                      title={'View Report'}
-                    ></Button>
-                  )}
-                </>
-              ) : (
-                <Placeholder className="h-4" />
-              )}
+                        onClick={() => {
+                          if (entry.reportId) {
+                            navigate(
+                              `/gateways/${observerToGatewayMap[entry.observerId]}/reports/${entry.reportId}`,
+                            );
+                          }
+                        }}
+                        title={'View Report'}
+                      ></Button>
+                    )}
+                  </>
+                ) : (
+                  <Placeholder className="h-4" />
+                )}
+              </div>
             </div>
+            {/* Only rendered once the reports have been read. An observer
+                whose report could not be read shows nothing rather than an
+                empty reason list, which would read as "failed for no
+                reason". */}
+            {reasonsByObserver?.get(entry.observerId) && (
+              <ul className="ml-5 mt-1 list-disc pl-4 text-mid">
+                {reasonsByObserver.get(entry.observerId)?.length ? (
+                  reasonsByObserver
+                    .get(entry.observerId)
+                    ?.map((reason) => <li key={reason}>{reason}</li>)
+                ) : (
+                  <li>Failed, with no reason recorded in the report.</li>
+                )}
+              </ul>
+            )}
+            {passingByObserver?.has(entry.observerId) && (
+              // The two sources disagree. Rendering nothing here would read
+              // as an unexplained failure and quietly drop the fact that the
+              // report says the opposite.
+              <div className="ml-5 mt-1 pl-4 text-mid">
+                This observer&apos;s report records this gateway as passing.
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -247,6 +492,14 @@ const ReportedOnCard = ({
 
   const selectedEpoch = epochs?.[selectedEpochIndex];
   const { data: observations } = useObservations(selectedEpoch);
+
+  /** See the sibling card: a held count short of the chain's is not a total. */
+  const captureIsShort =
+    summarizeCapture({
+      capture: observations?.capture,
+      held: observations?.observationCount ?? 0,
+      chainObservationsSubmitted: observations?.chainObservationsSubmitted,
+    }).kind === 'shortfall';
 
   useEffect(() => {
     if (selectedEpoch && observations) {
@@ -373,19 +626,31 @@ const ReportedOnCard = ({
           <div className="flex h-full items-center justify-center px-10 text-center text-xs text-low">
             {!selectedForObservation
               ? 'This gateway was not selected to observe in this epoch.'
-              : !hasAttribution
-                ? 'The archive records how many gateways this observer failed, but not which ones.'
-                : 'This observer reported no gateways as failing in this epoch.'}
+              : captureIsShort
+                ? // Distinct from the line below it. That one says the archive
+                  // has this observer's results but not their breakdown; this
+                  // one says the epoch's reports were never captured at all,
+                  // so there is nothing to break down either way.
+                  'This epoch was not fully captured, so whether this observer reported is not recorded.'
+                : !hasAttribution
+                  ? 'The archive records how many gateways this observer failed, but not which ones.'
+                  : 'This observer reported no gateways as failing in this epoch.'}
           </div>
         )}
         {snitchedOn?.map((observer) => (
           <div
             key={observer}
-            className="flex gap-1 border-t border-grey-500 px-6 py-4 text-xs text-low"
+            className="flex min-w-0 gap-1 border-t border-grey-500 px-6 py-4 text-xs text-low"
           >
-            <StatsArrowIcon className="size-4" />
-            <div>
-              <Link to={`/gateways/${observer}`}>{observer}</Link>{' '}
+            <StatsArrowIcon className="size-4 shrink-0" />
+            <div className="min-w-0 grow">
+              <Link
+                className="block truncate"
+                title={observer}
+                to={`/gateways/${observer}`}
+              >
+                {observer}
+              </Link>
             </div>
           </div>
         ))}

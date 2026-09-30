@@ -28,9 +28,9 @@ interface TableData {
   domain: string;
   owner: string;
   start: Date;
-  totalDelegatedStake: number; // IO
-  operatorStake: number; // IO
-  totalStake: number; // IO
+  totalDelegatedStake: number; // ARIO
+  operatorStake: number; // ARIO
+  totalStake: number; // ARIO
   status: string;
   endTimeStamp: number;
   performance: number;

@@ -2,6 +2,7 @@ import { Gateway } from '@ar.io/sdk/web';
 import Placeholder from '@src/components/Placeholder';
 import Profile from '@src/components/Profile';
 import { BinocularsIcon, GatewayIcon } from '@src/components/icons';
+import { MOBILE_MENU_CLEARANCE } from '@src/layout/mobileMenu';
 import { useGlobalState } from '@src/store';
 import { ChevronRightIcon, NotebookText } from 'lucide-react';
 import { useMemo } from 'react';
@@ -24,15 +25,29 @@ const GatewayHeader = ({ gateway }: { gateway?: Gateway | null }) => {
 
   return (
     <header className="flex-col text-clip rounded-xl leading-[1.4] lg:mt-6 lg:border dark:border-transparent-100-8 dark:bg-grey-1000 dark:text-grey-300">
-      <div className="flex items-center gap-3 py-5 pl-8 text-sm lg:pl-6 lg:pr-4">
-        <div className="text-mid">
+      <div
+        className={`flex min-w-0 items-center gap-3 py-5 text-sm lg:pr-4 ${MOBILE_MENU_CLEARANCE}`}
+      >
+        <div className="shrink-0 text-mid">
           <Link to={'/gateways'}>Gateways</Link>
         </div>
-        <ChevronRightIcon className="size-4 text-mid" strokeWidth={1.5} />
+        {/*
+          The trailing crumb is the page's own name, which the panel directly
+          below states in full and in larger type. On a phone it competed with
+          the Connect button for what little room is left and lost, rendering
+          "Perma…." for a twelve-character name — so the trail stops at the
+          parent, which is the part that does something: going back.
+        */}
+        <ChevronRightIcon
+          className="hidden size-4 shrink-0 text-mid lg:block"
+          strokeWidth={1.5}
+        />
         {gateway ? (
-          <div className="text-low">{gateway.settings.label}</div>
+          <div className="hidden truncate text-low lg:block">
+            {gateway.settings.label}
+          </div>
         ) : (
-          <Placeholder />
+          <Placeholder className="hidden lg:block" />
         )}
         <div className="grow" />
         <div className="items-center">

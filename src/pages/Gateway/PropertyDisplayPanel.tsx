@@ -6,6 +6,11 @@ import LeaveNetworkModal from '@src/components/modals/LeaveNetworkModal';
 import StakingModal from '@src/components/modals/StakingModal';
 import { useGlobalState } from '@src/store';
 import { getBlockExplorerUrlForAddress } from '@src/utils';
+import {
+  NOT_DELEGATED_LABEL,
+  effectiveOperationsAddress,
+  isDelegated,
+} from '@src/utils/operationsAddress';
 import { useState } from 'react';
 import { ReactNode } from 'react';
 
@@ -30,6 +35,15 @@ const DisplayRow = ({
       <div className="flex min-w-0 flex-col content-center justify-center break-all border-t border-grey-900 p-2 text-sm text-low lg:p-0">
         {value === undefined ? (
           <Placeholder />
+        ) : value === '' ? (
+          // An operator who set no value is not a value still loading. Without
+          // this, `properties` renders as an empty anchor to
+          // viewblock.io/arweave/tx/ — a labelled row with nothing in it and a
+          // link that goes nowhere.
+          <span className="px-6 py-3 text-low lg:px-0">
+            <span aria-hidden="true">&mdash;</span>
+            <span className="sr-only">Not set</span>
+          </span>
         ) : typeof value === 'boolean' ? (
           <div className="flex items-center">
             <span className={`grow ${value ? 'text-green-600' : undefined}`}>
@@ -114,6 +128,9 @@ const PropertyDisplayPanel = ({
       ]
     : [];
 
+  const operationsAddress = effectiveOperationsAddress(gateway, ownerId);
+  const delegated = isDelegated(operationsAddress, ownerId);
+
   const gatewayRows: DisplayRowProps[] = [
     { label: 'Label:', value: gateway?.settings.label },
     { label: 'Address:', value: gatewayAddress, type: 'link' },
@@ -122,6 +139,16 @@ const PropertyDisplayPanel = ({
       label: 'Observer Wallet:',
       value: gateway?.observerAddress,
       type: 'address',
+    },
+    {
+      label: 'Operations Address:',
+      value:
+        operationsAddress === undefined
+          ? undefined
+          : delegated
+            ? operationsAddress
+            : NOT_DELEGATED_LABEL,
+      type: delegated ? 'address' : undefined,
     },
     {
       label: 'Properties ID:',
@@ -179,11 +206,12 @@ const PropertyDisplayPanel = ({
 
   return (
     <div className="grid grid-cols-[8rem_minmax(0,1fr)] lg:grid-cols-[14.375rem_minmax(0,1fr)]">
-      {gatewayRows.map(({ label, value, rightComponent }, index) => (
+      {gatewayRows.map(({ label, value, type, rightComponent }, index) => (
         <DisplayRow
           key={index}
           label={label}
           value={value}
+          type={type}
           rightComponent={rightComponent}
         />
       ))}

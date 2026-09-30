@@ -8,12 +8,15 @@ A React web application for interacting with the ar.io network.
 
 ```shell
 yarn
+cp .env.example .env.local   # then fill in a Solana RPC endpoint
 yarn dev
 ```
 
-`yarn dev` defaults to Solana devnet via `.env.local`.
+`yarn dev` reads `.env.local` and targets Solana devnet. `.env*` is gitignored
+(RPC URLs carry provider auth tokens), so a fresh clone has no `.env.local` —
+copy `.env.example`, which documents every variable and which ones are optional.
 
-For localnet, run:
+For localnet, put the same settings in `.env.localnet` and run:
 
 ```shell
 yarn dev:localnet
@@ -33,17 +36,32 @@ yarn test
 
 ## Deployment
 
-The application release process deploys the application to the network-portal.app domain as well as to Arweave using [permaweb-deploy](https://github.com/permaweb/permaweb-deploy). Developers can deploy their own versions of the application to arweave using `yarn deploy`.
+Pushing to `main` deploys the application to the network-portal.app domain via
+Firebase Hosting and, permanently, to Arweave via the
+[ar-io-deploy](https://github.com/ar-io/ar-io-deploy) action. Pushing to
+`develop` deploys staging to GitHub Pages. A pull request preview workflow
+exists but is disabled, so pull requests are not deployed anywhere before
+merge.
 
-Running `yarn deploy` uses the following environment variables:
+Developers can deploy their own version to Arweave with `yarn deploy`, which
+builds and then runs `ario-deploy` from
+[@ar.io/deploy](https://github.com/ar-io/ar-io-deploy). It needs two environment
+variables:
 
+```shell
+export VITE_ARNS_NAME="ARNS_NAME"
+export DEPLOY_KEY="BASE64_ENCODED_ARWEAVE_WALLET_KEYFILE"
 ```
-export VITE_IO_PROCESS_ID=[process ID for IO process]
-export VITE_ARNS_NAME=[The ArNS name to deploy to]
-export DEPLOY_KEY=[base64 encoded version of wallet keyfile]
-```
 
-For local testing, you can create a deploy.sh script with the above values defined, run `source deploy.sh`, then use `yarn deploy`.
+Replace the following:
+
+- `ARNS_NAME` with the ArNS name to deploy to.
+- `BASE64_ENCODED_ARWEAVE_WALLET_KEYFILE` with your Arweave wallet keyfile,
+  base64 encoded.
+
+Keep these out of git along with the rest of your `.env` files. For local
+testing you can put them in a `deploy.sh`, `source deploy.sh`, then run
+`yarn deploy`.
 
 ## Resources
 

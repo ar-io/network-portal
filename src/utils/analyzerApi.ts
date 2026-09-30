@@ -22,6 +22,7 @@
 
 import { log } from '@src/constants';
 import { useSettings } from '@src/store/settings';
+import type { EpochCapture } from '@src/utils/observationCapture';
 
 /** A slow API must never be slower than doing without it. */
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -40,6 +41,9 @@ const MAX_AGE_MS = {
   economics: 48 * 60 * 60 * 1000,
   rewards: 48 * 60 * 60 * 1000,
   epoch: null,
+  // A closed epoch's registry slot order is fixed for all time, so age is no
+  // more a criterion here than it is for the epoch document beside it.
+  registry: null,
 } as const;
 
 export type AnalyzerDocument = keyof typeof MAX_AGE_MS;
@@ -49,8 +53,11 @@ const analyzerBaseUrl = (): string => {
   return (typeof configured === 'string' ? configured : '').trim();
 };
 
-const pathFor = (doc: AnalyzerDocument, epochIndex?: number): string =>
-  doc === 'epoch' ? `/api/v1/epochs/${epochIndex}.json` : `/api/v1/${doc}.json`;
+const pathFor = (doc: AnalyzerDocument, epochIndex?: number): string => {
+  if (doc === 'epoch') return `/api/v1/epochs/${epochIndex}.json`;
+  if (doc === 'registry') return `/api/v1/registry/${epochIndex}.json`;
+  return `/api/v1/${doc}.json`;
+};
 
 /**
  * Fetch one analyzer document, or null if it cannot be trusted.
@@ -440,8 +447,58 @@ export interface AnalyzerEpochDocument {
   registryDigest?: string | null;
   firstSubmittedAtUnix?: number | null;
   lastSubmittedAtUnix?: number | null;
+  /**
+   * Whether `observations` is everything the chain counted. An absent value is
+   * treated as unknown, never as complete — see {@link summarizeCapture}.
+   */
+  capture?: EpochCapture;
+  /**
+   * The chain's own tally for this epoch, as read at capture time. It is what
+   * makes a shortfall quantifiable: `observationsSubmitted` can exceed the
+   * number of rows we hold, and the difference is what was lost.
+   */
+  chain?: {
+    endTimestampUnix?: number | null;
+    observerCount?: number | null;
+    observationsSubmitted?: number | null;
+    activeGatewayCount?: number | null;
+    hasObservedCount?: number | null;
+  };
+  /**
+   * The protocol's own per-slot failure tally, aligned to the same registry
+   * slot order as the bitmaps: `failureCounts[i]` describes slot `i`.
+   *
+   * Its length is the **authoritative slot count** — see
+   * {@link attributeGatewayResults}. Null on epochs published before this
+   * field shipped.
+   */
+  failureCounts?: number[] | null;
   observations?: AnalyzerObservation[];
   findings?: AnalyzerFinding[];
+}
+
+/**
+ * The gateway registry's slot order for one epoch: `gateways[i]` is the
+ * address the bitmaps' bit `i` refers to.
+ *
+ * Published per epoch and immutable once that epoch closes. Without it a
+ * results bitmap can only be counted, never attributed.
+ */
+export interface AnalyzerRegistryDocument {
+  epochIndex?: number;
+  generatedAt?: string;
+  gatewayCount?: number;
+  /**
+   * False when the slot order was captured AFTER the epoch closed, in which
+   * case bit `i` may not name `gateways[i]` and attribution is refused.
+   * Mainnet epochs 510 and 511 are the current cases.
+   */
+  inEpoch?: boolean;
+  approximate?: boolean;
+  /** Must equal the epoch document's `registryDigest`. */
+  digest?: string | null;
+  encoding?: string;
+  gateways?: string[];
 }
 
 /** The only bitmap encoding this decoder is correct for. */
@@ -513,6 +570,127 @@ export const countGatewayResults = (
   };
 };
 
+/** Gateway address -> the observers that failed it. */
+export type FailureSummaries = Record<string, string[]>;
+
+/**
+ * Map an epoch's results bitmaps back to individual gateways.
+ *
+ * This is the operation {@link countGatewayResults} deliberately refuses. It
+ * became possible when the archive began publishing `registry/<n>.json`, the
+ * slot order itself, rather than only a digest of it. Returns null — counts
+ * only, `hasGatewayAttribution: false` — whenever any guard fails, because a
+ * wrong gateway name is worse than no name.
+ *
+ * Five guards, each for a case seen in the published data:
+ *
+ * 1. **The digest must pair.** `epoch.registryDigest` and `registry.digest`
+ *    identify the ordering; a mismatch means the two documents describe
+ *    different registries. Note this proves they belong together and nothing
+ *    more — in particular it does NOT imply their lengths agree.
+ * 2. **`inEpoch` must be true.** A slot order captured after the epoch closed
+ *    may not name `gateways[i]` at bit `i` (mainnet 510 and 511).
+ * 3. **The slot count is `failureCounts.length`**, which equals every
+ *    observation's `gatewayCount` and the chain's `activeGatewayCount` — NOT
+ *    `registry.gateways.length`. On mainnet epochs 523 and 533 the registry
+ *    carries one gateway MORE than the epoch's bitmap covers, and both pass
+ *    the digest check. Iterating the registry would read one slot past the
+ *    bitmap, where an absent bit is 0 — which under this polarity is a
+ *    failure — and report that gateway as failed by every observer.
+ * 4. **Every observation must cover exactly that many slots.** One that
+ *    disagrees is misaligned, not merely short.
+ * 5. **The decoded tally must equal `failureCounts`.** This is the protocol's
+ *    own count, so it catches an inverted or drifted decoder outright rather
+ *    than rendering a confident wrong verdict. ~20k operations for a typical
+ *    epoch, which is nothing next to the download that preceded it.
+ *
+ * Guard 5 subsumes the polarity question: a SET bit is a PASS, and the check
+ * compares CLEARED bits against the failure tally. If that ever inverts, this
+ * returns null and the UI says "Unknown".
+ */
+export const attributeGatewayResults = (
+  epoch: Pick<
+    AnalyzerEpochDocument,
+    'registryDigest' | 'failureCounts' | 'observations'
+  >,
+  registry: AnalyzerRegistryDocument | null | undefined,
+): FailureSummaries | null => {
+  if (!registry) return null;
+
+  const slots = epoch.failureCounts;
+  const order = registry.gateways;
+  if (!Array.isArray(slots) || !Array.isArray(order)) return null;
+
+  // (1) The pairing claim. Both sides must make it; an absent digest is not a
+  // match, it is the absence of the only identity these documents carry.
+  if (
+    !epoch.registryDigest ||
+    !registry.digest ||
+    epoch.registryDigest !== registry.digest
+  ) {
+    log.warn('[analyzerApi] registry digest does not pair — counting only');
+    return null;
+  }
+
+  // (2) Captured after the fact: the order is a guess at this epoch's.
+  if (registry.inEpoch !== true) return null;
+
+  // (3) The bitmap's own slot count, never the registry array's length.
+  const slotCount = slots.length;
+  if (slotCount === 0 || order.length < slotCount) {
+    log.warn(
+      `[analyzerApi] registry holds ${order.length} slots for a ${slotCount}-slot epoch — counting only`,
+    );
+    return null;
+  }
+
+  const observations = epoch.observations ?? [];
+  if (observations.length === 0) return null;
+
+  const failedBy: FailureSummaries = {};
+  const tally = new Array<number>(slotCount).fill(0);
+
+  for (const observation of observations) {
+    const { observer, gatewayResultsBase64, gatewayResultsEncoding } =
+      observation ?? {};
+    if (!observer || !gatewayResultsBase64) return null;
+    if (gatewayResultsEncoding !== SUPPORTED_BITMAP_ENCODING) return null;
+    // (4) A differing count means the bits line up against a different
+    // registry, so nothing in this observation can be placed.
+    if (observation.gatewayCount !== slotCount) return null;
+
+    let bytes: Uint8Array;
+    try {
+      const binary = atob(gatewayResultsBase64);
+      bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    } catch {
+      return null;
+    }
+    if (bytes.length * 8 < slotCount) return null;
+
+    for (let i = 0; i < slotCount; i++) {
+      // A SET bit is healthy; the failure is the CLEARED bit.
+      if (((bytes[i >> 3] >> (i & 7)) & 1) === 1) continue;
+      tally[i] += 1;
+      const gateway = order[i];
+      if (!gateway) return null;
+      (failedBy[gateway] ??= []).push(observer);
+    }
+  }
+
+  // (5) Against the protocol's own tally.
+  for (let i = 0; i < slotCount; i++) {
+    if (tally[i] !== slots[i]) {
+      log.warn(
+        `[analyzerApi] decoded ${tally[i]} failures at slot ${i} but the chain counted ${slots[i]} — counting only`,
+      );
+      return null;
+    }
+  }
+
+  return failedBy;
+};
+
 /* -------------------------------------------------------------------------
  * Endpoint identity and capability.
  * ---------------------------------------------------------------------- */
@@ -568,6 +746,15 @@ export interface AnalyzerAvailability {
    * skipped without spending a request to be told 404.
    */
   archivedEpochs: number[];
+  /**
+   * Exactly which epochs publish a registry slot order.
+   *
+   * A strict subset of {@link archivedEpochs}: an epoch can be archived
+   * without one, and six mainnet epochs are. Attribution is impossible for
+   * those, so listing them separately keeps the miss free rather than paying
+   * a 404 on every view.
+   */
+  registryEpochs: number[];
   /** Endpoint identity, for logging. */
   network?: string;
 }
@@ -593,6 +780,7 @@ export const fetchAnalyzerAvailability = async (
     networkMatches: false,
     documents: [],
     archivedEpochs: [],
+    registryEpochs: [],
   };
   if (base.length === 0) return unavailable;
 
@@ -621,17 +809,20 @@ export const fetchAnalyzerAvailability = async (
       ? Object.keys(documentMap)
       : [];
 
-  const epochEntries = documentMap?.epochs;
-  const archivedEpochs = Array.isArray(epochEntries)
-    ? epochEntries
-        .map((entry) => (entry as { epochIndex?: number })?.epochIndex)
-        .filter((index): index is number => typeof index === 'number')
-    : [];
+  // Both are arrays of per-epoch records keyed by `epochIndex`, not lists of
+  // indices; reading either as a plain list is the silent-gating bug.
+  const epochIndices = (value: unknown): number[] =>
+    Array.isArray(value)
+      ? value
+          .map((entry) => (entry as { epochIndex?: number })?.epochIndex)
+          .filter((index): index is number => typeof index === 'number')
+      : [];
 
   return {
     networkMatches: true,
     documents,
-    archivedEpochs,
+    archivedEpochs: epochIndices(documentMap?.epochs),
+    registryEpochs: epochIndices(documentMap?.registry),
     network: portal.network,
   };
 };

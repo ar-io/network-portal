@@ -5,6 +5,164 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0] - 2026-09-30
+
+### Added
+
+- A gateway can now name an **operations address**: a second wallet allowed to
+  update the gateway's routing and presentation settings and to spend its ArNS
+  discount. It cannot move stake, change the reward share, or leave the network
+  — those stay with the owner. The gateway's page shows it, and the owner can
+  set, change, or revoke it by entering their own wallet again. A gateway that
+  has never set one reads "Not delegated (owner wallet)".
+
+- A gateway's **"Observations of this gateway"** panel can now say *why* an
+  observer failed it, not only that one did. Past epochs are served from the
+  published archive, which records how many gateways each observer passed but
+  not which ones — so the panel could only report "Unknown". The reports those
+  observers uploaded name each gateway and give the reason, and the panel now
+  offers to read them: "Response code 503 (Service Unavailable) — ownership
+  check and 10 ArNS names" is an outage during the assessment window, and
+  reads very differently from a failing configuration.
+
+  Reading them is a deliberate step rather than automatic, because it fetches
+  each observer's report. What it could not read it says it could not read,
+  rather than counting silence as a pass.
+
+- **A past epoch can now name which observers failed a gateway.** The panel
+  above could say how many reports an epoch received but not what they said
+  about you, and showed **Unknown** instead of a verdict: the results are a
+  bitmap indexed by the gateway registry's slot order for that epoch, and
+  only a fingerprint of that order was published. The order itself is now
+  published, so past epochs read like the current one — "Failed by 3/34
+  observers", with those three named and linked.
+
+  Reading their reports for the reason is still a deliberate step, but a much
+  smaller one: it now fetches only the reports of the observers that failed
+  you, typically three or four rather than every report submitted that epoch.
+  The reasons appear beneath each observer.
+
+  Where the published order cannot be trusted for an epoch the panel falls
+  back to counts and **Unknown** rather than guessing — including when the
+  order was captured after the epoch had closed, and when the decoded results
+  disagree with the network's own tally of failures. Two epochs on mainnet
+  fall into the first case and correctly stay unattributed.
+
+### Fixed
+
+- **Matured withdrawals could not be claimed from My Stakes.** Nothing returns
+  a matured withdrawal to your wallet by itself — on this network it takes a
+  transaction you sign — and the only place that offered one was a bulk button
+  on the Balances page, hidden unless you had something to claim. My Stakes
+  showed "Withdrawing" with a date in the past and offered Expedite, Cancel and
+  Redelegate, none of which pays you. A matured withdrawal now reads "Unlocked"
+  and offers **Claim Withdrawal**, in My Stakes and in a gateway's Pending
+  Withdrawals.
+
+- **Expedite under-quoted its own fee on a matured withdrawal**, and offered
+  itself where it should not. The fee stops falling at 10% and never reaches
+  zero, but the quote kept dropping past that — 7.3% two days after a
+  withdrawal matured, and below zero from six weeks on, while the network still
+  charged 10%. Once a withdrawal unlocks, claiming returns the full amount, so
+  Expedite is withdrawn rather than left as a way to pay 10% for nothing.
+
+- **The leave period was stated as 30 days when it is 90.** A departing
+  gateway's stake splits across two vaults: the minimum operator stake is held
+  for 90 days and cannot be released early, and anything above it follows the
+  30-day withdrawal period. The Gateways page said 30 for both, and the Leave
+  Network dialog said 90 for all three of its lines. Both now describe what
+  actually happens. An operator who read the old figure and expected their
+  stake back after 30 days is the reason this was found.
+
+- **"No stake is slashed on removal" was wrong.** A gateway removed for failing
+  30 consecutive epochs is slashed its entire minimum operator stake. The
+  tooltip said the opposite, in the panel that explains what failing costs.
+
+- **Yields were overstated and disagreed with each other.** Delegate EAY was
+  computed from figures the app filled in itself rather than the epoch's own
+  reward, and the staking table and the staking dialog differed by about 25%
+  while both read high. Every yield now comes from the epoch on chain. A yield
+  that cannot be known yet says so instead of showing a number, and the few
+  minutes at the start of an epoch before its rewards are set show the previous
+  epoch's rate, labelled.
+
+- **The rewards chart overstated every epoch by roughly double**, and drew an
+  epoch whose rewards had not been split yet as though they had all gone to
+  gateways. Totals now come from the epoch account, an unsplit epoch draws an
+  outline rather than a bar, and the chart has a legend and a unit.
+
+- **An epoch nobody observed was charted as a completed payout.** Such an epoch
+  pays nothing and the rewards stay in the treasury, but it still carries the
+  split it was assigned, so the chart showed gateway and observer rewards that
+  were never paid. It now reads "Not paid".
+
+- **Observer Performance opened on the epoch in progress**, which minutes after
+  a rollover legitimately reads 0 of 50 — shown as a large 0.00% beside a red
+  fall, which looks like the network has stopped. It leads with the most recent
+  finished epoch, and says "in progress" when you hover the live one.
+
+- **Switching the rewards chart to USD made the current epoch's bar vanish.**
+  Each epoch is valued at its own closing price and the epoch in progress has
+  not closed, so there was no price to use and the bar simply disappeared,
+  which reads as paying nothing. It is valued at the most recent close and the
+  tooltip says which epoch that came from.
+
+- **Redelegating could be rejected after passing every check on screen.** The
+  fee is taken first and the remainder must still clear the destination
+  gateway's minimum, which the form did not account for. It now checks the
+  amount that actually arrives, and suggests one that works.
+
+- Delegating to a gateway now applies that gateway's own minimum rather than
+  the network's, so the amount the form accepts is the amount the network does.
+
+- Tokens are named **ARIO** throughout, retiring the pre-rebrand IO, tIO and
+  mIO. The fee-based early release is called an **expedited withdrawal**
+  everywhere, matching the network's own wording.
+
+- Values that fail to load now say so instead of shimmering indefinitely, wide
+  tables hint that they scroll, and a table's edges fade without a colour
+  mismatch on scrollbars.
+
+- **None of the info bubbles could be read on a phone.** The tooltip library
+  opens on hover and closes on press, so on a touchscreen the tap meant to
+  open an explanation was the same gesture dismissing it — not one of them
+  could be opened. They now open on tap and close on a tap elsewhere, and a
+  long explanation no longer runs off the side of the screen. The breadcrumb
+  above the page title is reachable on a phone too.
+
+- **Every holder's share of supply was measured against the genesis billion.**
+  Balance Distribution declared a fixed 1,000,000,000 ARIO total supply while
+  the dashboard beside it read the live figure from the mint, so the two
+  disagreed — and the same constant was the denominator for every percentage
+  on the panel. ArNS purchases burn ARIO, so the real supply only moves
+  further from that number, and each holder's share was understated by a
+  little more each day. Both now read the mint's own supply. When it cannot be
+  read the panel says so and omits the percentages rather than dividing by a
+  guess; a slice still shows the amount it holds.
+
+- **An epoch whose reports were never archived read as an epoch nobody
+  observed.** Observation accounts are deleted once an epoch distributes, so
+  for a past epoch the published archive is the only record. Where that record
+  is incomplete the portal showed "0 reports submitted" — the same thing it
+  shows for an epoch that genuinely had none, and no later read can correct it
+  because the accounts are gone. Two epochs on mainnet are affected: ten and
+  eight observers reported on them respectively, and the portal said nobody
+  had. It now distinguishes the two, saying how many reports were submitted
+  and how many survived, and a partially captured epoch no longer presents its
+  count as a total.
+
+- **The deploy carried a lot it never used.** The font package was pulling all
+  six of its alphabets — Arabic, Hebrew, Cyrillic and the rest — in two file
+  formats each, twelve files where four will do. A reader never downloaded the
+  alphabets they had no use for, but every one of them was published to
+  Arweave and paid for permanently. Only the weight the interface asks for
+  least often was actually included, so bold and semibold text was being
+  faked by the browser; the real weights now ship and cost less than the
+  unused alphabets did. An example data file that nothing referenced is gone
+  too, and dependencies are now published separately from the app's own code,
+  so a release no longer republishes several megabytes that did not change.
+  Text is slightly crisper and a release costs a fraction of what it did.
+
 ## [2.11.1] - 2026-09-21
 
 ### Fixed

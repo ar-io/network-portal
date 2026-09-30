@@ -1,8 +1,11 @@
+import PanelUnavailable from '@src/components/PanelUnavailable';
 import Placeholder from '@src/components/Placeholder';
 import Streak from '@src/components/Streak';
 import useEpochSettings from '@src/hooks/useEpochSettings';
 import useObserversWithCount from '@src/hooks/useObserversWithCount';
-import { useEffect, useState } from 'react';
+import { useGlobalState } from '@src/store';
+import { isLiveEpoch, latestSettledIndex } from '@src/utils/epochSeries';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Area,
   AreaChart,
@@ -40,6 +43,10 @@ const CustomTooltip = ({
 const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
 
 const ObserverPerformancePanel = () => {
+  const epochLoadFailed = useGlobalState((state) => state.epochLoadFailed);
+  const currentEpochIndex = useGlobalState(
+    (state) => state.currentEpoch?.epochIndex,
+  );
   const { data: epochSettings } = useEpochSettings();
   const { data: historicalObserverStats } = useObserversWithCount(EPOCH_COUNT);
 
@@ -51,12 +58,19 @@ const ObserverPerformancePanel = () => {
   const [activeIndex, setActiveIndex] = useState<number>();
   const [percentageChange, setPercentageChange] = useState<number>();
 
-  // Default to latest epoch
+  // Lead with the newest FINISHED epoch, not the one in progress. Minutes
+  // after a rollover the live epoch legitimately reads 0/50, and as the
+  // headline — beside a red delta against a finished epoch — that says the
+  // network has failed when it has merely just started. The live epoch stays
+  // on the chart, hoverable and labelled.
+  const settledIndex = useMemo(
+    () => latestSettledIndex(chartData ?? [], currentEpochIndex),
+    [chartData, currentEpochIndex],
+  );
+
   useEffect(() => {
-    if (chartData) {
-      setActiveIndex(chartData.length - 1);
-    }
-  }, [chartData]);
+    setActiveIndex(settledIndex);
+  }, [settledIndex]);
 
   // Compute percentage change vs previous epoch
   useEffect(() => {
@@ -83,6 +97,10 @@ const ObserverPerformancePanel = () => {
     ? `${activeData.reportsCount}/${activeData.prescribedObservers}`
     : undefined;
 
+  // A partial count is not comparable with a finished epoch's, so the delta
+  // is withheld while the epoch is running rather than reported as a fall.
+  const activeIsLive = isLiveEpoch(activeData, currentEpochIndex);
+
   return (
     <div className="flex h-72 flex-col rounded-xl border border-grey-500 text-sm text-mid">
       <div className="flex items-center justify-between px-6 pt-5">
@@ -94,21 +112,30 @@ const ObserverPerformancePanel = () => {
           <div className="py-4 text-[2.625rem] font-bold leading-none text-high">
             {displayPercentage ?? <Placeholder />}
           </div>
-          {percentageChange !== undefined && (
+          {activeIsLive ? (
             <div className="flex h-full flex-col justify-end pb-5">
-              <Streak
-                streak={percentageChange}
-                fixedDigits={2}
-                rightLabel="%"
-              />
+              <span className="text-xs text-low">in progress</span>
             </div>
+          ) : (
+            percentageChange !== undefined && (
+              <div className="flex h-full flex-col justify-end pb-5">
+                <Streak
+                  streak={percentageChange}
+                  fixedDigits={2}
+                  rightLabel="%"
+                />
+              </div>
+            )
           )}
         </div>
         <div className="pb-5 text-right text-xs">
           {displaySubmitted ? (
             <>
               <div>{displaySubmitted}</div>
-              <div>observations submitted</div>
+              <div>
+                observations submitted
+                {activeIsLive ? ' so far' : ''}
+              </div>
             </>
           ) : (
             <Placeholder />
@@ -137,9 +164,10 @@ const ObserverPerformancePanel = () => {
               }
             }}
             onMouseLeave={() => {
-              if (chartData) {
-                setActiveIndex(chartData.length - 1);
-              }
+              // Back to the settled epoch, not the last point — resetting to
+              // the live one would undo the default above the moment anyone
+              // hovered the chart and moved away.
+              setActiveIndex(settledIndex);
             }}
           >
             <defs>
@@ -202,6 +230,11 @@ const ObserverPerformancePanel = () => {
         <div className="m-auto pb-12 text-sm italic text-low">
           Historical trend available soon
         </div>
+      ) : epochLoadFailed ? (
+        <PanelUnavailable>
+          Observer performance is unavailable because the current epoch could
+          not be read.
+        </PanelUnavailable>
       ) : (
         <Placeholder className="m-auto" />
       )}

@@ -8,7 +8,10 @@ import {
 import { useGlobalState } from '@src/store';
 import { cleanupDbCache } from '@src/store/db';
 import { probeArIOGateway } from '@src/utils/arweaveUrl';
-import { fetchEpochLightweight } from '@src/utils/epochFetch';
+import {
+  type EpochDataWithCounters,
+  fetchEpochLightweight,
+} from '@src/utils/epochFetch';
 import { getErrorMessage } from '@src/utils/getErrorMessage';
 import { showErrorToast } from '@src/utils/toast';
 import type { QueryClient } from '@tanstack/react-query';
@@ -40,6 +43,15 @@ async function fetchCurrentEpochLightweight(
   return fetchEpochLightweight(rpc, garProgram, epochIndex, commitment);
 }
 
+/**
+ * How often, and for how long, to re-read an epoch awaiting prescription. Six
+ * hours, not the few minutes prescription usually takes: devnet has been seen
+ * unprescribed well over an hour into an epoch, and one account read a minute
+ * is cheap next to leaving an open tab on stand-in yields until it reloads.
+ */
+const PRESCRIPTION_POLL_MS = 60 * 1000;
+const PRESCRIPTION_POLL_ATTEMPTS = 6 * 60;
+
 const isEpochUnavailableError = (errorMessage: string): boolean => {
   const lowerMessage = errorMessage.toLowerCase();
 
@@ -48,6 +60,12 @@ const isEpochUnavailableError = (errorMessage: string): boolean => {
 
 const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const setCurrentEpoch = useGlobalState((state) => state.setCurrentEpoch);
+  const setEpochLoadFailed = useGlobalState(
+    (state) => state.setEpochLoadFailed,
+  );
+  const setReferencePerGatewayReward = useGlobalState(
+    (state) => state.setReferencePerGatewayReward,
+  );
   const currentEpoch = useGlobalState((state) => state.currentEpoch);
   const setTicker = useGlobalState((state) => state.setTicker);
   const rpc = useGlobalState((state) => state.rpc);
@@ -58,8 +76,81 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    // The effect reruns whenever the endpoint changes, and the request it
+    // started is not cancellable. Without this, an older request rejecting
+    // after a newer one began would flip `epochLoadFailed` while the newer one
+    // is still in flight, and the header would read Unavailable during a load
+    // that has not failed.
+    let isCurrent = true;
+    let pollTimer: ReturnType<typeof setTimeout> | undefined;
+
+    /**
+     * The previous epoch's per-gateway reward, to stand in for yields while the
+     * newest epoch awaits `prescribe_epoch`. Awaited BEFORE the unprescribed
+     * epoch is published, so tables go straight from a loading skeleton to a
+     * value rather than flashing a "yield will appear" note in between.
+     */
+    const loadReferenceReward = async (
+      epochIndex: number,
+      garProgram: string,
+      commitment: Commitment,
+    ) => {
+      if (epochIndex <= 0) return;
+      try {
+        const previous = await fetchEpochLightweight(
+          rpc,
+          garProgram,
+          epochIndex - 1,
+          commitment,
+        );
+        if (isCurrent && (previous.perGatewayReward ?? 0) > 0) {
+          setReferencePerGatewayReward(previous.perGatewayReward);
+        }
+      } catch (error) {
+        log.warn(
+          '[GlobalDataProvider] could not read the previous epoch for a reference reward',
+          error,
+        );
+      }
+    };
+
+    /**
+     * Re-read an unprescribed epoch until it is prescribed, then replace it in
+     * place. Bounded by PRESCRIPTION_POLL_ATTEMPTS.
+     */
+    const pollUntilPrescribed = (
+      epochIndex: number,
+      garProgram: string,
+      commitment: Commitment,
+    ) => {
+      let attempts = 0;
+      const poll = async () => {
+        if (!isCurrent || attempts >= PRESCRIPTION_POLL_ATTEMPTS) return;
+        attempts += 1;
+        try {
+          const fresh = await fetchEpochLightweight(
+            rpc,
+            garProgram,
+            epochIndex,
+            commitment,
+          );
+          if (!isCurrent) return;
+          if (fresh.rewardsPrescribed) {
+            setCurrentEpoch(fresh);
+            return;
+          }
+        } catch (error) {
+          log.warn('[GlobalDataProvider] prescription poll failed', error);
+        }
+        if (isCurrent) pollTimer = setTimeout(poll, PRESCRIPTION_POLL_MS);
+      };
+      pollTimer = setTimeout(poll, PRESCRIPTION_POLL_MS);
+    };
+
     const loadCurrentEpoch = async () => {
       setCurrentEpoch(undefined);
+      setEpochLoadFailed(false);
+      setReferencePerGatewayReward(undefined);
 
       const garProgram = (arioReadSDK as any)?.garProgram as string | undefined;
       const commitment =
@@ -85,10 +176,13 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           epoch = await arioReadSDK.getCurrentEpoch();
         }
 
+        if (!isCurrent) return;
+
         if (Array.isArray(epoch)) {
           log.error(
             '[GlobalDataProvider] Error fetching current epoch: unexpected array response',
           );
+          setEpochLoadFailed(true);
           showErrorToast(
             'Error fetching current epoch. Application may not function as expected.',
           );
@@ -97,8 +191,24 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
         log.info(
           `[GlobalDataProvider] Current epoch loaded: ${epoch.epochIndex} (RPC: ${solanaRpcUrl})`,
         );
+        const awaitingPrescription =
+          !!garProgram &&
+          !!rpc &&
+          (epoch as EpochDataWithCounters).rewardsPrescribed === false;
+
+        if (awaitingPrescription) {
+          await loadReferenceReward(epoch.epochIndex, garProgram, commitment);
+          if (!isCurrent) return;
+        }
+
         setCurrentEpoch(epoch);
+
+        if (awaitingPrescription) {
+          pollUntilPrescribed(epoch.epochIndex, garProgram, commitment);
+        }
       } catch (error) {
+        if (!isCurrent) return;
+
         const errorMessage = getErrorMessage(error);
 
         if (isEpochUnavailableError(errorMessage)) {
@@ -109,6 +219,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
               errorMessage,
             },
           );
+          setEpochLoadFailed(true);
           return;
         }
 
@@ -117,6 +228,7 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
           errorMessage,
           error,
         });
+        setEpochLoadFailed(true);
         showErrorToast(
           'Error fetching current epoch. Application may not function as expected.',
         );
@@ -124,7 +236,21 @@ const GlobalDataProvider = ({ children }: { children: ReactElement }) => {
     };
 
     loadCurrentEpoch();
-  }, [arioReadSDK, rpc, queryClient, setCurrentEpoch, setTicker, solanaRpcUrl]);
+
+    return () => {
+      isCurrent = false;
+      if (pollTimer) clearTimeout(pollTimer);
+    };
+  }, [
+    arioReadSDK,
+    rpc,
+    queryClient,
+    setCurrentEpoch,
+    setEpochLoadFailed,
+    setReferencePerGatewayReward,
+    setTicker,
+    solanaRpcUrl,
+  ]);
 
   useEffect(() => {
     if (currentEpoch?.epochIndex && networkPortalDB) {

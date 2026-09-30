@@ -10,8 +10,7 @@ import RedelegateModal, {
 } from '@src/components/modals/RedelegateModal';
 import { EAY_TOOLTIP_TEXT, OPERATOR_EAY_TOOLTIP_FORMULA } from '@src/constants';
 import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
-import useGateways from '@src/hooks/useGateways';
-import useProtocolBalance from '@src/hooks/useProtocolBalance';
+import usePerGatewayReward from '@src/hooks/usePerGatewayReward';
 import { useGlobalState } from '@src/store';
 import { formatPercentage, formatWithCommas } from '@src/utils';
 import { calculateOperatorRewards } from '@src/utils/rewards';
@@ -26,8 +25,7 @@ type OperatorStakeProps = {
 
 const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
   const ticker = useGlobalState((state) => state.ticker);
-  const { data: protocolBalance } = useProtocolBalance();
-  const { data: gateways } = useGateways();
+  const perGatewayReward = usePerGatewayReward();
   const [isStakingModalOpen, setIsStakingModalOpen] = useState<boolean>(false);
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] =
     useState<boolean>(false);
@@ -47,23 +45,17 @@ const OperatorStake = ({ gateway, walletAddress }: OperatorStakeProps) => {
   }, [gatewayRegistrySettings]);
 
   useEffect(() => {
-    if (gateways && gateway && protocolBalance) {
-      const totalGateways = Object.values(gateways).filter(
-        (g) => g.status === 'joined',
-      ).length;
-      if (totalGateways === 0) {
-        setEAY(undefined);
-        return;
-      }
+    if (gateway && perGatewayReward) {
       const rewards = calculateOperatorRewards(
-        new mARIOToken(protocolBalance).toARIO(),
-        totalGateways,
+        perGatewayReward,
         gateway,
         new mARIOToken(gateway.operatorStake).toARIO(),
       );
       setEAY(rewards.EAY);
+    } else {
+      setEAY(undefined);
     }
-  }, [gateway, gateways, protocolBalance]);
+  }, [gateway, perGatewayReward]);
 
   return (
     <div className="w-full rounded-xl border border-transparent-100-16 text-sm">

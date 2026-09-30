@@ -14,7 +14,17 @@ const useEpochsWithCount = (epochCount: number) => {
   const solanaRpcUrl = useGlobalState((state) => state.solanaRpcUrl);
 
   const queryResults = useQuery({
-    queryKey: ['epochs', solanaRpcUrl, startEpoch?.epochIndex, epochCount],
+    // `rewardsPrescribed` is in the key because the current epoch is replaced in
+    // place, same index, once `prescribe_epoch` runs. Keyed on the index
+    // alone, the chart kept the pre-prescription copy it captured and showed
+    // "Split pending" beside yields that had already updated.
+    queryKey: [
+      'epochs',
+      solanaRpcUrl,
+      startEpoch?.epochIndex,
+      startEpoch?.rewardsPrescribed,
+      epochCount,
+    ],
     queryFn: async () => {
       if (!rpc || !garProgram || startEpoch === undefined) {
         throw new Error('rpc, garProgram, or startEpoch not available');

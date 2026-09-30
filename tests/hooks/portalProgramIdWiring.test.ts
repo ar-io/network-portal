@@ -19,7 +19,7 @@ const hookSources = import.meta.glob('../../src/hooks/*.ts', {
 }) as Record<string, string>;
 
 const PORTAL_CALLS =
-  /\b(snapshotOrRpc|fetchPortalDocument|fetchPortalSummary)\s*[<(]/;
+  /\b(snapshotOrRpc|fetchPortalDocument|fetchStampedPortalDocument|fetchPortalSummary|fetchNetworkStats)\s*[<(]/;
 
 describe('portal program id wiring', () => {
   const callers = Object.entries(hookSources).filter(([, source]) =>

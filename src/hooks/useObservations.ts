@@ -5,7 +5,9 @@ import { useGlobalState, useSettings } from '@src/store';
 import {
   type AnalyzerEpochDocument,
   type AnalyzerFinding,
+  type AnalyzerRegistryDocument,
   type GatewayResultTotals,
+  attributeGatewayResults,
   countGatewayResults,
   fetchAnalyzerDocument,
 } from '@src/utils/analyzerApi';
@@ -39,9 +41,10 @@ export interface ObservationData {
    * Whether `failureSummaries` could be built at all.
    *
    * The results bitmap indexes into the gateway registry's slot order for that
-   * epoch, and the archive publishes only a digest of that ordering, not the
-   * ordering itself. Mapping historical bits against today's registry would
-   * name the wrong gateways, so attribution is refused instead.
+   * epoch. The live path has that order in hand; the archive path needs the
+   * published `registry/<n>.json`, and refuses attribution whenever it is
+   * absent, unpaired, captured after the epoch closed, or disagrees with the
+   * protocol's own failure tally — see `attributeGatewayResults`.
    *
    * Consumers MUST branch on this rather than reading an empty
    * `failureSummaries` as "this observer reported no failures".
@@ -204,8 +207,9 @@ export async function fetchObservationsDirect(
  * `close_observation`, where the live read returns nothing at all.
  *
  * `reports` is fully recoverable — it is a plain observer-to-transaction map.
- * `failureSummaries` is not, and is deliberately left empty with
- * `hasGatewayAttribution: false`; see {@link ObservationData}.
+ * `failureSummaries` needs the epoch's registry slot order too, so it is
+ * filled only when that document pairs and verifies; otherwise it stays empty
+ * with `hasGatewayAttribution: false`. See {@link ObservationData}.
  *
  * Returns a result for a document holding **no** observations, where it once
  * returned null. An empty list is an answer — `capture` says which answer —
@@ -215,11 +219,18 @@ export async function fetchObservationsDirect(
  */
 export async function fetchObservationsFromArchive(
   epochIndex: number,
+  { registryAvailable = true }: { registryAvailable?: boolean } = {},
 ): Promise<ObservationData | null> {
-  const doc = await fetchAnalyzerDocument<AnalyzerEpochDocument>(
-    'epoch',
-    epochIndex,
-  );
+  // The registry is fetched alongside rather than after: it is the smaller of
+  // the two and only useful paired with this exact epoch document, so a second
+  // round trip would buy nothing. A miss costs one 404 and falls back to
+  // counting, which is what the whole archive path did before it existed.
+  const [doc, registry] = await Promise.all([
+    fetchAnalyzerDocument<AnalyzerEpochDocument>('epoch', epochIndex),
+    registryAvailable
+      ? fetchAnalyzerDocument<AnalyzerRegistryDocument>('registry', epochIndex)
+      : null,
+  ]);
   if (!doc) return null;
 
   // The portal documents are stamped with a network and program ids and are
@@ -245,9 +256,17 @@ export async function fetchObservationsFromArchive(
     if (totals) totalsByObserver[observation.observer] = totals;
   }
 
+  // The registry document must be for the epoch it is being paired with. Like
+  // the epoch document above, its own index is the only identity claim it
+  // makes, and pairing the wrong one would attribute this epoch's results to
+  // another epoch's slot order.
+  const pairedRegistry =
+    registry && registry.epochIndex === epochIndex ? registry : null;
+  const failureSummaries = attributeGatewayResults(doc, pairedRegistry);
+
   return {
     reports,
-    failureSummaries: {},
+    failureSummaries: failureSummaries ?? {},
     // Prefer the publisher's own counts, which describe the epoch as captured;
     // fall back to what the rows we received imply.
     observationCount: doc.observationCount ?? Object.keys(reports).length,
@@ -255,7 +274,7 @@ export async function fetchObservationsFromArchive(
       doc.distinctReportTxIds ?? new Set(Object.values(reports)).size,
     findings: doc.findings,
     source: 'archive',
-    hasGatewayAttribution: false,
+    hasGatewayAttribution: failureSummaries !== null,
     totalsByObserver,
     capture: doc.capture,
     chainObservationsSubmitted:
@@ -281,6 +300,7 @@ export async function resolveEpochObservations({
   epochIndex,
   currentEpochIndex,
   archiveAvailable,
+  registryAvailable = true,
 }: {
   rpc: any;
   arIOReadSDK: any;
@@ -288,6 +308,7 @@ export async function resolveEpochObservations({
   epochIndex?: number;
   currentEpochIndex?: number;
   archiveAvailable: boolean;
+  registryAvailable?: boolean;
 }): Promise<ObservationData> {
   if (!rpc || !arIOReadSDK || !garProgram || epochIndex === undefined) {
     throw new Error('rpc, garProgram, or epoch not available');
@@ -304,7 +325,9 @@ export async function resolveEpochObservations({
     currentEpochIndex !== undefined && epochIndex < currentEpochIndex;
 
   if (isHistorical && archiveAvailable) {
-    const archived = await fetchObservationsFromArchive(epochIndex);
+    const archived = await fetchObservationsFromArchive(epochIndex, {
+      registryAvailable,
+    });
     // Rows in hand, or a document that vouches for holding everything: either
     // way the archive has answered and there is nothing for a scan to add.
     if (
@@ -332,7 +355,10 @@ export async function resolveEpochObservations({
   // Distributed between rendering and reading: fall through to the archive
   // rather than showing an epoch that suddenly has no observations.
   if (!archiveAvailable) return live;
-  return (await fetchObservationsFromArchive(epochIndex)) ?? live;
+  return (
+    (await fetchObservationsFromArchive(epochIndex, { registryAvailable })) ??
+    live
+  );
 }
 
 const useObservations = (epoch?: EpochData) => {
@@ -351,6 +377,13 @@ const useObservations = (epoch?: EpochData) => {
     availability.documents.includes('epochs') &&
     (epoch === undefined ||
       availability.archivedEpochs.includes(epoch.epochIndex));
+  // A strict subset: six mainnet epochs are archived without one. Asking for a
+  // registry that is not published costs a 404 on every view of that epoch.
+  const registryAvailable =
+    availability.networkMatches &&
+    availability.documents.includes('registry') &&
+    epoch !== undefined &&
+    availability.registryEpochs.includes(epoch.epochIndex);
   const garProgram = (arIOReadSDK as any)?.garProgram as string | undefined;
 
   const queryResults = useQuery({
@@ -360,6 +393,7 @@ const useObservations = (epoch?: EpochData) => {
       epoch?.epochIndex ?? -1,
       portalApiUrl,
       archiveAvailable,
+      registryAvailable,
     ],
     queryFn: () =>
       resolveEpochObservations({
@@ -369,6 +403,7 @@ const useObservations = (epoch?: EpochData) => {
         epochIndex: epoch?.epochIndex,
         currentEpochIndex: currentEpoch?.epochIndex,
         archiveAvailable,
+        registryAvailable,
       }),
     enabled: !!rpc && !!arIOReadSDK && !!garProgram && !!epoch,
   });

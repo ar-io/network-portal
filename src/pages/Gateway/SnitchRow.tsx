@@ -82,8 +82,35 @@ const ReportedOnByCard = ({
     epochIndex: selectedEpoch?.epochIndex,
     fqdn: gateway?.settings.fqdn,
     reports: observations?.reports,
+    // With attribution the bitmap already names who failed, so only those
+    // reports are worth the download — three or four instead of nineteen.
+    // Without it there is no way to know which ones matter, so all are read.
+    observers: hasAttribution
+      ? failureObservers.map((entry) => entry.observerId)
+      : undefined,
     enabled: readReports,
   });
+
+  /**
+   * Observer -> the reasons their report gives for failing this gateway.
+   *
+   * Absent from the map means the report was not read or could not be read,
+   * which the row must not render as a pass or as an unexplained failure.
+   */
+  const reasonsByObserver = fromReports
+    ? new Map(
+        fromReports.verdicts
+          .filter((verdict) => verdict.outcome?.pass === false)
+          .map((verdict) => [verdict.observer, verdict.outcome?.reasons ?? []]),
+      )
+    : undefined;
+
+  /** How many of the failing observers' reports actually explain the failure. */
+  const explainedCount = reasonsByObserver
+    ? failureObservers.filter((entry) =>
+        reasonsByObserver.has(entry.observerId),
+      ).length
+    : 0;
 
   useEffect(() => {
     if (observations) {
@@ -298,47 +325,122 @@ const ReportedOnByCard = ({
             No observer reported this gateway as failing in this epoch.
           </div>
         ) : null}
+        {/* Attribution names who failed this gateway; only the observer's own
+            report says why. Offered rather than taken automatically, on the
+            same reasoning as the unattributed branch above — but narrowed to
+            the observers that actually failed, so it is a few reports instead
+            of every one submitted this epoch. */}
+        {hasAttribution && failureObservers.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-grey-500 px-6 py-2 text-xs text-low">
+            {fromReports ? (
+              <span>
+                {fromReports.readCount === 0
+                  ? 'No report could be read.'
+                  : explainedCount === 0
+                    ? // Read, but none of them records a result for this
+                      // gateway. Saying "reasons read from 3 of 3" above an
+                      // unexplained list would credit the reports with an
+                      // answer they did not give.
+                      `Read ${fromReports.readCount} report${fromReports.readCount === 1 ? '' : 's'}; none records a result for this gateway.`
+                    : `Reasons read from ${explainedCount} of ${failureObservers.length} report${failureObservers.length === 1 ? '' : 's'}.`}
+                {fromReports.unreadableCount > 0 &&
+                  ` ${fromReports.unreadableCount} could not be read.`}
+              </span>
+            ) : (
+              <span>
+                The results say these observers failed this gateway, not why.
+              </span>
+            )}
+            {fromReports && fromReports.unreadableCount > 0 ? (
+              <button
+                type="button"
+                className="text-link underline"
+                onClick={() => rereadReports()}
+                disabled={readingReports}
+              >
+                {readingReports ? 'Retrying…' : 'Try the rest again'}
+              </button>
+            ) : (
+              !fromReports && (
+                <button
+                  type="button"
+                  className="text-link underline"
+                  onClick={() => setReadReports(true)}
+                  disabled={readingReports}
+                >
+                  {readingReports
+                    ? 'Reading reports…'
+                    : reportsFailed
+                      ? 'Reading failed — try again'
+                      : 'Read why'}
+                </button>
+              )
+            )}
+          </div>
+        )}
         {failureObservers?.map((entry) => (
           <div
             key={entry.observerId}
-            className="flex items-center gap-1 border-t border-grey-500 py-2.5 pl-6 pr-2 text-xs text-low"
+            className="min-w-0 border-t border-grey-500 py-2.5 pl-6 pr-2 text-xs text-low"
           >
-            <StatsArrowIcon className="size-4" />
-            <div className="flex w-full items-center">
-              {observerToGatewayMap && epochs ? (
-                <>
-                  <Link
-                    className="grow"
-                    to={`/gateways/${observerToGatewayMap[entry.observerId]}`}
-                  >
-                    {entry.observerId}
-                  </Link>
+            <div className="flex min-w-0 items-center gap-1">
+              <StatsArrowIcon className="size-4 shrink-0" />
+              <div className="flex w-full min-w-0 items-center gap-2">
+                {observerToGatewayMap && epochs ? (
+                  <>
+                    {/* An observer address is 44 characters and does not wrap.
+                        Without truncation it pushes the View Report button off
+                        the card at phone width — which is where this list now
+                        appears for past epochs too. */}
+                    <Link
+                      className="grow truncate"
+                      title={entry.observerId}
+                      to={`/gateways/${observerToGatewayMap[entry.observerId]}`}
+                    >
+                      {entry.observerId}
+                    </Link>
 
-                  {entry.reportId && (
-                    <Button
-                      className="h-fit last:p-2"
-                      active={true}
-                      text={
-                        <NotebookText
-                          className="size-3 text-mid"
-                          strokeWidth={1.5}
-                        />
-                      }
-                      onClick={() => {
-                        if (entry.reportId) {
-                          navigate(
-                            `/gateways/${observerToGatewayMap[entry.observerId]}/reports/${entry.reportId}`,
-                          );
+                    {entry.reportId && (
+                      <Button
+                        className="h-fit shrink-0 last:p-2"
+                        active={true}
+                        text={
+                          <NotebookText
+                            className="size-3 text-mid"
+                            strokeWidth={1.5}
+                          />
                         }
-                      }}
-                      title={'View Report'}
-                    ></Button>
-                  )}
-                </>
-              ) : (
-                <Placeholder className="h-4" />
-              )}
+                        onClick={() => {
+                          if (entry.reportId) {
+                            navigate(
+                              `/gateways/${observerToGatewayMap[entry.observerId]}/reports/${entry.reportId}`,
+                            );
+                          }
+                        }}
+                        title={'View Report'}
+                      ></Button>
+                    )}
+                  </>
+                ) : (
+                  <Placeholder className="h-4" />
+                )}
+              </div>
             </div>
+            {/* Only rendered once the reports have been read. An observer
+                whose report could not be read shows nothing rather than an
+                empty reason list, which would read as "failed for no
+                reason". */}
+            {reasonsByObserver?.get(entry.observerId) && (
+              <ul className="ml-5 mt-1 list-disc pl-4 text-mid">
+                {reasonsByObserver.get(entry.observerId)?.length ? (
+                  reasonsByObserver
+                    .get(entry.observerId)
+                    ?.map((reason) => <li key={reason}>{reason}</li>)
+                ) : (
+                  <li>Failed, with no reason recorded in the report.</li>
+                )}
+              </ul>
+            )}
           </div>
         ))}
       </div>
@@ -519,11 +621,17 @@ const ReportedOnCard = ({
         {snitchedOn?.map((observer) => (
           <div
             key={observer}
-            className="flex gap-1 border-t border-grey-500 px-6 py-4 text-xs text-low"
+            className="flex min-w-0 gap-1 border-t border-grey-500 px-6 py-4 text-xs text-low"
           >
-            <StatsArrowIcon className="size-4" />
-            <div>
-              <Link to={`/gateways/${observer}`}>{observer}</Link>{' '}
+            <StatsArrowIcon className="size-4 shrink-0" />
+            <div className="min-w-0 grow">
+              <Link
+                className="block truncate"
+                title={observer}
+                to={`/gateways/${observer}`}
+              >
+                {observer}
+              </Link>
             </div>
           </div>
         ))}

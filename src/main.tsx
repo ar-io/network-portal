@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import App from './App.tsx';
+import './fonts.css';
 import './index.css';
 import { Logger } from '@ar.io/sdk/web';
 

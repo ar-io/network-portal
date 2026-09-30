@@ -16,6 +16,39 @@ export default defineConfig({
     sourcemap: false,
     minify: true,
     cssMinify: true,
+    rollupOptions: {
+      output: {
+        /**
+         * Hold every dependency in one chunk, separate from application code.
+         *
+         * This is about deploy cost, not load time. `ar-io-deploy` dedupes
+         * per file against the previous release, so an unchanged file is
+         * never re-uploaded or re-paid — but a chunk's name carries a hash of
+         * its contents, so a chunk counts as unchanged only if everything
+         * inside it is.
+         *
+         * Everything used to share one entry chunk: application code and
+         * every dependency, 3.4MB of a 4.4MB deploy. Editing one line of copy
+         * rewrote that chunk, so every release re-uploaded all 3.4MB,
+         * permanently. Now the entry is ~205KB of code that changes on every
+         * release and the dependencies sit in a chunk that does not change
+         * between releases at all.
+         *
+         * **A finer split does not work here, and the failure is invisible to
+         * the build.** Grouping by upgrade cadence — charts, web3.js and its
+         * Node crypto polyfills, the ar.io packages, the rest — builds
+         * cleanly, is meaningfully smaller still, and then white-screens
+         * every route with "Cannot access 'j0' before initialization". The
+         * `@solana` packages are circularly entangled, so a boundary drawn
+         * through them reorders their initialisation. Anything beyond this
+         * one predicate has to be proved by loading the built output, not by
+         * a green build.
+         */
+        manualChunks(id: string) {
+          if (id.includes('node_modules')) return 'vendor';
+        },
+      },
+    },
   },
   plugins: [svgr(), react(), nodePolyfills()],
   base: '',

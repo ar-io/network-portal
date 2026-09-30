@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **The coin beside "$ARIO Balances" was the pre-rebrand mark**, and it was a
+  photograph of one: a bitmap embedded in an SVG, 406 KB, drawn at 19 pixels
+  across. It has been replaced with the official ARIO token logo from the
+  ar.io brand kit, which is drawn as a vector and weighs 1 KB. The icon is
+  sharp at any size, and the Balances page downloads roughly 400 KB less.
+
 ## [2.12.0] - 2026-09-30
 
 ### Added

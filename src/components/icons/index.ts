@@ -1,7 +1,6 @@
-/// <reference types="vite-plugin-svgr/client" />
+import ArioTokenLogoIcon from './ario-token-logo.svg?react';
 import ArioWordmarkIcon from './ario-wordmark.svg?react';
 import ArioLogoIcon from './ario.svg?react';
-import ArioCoinIcon from './ario_coin.svg?react';
 import BannerRightChevron from './banner_right_chevron.svg?react';
 import BinocularsIcon from './binoculars.svg?react';
 import BinocularsGradientIcon from './binoculars_gradient.svg?react';
@@ -48,7 +47,7 @@ import WarningIcon from './warning.svg?react';
 import WarningTriangleIcon from './warning_triangle.svg?react';
 
 export {
-  ArioCoinIcon,
+  ArioTokenLogoIcon,
   ArioLogoIcon,
   ArioWordmarkIcon,
   BannerRightChevron,

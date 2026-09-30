@@ -2,7 +2,7 @@ import { mARIOToken } from '@ar.io/sdk/web';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import Placeholder from '@src/components/Placeholder';
 import {
-  ArioCoinIcon,
+  ArioTokenLogoIcon,
   ObserversBgIcon,
   ObserversConnectIcon,
   ThreeDotsIcon,
@@ -197,7 +197,7 @@ const Banner = ({
             )}
 
             <div className="flex items-center gap-3 pl-6">
-              <ArioCoinIcon className="size-6" />
+              <ArioTokenLogoIcon className="size-6" />
               <div className="group-hover:text-gradient text-sm text-high">
                 {walletAddress.toString() ===
                   loggedinWalletAddress?.toString() && 'My '}

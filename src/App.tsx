@@ -1,4 +1,3 @@
-import '@fontsource/rubik';
 import {
   ConnectionProvider,
   WalletProvider as SolanaWalletProvider,

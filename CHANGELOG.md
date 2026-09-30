@@ -29,6 +29,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   each observer's report. What it could not read it says it could not read,
   rather than counting silence as a pass.
 
+- **A past epoch can now name which observers failed a gateway.** The panel
+  above could say how many reports an epoch received but not what they said
+  about you, and showed **Unknown** instead of a verdict: the results are a
+  bitmap indexed by the gateway registry's slot order for that epoch, and
+  only a fingerprint of that order was published. The order itself is now
+  published, so past epochs read like the current one — "Failed by 3/34
+  observers", with those three named and linked.
+
+  Reading their reports for the reason is still a deliberate step, but a much
+  smaller one: it now fetches only the reports of the observers that failed
+  you, typically three or four rather than every report submitted that epoch.
+  The reasons appear beneath each observer.
+
+  Where the published order cannot be trusted for an epoch the panel falls
+  back to counts and **Unknown** rather than guessing — including when the
+  order was captured after the epoch had closed, and when the decoded results
+  disagree with the network's own tally of failures. Two epochs on mainnet
+  fall into the first case and correctly stay unattributed.
+
 ### Fixed
 
 - **Matured withdrawals could not be claimed from My Stakes.** Nothing returns

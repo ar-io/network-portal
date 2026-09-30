@@ -288,15 +288,48 @@ because only the archive can say why. `@src/utils/observationCapture` turns
 state; **never state a count, a rate or an absence without it.** Absent
 `capture` is unknown, never complete.
 
-**Results bitmaps: count, never attribute.** An observation's
-`gatewayResultsBase64` (`gar-bitmap-v1-lsb`) indexes into the gateway
-registry's slot order *for that epoch*, and the archive publishes only a digest
-of that ordering. A population count is therefore exact — `countGatewayResults`
-— while naming *which* gateway failed would mean indexing historical bits
-against today's registry. `ObservationData.hasGatewayAttribution` exists so
-consumers branch on it: an empty `failureSummaries` must never render as "no
-failures", which previously would have shown a green **Passed** for a gateway
-whose result is simply unknown.
+**Results bitmaps: a SET bit is a PASS; the failure is the CLEARED bit.** An
+observation's `gatewayResultsBase64` (`gar-bitmap-v1-lsb`) indexes into the
+gateway registry's slot order *for that epoch*. Counting is unconditional —
+`countGatewayResults`, and a population count does not depend on which gateway
+sits in which slot. **Attributing needs `registry/<n>.json`**, the slot order
+itself, which the archive began publishing in September 2026; before that only
+a digest was available and naming a gateway was impossible.
+
+`attributeGatewayResults` does the mapping and refuses on any of five guards,
+each for a case in the published data. **`ObservationData.hasGatewayAttribution`
+stays the discriminator** — an empty `failureSummaries` must never render as "no
+failures", which would show a green **Passed** for a gateway whose result is
+merely unknown.
+
+Three of those guards are not obvious and were each found in live data:
+
+- **The slot count is `failureCounts.length`, never
+  `registry.gateways.length`.** It equals every observation's `gatewayCount`
+  and the chain's `activeGatewayCount`. On epochs **523 and 533 the registry
+  carries one gateway MORE than the epoch's bitmap covers**, and both pass the
+  digest check, so **the digest proves the documents belong together and
+  nothing about their lengths**. Iterating the registry reads one slot past the
+  bitmap, where an absent bit is 0 — a failure — and reports that gateway as
+  failed by every observer.
+- **`registry.inEpoch` must be true.** False means the order was captured after
+  the epoch closed, so bit `i` may not name `gateways[i]`. Epochs 510 and 511.
+- **The decoded tally must equal `epoch.failureCounts`**, the protocol's own
+  per-slot count. This is ~20k operations and it makes an inverted or drifted
+  decoder impossible to ship: the UI degrades to "Unknown" instead of drawing a
+  confident wrong verdict. Keep it — it is the cheapest guard in the codebase.
+
+`registryEpochs` on `AnalyzerAvailability` is a **strict subset** of
+`archivedEpochs`; six mainnet epochs are archived without a slot order, so the
+fetch is gated rather than paying a 404 per view. `useReports` passes
+`registryAvailable: false` outright — it reads per-observer totals and never
+`failureSummaries`, so a registry per epoch would double that page's downloads
+for nothing.
+
+**Attribution does not replace the reports.** The bitmap says *who* failed a
+gateway; only the observer's own Arweave report says *why*. What changes is
+cost: `useGatewayObservationReports` takes an `observers` list, so an attributed
+epoch reads three or four reports instead of every one submitted.
 
 ### Arweave Data Layer (Reports)
 

@@ -10,6 +10,7 @@ const UNAVAILABLE: AnalyzerAvailability = {
   networkMatches: false,
   documents: [],
   archivedEpochs: [],
+  registryEpochs: [],
 };
 
 /**

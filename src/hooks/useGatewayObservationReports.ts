@@ -72,15 +72,20 @@ const mapWithConcurrency = async <T, R>(
  * What every observer of an epoch said about one gateway.
  *
  * The panel that shows "observations of this gateway" reads the on-chain
- * bitmap, which a closed epoch cannot attribute: its bits index the registry
- * order for that epoch, and only a digest of that ordering is published. The
- * reports those same observers uploaded are keyed by FQDN and carry the
- * reason, so they answer the question the bitmap cannot.
+ * bitmap. A bitmap says pass or fail and nothing else; the reports those same
+ * observers uploaded are keyed by FQDN and carry the reason, so they answer
+ * the question no bitmap can.
  *
  * **Opt-in**, because answering costs megabytes. Observers routinely submit
  * the same report transaction — 36 observations over 19 distinct reports in a
  * recent epoch — so each one is fetched once and its verdict applied to every
  * observer that submitted it.
+ *
+ * `observers` narrows the sweep. Once an epoch's registry slot order is
+ * published the bitmap already names who failed this gateway, so only their
+ * reports need reading — typically three or four rather than nineteen. Left
+ * undefined every observer is read, which is what an unattributable epoch
+ * still requires.
  *
  * Partial results are reported as partial. A report that will not load is
  * counted, never silently dropped, so the panel can say "read 12 of 19" rather
@@ -90,16 +95,32 @@ const useGatewayObservationReports = ({
   epochIndex,
   fqdn,
   reports,
+  observers,
   enabled,
 }: {
   epochIndex?: number;
   fqdn?: string;
   /** Observer address → report transaction id, from `useObservations`. */
   reports?: Record<string, string>;
+  /**
+   * Restrict the read to these observers. Undefined means all of them.
+   *
+   * An empty array is NOT the same as undefined: it means attribution found
+   * nobody failed this gateway, so there is nothing to explain.
+   */
+  observers?: string[];
   enabled: boolean;
 }) =>
   useQuery<GatewayObservationReports>({
-    queryKey: ['gatewayObservationReports', epochIndex, fqdn],
+    // The observer set is part of the identity of the answer: a narrowed read
+    // and a full sweep of the same epoch are different results, and must not
+    // share a cache entry.
+    queryKey: [
+      'gatewayObservationReports',
+      epochIndex,
+      fqdn,
+      observers ? [...observers].sort().join(',') : 'all',
+    ],
     enabled: enabled && !!fqdn && !!reports && Object.keys(reports).length > 0,
     // Reports are immutable once uploaded, so never refetch within a session.
     staleTime: Number.POSITIVE_INFINITY,
@@ -109,8 +130,10 @@ const useGatewayObservationReports = ({
         throw new Error('fqdn and reports are required');
       }
 
+      const wanted = observers ? new Set(observers) : null;
       const observersByTx = new Map<string, string[]>();
       for (const [observer, txId] of Object.entries(reports)) {
+        if (wanted && !wanted.has(observer)) continue;
         const existing = observersByTx.get(txId);
         if (existing) existing.push(observer);
         else observersByTx.set(txId, [observer]);

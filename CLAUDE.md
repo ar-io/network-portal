@@ -273,6 +273,21 @@ Two contract traps the publisher documents and the UI honours: `economics` is
 always null, and `infrastructure` is zeroed when a run skips geolocation —
 `uniqueAsns: 0` is a degraded run, not a decentralised network.
 
+**An empty observation list has three meanings, and `capture` is the only
+thing that separates them.** `complete` with zero observations is a real zero
+(mainnet epochs 550, 553, 554). `missing` means reports existed and were never
+captured — 508 and 509 held ten and eight. `unknown` is the running epoch,
+which starts empty because nobody has reported yet. The trap is that **the
+live read cannot break the tie**: `close_observation` has deleted the
+accounts, so a scan of a lost epoch returns the same zero and confirms the
+wrong answer. So `fetchObservationsFromArchive` returns a result for a
+document holding no observations — null now means no document at all — and
+`resolveEpochObservations` prefers the archive when both come back empty,
+because only the archive can say why. `@src/utils/observationCapture` turns
+`capture` plus `chain.observationsSubmitted` into the one line a panel may
+state; **never state a count, a rate or an absence without it.** Absent
+`capture` is unknown, never complete.
+
 **Results bitmaps: count, never attribute.** An observation's
 `gatewayResultsBase64` (`gar-bitmap-v1-lsb`) indexes into the gateway
 registry's slot order *for that epoch*, and the archive publishes only a digest

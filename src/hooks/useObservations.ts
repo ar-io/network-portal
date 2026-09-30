@@ -9,6 +9,7 @@ import {
   countGatewayResults,
   fetchAnalyzerDocument,
 } from '@src/utils/analyzerApi';
+import type { EpochCapture } from '@src/utils/observationCapture';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -63,6 +64,22 @@ export interface ObservationData {
   distinctReportTxIds: number;
   /** Detector output for this epoch. Only the archive carries it. */
   findings?: AnalyzerFinding[];
+  /**
+   * Whether `observationCount` is the whole truth, or only what survived.
+   *
+   * Consumers that state a count, a rate or an absence MUST branch on this.
+   * An epoch the archive missed reads as zero observations from every source
+   * — the accounts are gone, so the live scan agrees — and presenting that as
+   * "nobody reported" is the one error no later read can correct.
+   *
+   * Absent on the live path, where the accounts themselves are the truth.
+   */
+  capture?: EpochCapture;
+  /**
+   * The chain's own tally, when the archive carries it. Exceeds
+   * `observationCount` exactly when observations were lost.
+   */
+  chainObservationsSubmitted?: number;
 }
 
 export async function fetchObservationsDirect(
@@ -189,6 +206,12 @@ export async function fetchObservationsDirect(
  * `reports` is fully recoverable — it is a plain observer-to-transaction map.
  * `failureSummaries` is not, and is deliberately left empty with
  * `hasGatewayAttribution: false`; see {@link ObservationData}.
+ *
+ * Returns a result for a document holding **no** observations, where it once
+ * returned null. An empty list is an answer — `capture` says which answer —
+ * and discarding it sent the caller to a live scan of accounts
+ * `close_observation` has already deleted, which reports zero for an epoch
+ * that was observed. Null is now reserved for having no document at all.
  */
 export async function fetchObservationsFromArchive(
   epochIndex: number,
@@ -197,7 +220,7 @@ export async function fetchObservationsFromArchive(
     'epoch',
     epochIndex,
   );
-  if (!doc?.observations?.length) return null;
+  if (!doc) return null;
 
   // The portal documents are stamped with a network and program ids and are
   // refused on mismatch; an epoch document carries no such stamp, so the one
@@ -215,7 +238,7 @@ export async function fetchObservationsFromArchive(
   const reports: Record<string, string> = {};
   const totalsByObserver: Record<string, GatewayResultTotals> = {};
 
-  for (const observation of doc.observations) {
+  for (const observation of doc.observations ?? []) {
     if (!observation?.observer) continue;
     reports[observation.observer] = observation.reportTxId;
     const totals = countGatewayResults(observation);
@@ -234,6 +257,11 @@ export async function fetchObservationsFromArchive(
     source: 'archive',
     hasGatewayAttribution: false,
     totalsByObserver,
+    capture: doc.capture,
+    chainObservationsSubmitted:
+      typeof doc.chain?.observationsSubmitted === 'number'
+        ? doc.chain.observationsSubmitted
+        : undefined,
   };
 }
 
@@ -277,10 +305,25 @@ export async function resolveEpochObservations({
 
   if (isHistorical && archiveAvailable) {
     const archived = await fetchObservationsFromArchive(epochIndex);
-    if (archived) return archived;
+    // Rows in hand, or a document that vouches for holding everything: either
+    // way the archive has answered and there is nothing for a scan to add.
+    if (
+      archived &&
+      (Object.keys(archived.reports).length > 0 ||
+        archived.capture === 'complete')
+    ) {
+      return archived;
+    }
+
     // Not yet published, or outside the retained window — the accounts may
     // still be there if the epoch has not distributed.
-    return readLive();
+    const live = await readLive();
+    if (Object.keys(live.reports).length > 0) return live;
+
+    // Both empty. Prefer the archive: a live read of a swept epoch cannot
+    // distinguish "nobody observed" from "we did not capture it", and the
+    // archive's `capture` is the only thing that can.
+    return archived ?? live;
   }
 
   const live = await readLive();

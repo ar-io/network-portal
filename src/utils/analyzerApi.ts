@@ -22,6 +22,7 @@
 
 import { log } from '@src/constants';
 import { useSettings } from '@src/store/settings';
+import type { EpochCapture } from '@src/utils/observationCapture';
 
 /** A slow API must never be slower than doing without it. */
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -440,6 +441,23 @@ export interface AnalyzerEpochDocument {
   registryDigest?: string | null;
   firstSubmittedAtUnix?: number | null;
   lastSubmittedAtUnix?: number | null;
+  /**
+   * Whether `observations` is everything the chain counted. An absent value is
+   * treated as unknown, never as complete — see {@link summarizeCapture}.
+   */
+  capture?: EpochCapture;
+  /**
+   * The chain's own tally for this epoch, as read at capture time. It is what
+   * makes a shortfall quantifiable: `observationsSubmitted` can exceed the
+   * number of rows we hold, and the difference is what was lost.
+   */
+  chain?: {
+    endTimestampUnix?: number | null;
+    observerCount?: number | null;
+    observationsSubmitted?: number | null;
+    activeGatewayCount?: number | null;
+    hasObservedCount?: number | null;
+  };
   observations?: AnalyzerObservation[];
   findings?: AnalyzerFinding[];
 }

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Rewards by Epoch now shows what each epoch did not pay out.** A gateway
+  that fails an epoch is paid nothing for it, and that share stays in the
+  treasury — so the pool an epoch set aside is larger than the amount that
+  actually reached anyone. The gateway portion of each bar is now divided:
+  solid for what was paid, a dashed outline for what was kept. The bar is the
+  same height as before, because the money was always inside it; what is new
+  is seeing where it went. Hovering gives both figures.
+
+  Only epochs that have finished distributing are marked, since a running
+  epoch's result still moves as observers report, and an epoch whose record
+  is no longer available is left unmarked rather than drawn as though nothing
+  was lost.
+
 ## [2.12.2] - 2026-10-01
 
 ### Fixed

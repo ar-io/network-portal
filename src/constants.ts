@@ -138,7 +138,7 @@ loglevel.setLevel('info');
 export const log = loglevel;
 
 export const EAY_TOOLTIP_TEXT =
-  'EAY = Estimated yield ratio determined by projecting the current nominal reward conditions over the course of a year. Does NOT include potential observation rewards.';
+  'EAY = Estimated yield ratio determined by projecting the current nominal reward conditions over the course of a year, weighted by the share of epochs this gateway has passed — a gateway that fails an epoch is paid nothing for it. Does NOT include potential observation rewards.';
 export const EAY_TOOLTIP_FORMULA =
   '\\(EAY = \\frac{RewardsSharedPerEpoch}{TotalDelegatedStake} * EpochsPerYear\\)';
 

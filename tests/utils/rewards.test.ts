@@ -5,6 +5,7 @@ import {
   calculateOperatorRewards,
   calculateUserRewards,
   knownYield,
+  observedPassRate,
 } from '@src/utils/rewards';
 
 /**
@@ -19,6 +20,17 @@ const gatewayWith = (shareRatioPct: number, delegatedARIO: number): Gateway =>
   ({
     totalDelegatedStake: new ARIOToken(delegatedARIO).toMARIO().valueOf(),
     settings: { delegateRewardShareRatio: shareRatioPct },
+  }) as Gateway;
+
+/** The same gateway, plus the epoch record the weighting reads. */
+const withHistory = (
+  gateway: Gateway,
+  passed: number,
+  total: number,
+): Gateway =>
+  ({
+    ...gateway,
+    stats: { passedEpochCount: passed, totalEpochCount: total },
   }) as Gateway;
 
 describe('rewards.ts', () => {
@@ -203,6 +215,130 @@ describe('rewards.ts', () => {
         (gatewayRewards.rewardsSharedPerEpoch.valueOf() / 100_000) * 365,
         6,
       );
+    });
+  });
+
+  describe('observedPassRate', () => {
+    it('is the share of epochs the gateway was paid for', () => {
+      expect(
+        observedPassRate({
+          stats: { passedEpochCount: 9, totalEpochCount: 10 },
+        } as Gateway),
+      ).toBe(0.9);
+    });
+
+    it('is undefined for a gateway with no epochs yet', () => {
+      // No history is absence of evidence, not evidence of failure. A new
+      // gateway must not be penalised for being new.
+      expect(
+        observedPassRate({
+          stats: { passedEpochCount: 0, totalEpochCount: 0 },
+        } as Gateway),
+      ).toBeUndefined();
+      expect(observedPassRate({} as Gateway)).toBeUndefined();
+    });
+
+    it('clamps rather than trusting the two counters against each other', () => {
+      expect(
+        observedPassRate({
+          stats: { passedEpochCount: 12, totalEpochCount: 10 },
+        } as Gateway),
+      ).toBe(1);
+    });
+  });
+
+  describe('yields weighted by the pass rate', () => {
+    it('leaves a gateway with no history exactly as it was', () => {
+      // The whole existing suite relies on this: an unweighted fixture must
+      // keep its old numbers.
+      const plain = gatewayWith(25, 1000);
+      expect(
+        calculateOperatorRewards(
+          MAINNET_PER_GATEWAY_REWARD,
+          plain,
+          new ARIOToken(10000),
+        ).EAY,
+      ).toBe(
+        calculateOperatorRewards(
+          MAINNET_PER_GATEWAY_REWARD,
+          withHistory(plain, 10, 10),
+          new ARIOToken(10000),
+        ).EAY,
+      );
+    });
+
+    it('halves the operator yield for a gateway that passes half its epochs', () => {
+      const stake = new ARIOToken(10000);
+      const full = calculateOperatorRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        gatewayWith(25, 1000),
+        stake,
+      );
+      const half = calculateOperatorRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        withHistory(gatewayWith(25, 1000), 5, 10),
+        stake,
+      );
+      // 6 dp: ARIOToken quantises to mARIO, so expect ~1e-8 of rounding.
+      expect(half.EAY).toBeCloseTo(full.EAY / 2, 6);
+    });
+
+    it('shrinks the delegate share by the same factor', () => {
+      // A failed epoch pays neither side, so operator and delegates move
+      // together rather than one absorbing the loss.
+      const full = calculateGatewayRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        gatewayWith(50, 5000),
+      );
+      const half = calculateGatewayRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        withHistory(gatewayWith(50, 5000), 5, 10),
+      );
+      // 6 dp: ARIOToken quantises to mARIO, so expect ~1e-8 of rounding.
+      expect(half.EAY).toBeCloseTo(full.EAY / 2, 6);
+    });
+
+    it("carries through to a delegate's own projected yield", () => {
+      const half = calculateGatewayRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        withHistory(gatewayWith(50, 5000), 5, 10),
+      );
+      const full = calculateGatewayRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        gatewayWith(50, 5000),
+      );
+      const a = calculateUserRewards(half, new ARIOToken(100));
+      const b = calculateUserRewards(full, new ARIOToken(100));
+      expect(a.EAY).toBeLessThan(b.EAY);
+    });
+
+    it('reports zero — not a sentinel — for a gateway that has never passed', () => {
+      // Distinct from "no reward this epoch". The reward exists; this gateway
+      // does not collect it. Zero is the accurate number and must sort as one.
+      const r = calculateOperatorRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        withHistory(gatewayWith(25, 1000), 0, 30),
+        new ARIOToken(10000),
+      );
+      expect(r.EAY).toBe(0);
+      expect(knownYield(r.EAY)).toBe(0);
+    });
+
+    it('matches the measured mainnet median', () => {
+      // 95.4% was the median pass rate across 306 joined gateways on
+      // 2026-10-01, so a typical yield moves by about -4.6%.
+      const stake = new ARIOToken(10000);
+      const full = calculateOperatorRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        gatewayWith(0, 0),
+        stake,
+      );
+      const typical = calculateOperatorRewards(
+        MAINNET_PER_GATEWAY_REWARD,
+        withHistory(gatewayWith(0, 0), 954, 1000),
+        stake,
+      );
+      expect(typical.EAY / full.EAY).toBeCloseTo(0.954, 6);
     });
   });
 

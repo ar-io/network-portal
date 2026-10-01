@@ -22,6 +22,64 @@ export interface UserRewards {
 }
 
 /**
+ * The share of its epochs this gateway has actually been paid for.
+ *
+ * Every yield here divides `per_gateway_reward`, and until now each one
+ * assumed the gateway collects it. It frequently does not: `distribution.rs`
+ * pays a gateway failed by a strict majority of observers **nothing at all**
+ * — not a reduced amount —
+ *
+ * ```rust
+ * let failed = observations_submitted > 0
+ *     && epoch.failure_counts[dist_idx] > (observations_submitted as u16) / 2;
+ * ```
+ *
+ * and across eight recent mainnet epochs that was ~6% of registry slots. A
+ * gateway in that state was shown the same yield as a healthy one.
+ *
+ * Weighting by the gateway's own record turns "what you earn if you never
+ * fail" into "what you earn, given how often you do" — which is what an
+ * *estimated* annual yield already claims to be. It is also the one
+ * correction that needs no interface: the figure itself becomes right, so
+ * every table, modal and selector inherits it without a badge to interpret.
+ *
+ * Deliberately the gateway's history rather than its current epoch. A live
+ * epoch's pass/fail flips as observers report, so a verdict drawn from it
+ * would swing between 0 and full several times an epoch — replacing an
+ * overstatement with an equally confident understatement. History does not
+ * flap, and an annual projection is the wrong place to render a single
+ * epoch's state. The Performance column and the observations panel already
+ * answer "is it failing right now".
+ *
+ * Returns undefined for a gateway with no epochs yet: no history is absence
+ * of evidence, not evidence of failure, and callers keep the unweighted
+ * figure rather than inventing a penalty for being new.
+ */
+export const observedPassRate = (
+  gateway: Pick<Gateway, 'stats'>,
+): number | undefined => {
+  const total = gateway.stats?.totalEpochCount ?? 0;
+  if (!Number.isFinite(total) || total <= 0) return undefined;
+
+  const passed = gateway.stats?.passedEpochCount ?? 0;
+  if (!Number.isFinite(passed)) return undefined;
+
+  // The counters are independent u-ints; clamp rather than trust their ratio.
+  return Math.min(1, Math.max(0, passed / total));
+};
+
+/** `perGatewayReward` scaled by what the gateway actually tends to collect. */
+const expectedReward = (
+  perGatewayReward: ARIOToken,
+  gateway: Pick<Gateway, 'stats'>,
+): ARIOToken => {
+  const rate = observedPassRate(gateway);
+  return rate === undefined
+    ? perGatewayReward
+    : new ARIOToken(perGatewayReward.valueOf() * rate);
+};
+
+/**
  * The delegates' share of a gateway's epoch reward, before dilution.
  *
  * This is the gateway reward only. A prescribed observer that submits also
@@ -79,6 +137,11 @@ export const calculateOperatorRewards = (
     };
   }
 
+  // Weighted first, then split: a failed epoch pays neither side, so the
+  // operator's share and the delegates' shrink together. See
+  // {@link observedPassRate}.
+  const expected = expectedReward(perGatewayReward, gateway);
+
   // The protocol carves out the delegate pool only when the gateway carried
   // delegated stake at tally (`split_scaled_reward`, `had_delegation_at_tally`
   // in distribution.rs). With no delegates the operator keeps the whole
@@ -87,11 +150,11 @@ export const calculateOperatorRewards = (
   // gateway whose delegates all arrived or left within the current epoch.
   const delegatePool =
     (gateway.totalDelegatedStake ?? 0) > 0
-      ? delegateRewardsPerEpoch(perGatewayReward, gateway)
+      ? delegateRewardsPerEpoch(expected, gateway)
       : 0;
 
   const rewardsSharedPerEpoch = new ARIOToken(
-    Math.max(0, perGatewayReward.valueOf() - delegatePool),
+    Math.max(0, expected.valueOf() - delegatePool),
   );
 
   // Return -1 if operatorStake is 0. This signals 0 stake and allows calling
@@ -132,7 +195,7 @@ export const calculateGatewayRewards = (
   }
 
   const rewardsSharedPerEpoch = new ARIOToken(
-    delegateRewardsPerEpoch(perGatewayReward, gateway),
+    delegateRewardsPerEpoch(expectedReward(perGatewayReward, gateway), gateway),
   );
 
   // Return -1 if totalDelegatedStake is 0. This signals 0 stake and allows calling

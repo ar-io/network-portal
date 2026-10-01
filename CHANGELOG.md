@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Every yield assumed the gateway never fails an epoch.** A gateway failed
+  by most of the observers that assessed it is paid nothing for that epoch —
+  not a reduced amount — and across eight recent epochs that was about one
+  registry slot in sixteen. The portal showed those gateways the same yield
+  as a healthy one, in the staking tables, on the gateway page and in the
+  staking dialogs, for operators and delegates alike.
+
+  Yields are now weighted by the share of epochs each gateway has actually
+  been paid for, which is the figure the Gateways page already shows as
+  Performance. An estimated annual yield now reflects how often a gateway
+  earns, rather than what it would earn if it never missed. Most gateways
+  move by a few percent; one that fails often moves a long way. A gateway too
+  new to have a record is unchanged, since no history is not evidence of
+  failure.
+
 ## [2.12.1] - 2026-09-30
 
 ### Fixed

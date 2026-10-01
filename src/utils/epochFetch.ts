@@ -66,6 +66,12 @@ export type EpochDataWithCounters = EpochData & {
    */
   forfeitedGatewayReward?: number;
   /**
+   * Observer reward this epoch did not pay out, because prescribed observers
+   * never submitted. In mARIO, undefined when not knowable — see
+   * {@link forfeitedObserverReward}.
+   */
+  forfeitedObserverReward?: number;
+  /**
    * The formula `distributions` was computed with. IndexedDB keeps distributed
    * epochs across releases, so a row can outlive the code that wrote it; see
    * {@link upgradeCachedEpoch}. Absent on rows written before this field.
@@ -210,6 +216,39 @@ export const forfeitedGatewayReward = ({
   return Math.min(failed * perGatewayReward, totalEligibleGatewayReward);
 };
 
+/**
+ * The observer reward this epoch did not pay out.
+ *
+ * `distribution.rs` pays `per_observer_reward` only where a gateway is both
+ * prescribed **and** observed — cases 1 and 4 of its six. A prescribed
+ * observer that never submits forfeits it outright, whether or not its
+ * gateway passed, so the shortfall is exactly the prescribed observers that
+ * did not report.
+ *
+ * Unlike the gateway side this needs no per-slot tally: `observer_count` and
+ * `observations_submitted` are both scalars on the Epoch account, so it is
+ * exact and costs nothing. It is therefore knowable for epochs where the
+ * gateway figure is not.
+ */
+export const forfeitedObserverReward = ({
+  observerCount,
+  observationsSubmitted,
+  perObserverReward,
+  rewardsDistributed,
+}: {
+  observerCount: number;
+  observationsSubmitted?: number;
+  perObserverReward: number;
+  rewardsDistributed?: number;
+}): number | undefined => {
+  if (!rewardsDistributed) return undefined;
+  if (typeof observationsSubmitted !== 'number') return undefined;
+  if (!(perObserverReward > 0) || !(observerCount > 0)) return undefined;
+
+  const missed = Math.max(0, observerCount - observationsSubmitted);
+  return missed * perObserverReward;
+};
+
 const buildRewardTotals = ({
   prescribed,
   totalEligibleRewards,
@@ -321,6 +360,12 @@ export const epochRewardTotals = (epoch: EpochRewardFields) => {
       rewardsDistributed: epoch.rewardsDistributed,
       totalEligibleGatewayReward:
         totals.distributions.totalEligibleGatewayReward,
+    }),
+    forfeitedObserverReward: forfeitedObserverReward({
+      observerCount: epoch.observerCount,
+      observationsSubmitted: epoch.observationsSubmitted,
+      perObserverReward: epoch.perObserverReward,
+      rewardsDistributed: epoch.rewardsDistributed,
     }),
   };
 };
@@ -445,6 +490,7 @@ export async function fetchEpochLightweight(
     rewardsSplitKnown: totals.splitKnown,
     rewardsSkipped: totals.skipped,
     forfeitedGatewayReward: totals.forfeitedGatewayReward,
+    forfeitedObserverReward: totals.forfeitedObserverReward,
     rewardTotalsVersion: REWARD_TOTALS_VERSION,
     startHeight: 0,
     startTimestamp: secToMs(epochData.startTimestamp),

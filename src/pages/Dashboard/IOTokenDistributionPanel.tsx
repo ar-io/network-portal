@@ -7,8 +7,6 @@ import { formatWithCommas } from '@src/utils';
 import { useEffect, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Text } from 'recharts';
 
-const TOTAL_IO = 1_000_000_000;
-
 type IOCategory =
   | 'Protocol Balance'
   | 'Actively Staked'
@@ -94,15 +92,28 @@ const IOTokenDistributionPanel = () => {
     setActiveIndex(undefined);
   };
 
-  const ioDisplayValue = formatWithCommas(
-    Math.floor(
-      data && activeIndex !== undefined
-        ? data[activeIndex].value
-        : tokenSupply?.total
-          ? new mARIOToken(tokenSupply.total).toARIO().valueOf()
-          : TOTAL_IO,
-    ),
-  );
+  /**
+   * Undefined until the supply is read, rather than falling back to the
+   * genesis billion.
+   *
+   * That fallback was the same hardcoded 1,000,000,000 the Balances page
+   * carried until it was found to be understating every holder's share. It
+   * happens to equal the mint's current total, so it looked harmless — but
+   * it is a figure the panel asserts without having read it, and the day a
+   * burn moves the supply it would keep asserting it. The error path already
+   * renders `PanelUnavailable`; this covers the gap before it.
+   */
+  const selectedSlice =
+    data && activeIndex !== undefined ? data[activeIndex].value : undefined;
+  const totalSupplyArio = tokenSupply?.total
+    ? new mARIOToken(tokenSupply.total).toARIO().valueOf()
+    : undefined;
+  const ioDisplayValue =
+    selectedSlice !== undefined
+      ? formatWithCommas(Math.floor(selectedSlice))
+      : totalSupplyArio !== undefined
+        ? formatWithCommas(Math.floor(totalSupplyArio))
+        : undefined;
 
   return (
     <div className="flex h-72 w-full flex-col rounded-xl border border-grey-500">
@@ -165,7 +176,9 @@ const IOTokenDistributionPanel = () => {
                 as a collision. */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center">
               <div className="text-gradient flex items-baseline gap-1 text-center">
-                <div className="text-2xl font-semibold">{ioDisplayValue}</div>
+                <div className="text-2xl font-semibold">
+                  {ioDisplayValue ?? <Placeholder className="h-7 w-40" />}
+                </div>
                 <div className="text-xs">{ticker}</div>
               </div>
             </div>

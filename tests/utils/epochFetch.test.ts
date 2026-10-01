@@ -3,6 +3,7 @@ import {
   REWARD_TOTALS_VERSION,
   epochRewardTotals,
   forfeitedGatewayReward,
+  forfeitedObserverReward,
   upgradeCachedEpoch,
 } from '@src/utils/epochFetch';
 
@@ -411,5 +412,57 @@ describe('forfeitedGatewayReward', () => {
         failureCounts: new Uint16Array([20, 1, 19]),
       }),
     ).toBe(200);
+  });
+});
+
+describe('forfeitedObserverReward', () => {
+  const base = {
+    observerCount: 50,
+    observationsSubmitted: 34,
+    perObserverReward: 200,
+    rewardsDistributed: 1,
+  };
+
+  it('counts the prescribed observers that never submitted', () => {
+    // 50 prescribed, 34 reported: 16 forfeited their share outright.
+    expect(forfeitedObserverReward(base)).toBe(3_200);
+  });
+
+  it('is the whole pool when nobody submitted', () => {
+    expect(forfeitedObserverReward({ ...base, observationsSubmitted: 0 })).toBe(
+      10_000,
+    );
+  });
+
+  it('is zero when every prescribed observer reported', () => {
+    // Zero, not undefined: this is a known result, and the band must not
+    // read as "unknown" for a fully observed epoch.
+    expect(
+      forfeitedObserverReward({ ...base, observationsSubmitted: 50 }),
+    ).toBe(0);
+  });
+
+  it('never goes negative if more submitted than were prescribed', () => {
+    expect(
+      forfeitedObserverReward({ ...base, observationsSubmitted: 60 }),
+    ).toBe(0);
+  });
+
+  it('is undefined before the epoch distributes', () => {
+    expect(
+      forfeitedObserverReward({ ...base, rewardsDistributed: 0 }),
+    ).toBeUndefined();
+  });
+
+  it('is undefined without a submission count or an observer reward', () => {
+    expect(
+      forfeitedObserverReward({ ...base, observationsSubmitted: undefined }),
+    ).toBeUndefined();
+    expect(
+      forfeitedObserverReward({ ...base, perObserverReward: 0 }),
+    ).toBeUndefined();
+    expect(
+      forfeitedObserverReward({ ...base, observerCount: 0 }),
+    ).toBeUndefined();
   });
 });

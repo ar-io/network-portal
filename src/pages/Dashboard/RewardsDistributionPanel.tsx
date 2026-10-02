@@ -46,6 +46,16 @@ const REWARD_SERIES = [
     swatch: 'linear-gradient(135deg, #F7C3A1, #DF9BE8)',
   },
   { label: 'Observer rewards', swatch: '#3DB7C2' },
+  {
+    label: 'Gateway, not paid',
+    swatch: 'rgba(223, 155, 232, 0.12)',
+    outline: 'rgba(223, 155, 232, 0.6)',
+  },
+  {
+    label: 'Observer, not paid',
+    swatch: 'rgba(61, 183, 194, 0.12)',
+    outline: 'rgba(61, 183, 194, 0.6)',
+  },
 ] as const;
 
 const EPOCH_COUNT = 7; // Contract retains ~7 epochs on-chain
@@ -78,6 +88,16 @@ interface RewardsData {
   total?: number;
   /** `total`, but only for an unsplit epoch: drawn as an outlined bar. */
   pendingTotal?: number;
+  /**
+   * Reward the epoch did not pay out, gateway and observer together, taken
+   * OUT of those segments rather than added to them. Undefined when not
+   * knowable, which must not render as zero.
+   */
+  rewardsForfeited?: number;
+  /** The gateway half of `rewardsForfeited`, for the tooltip. */
+  forfeitedGateway?: number;
+  /** The observer half of `rewardsForfeited`, for the tooltip. */
+  forfeitedObserver?: number;
   status: 'Distributed' | 'Pending' | 'Not paid';
 }
 
@@ -135,13 +155,37 @@ const CustomTooltip = ({
 
     const gateway = data.gatewayRewards ?? 0;
     const observer = data.observerRewards ?? 0;
+    // `gatewayRewards` is the share that was actually paid; the forfeited
+    // slice was taken out of it. The total must add it back, or it would
+    // report less than the bar's own height.
+    const forfeited = data.rewardsForfeited ?? 0;
+    const lostGateway = data.forfeitedGateway ?? 0;
+    const lostObserver = data.forfeitedObserver ?? 0;
 
     return (
       <div className="rounded border border-grey-500 bg-containerL0 px-4 py-2 text-mid">
         <p>{`Epoch ${label} (${data.status})`}</p>
         <p>{`Gateway Rewards: ${money(gateway)}`}</p>
         <p>{`Observer Rewards: ${money(observer)}`}</p>
-        <p>{`Total: ${money(gateway + observer)}`}</p>
+        {forfeited > 0 && (
+          <p className="text-low">{`Not paid out: ${money(forfeited)}`}</p>
+        )}
+        <p>{`Total eligible: ${money(gateway + observer + forfeited)}`}</p>
+        {forfeited > 0 && (
+          <p className="max-w-60 text-low">
+            {[
+              lostGateway > 0
+                ? `${money(lostGateway)} to gateways that failed the epoch`
+                : undefined,
+              lostObserver > 0
+                ? `${money(lostObserver)} to observers that did not submit`
+                : undefined,
+            ]
+              .filter(Boolean)
+              .join(', ')}
+            . Neither is paid; it stays in the treasury.
+          </p>
+        )}
         {data.pricedFromEpoch !== undefined && (
           <p className="max-w-60 text-low">
             {`Valued at epoch ${data.pricedFromEpoch}'s close — this epoch has not closed yet.`}
@@ -153,6 +197,45 @@ const CustomTooltip = ({
 
   return null;
 };
+
+/**
+ * The slice of the gateway pool the protocol kept because the gateways
+ * entitled to it failed the epoch.
+ *
+ * Drawn in the same neutral and the same `4 3` dash as {@link PendingBar},
+ * because it says the same kind of thing — tokens the chart's bar accounts
+ * for that never left the treasury. It is a segment of the stack rather than
+ * a marker above it: the bar's height is the eligible pool, and this came out
+ * of that pool, not in addition to it.
+ */
+const ForfeitedBar = (tint: string) => {
+  const renderFunc = ({ x, y, width, height }: Props) =>
+    height ? (
+      <rect
+        x={Number(x) + 0.5}
+        y={Number(y) + 0.5}
+        width={Math.max(0, Number(width) - 1)}
+        height={Math.max(0, Number(height) - 1)}
+        fill={`rgba(${tint}, 0.12)`}
+        stroke={`rgba(${tint}, 0.6)`}
+        // Dotted, where `PendingBar` is dashed: both mean "counted but not
+        // paid", and the two must not be mistaken for each other on a chart
+        // that can show both at once.
+        strokeDasharray="2 2"
+      />
+    ) : (
+      <></>
+    );
+  return renderFunc;
+};
+
+/**
+ * Each unpaid slice carries its own pot's colour, so a glance says not just
+ * how much went unpaid but which half it came from. Flat tints rather than
+ * the gradients: a gradient at 12% opacity reads as a smudge.
+ */
+const GATEWAY_TINT = '223, 155, 232'; // the pink end of the gateway gradient
+const OBSERVER_TINT = '61, 183, 194'; // #3DB7C2, the observer teal
 
 /**
  * An epoch whose total is known but whose split is not: an outline at the
@@ -305,6 +388,25 @@ const RewardsDistributionPanel = () => {
           .toARIO()
           .valueOf();
 
+        // The share of the gateway pool the protocol retained because the
+        // gateways entitled to it failed the epoch. Undefined where it is not
+        // knowable, which must not collapse to zero — see
+        // `forfeitedGatewayReward`.
+        const toArio = (v: number | undefined) =>
+          v === undefined ? undefined : new mARIOToken(v).toARIO().valueOf();
+
+        // Both halves are forfeitable and for different reasons: a gateway
+        // loses its share by failing the epoch, a prescribed observer by
+        // never submitting. They are summed into one band — the question the
+        // bar answers is how much went unpaid, not which pot it came from —
+        // and the tooltip separates them.
+        const forfeitedGateway = toArio(epoch!.forfeitedGatewayReward);
+        const forfeitedObserver = toArio(epoch!.forfeitedObserverReward);
+        const forfeited =
+          forfeitedGateway === undefined && forfeitedObserver === undefined
+            ? undefined
+            : (forfeitedGateway ?? 0) + (forfeitedObserver ?? 0);
+
         // Each epoch is valued at its own close. Converting a total at
         // today's price is a different figure — about 16% apart over the
         // current window — and would move history whenever the price moved.
@@ -340,8 +442,23 @@ const RewardsDistributionPanel = () => {
           // An epoch the analyzer has not priced yet, or that has not been
           // split yet, draws no bar rather than a zero one. The epoch in
           // progress is routinely in both states.
-          gatewayRewards: split ? inUnit(gatewayRewards) : undefined,
-          observerRewards: split ? inUnit(observerRewards) : undefined,
+          // Split out of the gateway segment rather than added on top: the
+          // stack must still total the eligible pool, and what was forfeited
+          // came out of that pool, not in addition to it.
+          gatewayRewards: split
+            ? inUnit(Math.max(0, gatewayRewards - (forfeitedGateway ?? 0)))
+            : undefined,
+          observerRewards: split
+            ? inUnit(Math.max(0, observerRewards - (forfeitedObserver ?? 0)))
+            : undefined,
+          rewardsForfeited:
+            split && forfeited !== undefined && forfeited > 0
+              ? inUnit(forfeited)
+              : undefined,
+          forfeitedGateway:
+            split && forfeitedGateway ? inUnit(forfeitedGateway) : undefined,
+          forfeitedObserver:
+            split && forfeitedObserver ? inUnit(forfeitedObserver) : undefined,
           split,
           splitReason,
           total: inUnit(totalRewards),
@@ -511,6 +628,23 @@ const RewardsDistributionPanel = () => {
                     />
                   ))}
                 </Bar>
+                {/* Last in the stack, so it caps the bar. Reading a bar from
+                    the bottom up is paid-then-unpaid, and the unpaid part
+                    meets the axis line at the pool's full height. */}
+                <Bar
+                  dataKey="forfeitedGateway"
+                  name="Gateway, not paid"
+                  stackId="rewards"
+                  shape={ForfeitedBar(GATEWAY_TINT)}
+                  isAnimationActive={false}
+                />
+                <Bar
+                  dataKey="forfeitedObserver"
+                  name="Observer, not paid"
+                  stackId="rewards"
+                  shape={ForfeitedBar(OBSERVER_TINT)}
+                  isAnimationActive={false}
+                />
                 <Bar
                   dataKey="pendingTotal"
                   name="Split pending"
@@ -540,14 +674,22 @@ const RewardsDistributionPanel = () => {
       </div>
       {rewardsData && rewardsData.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 pb-4 text-xs text-low">
-          {REWARD_SERIES.map(({ label, swatch }) => (
-            <div key={label} className="flex items-center gap-1.5">
+          {REWARD_SERIES.map((series) => (
+            <div key={series.label} className="flex items-center gap-1.5">
               <span
                 aria-hidden="true"
                 className="size-2 min-w-2 rounded-full"
-                style={{ background: swatch }}
+                style={{
+                  background: series.swatch,
+                  // A near-transparent fill is invisible as an 8px dot, so
+                  // the series drawn as an outline is keyed as one too.
+                  border:
+                    'outline' in series
+                      ? `1px solid ${series.outline}`
+                      : undefined,
+                }}
               />
-              <span>{label}</span>
+              <span>{series.label}</span>
             </div>
           ))}
           {hasPending && (

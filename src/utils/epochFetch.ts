@@ -59,6 +59,19 @@ export type EpochDataWithCounters = EpochData & {
    */
   rewardsSkipped?: boolean;
   /**
+   * Gateway reward this epoch did not pay out, because the gateways entitled
+   * to it failed the epoch. In mARIO, and **undefined when not knowable** —
+   * see {@link forfeitedGatewayReward}. Absent must render as unknown, never
+   * as nothing forfeited.
+   */
+  forfeitedGatewayReward?: number;
+  /**
+   * Observer reward this epoch did not pay out, because prescribed observers
+   * never submitted. In mARIO, undefined when not knowable — see
+   * {@link forfeitedObserverReward}.
+   */
+  forfeitedObserverReward?: number;
+  /**
    * The formula `distributions` was computed with. IndexedDB keeps distributed
    * epochs across releases, so a row can outlive the code that wrote it; see
    * {@link upgradeCachedEpoch}. Absent on rows written before this field.
@@ -89,6 +102,12 @@ export type EpochRewardFields = {
   perGatewayReward: number;
   perObserverReward: number;
   observerCount: number;
+  /**
+   * The protocol's own per-slot failure tally, indexed by registry slot.
+   * Present on a live Epoch account; absent on the SDK fallback path and on
+   * cached rows written before this field was stored.
+   */
+  failureCounts?: Uint16Array | number[];
   /**
    * The chain's own flag, non-zero once `prescribe_epoch` has run. Read, not
    * inferred from a non-zero reward: a prescribed epoch with no eligible
@@ -136,6 +155,99 @@ const NO_SPLIT = (totalEligibleRewards: number) => ({
   totalEligibleObserverReward: 0,
   totalEligibleGatewayReward: 0,
 });
+
+/**
+ * The gateway reward this epoch did not pay out.
+ *
+ * `distribution.rs` pays a gateway failed by a strict majority of the
+ * observers that assessed it **nothing** for the epoch — not a reduced
+ * amount:
+ *
+ * ```rust
+ * let failed = observations_submitted > 0
+ *     && epoch.failure_counts[dist_idx] > (observations_submitted as u16) / 2;
+ * ```
+ *
+ * That share is simply retained, so the eligible pool a chart draws is larger
+ * than what the treasury actually released. Across eight recent mainnet
+ * epochs it was about one registry slot in sixteen.
+ *
+ * Returns undefined rather than zero whenever the answer is not knowable, and
+ * the distinction matters: a bar with no shading must mean "not known", never
+ * "nothing forfeited".
+ *
+ * - **Only once distributed.** A live epoch's verdict moves as observers
+ *   report, so shading it would redraw several times an epoch and show a
+ *   forfeit that may never happen.
+ * - **Only with observations.** The program's own guard: zero submissions
+ *   means nobody failed anybody, and `isSkippedEpoch` already covers the
+ *   epoch that paid nothing at all.
+ * - **Only with the tally.** A cached row from an older build has no
+ *   `failureCounts`, and that epoch's account may since have closed.
+ */
+export const forfeitedGatewayReward = ({
+  failureCounts,
+  observationsSubmitted,
+  perGatewayReward,
+  rewardsDistributed,
+  totalEligibleGatewayReward,
+}: {
+  failureCounts?: Uint16Array | number[];
+  observationsSubmitted?: number;
+  perGatewayReward: number;
+  rewardsDistributed?: number;
+  totalEligibleGatewayReward: number;
+}): number | undefined => {
+  if (!failureCounts || failureCounts.length === 0) return undefined;
+  if (!rewardsDistributed) return undefined;
+  if (!observationsSubmitted || observationsSubmitted <= 0) return undefined;
+  if (!(perGatewayReward > 0)) return undefined;
+
+  // Integer halving, matching the program: with 7 submissions the threshold
+  // is 3, so 4 failures is a majority. Using 7/2 = 3.5 would disagree.
+  const threshold = Math.floor(observationsSubmitted / 2);
+
+  let failed = 0;
+  for (const count of failureCounts) if (count > threshold) failed += 1;
+
+  // Cannot exceed the pool it comes out of: `failureCounts` spans every
+  // registry slot while the pool covers only the eligible ones, so a slot
+  // that failed without being eligible would otherwise overdraw the bar.
+  return Math.min(failed * perGatewayReward, totalEligibleGatewayReward);
+};
+
+/**
+ * The observer reward this epoch did not pay out.
+ *
+ * `distribution.rs` pays `per_observer_reward` only where a gateway is both
+ * prescribed **and** observed — cases 1 and 4 of its six. A prescribed
+ * observer that never submits forfeits it outright, whether or not its
+ * gateway passed, so the shortfall is exactly the prescribed observers that
+ * did not report.
+ *
+ * Unlike the gateway side this needs no per-slot tally: `observer_count` and
+ * `observations_submitted` are both scalars on the Epoch account, so it is
+ * exact and costs nothing. It is therefore knowable for epochs where the
+ * gateway figure is not.
+ */
+export const forfeitedObserverReward = ({
+  observerCount,
+  observationsSubmitted,
+  perObserverReward,
+  rewardsDistributed,
+}: {
+  observerCount: number;
+  observationsSubmitted?: number;
+  perObserverReward: number;
+  rewardsDistributed?: number;
+}): number | undefined => {
+  if (!rewardsDistributed) return undefined;
+  if (typeof observationsSubmitted !== 'number') return undefined;
+  if (!(perObserverReward > 0) || !(observerCount > 0)) return undefined;
+
+  const missed = Math.max(0, observerCount - observationsSubmitted);
+  return missed * perObserverReward;
+};
 
 const buildRewardTotals = ({
   prescribed,
@@ -222,18 +334,41 @@ export const isSkippedEpoch = (
  * cached row this is the only surviving copy once the account is closed. The
  * renderer decides what to draw; the data layer does not destroy it.
  */
-export const epochRewardTotals = (epoch: EpochRewardFields) => ({
-  ...buildRewardTotals({
+export const epochRewardTotals = (epoch: EpochRewardFields) => {
+  const totals = buildRewardTotals({
     prescribed: epoch.prescriptionsDone !== 0,
     totalEligibleRewards: epoch.totalEligibleRewards,
     perGatewayReward: epoch.perGatewayReward,
     observerPool: epoch.perObserverReward * epoch.observerCount,
-  }),
-  skipped: isSkippedEpoch(
-    epoch.observationsSubmitted,
-    epoch.rewardsDistributed,
-  ),
-});
+  });
+
+  return {
+    ...totals,
+    skipped: isSkippedEpoch(
+      epoch.observationsSubmitted,
+      epoch.rewardsDistributed,
+    ),
+    // A sibling of `distributions`, deliberately not inside it: that object's
+    // meaning is versioned by REWARD_TOTALS_VERSION and recomputed by
+    // `upgradeCachedEpoch` from a cached row's own fields. This cannot be
+    // recovered that way — a row written before it existed has no
+    // `failureCounts` — so it stays outside, where absent reads as unknown.
+    forfeitedGatewayReward: forfeitedGatewayReward({
+      failureCounts: epoch.failureCounts,
+      observationsSubmitted: epoch.observationsSubmitted,
+      perGatewayReward: epoch.perGatewayReward,
+      rewardsDistributed: epoch.rewardsDistributed,
+      totalEligibleGatewayReward:
+        totals.distributions.totalEligibleGatewayReward,
+    }),
+    forfeitedObserverReward: forfeitedObserverReward({
+      observerCount: epoch.observerCount,
+      observationsSubmitted: epoch.observationsSubmitted,
+      perObserverReward: epoch.perObserverReward,
+      rewardsDistributed: epoch.rewardsDistributed,
+    }),
+  };
+};
 
 /**
  * Bring a cached epoch row up to {@link REWARD_TOTALS_VERSION}, from its own
@@ -354,6 +489,8 @@ export async function fetchEpochLightweight(
     rewardsPrescribed: epochData.prescriptionsDone !== 0,
     rewardsSplitKnown: totals.splitKnown,
     rewardsSkipped: totals.skipped,
+    forfeitedGatewayReward: totals.forfeitedGatewayReward,
+    forfeitedObserverReward: totals.forfeitedObserverReward,
     rewardTotalsVersion: REWARD_TOTALS_VERSION,
     startHeight: 0,
     startTimestamp: secToMs(epochData.startTimestamp),

@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2026-10-02
+
+### Added
+
+- **Rewards by Epoch now shows what each epoch did not pay out.** Rewards go
+  unpaid two ways: a gateway that fails an epoch is paid nothing for it, and
+  a prescribed observer that never submits forfeits its share. Either way the
+  tokens stay in the treasury, so the pool an epoch set aside is larger than
+  the amount that reached anyone.
+
+  Each bar now caps with what went unpaid, in two dotted bands tinted to
+  match their pot — pink for gateway rewards missed, teal for observer
+  rewards missed — so a glance shows both how much was left and which half
+  it came from. Bar heights are unchanged, because that money was always
+  inside the bar; what is new is seeing where it went. Hovering breaks it
+  down, in ARIO or USD.
+
+  Only epochs that have finished distributing are marked, since a running
+  epoch's result still moves as observers report, and an epoch whose record
+  is no longer available is left unmarked rather than drawn as though nothing
+  was lost.
+
+### Fixed
+
+- **The token supply shown on the dashboard no longer falls back to the
+  genesis billion.** While the real figure was loading, the Token Supply
+  panel displayed a hardcoded 1,000,000,000 ARIO — the same constant that
+  was understating every holder's share on the Balances page until it was
+  removed there. It happens to match the mint's current total, which is why
+  it went unnoticed, but it was a number the panel asserted without having
+  read it. It now waits for the real one.
+
 ## [2.12.2] - 2026-10-01
 
 ### Fixed

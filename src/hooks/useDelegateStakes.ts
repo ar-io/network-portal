@@ -50,7 +50,29 @@ const useDelegateStakes = (address?: string) => {
 
       return retVal;
     },
-    staleTime: Infinity,
+    /**
+     * Refreshable, where this was `staleTime: Infinity`.
+     *
+     * A wallet's position changes underneath this list without the tab doing
+     * anything: a full withdrawal empties the delegation and the program
+     * closes the account in a SEPARATE transaction moments later, and the
+     * same wallet may act from another tab or device. With an infinite stale
+     * time — and the app-wide `refetchOnWindowFocus: false` and
+     * `refetchOnReconnect: false` — nothing could ever refresh this but an
+     * explicit invalidation in this tab, or a reload.
+     *
+     * A user then saw a stake that no longer existed, and every attempt to
+     * withdraw it failed with `AccountNotInitialized` while the list kept
+     * offering it. The post-write invalidation did fire and was correct at
+     * the time: the account was still there, merely empty, and closed 27
+     * seconds later.
+     *
+     * Cheap to re-read, so there is no reason to hold it: this is a
+     * memcmp-filtered call for one delegator, not the whole-program scan the
+     * snapshot service exists to displace.
+     */
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
     enabled: !!address && !!arIOReadSDK,
   });
 

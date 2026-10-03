@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **A withdrawn stake kept appearing, and every attempt to withdraw it again
+  failed with an unreadable error.** Withdrawing your whole stake empties the
+  delegation, and the network closes that record in a second transaction a
+  few seconds later. My Stakes never refreshed after that, so the stake was
+  still listed — and withdrawing it again could only fail, because there was
+  nothing left to withdraw. The error shown was a wall of raw transaction
+  data, so it read as though the withdrawal had never worked, when in fact it
+  had worked the first time and the tokens were already withdrawing.
+
+  My Stakes now refreshes on its own, so a stake that has been withdrawn
+  stops being offered. If the situation is somehow reached anyway, the
+  message says plainly that the stake has already been withdrawn and that the
+  tokens are safe, and the list is refreshed on the spot. Nothing was ever at
+  risk: these attempts were rejected before they were sent, so no fee was
+  paid.
+
 ## [2.13.0] - 2026-10-02
 
 ### Added

@@ -1,6 +1,8 @@
 import { Gateway, mARIOToken } from '@ar.io/sdk/web';
 import { WRITE_OPTIONS, log } from '@src/constants';
 import { useGlobalState } from '@src/store';
+import { describeGarError } from '@src/utils/garErrors';
+import { getErrorMessage } from '@src/utils/getErrorMessage';
 import { invalidateWrittenDocuments } from '@src/utils/snapshotFreshness';
 import { showErrorToast } from '@src/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,6 +12,23 @@ import BaseModal from './BaseModal';
 import BlockingMessageModal from './BlockingMessageModal';
 import SuccessModal from './SuccessModal';
 import WithdrawWarning from './WithdrawWarning';
+
+/**
+ * True when the program refused because the delegation account is gone.
+ *
+ * A full `decreaseDelegateStake` empties the delegation, and the program then
+ * closes it in a **separate** `CloseEmptyDelegation` transaction moments
+ * later — 27 seconds, in the case this was diagnosed from. Any attempt after
+ * that simulates against a PDA that no longer exists and fails with Anchor's
+ * `AccountNotInitialized`, forever.
+ *
+ * The stake really was withdrawn; only this tab's copy of the list is behind.
+ * So the row is refetched rather than left for the user to click again.
+ */
+const isClosedDelegation = (error: unknown): boolean => {
+  const raw = getErrorMessage(error).toLowerCase();
+  return raw.includes('0xbc4') || raw.includes('accountnotinitialized');
+};
 
 const WithdrawAllModal = ({
   onClose,
@@ -78,7 +97,12 @@ const WithdrawAllModal = ({
 
         onClose();
       } catch (e: any) {
-        showErrorToast(`${e}`);
+        showErrorToast(describeGarError(e));
+        // The list that offered this row is stale: clear it so the phantom
+        // stake disappears instead of inviting another identical failure.
+        if (isClosedDelegation(e)) {
+          queryClient.invalidateQueries({ queryKey: ['delegateStakes'] });
+        }
       } finally {
         setShowBlockingMessageModal(false);
       }

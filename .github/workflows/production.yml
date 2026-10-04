@@ -147,19 +147,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment: production
+    # ar-io-deploy 2.x saves a new Actions cache entry per run and never
+    # deletes one, so it needs no `actions: write` (1.x deleted and re-saved a
+    # single entry, which did). Its first run restores the 1.x entry, so the
+    # upgrade does not re-upload files that never changed.
     permissions:
       contents: read
-      # ar-io-deploy dedupes uploads through an Actions cache
-      # (`ario-deploy-transaction-cache`), which it deletes and re-saves on every
-      # run. Both steps are continue-on-error, so without this the cache fails to
-      # save *silently* and every release re-uploads files that never changed —
-      # permanently, to Arweave, at cost. Before this was declared, the job
-      # worked only by inheriting the repository default of `write`; naming it
-      # here means neither tightening that default nor the read-only baseline
-      # above can quietly start re-uploading the whole bundle. The same
-      # permission was already lost to a hardening pass and restored once on the
-      # preview workflow (a85406d).
-      actions: write
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
@@ -188,7 +181,7 @@ jobs:
           VITE_PORTAL_API_URL: ${{ vars.VITE_PORTAL_API_URL }}
 
       - name: Deploy to Arweave
-        uses: ar-io/ar-io-deploy@v1
+        uses: ar-io/ar-io-deploy@v2.0.1
         with:
           deploy-key: ${{ secrets.DEPLOY_KEY }}
           arns-key: ${{ secrets.ARNS_KEY }}

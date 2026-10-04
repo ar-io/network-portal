@@ -45,13 +45,10 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.action != 'closed'
     permissions:
       contents: read
-      # ar-io-deploy posts the preview URL back to the pull request.
+      # ar-io-deploy posts the preview URL back to the pull request. Its 2.x
+      # cache needs no `actions: write`: it saves a new entry per run and never
+      # deletes one.
       pull-requests: write
-      # ar-io-deploy dedupes uploads through an Actions cache
-      # (`ario-deploy-transaction-cache`), which it deletes and re-saves on every
-      # run. Both steps are continue-on-error, so without this the cache fails to
-      # save *silently* and every preview re-uploads files that never changed.
-      actions: write
 
     steps:
       - name: Warn on missing RPC secrets
@@ -88,7 +85,7 @@ jobs:
           VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
 
       - name: Deploy PR preview
-        uses: ar-io/ar-io-deploy@v1
+        uses: ar-io/ar-io-deploy@v2.0.1
         with:
           deploy-key: ${{ secrets.DEPLOY_KEY }}
           arns-key: ${{ secrets.ARNS_KEY }}

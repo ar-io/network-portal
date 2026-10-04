@@ -21,9 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   My Stakes now refreshes on its own, so a stake that has been withdrawn
   stops being offered. If the situation is reached anyway, the message says
   that the network has no record of the delegation and that it may already
-  have been withdrawn, and the list is refreshed on the spot. Nothing was
-  ever at risk: these attempts were rejected before they were sent, so no fee
-  was paid.
+  have been withdrawn, and the withdrawal flows refresh the list on the spot.
+  The failures reported here cost nothing: each was turned away by the check
+  that runs before a transaction is broadcast, so none of them reached the
+  network. A transaction that passes that check and then fails while
+  executing does pay the usual fee.
 
 ## [2.13.0] - 2026-10-02
 

@@ -38,8 +38,16 @@ const GAR_ERRORS: ReadonlyArray<{
   {
     code: 0xbc4, // 3012 — Anchor, not arioGar
     name: 'AccountNotInitialized',
+    /**
+     * Says only what the code establishes: the delegation account is not
+     * there. It does NOT establish that a withdrawal exists, or where the
+     * tokens are — an earlier draft claimed both, which is the same mistake
+     * as rendering an unknown as a number. Nor can it promise the list was
+     * refreshed: `ClaimWithdrawalModal` invalidates on success only, so that
+     * promise would be false in one of this module's three callers.
+     */
     message:
-      'This stake has already been withdrawn, so there is nothing left to withdraw. Your tokens are safe and are in a withdrawal — the list has been refreshed.',
+      'The network has no record of this delegation, so there is nothing here to withdraw. It may already have been withdrawn — check your stakes.',
   },
   {
     code: 0x1786, // 6022

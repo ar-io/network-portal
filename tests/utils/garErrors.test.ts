@@ -16,10 +16,19 @@ const PRODUCTION_FAILURE =
 describe('getGarErrorMessage', () => {
   it('explains a withdrawal whose delegation has already been closed', () => {
     const msg = getGarErrorMessage(PRODUCTION_FAILURE);
-    expect(msg).toMatch(/already been withdrawn/i);
-    // The reassurance matters more than the diagnosis: the tokens are in a
-    // withdrawal, and the user has just been told their transaction failed.
-    expect(msg).toMatch(/safe/i);
+    expect(msg).toMatch(/no record of this delegation/i);
+    expect(msg).toMatch(/may already have been withdrawn/i);
+  });
+
+  it('claims nothing the error code does not establish', () => {
+    // The code says the account is absent. It does not say a withdrawal
+    // exists, where the tokens are, or that anything has been refreshed —
+    // and `ClaimWithdrawalModal` invalidates on success only, so a promise
+    // of a refresh would be false there.
+    const msg = getGarErrorMessage(PRODUCTION_FAILURE) ?? '';
+    expect(msg).not.toMatch(/safe/i);
+    expect(msg).not.toMatch(/refreshed/i);
+    expect(msg).not.toMatch(/in a withdrawal/i);
   });
 
   it('matches on the raw custom error code as well as the Anchor name', () => {

@@ -30,9 +30,29 @@ export default defineConfig({
          * Everything used to share one entry chunk: application code and
          * every dependency, 3.4MB of a 4.4MB deploy. Editing one line of copy
          * rewrote that chunk, so every release re-uploaded all 3.4MB,
-         * permanently. Now the entry is ~205KB of code that changes on every
-         * release and the dependencies sit in a chunk that does not change
-         * between releases at all.
+         * permanently. Splitting them was supposed to stop that.
+         *
+         * **It does not, and the measurement says so.** On the v2.12.1 deploy
+         * `ario-deploy` reported 11 of 43 files cached, and the new
+         * `vendor-*.js` 404s inside the v2.12.0 manifest — it changed and all
+         * 3.39MB of it was re-uploaded. Only the CSS deduped. Two local builds
+         * differing solely in application code produce vendor chunks differing
+         * by ~194 bytes: there are no chunk-filename references inside vendor,
+         * but the exported surface it emits depends on what the app imports,
+         * so ordinary app edits perturb it. Do not restore the claim that this
+         * chunk is stable across releases without re-measuring it.
+         *
+         * The split is still worth keeping — it is the precondition for any
+         * dedupe at all, and it isolates the dependency bulk from the ~205KB
+         * entry. But the per-release saving it was justified by did not
+         * materialise. The remaining lever is `Content-Encoding`, which takes
+         * the JS from ~4.3MB to ~1.1MB and, unlike dedupe, applies to every
+         * release; `ar-io-deploy` sets only `Content-Type` today.
+         *
+         * To re-check on a future release: read "N/M files cached" in the
+         * Arweave job log, then
+         * `curl -o /dev/null -w '%{http_code}' <gateway>/<oldTxId>/assets/<newChunkName>`
+         * — 200 means deduped, 404 means re-uploaded.
          *
          * **A finer split does not work here, and the failure is invisible to
          * the build.** Grouping by upgrade cadence — charts, web3.js and its

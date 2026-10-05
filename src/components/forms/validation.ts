@@ -77,6 +77,52 @@ export const validateARIOAmount = (
   };
 };
 
+/**
+ * A delegate stake amount, where the gateway's minimum applies to the amount
+ * being added rather than to the resulting total.
+ *
+ * `delegate_stake` checks `amount >= min_delegation_amount` before it reads
+ * the existing delegation, so a delegator already holding far above the
+ * minimum still cannot add less than it. A wallet with 3,773 ARIO staked at a
+ * gateway whose minimum is 500 cannot add 250.
+ *
+ * That is a divergence from the Lua reference, which drops the floor to
+ * 1 mARIO once `existingDelegate.delegatedStake ~= 0` precisely so an
+ * operator raising the minimum cannot strand existing delegators, and from
+ * the Solana program's own `redelegate_stake`, which guards the identical
+ * check with `target_delegation.amount == 0`.
+ *
+ * Until the program is fixed the form has to enforce the stricter rule —
+ * offering an amount the program rejects with `DelegationBelowMinimum` is
+ * worse than refusing it here — so this says why instead of printing a bare
+ * range the delegator cannot make sense of. When the program is fixed, the
+ * minimum for an existing delegator becomes 1 and this message stops being
+ * reachable.
+ */
+export const validateDelegateStakeAmount = (
+  propertyName: string,
+  ticker: string,
+  min: number,
+  max: number | undefined,
+  currentStake: number,
+): FormValidationFunction => {
+  const base = validateARIOAmount(propertyName, ticker, min, max);
+
+  return (v: string) => {
+    const error = base(v);
+    if (error === undefined) {
+      return undefined;
+    }
+
+    const value = +v;
+    if (currentStake > 0 && v.length > 0 && !isNaN(value) && value < min) {
+      return `This gateway requires at least ${formatARIOExact(min)} ${ticker} per deposit, even though you already have ${formatARIOExact(currentStake)} ${ticker} staked here. Add ${formatARIOExact(min)} ${ticker} or more.`;
+    }
+
+    return error;
+  };
+};
+
 export const validateNumberRange = (
   propertyName: string,
   min: number,

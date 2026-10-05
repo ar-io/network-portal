@@ -1,5 +1,6 @@
 import {
   validateARIOAmount,
+  validateDelegateStakeAmount,
   validateDomainName,
   validateNumberRange,
   validateString,
@@ -154,6 +155,87 @@ describe('Form Validation Functions', () => {
       expect(validator('1000')).toEqual(
         `Unstake Amount cannot be greater than your current stake of 100 ARIO.`,
       );
+    });
+  });
+
+  describe('validateDelegateStakeAmount', () => {
+    // The reported case: 3,773.899792 ARIO already delegated to a gateway
+    // whose minimum is 500, topping up by 250.
+    const EXISTING = 3773.899792;
+    const MIN = 500;
+    const BALANCE = 20750;
+
+    it('explains the per-deposit minimum to an existing delegator', () => {
+      const validator = validateDelegateStakeAmount(
+        'Stake Amount',
+        'ARIO',
+        MIN,
+        BALANCE,
+        EXISTING,
+      );
+      const message = validator('250') ?? '';
+
+      // The bare range is what made this read as a portal bug: it never says
+      // the minimum applies per deposit rather than to the total.
+      expect(message).not.toMatch(/must be a number from/);
+      expect(message).toMatch(/per deposit/);
+      expect(message).toContain('500');
+      expect(message).toContain('3,773.899792');
+    });
+
+    it('still accepts a top-up at or above the minimum', () => {
+      const validator = validateDelegateStakeAmount(
+        'Stake Amount',
+        'ARIO',
+        MIN,
+        BALANCE,
+        EXISTING,
+      );
+      expect(validator('500')).toBeUndefined();
+      expect(validator('750')).toBeUndefined();
+    });
+
+    it('does not claim an existing stake when there is none', () => {
+      const validator = validateDelegateStakeAmount(
+        'Stake Amount',
+        'ARIO',
+        MIN,
+        BALANCE,
+        0,
+      );
+      const message = validator('250') ?? '';
+
+      expect(message).not.toMatch(/per deposit/);
+      expect(message).not.toMatch(/already have/);
+      expect(message).toMatch(/must be a number from/);
+    });
+
+    it('leaves an over-balance amount to the range message', () => {
+      const validator = validateDelegateStakeAmount(
+        'Stake Amount',
+        'ARIO',
+        MIN,
+        BALANCE,
+        EXISTING,
+      );
+      const message = validator('999999') ?? '';
+
+      // Above the balance is a different problem and must not be described
+      // as a minimum.
+      expect(message).not.toMatch(/per deposit/);
+      expect(message).toMatch(/must be a number from/);
+    });
+
+    it('does not fire on an empty or non-numeric input', () => {
+      const validator = validateDelegateStakeAmount(
+        'Stake Amount',
+        'ARIO',
+        MIN,
+        BALANCE,
+        EXISTING,
+      );
+      expect(validator('')).not.toMatch(/per deposit/);
+      expect(validator('abc')).not.toMatch(/per deposit/);
     });
   });
 });

@@ -5,9 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.13.1] - 2026-10-04
+## [2.13.1] - 2026-10-05
 
 ### Fixed
+
+- **Adding to a stake you already hold could be refused with a range that
+  made no sense.** A wallet with 3,773.9 ARIO delegated to a gateway whose
+  minimum is 500 could not add 250, and the only explanation offered was
+  "Stake Amount must be a number from 500 to 20,750 ARIO" — which reads as a
+  broken form rather than the rule it is.
+
+  The rule is real: the network applies a gateway's minimum to each deposit
+  rather than to your resulting total, so a top-up below the minimum is
+  rejected no matter how much you already have there. That is a bug in the
+  network and it is being fixed separately; until it is, the portal has to
+  keep refusing those amounts, because offering one that the network will
+  reject is worse than saying so up front. What it now does is explain why,
+  naming the per-deposit minimum and the stake you already hold.
 
 - **A withdrawn stake kept appearing, and every attempt to withdraw it again
   failed with an unreadable error.** Withdrawing your whole stake empties the

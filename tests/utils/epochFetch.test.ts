@@ -2,6 +2,8 @@ import {
   type EpochDataWithCounters,
   REWARD_TOTALS_VERSION,
   epochRewardTotals,
+  forfeitedGatewayReward,
+  forfeitedObserverReward,
   upgradeCachedEpoch,
 } from '@src/utils/epochFetch';
 
@@ -321,5 +323,146 @@ describe('upgradeCachedEpoch, skipped epochs', () => {
 
     expect(up.rewardsSkipped).toBe(false);
     expect(up.distributions.totalEligibleGatewayReward).toBeGreaterThan(0);
+  });
+});
+
+describe('forfeitedGatewayReward', () => {
+  const base = {
+    failureCounts: [0, 20, 1, 19, 0],
+    observationsSubmitted: 34,
+    perGatewayReward: 100,
+    rewardsDistributed: 1,
+    totalEligibleGatewayReward: 10_000,
+  };
+
+  it('counts only the slots a majority of observers failed', () => {
+    // 34 submissions, so the threshold is 17: slots at 20 and 19 failed,
+    // the ones at 1 and 0 did not.
+    expect(forfeitedGatewayReward(base)).toBe(200);
+  });
+
+  it('halves the submission count the way the program does', () => {
+    // 7 submissions -> threshold 3, so 4 is a majority. Using 3.5 would not
+    // count it and the forfeit would read zero.
+    expect(
+      forfeitedGatewayReward({
+        ...base,
+        observationsSubmitted: 7,
+        failureCounts: [4],
+      }),
+    ).toBe(100);
+    expect(
+      forfeitedGatewayReward({
+        ...base,
+        observationsSubmitted: 7,
+        failureCounts: [3],
+      }),
+    ).toBe(0);
+  });
+
+  it('never exceeds the pool it comes out of', () => {
+    // `failureCounts` spans every registry slot; the pool covers only the
+    // eligible ones, so enough failures would otherwise overdraw the bar.
+    expect(
+      forfeitedGatewayReward({
+        ...base,
+        failureCounts: new Array(500).fill(34),
+        totalEligibleGatewayReward: 1_000,
+      }),
+    ).toBe(1_000);
+  });
+
+  it('is undefined — not zero — before the epoch distributes', () => {
+    // A live epoch's verdict moves as observers report. Shading it would
+    // redraw through the epoch and claim a forfeit that may never happen.
+    expect(
+      forfeitedGatewayReward({ ...base, rewardsDistributed: 0 }),
+    ).toBeUndefined();
+  });
+
+  it('is undefined when nobody observed', () => {
+    // The program's own guard. `isSkippedEpoch` already covers the epoch
+    // that paid nothing at all.
+    expect(
+      forfeitedGatewayReward({ ...base, observationsSubmitted: 0 }),
+    ).toBeUndefined();
+  });
+
+  it('is undefined without the tally, rather than claiming nothing was lost', () => {
+    // A cached row from an older build, or the SDK fallback path. An
+    // unshaded bar must mean "not known", never "nothing forfeited".
+    expect(
+      forfeitedGatewayReward({ ...base, failureCounts: undefined }),
+    ).toBeUndefined();
+    expect(
+      forfeitedGatewayReward({ ...base, failureCounts: [] }),
+    ).toBeUndefined();
+  });
+
+  it('is undefined when the epoch has no per-gateway reward', () => {
+    expect(
+      forfeitedGatewayReward({ ...base, perGatewayReward: 0 }),
+    ).toBeUndefined();
+  });
+
+  it('reads a Uint16Array, which is what the account carries', () => {
+    expect(
+      forfeitedGatewayReward({
+        ...base,
+        failureCounts: new Uint16Array([20, 1, 19]),
+      }),
+    ).toBe(200);
+  });
+});
+
+describe('forfeitedObserverReward', () => {
+  const base = {
+    observerCount: 50,
+    observationsSubmitted: 34,
+    perObserverReward: 200,
+    rewardsDistributed: 1,
+  };
+
+  it('counts the prescribed observers that never submitted', () => {
+    // 50 prescribed, 34 reported: 16 forfeited their share outright.
+    expect(forfeitedObserverReward(base)).toBe(3_200);
+  });
+
+  it('is the whole pool when nobody submitted', () => {
+    expect(forfeitedObserverReward({ ...base, observationsSubmitted: 0 })).toBe(
+      10_000,
+    );
+  });
+
+  it('is zero when every prescribed observer reported', () => {
+    // Zero, not undefined: this is a known result, and the band must not
+    // read as "unknown" for a fully observed epoch.
+    expect(
+      forfeitedObserverReward({ ...base, observationsSubmitted: 50 }),
+    ).toBe(0);
+  });
+
+  it('never goes negative if more submitted than were prescribed', () => {
+    expect(
+      forfeitedObserverReward({ ...base, observationsSubmitted: 60 }),
+    ).toBe(0);
+  });
+
+  it('is undefined before the epoch distributes', () => {
+    expect(
+      forfeitedObserverReward({ ...base, rewardsDistributed: 0 }),
+    ).toBeUndefined();
+  });
+
+  it('is undefined without a submission count or an observer reward', () => {
+    expect(
+      forfeitedObserverReward({ ...base, observationsSubmitted: undefined }),
+    ).toBeUndefined();
+    expect(
+      forfeitedObserverReward({ ...base, perObserverReward: 0 }),
+    ).toBeUndefined();
+    expect(
+      forfeitedObserverReward({ ...base, observerCount: 0 }),
+    ).toBeUndefined();
   });
 });

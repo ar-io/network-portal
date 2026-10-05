@@ -1,7 +1,7 @@
 {
   "name": "@ar-io/network-portal",
   "private": true,
-  "version": "2.12.2",
+  "version": "2.13.1",
   "type": "module",
   "scripts": {
     "build": "yarn clean && tsc --build tsconfig.build.json && cross-env NODE_OPTIONS=--max-old-space-size=32768 vite build",
@@ -53,7 +53,7 @@
     "zustand": "^4.5.1"
   },
   "devDependencies": {
-    "@ar.io/deploy": "^1.0.0",
+    "@ar.io/deploy": "^2.0.0",
     "@babel/core": "^7.19.6",
     "@babel/preset-env": "^7.19.4",
     "@babel/preset-react": "^7.18.6",

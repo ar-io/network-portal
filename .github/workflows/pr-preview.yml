@@ -87,6 +87,8 @@ jobs:
       - name: Deploy PR preview
         uses: ar-io/ar-io-deploy@f6cc468d513d2841d124c4ab566af0cd5752289b # v2.0.1
         with:
+          # Matches production so a preview exercises the same encoding path.
+          compress: gzip
           deploy-key: ${{ secrets.DEPLOY_KEY }}
           arns-key: ${{ secrets.ARNS_KEY }}
           arns-name: ${{ secrets.ARNS_NAME }}

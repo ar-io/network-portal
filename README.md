@@ -45,19 +45,23 @@ merge.
 
 Developers can deploy their own version to Arweave with `yarn deploy`, which
 builds and then runs `ario-deploy` from
-[@ar.io/deploy](https://github.com/ar-io/ar-io-deploy). It needs two environment
-variables:
+[@ar.io/deploy](https://github.com/ar-io/ar-io-deploy). It needs Node.js 20.18 or later and
+three environment variables:
 
 ```shell
 export VITE_ARNS_NAME="ARNS_NAME"
 export DEPLOY_KEY="BASE64_ENCODED_ARWEAVE_WALLET_KEYFILE"
+export ARNS_KEY="BASE58_SOLANA_SECRET_KEY"
 ```
 
 Replace the following:
 
 - `ARNS_NAME` with the ArNS name to deploy to.
 - `BASE64_ENCODED_ARWEAVE_WALLET_KEYFILE` with your Arweave wallet keyfile,
-  base64 encoded.
+  base64 encoded. This key pays for the upload.
+- `BASE58_SOLANA_SECRET_KEY` with the Solana key that owns or controls the ArNS
+  name. A deploy whose key cannot update the name is refused before anything is
+  uploaded.
 
 Keep these out of git along with the rest of your `.env` files. For local
 testing you can put them in a `deploy.sh`, `source deploy.sh`, then run

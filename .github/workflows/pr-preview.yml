@@ -85,7 +85,7 @@ jobs:
           VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
 
       - name: Deploy PR preview
-        uses: ar-io/ar-io-deploy@v2.0.1
+        uses: ar-io/ar-io-deploy@f6cc468d513d2841d124c4ab566af0cd5752289b # v2.0.1
         with:
           deploy-key: ${{ secrets.DEPLOY_KEY }}
           arns-key: ${{ secrets.ARNS_KEY }}

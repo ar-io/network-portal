@@ -181,7 +181,14 @@ jobs:
           VITE_PORTAL_API_URL: ${{ vars.VITE_PORTAL_API_URL }}
 
       - name: Deploy to Arweave
-        uses: ar-io/ar-io-deploy@v2.0.1
+        # Pinned to a commit, not the tag. `v2.0.1` is a lightweight tag and so
+        # is movable with one `git tag -f`; this step spends real AR on a
+        # permanent upload, and it is exactly v2.0.1 that restores this repo's
+        # 1.x transaction cache on the first 2.x run. On v2.0.0 that cache is
+        # ignored and the whole bundle is re-uploaded and re-paid for. Bump both
+        # this and pr-preview.yml together, and keep the trailing version
+        # comment accurate.
+        uses: ar-io/ar-io-deploy@f6cc468d513d2841d124c4ab566af0cd5752289b # v2.0.1
         with:
           deploy-key: ${{ secrets.DEPLOY_KEY }}
           arns-key: ${{ secrets.ARNS_KEY }}

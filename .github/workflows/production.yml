@@ -190,6 +190,23 @@ jobs:
         # comment accurate.
         uses: ar-io/ar-io-deploy@f6cc468d513d2841d124c4ab566af0cd5752289b # v2.0.1
         with:
+          # Upload gzipped and tag `Content-Encoding: gzip`. Measured on the
+          # 2.13.1 build: 3.92 MiB -> 1.02 MiB, a 74% saving, and the vendor
+          # chunk alone goes 3,365K -> 799K. Unlike the per-file dedupe this
+          # applies to every release, because it compresses what is uploaded
+          # rather than hoping a chunk is unchanged.
+          #
+          # `gzip` and not `br`: a gateway serves the stored bytes to every
+          # client with no negotiation, so the encoding has to be one that any
+          # client accepts. Brotli is smaller and not universally safe here.
+          #
+          # Already-compressed formats are skipped by the action, so the Rubik
+          # .woff2 files upload as-is rather than growing.
+          #
+          # This does not disturb the transaction cache: it keys on the
+          # original file's hash plus the encoding, so switching encodings
+          # re-uploads once and then dedupes as before.
+          compress: gzip
           deploy-key: ${{ secrets.DEPLOY_KEY }}
           arns-key: ${{ secrets.ARNS_KEY }}
           # Production resolves the name from a repository *variable*; the

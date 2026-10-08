@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Adding to a stake you already hold is no longer refused for being under
+  the gateway's minimum.** A gateway operator sets a minimum delegation, and
+  that is meant to be a joining requirement — what it takes to become one of
+  their delegators. The network was applying it to every deposit instead, so a
+  wallet with 3,845 ARIO staked at a gateway whose minimum is 500 could not
+  add 250. The portal enforced the same rule, because offering an amount the
+  network would reject is worse than refusing it up front.
+
+  The network has been fixed, so the minimum now applies only to a first
+  delegation and an existing delegator can add any amount. The portal follows:
+  once you hold stake at a gateway, the form accepts a top-up from 1 ARIO up.
+
+  What made this worth chasing beyond the inconvenience is that an operator
+  who *raised* their minimum was retroactively locking out delegators who were
+  already in — including some holding hundreds of times the new figure.
+
 ## [2.13.1] - 2026-10-04
 
 ### Fixed

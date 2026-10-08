@@ -66,15 +66,23 @@ const StakingModal = ({
   const minDelegatedStake = gateway
     ? new mARIOToken(gateway?.settings.minDelegatedStake).toARIO().valueOf()
     : 10;
-  // The gateway's minimum applies to every delegation, not only a first one.
-  // `delegate_stake` is the only instruction that adds delegate stake and it
-  // requires `amount >= min_delegation_amount` unconditionally; the
-  // already-staked exemption exists only for decreasing and for redelegating
-  // into a gateway where the wallet holds nothing. This used to offer existing
-  // delegators a 1 ARIO top-up, which the program rejects with
-  // `DelegationBelowMinimum` at every gateway on mainnet, since all of them
-  // sit at or above the 10 ARIO protocol floor.
-  const minRequiredStakeToAdd = minDelegatedStake;
+  // The gateway's minimum applies only to a FIRST delegation. `delegate_stake`
+  // guards the check with `delegation.amount == 0`, read before the handler
+  // mutates it, so a wallet already holding stake here may add any amount above
+  // zero — which is what stops an operator who raises their minimum from
+  // stranding delegators already in.
+  //
+  // This was unconditional until the program was fixed, because it genuinely
+  // had to be: until then `delegate_stake` required
+  // `amount >= min_delegation_amount` on every deposit and rejected a smaller
+  // top-up with `DelegationBelowMinimum`. Offering one the chain refuses is
+  // worse than refusing it here, so the form matched the stricter rule and said
+  // so. The mainnet GAR program carrying the exemption deployed at slot
+  // 454578042; keeping the old rule now refuses top-ups the chain accepts.
+  //
+  // 1 ARIO rather than the protocol's 1 mARIO floor, matching every other stake
+  // form in the app.
+  const minRequiredStakeToAdd = currentStake > 0 ? 1 : minDelegatedStake;
 
   const validators = {
     address: validateWalletAddress('Gateway Owner'),

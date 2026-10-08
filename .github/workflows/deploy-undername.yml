@@ -1,0 +1,106 @@
+# A manually-triggered Arweave deploy to an ArNS *undername*, for proving a
+# change to the deploy path before it reaches production.
+#
+# This exists because there is otherwise nowhere to test one. Staging
+# (`build_and_test.yml`) publishes to GitHub Pages and never touches Arweave,
+# and `pr-preview.yml` is disabled in the repository — so the first real
+# exercise of a flag like `compress` would be a permanent production deploy to
+# the `@` record. That is the wrong place to discover that a gateway does not
+# serve what we uploaded.
+#
+# It deploys the same build production does, to `<undername>_<name>.ar.io`,
+# leaving the `@` record untouched.
+name: Deploy to undername (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      undername:
+        description: 'ANT undername to publish to (never @)'
+        required: true
+        default: 'gziptest'
+      compress:
+        description: 'Content-Encoding to upload with'
+        required: true
+        default: 'gzip'
+        type: choice
+        options: [gzip, br, none]
+      ttl-seconds:
+        description: 'ArNS TTL in seconds (60-86400)'
+        required: true
+        default: '300'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-to-undername:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      # The `@` record is production. `--undername @` is also the CLI's own
+      # default, so a blank or mistyped input would silently publish there
+      # rather than failing. Refuse before anything is built or uploaded.
+      - name: Refuse to target the production record
+        env:
+          UNDERNAME: ${{ inputs.undername }}
+        run: |
+          if [[ -z "${UNDERNAME// /}" || "$UNDERNAME" == "@" ]]; then
+            echo "::error::undername must be a real undername, not '@' — that is the production record."
+            exit 1
+          fi
+          echo "Publishing to '$UNDERNAME', leaving @ alone."
+
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      # Same build as production, so what is proven here is what ships.
+      - name: Install and Build 🔧
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+        env:
+          VITE_NODE_ENV: production
+          VITE_GITHUB_HASH: ${{ github.sha }}
+          VITE_ARIO_PROCESS_ID: ${{ vars.VITE_ARIO_PROCESS_ID }}
+          VITE_AO_CU_URL: ${{ vars.VITE_AO_CU_URL }}
+          VITE_SOLANA_RPC_URL: ${{ secrets.VITE_SOLANA_RPC_URL }}
+          VITE_SOLANA_MAINNET_RPC_URL: ${{ secrets.VITE_SOLANA_MAINNET_RPC_URL }}
+          VITE_PORTAL_API_URL: ${{ vars.VITE_PORTAL_API_URL }}
+
+      - name: Deploy to Arweave undername
+        # Same pin as production — see the comment in production.yml.
+        uses: ar-io/ar-io-deploy@f6cc468d513d2841d124c4ab566af0cd5752289b # v2.0.1
+        with:
+          compress: ${{ inputs.compress }}
+          deploy-key: ${{ secrets.DEPLOY_KEY }}
+          arns-key: ${{ secrets.ARNS_KEY }}
+          # Production reads the name from a repository variable; this mirrors
+          # it so the undername lands under the same ArNS name.
+          arns-name: ${{ vars.ARNS_NAME }}
+          undername: ${{ inputs.undername }}
+          deploy-folder: ./dist
+          ttl-seconds: ${{ inputs.ttl-seconds }}
+
+      - name: How to verify
+        env:
+          UNDERNAME: ${{ inputs.undername }}
+          ARNS_NAME: ${{ vars.ARNS_NAME }}
+        run: |
+          URL="https://${UNDERNAME}_${ARNS_NAME}.ar.io/"
+          {
+            echo "### Deployed to \`$URL\`"
+            echo
+            echo "ArNS propagation takes about the TTL (${{ inputs.ttl-seconds }}s). Then:"
+            echo '```'
+            echo "curl -sI $URL | grep -i -E 'content-encoding|content-type'"
+            echo '```'
+            echo
+            echo "Expect \`content-encoding: ${{ inputs.compress }}\` and a page that renders."
+          } >> "$GITHUB_STEP_SUMMARY"

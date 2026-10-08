@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.2] - 2026-10-08
+
+### Security
+
+- **The router was patched for a cross-site-scripting issue.** React Router
+  below 1.23.2 of its internal router could be made to redirect somewhere it
+  should not, and it sits behind every link and page change in the portal. The
+  fix is a dependency update with no change in behaviour. Worth saying what it
+  was not: nothing here was exploited, and no wallet, balance or signing path
+  was involved.
+
+### Changed
+
+- **A release now uploads compressed, so the portal downloads about a quarter
+  of what it used to.** The published build was going to Arweave uncompressed —
+  3.9 MB where the same files gzip to 1.0 MB. Every visitor paid that on first
+  load, and every release paid it again in storage, permanently. Fonts and
+  images are left alone, since compressing them a second time only makes them
+  bigger.
+
+### Fixed
+
+- **Adding to a stake you already hold is no longer refused for being under
+  the gateway's minimum.** A gateway operator sets a minimum delegation, and
+  that is meant to be a joining requirement — what it takes to become one of
+  their delegators. The network was applying it to every deposit instead, so a
+  wallet with 3,845 ARIO staked at a gateway whose minimum is 500 could not
+  add 250. The portal enforced the same rule, because offering an amount the
+  network would reject is worse than refusing it up front.
+
+  The network has been fixed, so the minimum now applies only to a first
+  delegation and an existing delegator can add any amount. The portal follows:
+  once you hold stake at a gateway, the form accepts a top-up from 1 ARIO up.
+
+  What made this worth chasing beyond the inconvenience is that an operator
+  who *raised* their minimum was retroactively locking out delegators who were
+  already in — including some holding hundreds of times the new figure.
+
 ## [2.13.1] - 2026-10-04
 
 ### Fixed

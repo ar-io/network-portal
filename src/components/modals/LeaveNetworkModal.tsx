@@ -128,7 +128,21 @@ const LeaveNetworkModal = ({ onClose }: { onClose: () => void }) => {
               </li>
               <li>
                 Your gateway status will change to leaving and will no longer be
-                eligible for protocol rewards or observation duties.
+                eligible for protocol rewards or observation duties. Once the
+                exit completes it leaves the gateway list, and its page will no
+                longer be found.
+              </li>
+              {/* The sentence this dialog was missing. An operator whose
+                  minimum stake matured in September reported it as lost
+                  tokens a month later: the period ending makes a vault
+                  claimable, not paid, and nothing anywhere said so. */}
+              <li>
+                <span className="text-high">
+                  Nothing is returned to your wallet automatically.
+                </span>{' '}
+                When each vault&apos;s date passes you must claim it yourself,
+                from the Balances page. Until you do, the tokens stay in the
+                vault — there is no deadline, and nothing is lost by waiting.
               </li>
             </ul>
             <div className="mt-6 flex flex-col gap-1">

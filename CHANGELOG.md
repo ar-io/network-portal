@@ -26,6 +26,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   printing raw transaction data. It had been matched against the wrong code —
   the right one is 6082 — so the explanation never appeared.
 
+- **A withdrawal that had finished waiting gave no sign it was there.** When a
+  withdrawal period ends the tokens become claimable, not paid: returning them
+  takes a transaction you sign. The only place that said so was a card on the
+  Balances page which appears only when you already have something to claim —
+  so the way to find out you had money waiting was to visit a page you had no
+  reason to visit. An operator whose gateway had left the network reported
+  20,000 ARIO as lost a month after it matured; it was sitting in the vault
+  the whole time.
+
+  Your profile now carries a mark when a withdrawal is ready, on every page,
+  and the menu behind it says so and links to the claim. The Leave Network
+  dialog now says plainly that nothing comes back on its own, that each vault
+  must be claimed once its date passes, and that a departed gateway drops out
+  of the gateway list — which is the other half of what looked like
+  disappearing tokens.
+
+  The mark counts matured withdrawals, so it can under-report where an
+  unlocked locked-transfer vault is also waiting. It reads "at least" for that
+  reason, and the Balances page remains the full picture. Counting those too
+  would mean every visitor fetching the whole network's vault list on every
+  page to serve a rare case.
+
 ## [2.13.2] - 2026-10-08
 
 ### Security

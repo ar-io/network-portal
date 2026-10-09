@@ -9,40 +9,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Smart Delegate: enter an amount and see where it would earn most.** The
-  staking page has 245 gateways open to delegation and no way to tell which of
-  them is a good home for a given amount. Reward share, how often a gateway
-  actually gets paid, whether it is failing right now, and how much stake is
-  already sharing the rewards all matter, and all of them sit in different
-  columns.
+- **Smart Delegate: enter an amount and see where it would earn most.** There
+  are 243 gateways accepting delegations and no way to tell which is a good
+  home for a given amount. What decides it — how much is already delegated
+  there, what share the operator passes on, how reliably the gateway gets paid
+  — is spread across four columns of a long table.
 
-  A card above the delegate table now takes an amount and names the three
-  gateways with the highest expected yield for it, then shows the four numbers
-  behind each headline — reward share, pass rate with its epoch counts, current
-  streak, and delegated stake against the network median — so the figure can be
-  recomputed rather than taken on trust. Picking one opens the usual staking
-  dialog with the amount already filled in; nothing moves without your
-  signature.
+  The mechanism is worth stating, because it is why this works at all. Each
+  epoch the network pays every eligible gateway the same reward. A gateway
+  passes a share of that to its delegates, and that share is split by stake.
+  So the less stake a gateway already carries, the more each of your tokens
+  earns there. That is not a theory: across the published payout history,
+  gateways in the lowest quarter by delegated stake have returned roughly
+  **twenty times** those in the highest.
 
-  The amount genuinely matters, and not uniformly. It is part of the
-  denominator, so it reorders gateways that already hold delegated stake, and
-  provably cannot reorder those holding none — where the pool is empty your
-  amount is the whole of it, so it cancels out of the comparison. Those are
-  marked **No delegates yet**.
+  A card above the delegate table takes an amount and names the three gateways
+  where it would earn most, each showing what you would actually receive over
+  the next epoch, what share of that gateway's delegate pool you would own,
+  what its delegates have really earned, and the four inputs behind the
+  ranking. Picking one opens the usual staking dialog with the amount already
+  filled in; nothing moves without your signature.
 
-  Two deliberate limits. A gateway needs 30 epochs of history to be ranked at
-  all: yield divides by delegated stake, so an empty gateway with a generous
-  reward share would otherwise take the top slot for the price of one settings
-  change, and a history floor makes that position cost what an honest operator
-  pays. And a gateway on a current failure streak is discounted sharply rather
-  than judged on its lifetime average, because twelve consecutive failures
-  still reads as 87% after a few hundred good epochs.
+  **The figure is per epoch, roughly a day, and that is deliberate.**
+  Annualising it compounds a year of assumptions onto a reward the protocol
+  resets daily: for a small delegation to an empty gateway it produces numbers
+  in the hundreds of percent, which are arithmetically correct and not a
+  promise anyone could keep. One epoch out, the inputs are known rather than
+  projected.
 
-  The headline is an estimate and says so. It is an upper bound: the reward
-  changes every epoch, other delegators dilute your share by arriving, and a
-  gateway's record can get worse than its history suggests. Where a gateway is
-  close to the removal threshold the card says that too, because removal
-  slashes the operator's stake and the delegation goes with it.
+  Alongside the estimate, where anyone has been paid at a gateway, the card
+  shows what its delegates have **actually** earned, annualised from the
+  published history. That figure is available for 105 of the eligible gateways
+  and is often well below the estimate, which is the honest thing for a
+  prospective delegator to see. Where nobody has been paid there yet it says
+  so, because that absence is itself information.
+
+  It also says plainly what dilutes the figure: the share of the pool you would
+  own, and that your share falls as others delegate. A gateway with no
+  delegates gives you the whole delegate share and is therefore the most
+  attractive and the least durable position on the list.
+
+  Two limits on what can be ranked. A gateway needs 30 epochs of history:
+  reward per token rises as delegated stake falls, so an empty gateway would
+  otherwise take the top slot for the price of one settings change, and a
+  history floor makes that position cost what an honest operator pays. And a
+  gateway on a current failure streak is discounted sharply rather than judged
+  on its lifetime average, because twelve consecutive failures still reads as
+  87% after a few hundred good epochs.
 
 ### Fixed
 

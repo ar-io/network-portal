@@ -15,6 +15,12 @@ import { useState } from 'react';
 /** Within this many of the prune threshold, SD-1.4 says so explicitly. */
 const PRUNE_WARNING_WINDOW = 5;
 
+/** Small ARIO amounts need decimals; large ones do not. */
+const formatARIO = (value: number) =>
+  value >= 100
+    ? formatWithCommas(Math.round(value))
+    : value.toLocaleString('en-us', { maximumFractionDigits: 2 });
+
 const pct = (ratio: number) =>
   `${(ratio * 100).toLocaleString('en-us', { maximumFractionDigits: 2 })}%`;
 
@@ -23,21 +29,22 @@ const EstimateTooltip = () => (
     message={
       <div className="flex flex-col gap-2">
         <p>
-          An estimate, not a rate. It divides this epoch&apos;s per-gateway
-          reward by the stake that would be sharing it, so it is an upper bound
-          for three reasons:
+          One epoch ahead, not a year. It takes this epoch&apos;s per-gateway
+          reward from the network, keeps the share this gateway passes to its
+          delegates, weights it by how often the gateway actually gets paid, and
+          splits it by stake.
         </p>
         <p>
-          The reward changes every epoch, as the protocol&apos;s reward rate
-          decays and the number of eligible gateways moves. Other delegators can
-          join the same gateway, which dilutes your share without anything going
-          wrong. And a gateway&apos;s record can get worse than its history
-          suggests.
+          Shown per epoch on purpose. Annualising it compounds a year of
+          assumptions onto a reward the protocol resets daily, which produces
+          figures in the hundreds of percent for a small delegation to an empty
+          gateway — arithmetically correct, and not a promise anyone can keep.
         </p>
         <p>
-          The observer reward is excluded, and a gateway with delegation enabled
-          but no delegators keeps everything for its operator until someone
-          stakes.
+          It is still an upper bound. The reward changes every epoch as the rate
+          decays and the eligible gateway count moves, other delegates dilute
+          your share by arriving, and a gateway&apos;s record can get worse than
+          its history suggests. The observer reward is excluded.
         </p>
       </div>
     }
@@ -66,11 +73,14 @@ const ResultRow = ({
   result,
   maxConsecutiveFailures,
   medianDelegatedStake,
+  realizedReturn,
   onDelegate,
 }: {
   result: SmartDelegateResult;
   maxConsecutiveFailures: number | undefined;
   medianDelegatedStake: number | undefined;
+  /** Measured annualised return for this gateway's delegates, if any. */
+  realizedReturn: number | undefined;
   onDelegate: () => void;
 }) => {
   const ticker = useGlobalState((state) => state.ticker);
@@ -101,12 +111,38 @@ const ResultRow = ({
             {gateway.settings.fqdn} · {formatAddress(gateway.gatewayAddress)}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-2xl font-bold leading-none text-high">
-            {pct(result.expectedEAY)}
+        <div className="flex flex-col items-end">
+          <div className="flex items-center gap-2">
+            <div className="text-2xl font-bold leading-none text-high">
+              +{formatARIO(result.expectedEpochReward)}
+            </div>
+            <div className="text-sm text-high">{ticker}</div>
+            <EstimateTooltip />
           </div>
-          <EstimateTooltip />
+          <div className="text-xs text-low">estimated, next epoch (~1 day)</div>
         </div>
+      </div>
+
+      {/* The measured figure, where one exists. Deliberately second: it is a
+          fact rather than an estimate, but it describes other people's
+          positions rather than the one being considered. */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-y border-grey-800 py-2 text-xs">
+        {realizedReturn !== undefined ? (
+          <>
+            <span className="text-low">
+              Delegates here have actually earned
+            </span>
+            <span className="text-high">{pct(realizedReturn)} a year</span>
+            <span className="text-low">
+              on the stake they hold, across the published history.
+            </span>
+          </>
+        ) : (
+          <span className="text-low">
+            No delegate has been paid at this gateway yet, so there is no
+            measured return to compare against.
+          </span>
+        )}
       </div>
 
       {/* The four inputs behind the headline, so it can be recomputed. */}
@@ -151,6 +187,12 @@ const ResultRow = ({
           stake.
         </div>
       )}
+
+      <div className="text-xs text-low">
+        {result.poolShare >= 0.999
+          ? 'You would be the only delegate here, so the whole delegate share would be yours — and every later delegate takes directly from it.'
+          : `You would own ${pct(result.poolShare)} of this gateway's delegate pool. Rewards are split by stake, so your share falls as others delegate.`}
+      </div>
 
       {result.existingStake > 0 && (
         <div className="text-xs text-low">
@@ -238,19 +280,30 @@ const SmartDelegateCard = () => {
           <div className="text-sm text-high">Smart Delegate</div>
           <Tooltip
             message={
-              <p>
-                Ranks gateways by the yield you could expect on the amount you
-                enter, after weighting for how often each gateway actually gets
-                paid. It never moves funds: picking one opens the normal staking
-                dialog, which still asks your wallet to sign.
-              </p>
+              <div className="flex flex-col gap-2">
+                <p>
+                  Each epoch the network pays every eligible gateway the same
+                  reward. A gateway passes a share of that to its delegates, and
+                  that share is split by how much each has staked — so the less
+                  stake a gateway already carries, the more each of your tokens
+                  earns there.
+                </p>
+                <p>
+                  This ranks gateways on exactly that, weighted by how often
+                  each one actually gets paid and discounted sharply if it is
+                  failing right now. It never moves funds: picking one opens the
+                  normal staking dialog, which still asks your wallet to sign.
+                </p>
+              </div>
             }
           >
             <InfoIcon className="size-[1.125rem]" />
           </Tooltip>
         </div>
         <div className="text-xs text-low">
-          Enter an amount to see where it would earn most.
+          Rewards are split by stake, so the same delegation earns more where
+          less is already delegated. Enter an amount to see where yours would
+          earn most.
         </div>
       </div>
 
@@ -293,12 +346,18 @@ const SmartDelegateCard = () => {
                 result={result}
                 maxConsecutiveFailures={state.maxConsecutiveFailures}
                 medianDelegatedStake={state.medianDelegatedStake}
+                realizedReturn={state.realizedReturns.get(
+                  result.gateway.gatewayAddress,
+                )}
                 onDelegate={() => setSelected(result)}
               />
             ))}
             <div className="text-xs text-low">
-              Ranked by estimated annual yield for {formatWithCommas(amount)}{' '}
-              {ticker}. {SMART_DELEGATE_VERSION}
+              Ranked by reward per token for {formatWithCommas(amount)} {ticker}
+              , which favours gateways carrying less delegated stake. Across the
+              published history, gateways in the lowest quarter by delegated
+              stake have returned roughly twenty times those in the highest.{' '}
+              {SMART_DELEGATE_VERSION}
             </div>
           </div>
         )}

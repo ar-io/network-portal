@@ -41,6 +41,19 @@ export const MIN_EPOCH_HISTORY = 30;
 export const RESULT_COUNT = 3;
 
 /**
+ * Epochs in a year. Epochs are daily, matching `walletRewards.ts`.
+ *
+ * Used to turn the annualised figure `rewards.ts` produces back into one
+ * epoch, because **the epoch is the honest unit here.** An annual percentage
+ * compounds a year of assumptions onto a reward the protocol resets every
+ * epoch: on live mainnet data the top result for a 100 ARIO delegation
+ * annualises to 605%, which is arithmetically right and reads as a promise
+ * nobody can keep. The same figure is 1.7 ARIO for the next epoch — true,
+ * checkable tomorrow, and not a forecast.
+ */
+export const EPOCHS_PER_YEAR = 365;
+
+/**
  * `STREAK_DECAY ^ failedConsecutiveEpochs`.
  *
  * Returns 1 for a gateway with no current streak, so it is a no-op on a
@@ -188,8 +201,32 @@ export const expectedEAY = ({
 
 export type SmartDelegateResult = {
   gateway: GatewayWithAddress;
-  /** Expected annual yield as a ratio, already carrying the streak penalty. */
+  /**
+   * Expected annual yield as a ratio, already carrying the streak penalty.
+   *
+   * **The ranking key, not a figure to display.** Its ordering is meaningful —
+   * it is reward per token owned, which is what the protocol pays pro-rata —
+   * but its magnitude assumes a year of unchanged rewards and no new
+   * delegators, and neither holds. Show `expectedEpochReward` instead.
+   */
   expectedEAY: number;
+  /**
+   * Expected reward for this delegation over the next epoch, in ARIO.
+   *
+   * What the card leads with. One epoch out, the inputs are known rather than
+   * projected: the per-gateway reward is on the Epoch account and the pool is
+   * whatever it is today.
+   */
+  expectedEpochReward: number;
+  /**
+   * Share of the gateway's delegate pool this delegation would own, 0-1.
+   *
+   * The dilution fact, stated rather than implied. At 1 the user is the pool
+   * and every later delegator takes directly from their share, which is
+   * exactly where the modelled yield looks most attractive and is least
+   * durable.
+   */
+  poolShare: number;
   /** `passedEpochCount / totalEpochCount`, or undefined with no history. */
   passRate: number | undefined;
   passedEpochCount: number;
@@ -264,9 +301,14 @@ export const rankGateways = ({
       .toARIO()
       .valueOf();
 
+    const poolShare =
+      delegated + amount > 0 ? amount / (delegated + amount) : 0;
+
     results.push({
       gateway,
       expectedEAY: eay,
+      expectedEpochReward: (eay * amount) / EPOCHS_PER_YEAR,
+      poolShare,
       passRate:
         total > 0 ? Math.min(1, Math.max(0, passed / total)) : undefined,
       passedEpochCount: passed,

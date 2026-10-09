@@ -1,5 +1,6 @@
 import { ARIOToken, type GatewayWithAddress } from '@ar.io/sdk/web';
 import {
+  EPOCHS_PER_YEAR,
   MIN_EPOCH_HISTORY,
   RESULT_COUNT,
   SMART_DELEGATE_VERSION,
@@ -477,5 +478,56 @@ describe('explainEmptyRanking', () => {
     if (reason.kind === 'amountBelowEveryMinimum') {
       expect(reason.lowestMinimum).toBe(1);
     }
+  });
+});
+
+describe('the displayed unit', () => {
+  const rank = (over = {}, amount = 1_000) =>
+    rankGateways({
+      gateways: [gw(over)],
+      amount,
+      perGatewayReward: REWARD,
+      walletAddress: 'WALLET1111111111111111111111111111111111111',
+      protocolMinStake: 10 * M,
+      existingStakeByGateway: NO_STAKE,
+    })[0];
+
+  it('reports the next epoch in ARIO, which is the annual figure undone', () => {
+    const r = rank();
+    expect(r.expectedEpochReward).toBeCloseTo(
+      (r.expectedEAY * 1_000) / EPOCHS_PER_YEAR,
+      9,
+    );
+  });
+
+  it('keeps the per-epoch figure modest where the annual one is absurd', () => {
+    // The live-mainnet case that made the annual headline unshippable: an
+    // empty gateway and a small delegation annualise past 600%.
+    const r = rank(
+      {
+        totalDelegatedStake: 0,
+        delegateRewardShareRatio: 1,
+        minDelegatedStake: 10 * M,
+      },
+      100,
+    );
+    expect(r.expectedEAY).toBeGreaterThan(3); // >300% a year
+    expect(r.expectedEpochReward).toBeLessThan(2); // ~1 ARIO tomorrow
+  });
+
+  it('reports owning the whole pool where the gateway has no delegates', () => {
+    expect(rank({ totalDelegatedStake: 0 }, 1_000).poolShare).toBe(1);
+  });
+
+  it('reports a small share of a large pool', () => {
+    const r = rank({ totalDelegatedStake: 999_000 * M }, 1_000);
+    expect(r.poolShare).toBeCloseTo(0.001, 6);
+  });
+
+  it('ties the pool share to the dilution it predicts', () => {
+    // Owning half the pool means one equal delegator halves the share, which
+    // is the claim the card makes in words.
+    const r = rank({ totalDelegatedStake: 1_000 * M }, 1_000);
+    expect(r.poolShare).toBeCloseTo(0.5, 9);
   });
 });

@@ -6,12 +6,14 @@ import {
   explainEmptyRanking,
   rankGateways,
 } from '@src/utils/smartDelegate';
+import { gatewayDelegateReturns } from '@src/utils/walletRewards';
 import { useMemo } from 'react';
 import useAllGateways from './useAllGateways';
 import useDelegateStakes from './useDelegateStakes';
 import useEpochSettings from './useEpochSettings';
 import useGatewayRegistrySettings from './useGatewayRegistrySettings';
 import usePerGatewayReward from './usePerGatewayReward';
+import useWalletRewards from './useWalletRewards';
 
 export type SmartDelegateState = {
   results: SmartDelegateResult[];
@@ -34,6 +36,12 @@ export type SmartDelegateState = {
    * can say where its own stake stands. Undefined where nothing is eligible.
    */
   medianDelegatedStake: number | undefined;
+  /**
+   * Realized annualised delegate return per gateway, where anyone has been
+   * paid there. Empty on devnet, where the analyzer publishes nothing — the
+   * card then omits the figure rather than showing an error.
+   */
+  realizedReturns: Map<string, number>;
 };
 
 /**
@@ -78,6 +86,9 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
   const { data: delegateStakes, isLoading: stakesLoading } = useDelegateStakes(
     walletAddress?.toString(),
   );
+  // Same query key as the staking page already uses, so this is a cache read
+  // rather than a second download of a ~160KB document.
+  const { data: rewardsDoc } = useWalletRewards();
 
   /**
    * Gateway address -> this wallet's stake there, in mARIO.
@@ -103,6 +114,10 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
 
   const protocolMinStake = registrySettings?.delegates?.minStake;
   const wallet = walletAddress?.toString();
+  const realizedReturns = useMemo(
+    () => gatewayDelegateReturns(rewardsDoc ?? undefined),
+    [rewardsDoc],
+  );
 
   return useMemo(() => {
     if (loading) {
@@ -111,6 +126,7 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
         status: 'loading',
         maxConsecutiveFailures: undefined,
         medianDelegatedStake: undefined,
+        realizedReturns: new Map(),
       };
     }
 
@@ -132,6 +148,7 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
         results.length === 0 ? explainEmptyRanking(input) : undefined,
       maxConsecutiveFailures: epochSettings?.maxConsecutiveFailures,
       medianDelegatedStake: medianDelegatedStakeOf(input.gateways),
+      realizedReturns,
     };
   }, [
     loading,
@@ -142,6 +159,7 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
     protocolMinStake,
     existingStakeByGateway,
     epochSettings?.maxConsecutiveFailures,
+    realizedReturns,
   ]);
 };
 

@@ -42,6 +42,11 @@ export type SmartDelegateState = {
    * card then omits the figure rather than showing an error.
    */
   realizedReturns: Map<string, number>;
+  /**
+   * Epochs the realized figures are averaged over, so the card can say how
+   * long "actually earned" covers. Undefined where the document is absent.
+   */
+  realizedEpochs: number | undefined;
 };
 
 /**
@@ -118,6 +123,7 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
     () => gatewayDelegateReturns(rewardsDoc ?? undefined),
     [rewardsDoc],
   );
+  const rewardsEpochs = rewardsDoc?.totalEpochsRecorded;
 
   return useMemo(() => {
     if (loading) {
@@ -127,6 +133,7 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
         maxConsecutiveFailures: undefined,
         medianDelegatedStake: undefined,
         realizedReturns: new Map(),
+        realizedEpochs: undefined,
       };
     }
 
@@ -149,6 +156,7 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
       maxConsecutiveFailures: epochSettings?.maxConsecutiveFailures,
       medianDelegatedStake: medianDelegatedStakeOf(input.gateways),
       realizedReturns,
+      realizedEpochs: rewardsEpochs,
     };
   }, [
     loading,
@@ -160,6 +168,7 @@ const useSmartDelegate = (amount: number): SmartDelegateState => {
     existingStakeByGateway,
     epochSettings?.maxConsecutiveFailures,
     realizedReturns,
+    rewardsEpochs,
   ]);
 };
 

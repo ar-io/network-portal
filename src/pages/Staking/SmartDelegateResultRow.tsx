@@ -1,7 +1,10 @@
 import Tooltip from '@src/components/Tooltip';
 import { InfoIcon } from '@src/components/icons';
 import { formatAddress, formatWithCommas } from '@src/utils';
-import type { SmartDelegateResult } from '@src/utils/smartDelegate';
+import {
+  EPOCHS_PER_YEAR,
+  type SmartDelegateResult,
+} from '@src/utils/smartDelegate';
 
 /** Within this many of the prune threshold, SD-1.4 says so explicitly. */
 const PRUNE_WARNING_WINDOW = 5;
@@ -75,6 +78,8 @@ export const ResultRow = ({
   maxConsecutiveFailures,
   medianDelegatedStake,
   realizedReturn,
+  realizedEpochs,
+  amount,
   ticker,
   onDelegate,
 }: {
@@ -83,6 +88,10 @@ export const ResultRow = ({
   medianDelegatedStake: number | undefined;
   /** Measured annualised return for this gateway's delegates, if any. */
   realizedReturn: number | undefined;
+  /** Epochs the measured figure averages over, for stating the period. */
+  realizedEpochs: number | undefined;
+  /** The amount being considered, in ARIO. */
+  amount: number;
   ticker: string;
   onDelegate: () => void;
 }) => {
@@ -96,12 +105,16 @@ export const ResultRow = ({
     maxConsecutiveFailures - result.failedConsecutiveEpochs <=
       PRUNE_WARNING_WINDOW;
 
+  // Said as competition rather than as a ranking against the median. More
+  // delegated stake is the main negative in this model — it is the
+  // denominator — but "above the network median" reads as a popularity badge,
+  // so a reader could take the worst signal on the card for reassurance.
   const stakeNote = result.noDelegatesYet
-    ? 'No delegates yet'
+    ? 'Nobody is sharing the rewards yet'
     : medianDelegatedStake !== undefined
       ? result.totalDelegatedStake >= medianDelegatedStake
-        ? 'Above the network median'
-        : 'Below the network median'
+        ? 'More competition than most gateways'
+        : 'Less competition than most gateways'
       : undefined;
 
   return (
@@ -144,9 +157,17 @@ export const ResultRow = ({
             <span className="text-low">
               Delegates here have actually earned
             </span>
-            <span className="text-high">{pct(realizedReturn)} a year</span>
+            <span className="text-high">
+              +{formatARIO((realizedReturn * amount) / EPOCHS_PER_YEAR)}{' '}
+              {ticker} a day
+            </span>
             <span className="text-low">
-              on the stake they hold, across the published history.
+              on {formatWithCommas(amount)} {ticker}
+              {realizedEpochs !== undefined
+                ? `, averaged over ${formatWithCommas(realizedEpochs)} epochs`
+                : ''}
+              . The estimate above assumes today's pool and reward; this covers
+              a stretch when both were different.
             </span>
           </>
         ) : (

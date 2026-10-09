@@ -155,6 +155,8 @@ const SmartDelegateCard = () => {
                   realizedReturn={state.realizedReturns.get(
                     result.gateway.gatewayAddress,
                   )}
+                  realizedEpochs={state.realizedEpochs}
+                  amount={amount}
                   ticker={ticker}
                   onDelegate={() => setSelected(result)}
                 />

@@ -1,6 +1,5 @@
 import Placeholder from '@src/components/Placeholder';
-import Tooltip from '@src/components/Tooltip';
-import { InfoIcon, PinkArrowIcon } from '@src/components/icons';
+import { PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import useSmartDelegate from '@src/hooks/useSmartDelegate';
 import { useGlobalState } from '@src/store';
@@ -108,28 +107,6 @@ const SmartDelegateCard = () => {
               Find where your stake earns most
             </div>
             <PinkArrowIcon className="size-3 shrink-0" />
-            <Tooltip
-              message={
-                <div className="flex flex-col gap-2">
-                  <p>
-                    Each epoch the network pays every eligible gateway the same
-                    reward. A gateway passes a share of that to its delegates,
-                    and that share is split by how much each has staked — so the
-                    less stake a gateway already carries, the more each of your
-                    tokens earns there.
-                  </p>
-                  <p>
-                    This ranks gateways on exactly that, weighted by how often
-                    each one actually gets paid and discounted sharply if it is
-                    failing right now. It never moves funds: picking one opens
-                    the normal staking dialog, which still asks your wallet to
-                    sign.
-                  </p>
-                </div>
-              }
-            >
-              <InfoIcon className="size-[1.125rem]" />
-            </Tooltip>
           </div>
           <div className="max-w-2xl text-xs text-mid">
             Rewards are split by stake, so the same delegation earns more where

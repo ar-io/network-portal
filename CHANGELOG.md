@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Smart Delegate: enter an amount and see where it would earn most.** The
+  staking page has 245 gateways open to delegation and no way to tell which of
+  them is a good home for a given amount. Reward share, how often a gateway
+  actually gets paid, whether it is failing right now, and how much stake is
+  already sharing the rewards all matter, and all of them sit in different
+  columns.
+
+  A card above the delegate table now takes an amount and names the three
+  gateways with the highest expected yield for it, then shows the four numbers
+  behind each headline — reward share, pass rate with its epoch counts, current
+  streak, and delegated stake against the network median — so the figure can be
+  recomputed rather than taken on trust. Picking one opens the usual staking
+  dialog with the amount already filled in; nothing moves without your
+  signature.
+
+  The amount genuinely matters, and not uniformly. It is part of the
+  denominator, so it reorders gateways that already hold delegated stake, and
+  provably cannot reorder those holding none — where the pool is empty your
+  amount is the whole of it, so it cancels out of the comparison. Those are
+  marked **No delegates yet**.
+
+  Two deliberate limits. A gateway needs 30 epochs of history to be ranked at
+  all: yield divides by delegated stake, so an empty gateway with a generous
+  reward share would otherwise take the top slot for the price of one settings
+  change, and a history floor makes that position cost what an honest operator
+  pays. And a gateway on a current failure streak is discounted sharply rather
+  than judged on its lifetime average, because twelve consecutive failures
+  still reads as 87% after a few hundred good epochs.
+
+  The headline is an estimate and says so. It is an upper bound: the reward
+  changes every epoch, other delegators dilute your share by arriving, and a
+  gateway's record can get worse than its history suggests. Where a gateway is
+  close to the removal threshold the card says that too, because removal
+  slashes the operator's stake and the delegation goes with it.
+
+### Fixed
+
+- The minimum a delegation must clear is now derived in one place for both the
+  staking form and Smart Delegate, so a gateway can no longer be recommended at
+  an amount the form would then refuse.
+
 ## [2.13.2] - 2026-10-08
 
 ### Security

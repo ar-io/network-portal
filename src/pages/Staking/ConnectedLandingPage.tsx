@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import DelegateStake from './DelegateStakeTable';
 import MyRewardsPanel from './MyRewardsPanel';
 import MyStakesTable from './MyStakesTable';
+import SmartDelegateCard from './SmartDelegateCard';
 
 const TopPanel = ({
   title,
@@ -108,6 +109,9 @@ const ConnectedLandingPage = () => {
         docsUrl="https://docs.ar.io/learn/oip/staking#delegated-staking"
       />
       <MyStakesTable />
+      {/* Above the table, which stays untouched and reachable throughout:
+          Smart Delegate narrows, it does not replace browsing. */}
+      <SmartDelegateCard />
       <DelegateStake />
     </div>
   );

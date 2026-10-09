@@ -20,10 +20,17 @@ import ReviewStakeModal from './ReviewStakeModal';
 const StakingModal = ({
   onClose,
   ownerWallet,
+  initialAmount,
 }: {
   open: boolean;
   onClose: () => void;
   ownerWallet: string;
+  /**
+   * Starting value for the amount field, used by Smart Delegate to carry the
+   * amount the user already entered into the flow that executes it. The modal
+   * is otherwise unchanged: it still validates, still quotes, still signs.
+   */
+  initialAmount?: string;
 }) => {
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
@@ -37,7 +44,9 @@ const StakingModal = ({
   const [currentStake, setCurrentStake] = useState<number | undefined>(
     undefined,
   );
-  const [amountToStake, setAmountToStake] = useState<string>('');
+  const [amountToStake, setAmountToStake] = useState<string>(
+    initialAmount ?? '',
+  );
 
   const [showReviewStakeModal, setShowReviewStakeModal] = useState(false);
 

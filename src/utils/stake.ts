@@ -76,11 +76,25 @@ export const isWithdrawalUnlocked = (
   now: number = Date.now(),
 ) => endTimestamp <= now;
 
-/** Whether expediting is still worth offering — see `UNLOCK_SKEW_MARGIN_MS`. */
+/**
+ * Whether expediting is worth offering on this vault.
+ *
+ * Two reasons it is not. Past the unlock (plus `UNLOCK_SKEW_MARGIN_MS`)
+ * claiming returns the full amount, so expediting is only a way to pay the
+ * penalty for nothing. And a **protected** vault — the minimum operator stake
+ * of a departing gateway — is rejected outright:
+ * `require!(!withdrawal.is_protected, GarError::ProtectedVault)`
+ * (withdrawal.rs:66). Offering it there is offering a transaction that cannot
+ * succeed for the whole leave period, which is what a gateway operator hit.
+ *
+ * Takes the vault rather than a timestamp so the flag cannot be left out. The
+ * SDK made `isProtected` required for the same reason: read as `undefined` it
+ * is falsy, and the bug comes straight back with nothing to catch it.
+ */
 export const canStillExpedite = (
-  endTimestamp: number,
+  vault: { endTimestamp: number; isProtected: boolean },
   now: number = Date.now(),
-) => endTimestamp + UNLOCK_SKEW_MARGIN_MS > now;
+) => !vault.isProtected && vault.endTimestamp + UNLOCK_SKEW_MARGIN_MS > now;
 
 /**
  * Whether a redelegation clears the target gateway's minimum AFTER the fee,

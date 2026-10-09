@@ -358,9 +358,14 @@ const MyStakesTable = () => {
                       )}
 
                       {(!row.original.withdrawalDate ||
-                        canStillExpedite(
-                          row.original.withdrawalDate.getTime(),
-                        )) && (
+                        canStillExpedite({
+                          endTimestamp: row.original.withdrawalDate.getTime(),
+                          // Delegate withdrawals are never protected:
+                          // `delegate.rs` writes both flags false, and only an
+                          // operator's exit vault can hold a protected minimum
+                          // stake. This table is delegations only.
+                          isProtected: false,
+                        })) && (
                         <DropdownMenu.Item
                           className="cursor-pointer select-none px-4 py-2 outline-none data-[highlighted]:bg-containerL3"
                           onClick={(e) => {

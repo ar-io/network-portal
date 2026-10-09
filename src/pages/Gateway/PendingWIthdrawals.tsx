@@ -88,6 +88,16 @@ const PendingWithdrawals = ({
           {isWithdrawalUnlocked(row.original.endTimestamp) && (
             <span className="ml-2 text-green-600">Unlocked</span>
           )}
+          {/* An absent Expedite is not self-explanatory, and an operator who
+              expects one will read its absence as a bug rather than a rule.
+              The protected vault holds the gateway's minimum stake and the
+              program refuses to release it early at any price. */}
+          {row.original.isProtected && (
+            <div className="text-xs text-low">
+              Minimum operator stake — cannot be expedited, and claimable in
+              full once this date passes.
+            </div>
+          )}
         </div>
       ),
     }),
@@ -126,7 +136,7 @@ const PendingWithdrawals = ({
                   </DropdownMenu.Item>
                 )}
 
-                {canStillExpedite(row.original.endTimestamp) && (
+                {canStillExpedite(row.original) && (
                   <DropdownMenu.Item
                     className="cursor-pointer select-none px-4 py-2 outline-none  data-[highlighted]:bg-containerL3"
                     onClick={(e) => {

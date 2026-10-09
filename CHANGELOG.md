@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **A departing gateway's minimum stake offered an early withdrawal the
+  network always refuses.** When a gateway leaves, its stake splits across two
+  vaults: the minimum operator stake is held for the full leave period and
+  cannot be released early at any price, and anything above it follows the
+  ordinary withdrawal period and can be expedited. The portal offered Expedite
+  on both. Taking it on the protected one spent a signature on a transaction
+  the network rejects every time — for the whole 90 days.
+
+  The portal could not previously tell the two apart, because the published
+  record of a vault did not say which kind it was. It does now, so Expedite is
+  offered only where it can succeed, and the protected vault says what it is
+  and that it will be claimable in full once its date passes.
+
+  The error, if it is reached another way, now explains itself rather than
+  printing raw transaction data. It had been matched against the wrong code —
+  the right one is 6082 — so the explanation never appeared.
+
 ## [2.13.2] - 2026-10-08
 
 ### Security

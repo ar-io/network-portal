@@ -105,7 +105,10 @@ export const ResultRow = ({
       : undefined;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-grey-800 p-4">
+    // `containerL0` with a lighter edge, because the row now nests inside a
+    // `bg-grey-800` card: a `border-grey-800` row against a `grey-800` card has
+    // no edge at all, and the three results ran together as one block.
+    <div className="flex flex-col gap-3 rounded-lg border border-grey-700 bg-containerL0 p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex flex-col">
           <div className="text-sm text-high">{gateway.settings.label}</div>

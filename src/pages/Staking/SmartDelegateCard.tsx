@@ -1,6 +1,6 @@
 import Placeholder from '@src/components/Placeholder';
 import Tooltip from '@src/components/Tooltip';
-import { InfoIcon } from '@src/components/icons';
+import { InfoIcon, PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import useSmartDelegate from '@src/hooks/useSmartDelegate';
 import { useGlobalState } from '@src/store';
@@ -69,6 +69,20 @@ const EmptyState = ({
  * invalidates a query key and never marks a snapshot document written — those
  * belong to `StakingModal` and `ReviewStakeModal`, which are unchanged.
  */
+/**
+ * Smart Delegate: rank gateways by what an amount would earn, then hand the
+ * gateway and the amount to the existing staking flow.
+ *
+ * One row until it is used. The staking page already stacks five blocks above
+ * the gateway table, and an always-open panel that is empty until someone
+ * types was a sixth — about 150px of header, subtitle and placeholder saying
+ * nothing. The input is the affordance, so keeping it visible keeps the
+ * feature discoverable without the chrome; results unfold underneath.
+ *
+ * This card selects and explains. It never calls the write SDK, never
+ * invalidates a query key and never marks a snapshot document written — those
+ * belong to `StakingModal` and `ReviewStakeModal`, which are unchanged.
+ */
 const SmartDelegateCard = () => {
   const ticker = useGlobalState((state) => state.ticker);
   const [amountText, setAmountText] = useState<string>('');
@@ -76,48 +90,61 @@ const SmartDelegateCard = () => {
 
   const amount = Number.parseFloat(amountText);
   const state = useSmartDelegate(Number.isFinite(amount) ? amount : 0);
+  const entered = amountText.trim().length > 0;
 
   return (
-    <div className="rounded-xl border border-grey-600">
-      <div className="flex flex-col gap-1 border-b border-grey-800 px-6 py-4">
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-high">Smart Delegate</div>
-          <Tooltip
-            message={
-              <div className="flex flex-col gap-2">
-                <p>
-                  Each epoch the network pays every eligible gateway the same
-                  reward. A gateway passes a share of that to its delegates, and
-                  that share is split by how much each has staked — so the less
-                  stake a gateway already carries, the more each of your tokens
-                  earns there.
-                </p>
-                <p>
-                  This ranks gateways on exactly that, weighted by how often
-                  each one actually gets paid and discounted sharply if it is
-                  failing right now. It never moves funds: picking one opens the
-                  normal staking dialog, which still asks your wallet to sign.
-                </p>
-              </div>
-            }
-          >
-            <InfoIcon className="size-[1.125rem]" />
-          </Tooltip>
-        </div>
-        <div className="text-xs text-low">
-          Rewards are split by stake, so the same delegation earns more where
-          less is already delegated. Enter an amount to see where yours would
-          earn most.
-        </div>
-      </div>
+    <div className="relative overflow-hidden rounded-xl bg-grey-800">
+      {/* A wash of the brand gradient behind the prompt, at the same weight
+          the extension tags use for their subtle variant. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-gradient-primary-start/20 to-gradient-primary-end/20 opacity-60"
+      />
 
-      <div className="flex flex-col gap-4 px-6 py-5">
-        <div className="flex h-[3.25rem] max-w-md items-center overflow-hidden rounded-md border border-grey-800">
+      <div className="relative z-10 flex flex-wrap items-center gap-x-6 gap-y-4 p-6">
+        <div className="min-w-[16rem] flex-1">
+          <div className="mb-1 flex items-center gap-2">
+            <div className="text-gradient text-lg font-medium">
+              Find where your stake earns most
+            </div>
+            <PinkArrowIcon className="size-3 shrink-0" />
+            <Tooltip
+              message={
+                <div className="flex flex-col gap-2">
+                  <p>
+                    Each epoch the network pays every eligible gateway the same
+                    reward. A gateway passes a share of that to its delegates,
+                    and that share is split by how much each has staked — so the
+                    less stake a gateway already carries, the more each of your
+                    tokens earns there.
+                  </p>
+                  <p>
+                    This ranks gateways on exactly that, weighted by how often
+                    each one actually gets paid and discounted sharply if it is
+                    failing right now. It never moves funds: picking one opens
+                    the normal staking dialog, which still asks your wallet to
+                    sign.
+                  </p>
+                </div>
+              }
+            >
+              <InfoIcon className="size-[1.125rem]" />
+            </Tooltip>
+          </div>
+          <div className="max-w-2xl text-xs text-mid">
+            Rewards are split by stake, so the same delegation earns more where
+            less is already delegated. Enter an amount to rank every gateway for
+            it.
+          </div>
+        </div>
+
+        <div className="flex h-[3.25rem] w-full items-center overflow-hidden rounded-md border border-grey-700 bg-grey-1000 sm:w-64">
           <input
-            className="size-full grow bg-grey-1000 px-6 py-3 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
+            className="size-full grow bg-transparent px-5 text-sm text-mid outline-none placeholder:text-grey-400 focus:text-high"
             type="text"
             inputMode="decimal"
-            placeholder={`Amount of ${ticker} to delegate`}
+            placeholder="Amount"
+            aria-label={`Amount of ${ticker} to delegate`}
             value={amountText}
             onChange={(e) => {
               const next = e.target.value;
@@ -127,46 +154,45 @@ const SmartDelegateCard = () => {
               setAmountText(next);
             }}
           />
+          <div className="shrink-0 pr-5 text-sm text-low">{ticker}</div>
         </div>
-
-        {amountText.length === 0 ? (
-          <div className="text-sm text-mid">
-            Enter an amount above to rank gateways for it. The amount matters:
-            it is part of the denominator, so it changes the order among
-            gateways that already hold delegated stake.
-          </div>
-        ) : state.status === 'loading' ? (
-          <div className="flex flex-col gap-3">
-            <Placeholder className="h-24" />
-            <Placeholder className="h-24" />
-          </div>
-        ) : state.results.length === 0 ? (
-          <EmptyState state={state} ticker={ticker} />
-        ) : (
-          <div className="flex flex-col gap-3">
-            {state.results.map((result) => (
-              <ResultRow
-                key={result.gateway.gatewayAddress}
-                result={result}
-                maxConsecutiveFailures={state.maxConsecutiveFailures}
-                medianDelegatedStake={state.medianDelegatedStake}
-                realizedReturn={state.realizedReturns.get(
-                  result.gateway.gatewayAddress,
-                )}
-                ticker={ticker}
-                onDelegate={() => setSelected(result)}
-              />
-            ))}
-            <div className="text-xs text-low">
-              Ranked by reward per token for {formatWithCommas(amount)} {ticker}
-              , which favours gateways carrying less delegated stake. Across the
-              published history, gateways in the lowest quarter by delegated
-              stake have returned roughly twenty times those in the highest.{' '}
-              {SMART_DELEGATE_VERSION}
-            </div>
-          </div>
-        )}
       </div>
+
+      {entered && (
+        <div className="relative z-10 flex flex-col gap-3 border-t border-grey-700 px-6 pb-6 pt-5">
+          {state.status === 'loading' ? (
+            <>
+              <Placeholder className="h-24" />
+              <Placeholder className="h-24" />
+            </>
+          ) : state.results.length === 0 ? (
+            <EmptyState state={state} ticker={ticker} />
+          ) : (
+            <>
+              {state.results.map((result) => (
+                <ResultRow
+                  key={result.gateway.gatewayAddress}
+                  result={result}
+                  maxConsecutiveFailures={state.maxConsecutiveFailures}
+                  medianDelegatedStake={state.medianDelegatedStake}
+                  realizedReturn={state.realizedReturns.get(
+                    result.gateway.gatewayAddress,
+                  )}
+                  ticker={ticker}
+                  onDelegate={() => setSelected(result)}
+                />
+              ))}
+              <div className="text-xs text-low">
+                Ranked by reward per token for {formatWithCommas(amount)}{' '}
+                {ticker}, which favours gateways carrying less delegated stake.
+                Across the published history, gateways in the lowest quarter by
+                delegated stake have returned roughly twenty times those in the
+                highest. {SMART_DELEGATE_VERSION}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {selected && (
         <StakingModal

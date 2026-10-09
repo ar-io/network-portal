@@ -42,6 +42,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of the gateway list — which is the other half of what looked like
   disappearing tokens.
 
+  A gateway address that is no longer in the registry now says so, instead
+  of drawing an empty page of dashes. That page is where the operator above
+  went looking, having kept the link — and to its owner it also says where
+  the exit stake went and links to the claim.
+
   The mark counts matured withdrawals, so it can under-report where an
   unlocked locked-transfer vault is also waiting. It reads "at least" for that
   reason, and the Balances page remains the full picture. Counting those too

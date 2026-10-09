@@ -43,6 +43,7 @@ import { TriangleAlertIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ActiveDelegates from './ActiveDelegates';
+import DepartedGatewayNotice from './DepartedGatewayNotice';
 import GatewayHeader from './GatewayHeader';
 import InfrastructureDetails from './InfrastructureDetails';
 import OperatorStake from './OperatorStake';
@@ -64,9 +65,19 @@ const Gateway = () => {
   const ownerId = params?.ownerId;
   const isOwnGateway = ownerId === walletAddress?.toString();
 
-  const { data: gateway } = useGateway({
+  const { data: gateway, isLoading: gatewayLoading } = useGateway({
     ownerWalletAddress: ownerId || undefined,
   });
+
+  /**
+   * Loaded, and there is no such gateway.
+   *
+   * `null` is the query's own answer for "the registry does not have it";
+   * a failed read leaves `data` undefined. Distinguishing them matters — a
+   * notice saying the gateway is gone must not appear while the read is still
+   * in flight, or after one that failed.
+   */
+  const gatewayAbsent = !gatewayLoading && gateway === null;
 
   const { data: arioInfo, isLoading: isLoadingArioInfo } = useGatewayArioInfo({
     url: gateway?.settings?.fqdn
@@ -390,6 +401,7 @@ const Gateway = () => {
       </div>
 
       <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 scrollbar scrollbar-thin">
+        {gatewayAbsent && <DepartedGatewayNotice isOwnGateway={isOwnGateway} />}
         {/* Low Balance Warning Banner */}
         {isOwnGateway && hasLowBalance && (
           <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-warning">

@@ -101,17 +101,29 @@ const ConnectedLandingPage = () => {
           />
         ))}
       </div>
+      {/* Second, under what you hold: what you have, then where to put it,
+          then what you have earned and what you hold today.
+
+          It sat fifth, under an empty My Stakes table, which meant the one
+          block that helps someone who has never staked came after four that
+          are empty until they have. That placement was right when this was an
+          always-open panel costing ~150px; collapsed to a single row it is
+          not, and an existing delegator loses one row before reaching their
+          own position.
+
+          Deliberately NOT ordered on whether the wallet holds stakes.
+          `useDelegateStakes` resolves asynchronously and inherits `retry: 0`,
+          so a conditional order would reshuffle the page mid-load and settle
+          on the wrong one after a failed read. */}
+      <SmartDelegateCard />
       <MyRewardsPanel />
+      <MyStakesTable />
       {/* Connected delegators see no connect card, so the same limits and
           docs link reach them here. */}
       <ProtocolParametersCard
         variant="delegate"
         docsUrl="https://docs.ar.io/learn/oip/staking#delegated-staking"
       />
-      <MyStakesTable />
-      {/* Above the table, which stays untouched and reachable throughout:
-          Smart Delegate narrows, it does not replace browsing. */}
-      <SmartDelegateCard />
       <DelegateStake />
     </div>
   );

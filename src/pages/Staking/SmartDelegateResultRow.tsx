@@ -125,6 +125,13 @@ export const ResultRow = ({
         </div>
       </div>
 
+      {result.similarCount > 1 && (
+        <div className="-mt-1 text-xs text-low">
+          Shown once for {result.similarCount} gateways with the same figures,
+          because there is nothing here to choose between them.
+        </div>
+      )}
+
       {/* The measured figure, where one exists. Deliberately second: it is a
           fact rather than an estimate, but it describes other people's
           positions rather than the one being considered. */}

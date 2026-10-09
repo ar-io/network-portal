@@ -263,15 +263,21 @@ describe('rankGateways', () => {
   });
 
   it('is stable for identical inputs, including ties', () => {
+    // Gateways identical in every displayed figure now collapse to one row,
+    // so stability shows up as which one survives: the tie-break is the
+    // address, so it is always the same one and never reshuffles on re-render.
     const tied = [
       gw({ address: 'ZZZ' }),
       gw({ address: 'AAA' }),
       gw({ address: 'MMM' }),
     ];
-    const once = rank(tied).map((r) => r.gateway.gatewayAddress);
-    const twice = rank(tied).map((r) => r.gateway.gatewayAddress);
-    expect(once).toEqual(twice);
-    expect(once).toEqual(['AAA', 'MMM', 'ZZZ']);
+    const once = rank(tied);
+    const twice = rank(tied);
+    expect(once.map((r) => r.gateway.gatewayAddress)).toEqual(
+      twice.map((r) => r.gateway.gatewayAddress),
+    );
+    expect(once.map((r) => r.gateway.gatewayAddress)).toEqual(['AAA']);
+    expect(once[0].similarCount).toBe(3);
   });
 
   it('returns only gateways that pass isEligible for the amount asked', () => {
@@ -529,5 +535,99 @@ describe('the displayed unit', () => {
     // is the claim the card makes in words.
     const r = rank({ totalDelegatedStake: 1_000 * M }, 1_000);
     expect(r.poolShare).toBeCloseTo(0.5, 9);
+  });
+});
+
+describe('near-duplicate results', () => {
+  const rank = (gateways: GatewayWithAddress[], amount = 100) =>
+    rankGateways({
+      gateways,
+      amount,
+      perGatewayReward: REWARD,
+      walletAddress: 'WALLET1111111111111111111111111111111111111',
+      protocolMinStake: 10 * M,
+      existingStakeByGateway: NO_STAKE,
+    });
+
+  // The live mainnet case: one operator brand's fleet swept every slot with
+  // identical figures, because ties break on address and siblings sort
+  // together.
+  const sibling = (addr: string) =>
+    gw({
+      address: addr,
+      totalDelegatedStake: 0,
+      delegateRewardShareRatio: 1,
+      minDelegatedStake: 10 * M,
+      passedEpochCount: 118,
+      totalEpochCount: 121,
+    });
+
+  it('shows one of a fleet of identical gateways, not three', () => {
+    const results = rank([
+      sibling('SOL03'),
+      sibling('SOL07'),
+      sibling('SOL08'),
+      gw({
+        address: 'DIFFERENT',
+        totalDelegatedStake: 0,
+        delegateRewardShareRatio: 40,
+        minDelegatedStake: 10 * M,
+      }),
+    ]);
+    const shown = results.map((r) => r.gateway.gatewayAddress);
+    const siblingsShown = shown.filter((a) => a.startsWith('SOL')).length;
+    expect(siblingsShown).toBe(1);
+    expect(shown).toContain('DIFFERENT');
+  });
+
+  it('keeps gateways that merely rank near each other but differ', () => {
+    // Same reward, different share and different pool: a real choice.
+    const results = rank(
+      [
+        gw({
+          address: 'A',
+          delegateRewardShareRatio: 50,
+          totalDelegatedStake: 10_000 * M,
+        }),
+        gw({
+          address: 'B',
+          delegateRewardShareRatio: 10,
+          totalDelegatedStake: 2_000 * M,
+        }),
+      ],
+      1_000,
+    );
+    expect(results).toHaveLength(2);
+  });
+
+  it('never drops a better gateway in favour of one ranked below it', () => {
+    const results = rank([
+      sibling('SOL03'),
+      sibling('SOL07'),
+      gw({
+        address: 'BEST',
+        totalDelegatedStake: 0,
+        delegateRewardShareRatio: 90,
+        minDelegatedStake: 10 * M,
+      }),
+    ]);
+    expect(results[0].gateway.gatewayAddress).toBe('BEST');
+  });
+
+  it('collapses a uniform roster to one row that says what it stands for', () => {
+    // Three identical gateways and nothing else. One row saying "3 similar"
+    // beats three rows saying the same thing.
+    const results = rank([
+      sibling('SOL03'),
+      sibling('SOL07'),
+      sibling('SOL08'),
+    ]);
+    expect(results).toHaveLength(1);
+    expect(results[0].similarCount).toBe(3);
+  });
+
+  it('counts a distinct gateway as standing only for itself', () => {
+    const [only] = rank([gw({ minDelegatedStake: 10 * M })], 1_000);
+    expect(only.similarCount).toBe(1);
   });
 });

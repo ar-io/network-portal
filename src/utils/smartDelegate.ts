@@ -41,6 +41,24 @@ export const MIN_EPOCH_HISTORY = 30;
 export const RESULT_COUNT = 3;
 
 /**
+ * How close two results must be before the second is treated as the same
+ * option, as a fraction of the better one's reward.
+ *
+ * Operators run fleets of near-identical gateways. On live mainnet the top
+ * three for a 100 ARIO delegation were SOL03, SOL07 and SOL08 of one brand,
+ * every figure identical to the digit — three rows telling the user the same
+ * thing, because ties break on address and siblings sort together. A card
+ * whose job is to offer a choice offered one option printed three times.
+ *
+ * So a candidate is skipped when an already-chosen result is within this of
+ * it AND matches on the things a user would choose between. Deliberately
+ * tight: this collapses duplicates, it does not spread results out for
+ * variety's sake, and a genuinely better gateway is never dropped for one
+ * ranked above it.
+ */
+export const NEAR_DUPLICATE_TOLERANCE = 0.01;
+
+/**
  * Epochs in a year. Epochs are daily, matching `walletRewards.ts`.
  *
  * Used to turn the annualised figure `rewards.ts` produces back into one
@@ -240,6 +258,15 @@ export type SmartDelegateResult = {
   noDelegatesYet: boolean;
   /** This wallet's existing stake at the gateway, in ARIO. */
   existingStake: number;
+  /**
+   * How many near-identical gateways this row stands for, including itself.
+   *
+   * Operators run fleets, and on mainnet one brand's siblings swept all three
+   * slots with figures identical to the digit. Collapsing them to one row and
+   * saying how many there were beats both printing the same option three
+   * times and hiding the alternatives without a word.
+   */
+  similarCount: number;
   version: typeof SMART_DELEGATE_VERSION;
 };
 
@@ -318,6 +345,7 @@ export const rankGateways = ({
       totalDelegatedStake: delegated,
       noDelegatesYet: delegated <= 0,
       existingStake: new mARIOToken(existingStake).toARIO().valueOf(),
+      similarCount: 1,
       version: SMART_DELEGATE_VERSION,
     });
   }
@@ -328,7 +356,47 @@ export const rankGateways = ({
       a.gateway.gatewayAddress.localeCompare(b.gateway.gatewayAddress),
   );
 
-  return results.slice(0, resultCount);
+  // Collapse rather than pad. Returning three rows where only one distinct
+  // option exists re-creates the problem this solves; returning one row that
+  // says it stands for three is both shorter and more informative.
+  const chosen: SmartDelegateResult[] = [];
+  for (const candidate of results) {
+    const duplicateOf = chosen.find((picked) =>
+      isSameOption(picked, candidate),
+    );
+    if (duplicateOf) {
+      duplicateOf.similarCount += 1;
+      continue;
+    }
+    if (chosen.length < resultCount) chosen.push(candidate);
+  }
+
+  return chosen;
+};
+
+/**
+ * Would a user see these two results as the same option?
+ *
+ * Same reward to the percent, same share of the rewards, and the same answer
+ * to "does anyone already delegate here". Two gateways matching on all three
+ * give a user nothing to choose between, whoever operates them — which is why
+ * this compares what is shown rather than the operator key. The sibling
+ * gateways that prompted it do have distinct operators.
+ */
+const isSameOption = (
+  a: SmartDelegateResult,
+  b: SmartDelegateResult,
+): boolean => {
+  if (a.rewardShareRatio !== b.rewardShareRatio) return false;
+  if (a.noDelegatesYet !== b.noDelegatesYet) return false;
+
+  const better = Math.max(a.expectedEpochReward, b.expectedEpochReward);
+  if (better <= 0) return true;
+
+  return (
+    Math.abs(a.expectedEpochReward - b.expectedEpochReward) / better <=
+    NEAR_DUPLICATE_TOLERANCE
+  );
 };
 
 /** Why a ranking came back empty, in the user's terms. */

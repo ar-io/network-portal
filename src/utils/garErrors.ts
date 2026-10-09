@@ -3,6 +3,15 @@ import { getErrorMessage } from './getErrorMessage';
 /**
  * Turn an `ario-gar` failure into something a user can act on.
  *
+ * Codes are written in **decimal**, as Anchor reports them in
+ * `Error Number: 6082`, and the hex form the runtime prints as
+ * `custom program error: 0x17c2` is derived below. They were hand-written in
+ * hex with the decimal in a comment, and `0x17d2` was committed for 6082 —
+ * which is 6098. A gateway operator hit `ProtectedVault` on a real vault and
+ * got the raw transaction dump, because neither the code nor the name matched:
+ * the name only appears inside the base64 blob of a `SolanaError`, never in
+ * its message.
+ *
  * The sibling of `vaultErrors`, for the gateway registry program rather than
  * core. Anchor surfaces these as `custom program error: 0x1784` or, when the
  * simulation logs come through, as `Error Code: WithdrawalNotReady`, so both
@@ -24,19 +33,20 @@ const GAR_ERRORS: ReadonlyArray<{
   message: string;
 }> = [
   {
-    code: 0x1784, // 6020
+    code: 6020,
     name: 'WithdrawalNotReady',
     message:
       'This withdrawal has not unlocked yet according to the network clock. It is only moments away — try again shortly.',
   },
   {
-    code: 0x17d2, // 6082
+    code: 6082,
     name: 'ProtectedVault',
     message:
       'This vault holds a gateway’s minimum operator stake, which cannot be released early. It unlocks at the end of the leave period.',
   },
   {
-    code: 0xbc4, // 3012 — Anchor, not arioGar
+    // 3012 — Anchor framework, not arioGar. See the note above.
+    code: 3012,
     name: 'AccountNotInitialized',
     /**
      * Says only what the code establishes: the delegation account is not
@@ -50,7 +60,7 @@ const GAR_ERRORS: ReadonlyArray<{
       'The network has no record of this delegation, so there is nothing here to withdraw. It may already have been withdrawn — check your stakes.',
   },
   {
-    code: 0x1786, // 6022
+    code: 6022,
     name: 'InvalidWithdrawalAmount',
     message:
       'This withdrawal is below the minimum an expedited withdrawal accepts. Wait for it to unlock and claim it in full instead.',

@@ -109,12 +109,19 @@ export const ResultRow = ({
   // delegated stake is the main negative in this model — it is the
   // denominator — but "above the network median" reads as a popularity badge,
   // so a reader could take the worst signal on the card for reassurance.
+  //
+  // "with delegates" is not padding. The median is taken over gateways that
+  // hold some delegated stake, because more than half the delegation-open
+  // roster holds none and including them would put it at zero. Against the
+  // whole roster the claim can inverse: a gateway with 500 ARIO delegated
+  // sits below the median of staked gateways, yet has more competition than
+  // the 138 holding nothing at all.
   const stakeNote = result.noDelegatesYet
     ? 'Nobody is sharing the rewards yet'
     : medianDelegatedStake !== undefined
       ? result.totalDelegatedStake >= medianDelegatedStake
-        ? 'More competition than most gateways'
-        : 'Less competition than most gateways'
+        ? 'More competition than most gateways with delegates'
+        : 'Less competition than most gateways with delegates'
       : undefined;
 
   return (
@@ -154,15 +161,19 @@ export const ResultRow = ({
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-y border-grey-800 py-2 text-xs">
         {realizedReturn !== undefined ? (
           <>
+            {/* A rate, applied to the amount being considered — not a
+                payment anyone received. No delegate here necessarily held
+                this amount, so "delegates earned X on 1,000" would assert a
+                transaction that never happened. */}
             <span className="text-low">
-              Delegates here have actually earned
+              At the rate delegates here have been paid,{' '}
+              {formatWithCommas(amount)} {ticker} would have returned about
             </span>
             <span className="text-high">
               +{formatARIO((realizedReturn * amount) / EPOCHS_PER_YEAR)}{' '}
               {ticker} a day
             </span>
             <span className="text-low">
-              on {formatWithCommas(amount)} {ticker}
               {realizedEpochs !== undefined
                 ? `, averaged over ${formatWithCommas(realizedEpochs)} epochs`
                 : ''}

@@ -59,9 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- The minimum a delegation must clear is now derived in one place for both the
-  staking form and Smart Delegate, so a gateway can no longer be recommended at
-  an amount the form would then refuse.
+- The staking form now applies the network's own minimum delegation as well as
+  the gateway's, instead of a figure written into the page. It shared neither
+  rule with the ranking beside it, so the two could disagree about what the
+  network would accept.
 
 - **A departing gateway's minimum stake offered an early withdrawal the
   network always refuses.** When a gateway leaves, its stake splits across two

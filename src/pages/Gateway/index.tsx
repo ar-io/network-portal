@@ -403,7 +403,7 @@ const Gateway = () => {
     return (
       <div className="px-4 lg:px-6 flex h-full flex-col gap-6">
         <div className="py-2 shrink-0">
-          <GatewayHeader gateway={gateway} />
+          <GatewayHeader gateway={gateway} absent />
         </div>
         <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 scrollbar scrollbar-thin">
           <DepartedGatewayNotice isOwnGateway={isOwnGateway} />

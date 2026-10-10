@@ -7,7 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Smart Delegate: enter an amount and see where it would earn most.** There
+  are 243 gateways accepting delegations and no way to tell which is a good
+  home for a given amount. What decides it — how much is already delegated
+  there, what share the operator passes on, how reliably the gateway gets paid
+  — is spread across four columns of a long table.
+
+  The mechanism is worth stating, because it is why this works at all. Each
+  epoch the network pays every eligible gateway the same reward. A gateway
+  passes a share of that to its delegates, and that share is split by stake.
+  So the less stake a gateway already carries, the more each of your tokens
+  earns there. That is not a theory: across the published payout history,
+  gateways in the lowest quarter by delegated stake have returned roughly
+  **twenty times** those in the highest.
+
+  A card above the delegate table takes an amount and names the three gateways
+  where it would earn most, each showing what you would actually receive over
+  the next epoch, what share of that gateway's delegate pool you would own,
+  what its delegates have really earned, and the four inputs behind the
+  ranking. Picking one opens the usual staking dialog with the amount already
+  filled in; nothing moves without your signature.
+
+  **The figure is per epoch, roughly a day, and that is deliberate.**
+  Annualising it compounds a year of assumptions onto a reward the protocol
+  resets daily: for a small delegation to an empty gateway it produces numbers
+  in the hundreds of percent, which are arithmetically correct and not a
+  promise anyone could keep. One epoch out, the inputs are known rather than
+  projected.
+
+  Alongside the estimate, where anyone has been paid at a gateway, the card
+  shows what its delegates have **actually** earned, annualised from the
+  published history. That figure is available for 105 of the eligible gateways
+  and is often well below the estimate, which is the honest thing for a
+  prospective delegator to see. Where nobody has been paid there yet it says
+  so, because that absence is itself information.
+
+  It also says plainly what dilutes the figure: the share of the pool you would
+  own, and that your share falls as others delegate. A gateway with no
+  delegates gives you the whole delegate share and is therefore the most
+  attractive and the least durable position on the list.
+
+  Two limits on what can be ranked. A gateway needs 30 epochs of history:
+  reward per token rises as delegated stake falls, so an empty gateway would
+  otherwise take the top slot for the price of one settings change, and a
+  history floor makes that position cost what an honest operator pays. And a
+  gateway on a current failure streak is discounted sharply rather than judged
+  on its lifetime average, because twelve consecutive failures still reads as
+  87% after a few hundred good epochs.
+
 ### Fixed
+
+- The minimum a delegation must clear is now derived in one place for both the
+  staking form and Smart Delegate, so a gateway can no longer be recommended at
+  an amount the form would then refuse.
 
 - **A departing gateway's minimum stake offered an early withdrawal the
   network always refuses.** When a gateway leaves, its stake splits across two
@@ -52,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reason, and the Balances page remains the full picture. Counting those too
   would mean every visitor fetching the whole network's vault list on every
   page to serve a rare case.
+
 
 ## [2.13.2] - 2026-10-08
 

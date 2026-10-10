@@ -73,6 +73,53 @@ export const networkAnnualisedReturn = (
   return (rewards / stake / epochs) * EPOCHS_PER_YEAR;
 };
 
+/**
+ * Realized annualised delegate return per gateway, keyed by gateway address.
+ *
+ * Pooled across that gateway's delegates — rewards over stake over epochs —
+ * rather than averaging per-delegate rates, so one tiny position cannot swing
+ * it.
+ *
+ * **This is a measurement, with a known bias, and not a forecast.** It divides
+ * what delegates have been paid by the stake they hold *now*, so a gateway
+ * whose delegated stake grew recently reads lower than it actually paid. It is
+ * also only available where someone has already delegated and been paid:
+ * roughly 105 of 243 delegation-open gateways on mainnet. Absence is
+ * information — nobody has been paid there yet — and must not be rendered as
+ * zero.
+ *
+ * Deliberately not `networkAnnualisedReturn`, which pools every delegate
+ * position on the network into one figure. That number is the right answer to
+ * "what has delegated capital returned" and the wrong one to put beside a
+ * single gateway.
+ */
+export const gatewayDelegateReturns = (
+  doc: AnalyzerRewardsDocument | undefined,
+): Map<string, number> => {
+  const byGateway = new Map<string, number>();
+  const epochs = doc?.totalEpochsRecorded;
+  if (!doc?.positions?.length || !epochs) return byGateway;
+
+  const pooled = new Map<string, { rewards: number; stake: number }>();
+  for (const position of doc.positions) {
+    if (position.kind !== 'delegate') continue;
+    const gateway = position.gatewayAddress;
+    if (gateway === undefined) continue;
+
+    const entry = pooled.get(gateway) ?? { rewards: 0, stake: 0 };
+    entry.rewards += position.lifetimeRewards ?? 0;
+    entry.stake += position.currentStake ?? 0;
+    pooled.set(gateway, entry);
+  }
+
+  for (const [gateway, { rewards, stake }] of pooled) {
+    if (stake <= 0) continue;
+    byGateway.set(gateway, (rewards / stake / epochs) * EPOCHS_PER_YEAR);
+  }
+
+  return byGateway;
+};
+
 const summarise = (
   position: AnalyzerRewardPosition,
   epochsRecorded: number,

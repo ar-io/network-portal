@@ -42,7 +42,7 @@ describe('getGarErrorMessage', () => {
     expect(getGarErrorMessage('Error Code: WithdrawalNotReady')).toMatch(
       /has not unlocked yet/i,
     );
-    expect(getGarErrorMessage('custom program error: 0x17d2')).toMatch(
+    expect(getGarErrorMessage('custom program error: 0x17c2')).toMatch(
       /minimum operator stake/i,
     );
   });
@@ -61,5 +61,35 @@ describe('describeGarError', () => {
   it('never returns the raw SolanaError dump for a known case', () => {
     const shown = describeGarError(PRODUCTION_FAILURE);
     expect(shown).not.toMatch(/SolanaError|0xbc4|AnchorError/);
+  });
+});
+
+describe('codes match what the chain actually reports', () => {
+  /**
+   * The exact message a gateway operator saw expediting a protected
+   * min-stake exit vault. `ProtectedVault` is 6082, which the runtime prints
+   * as 0x17c2 — it had been written 0x17d2 (6098), so nothing matched and the
+   * operator got the raw transaction dump.
+   *
+   * The old test asserted against 0x17d2 as well, so it mirrored the mistake
+   * and passed. These cases are taken from real failures rather than from the
+   * table they are meant to check.
+   */
+  const REAL_FAILURES: Array<[string, RegExp]> = [
+    ['custom program error: 0x17c2', /minimum operator stake/i],
+    ['custom program error: 0x1784', /has not unlocked yet/i],
+    ['custom program error: 0x1786', /below the minimum/i],
+    ['custom program error: 0xbc4', /no record of this delegation/i],
+  ];
+
+  for (const [raw, expected] of REAL_FAILURES) {
+    it(`maps ${raw}`, () => {
+      expect(getGarErrorMessage(raw)).toMatch(expected);
+    });
+  }
+
+  it('does not match a code one digit off, which is how this broke', () => {
+    // 0x17d2 is 6098 and belongs to nothing.
+    expect(getGarErrorMessage('custom program error: 0x17d2')).toBeUndefined();
   });
 });

@@ -1,6 +1,7 @@
 import { VaultData } from '@ar.io/sdk/web';
 import {
   calculateInstantWithdrawalPenaltyRate,
+  canStillExpedite,
   isWithdrawalUnlocked,
 } from '@src/utils/stake';
 
@@ -82,5 +83,46 @@ describe('isWithdrawalUnlocked', () => {
 
   it('is unlocked after the end timestamp', () => {
     expect(isWithdrawalUnlocked(START, START + DAY)).toBe(true);
+  });
+});
+
+describe('canStillExpedite and protected vaults', () => {
+  const now = Date.UTC(2026, 9, 9);
+
+  it('refuses a protected vault however far it is from unlocking', () => {
+    // The live case: a departing operator's 20,000 ARIO minimum stake. The
+    // program rejects `instant_withdrawal` with ProtectedVault for the whole
+    // leave period, so offering it offers a guaranteed failure.
+    expect(
+      canStillExpedite(
+        { endTimestamp: now + 60 * DAY, isProtected: true },
+        now,
+      ),
+    ).toBe(false);
+  });
+
+  it('still offers it on the unprotected vault from the same exit', () => {
+    // A leave produces two vaults and only the minimum-stake one is
+    // protected; the excess above it can still be expedited.
+    expect(
+      canStillExpedite(
+        { endTimestamp: now + 10 * DAY, isProtected: false },
+        now,
+      ),
+    ).toBe(true);
+  });
+
+  it('refuses a protected vault that has already matured', () => {
+    expect(
+      canStillExpedite({ endTimestamp: now - DAY, isProtected: true }, now),
+    ).toBe(false);
+  });
+
+  it('still refuses an unprotected vault past its unlock', () => {
+    // Claiming returns it in full, so expediting only pays a penalty for
+    // nothing — the rule that was already here.
+    expect(
+      canStillExpedite({ endTimestamp: now - DAY, isProtected: false }, now),
+    ).toBe(false);
   });
 });

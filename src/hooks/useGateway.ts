@@ -3,6 +3,13 @@ import { useGlobalState } from '@src/store';
 import { isValidSolanaAddress } from '@src/utils';
 import { useQuery } from '@tanstack/react-query';
 
+/**
+ * Whether a failed `getGateway` means the gateway does not exist, as opposed
+ * to the read having failed.
+ */
+const isGatewayNotFound = (error: unknown): boolean =>
+  error instanceof Error && /gateway not found/i.test(error.message);
+
 const useGateway = ({
   ownerWalletAddress,
 }: {
@@ -38,6 +45,23 @@ const useGateway = ({
                   gatewayAddress: ownerWalletAddress,
                 } as GatewayWithAddress)
               : null;
+          })
+          .catch((error: unknown) => {
+            // `null` means the registry has no such gateway; a rejection means
+            // the read failed. The SDK does not make that distinction for us —
+            // `getGateway` throws for a missing account rather than returning
+            // nothing (io-readable.ts: `if (!account.exists) throw`), so the
+            // `: null` branch above is unreachable and every departed gateway
+            // looked like a failed read.
+            //
+            // Callers need the difference: one is "this gateway has left", the
+            // other is "we could not find out". Matched on the SDK's own
+            // message, deliberately narrowly — anything else still propagates
+            // and surfaces as an error.
+            if (isGatewayNotFound(error)) {
+              return null;
+            }
+            throw error;
           });
       }
     },

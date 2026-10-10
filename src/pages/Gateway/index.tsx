@@ -394,6 +394,24 @@ const Gateway = () => {
     }
   };
 
+  // Rendered instead of the detail panels, not above them. Every panel on
+  // this page waits on `gateway`, so with none they shimmer forever — and an
+  // explanation sitting on top of an endlessly loading page reads as broken
+  // rather than as answered. 2.12.0 made the same call for values that fail
+  // to load: say so, do not shimmer.
+  if (gatewayAbsent) {
+    return (
+      <div className="px-4 lg:px-6 flex h-full flex-col gap-6">
+        <div className="py-2 shrink-0">
+          <GatewayHeader gateway={gateway} absent />
+        </div>
+        <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 scrollbar scrollbar-thin">
+          <DepartedGatewayNotice isOwnGateway={isOwnGateway} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 lg:px-6 flex h-full flex-col gap-6">
       <div className="py-2 shrink-0">
@@ -401,7 +419,6 @@ const Gateway = () => {
       </div>
 
       <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-6 scrollbar scrollbar-thin">
-        {gatewayAbsent && <DepartedGatewayNotice isOwnGateway={isOwnGateway} />}
         {/* Low Balance Warning Banner */}
         {isOwnGateway && hasLowBalance && (
           <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-warning">

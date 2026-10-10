@@ -181,10 +181,19 @@ export const ResultRow = ({
               a stretch when both were different.
             </span>
           </>
-        ) : (
+        ) : realizedEpochs !== undefined ? (
           <span className="text-low">
             No delegate has been paid at this gateway yet, so there is no
             measured return to compare against.
+          </span>
+        ) : (
+          // The document is absent, not empty: still loading, the fetch
+          // failed, or this is devnet where the analyzer publishes nothing.
+          // "Nobody has been paid here" would be a claim about the gateway
+          // drawn from our own missing data — `realizedEpochs` is undefined
+          // in exactly those cases, so it is the guard.
+          <span className="text-low">
+            Measured returns are not available right now.
           </span>
         )}
       </div>

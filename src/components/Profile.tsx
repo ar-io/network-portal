@@ -2,6 +2,7 @@
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import useBalances from '@src/hooks/useBalances';
+import useClaimableWithdrawals from '@src/hooks/useClaimableWithdrawals';
 import useLogo from '@src/hooks/useLogo';
 import usePrimaryName from '@src/hooks/usePrimaryName';
 import { useGlobalState } from '@src/store';
@@ -13,6 +14,7 @@ import {
 } from '@src/utils';
 import { SendHorizonal, WalletMinimal } from 'lucide-react';
 import { ReactElement, forwardRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Button, { ButtonType } from './Button';
 import CopyButton from './CopyButton';
 import Placeholder from './Placeholder';
@@ -27,27 +29,67 @@ import ConnectModal from './modals/ConnectModal';
 import TransferArioModal from './modals/TransferArioModal';
 
 // eslint-disable-next-line react/display-name
+/**
+ * The pulse runs three times and stops.
+ *
+ * A claimable balance is a standing fact, not an event: it persists until the
+ * wallet signs a claim, which in the case that prompted this was a month. An
+ * indefinite animation on a month-long state stops being a signal and becomes
+ * wallpaper — and a dot nobody can dismiss had better earn its motion. Three
+ * pulses catch the eye once per mount, then it settles to a static dot that
+ * still says "there is something here" without nagging.
+ *
+ * `motion-reduce` drops the ring entirely; the dot alone carries the meaning.
+ */
+const CLAIMABLE_PULSE_COUNT = 3;
+
+const ClaimableDot = () => (
+  <span
+    aria-hidden
+    className="pointer-events-none absolute -right-0.5 -top-0.5 flex size-2.5"
+  >
+    <span
+      className="absolute inline-flex size-full rounded-full bg-gradient-primary-start opacity-75 motion-reduce:hidden"
+      style={{
+        animation: `ping 1s cubic-bezier(0, 0, 0.2, 1) ${CLAIMABLE_PULSE_COUNT}`,
+      }}
+    />
+    <span className="relative inline-flex size-2.5 rounded-full bg-gradient-primary-start ring-2 ring-grey-1000" />
+  </span>
+);
+
 const CustomPopoverButton = forwardRef<
   HTMLButtonElement,
-  { children?: ReactElement; logo?: HTMLImageElement }
->((props, ref) => {
+  {
+    children?: ReactElement;
+    logo?: HTMLImageElement;
+    hasClaimable?: boolean;
+  }
+>(({ hasClaimable, ...props }, ref) => {
   return (
-    <Button
-      forwardRef={ref}
-      buttonType={ButtonType.PRIMARY}
-      icon={
-        props.logo ? (
-          <div className="size-4 overflow-hidden">
-            <img src={props.logo.src} alt="Profile" className="size-4" />
-          </div>
-        ) : (
-          <ConnectIcon className="size-4" />
-        )
-      }
-      title="Profile"
-      text={props.children}
-      {...props}
-    />
+    <div className="relative">
+      {hasClaimable && <ClaimableDot />}
+      <Button
+        forwardRef={ref}
+        buttonType={ButtonType.PRIMARY}
+        icon={
+          props.logo ? (
+            <div className="size-4 overflow-hidden">
+              <img src={props.logo.src} alt="Profile" className="size-4" />
+            </div>
+          ) : (
+            <ConnectIcon className="size-4" />
+          )
+        }
+        title={
+          hasClaimable
+            ? 'Profile — you have a withdrawal ready to claim'
+            : 'Profile'
+        }
+        text={props.children}
+        {...props}
+      />
+    </div>
   );
 });
 
@@ -59,6 +101,7 @@ const Profile = () => {
   const updateWallet = useGlobalState((state) => state.updateWallet);
   const walletAddress = useGlobalState((state) => state.walletAddress);
   const { data: balances } = useBalances(walletAddress);
+  const claimable = useClaimableWithdrawals();
   const ticker = useGlobalState((state) => state.ticker);
 
   const [showConnectModal, setShowConnectModal] = useState<boolean>(false);
@@ -70,7 +113,11 @@ const Profile = () => {
     <Popover className="relative">
       {({ close }) => (
         <>
-          <PopoverButton as={CustomPopoverButton} logo={logo}>
+          <PopoverButton
+            as={CustomPopoverButton}
+            logo={logo}
+            hasClaimable={claimable.total > 0}
+          >
             {primaryName
               ? formatPrimaryName(primaryName.name)
               : formatWalletAddress(walletAddress.toString())}
@@ -126,6 +173,26 @@ const Profile = () => {
               <div className="px-4 pt-1 text-high">
                 {balances ? formatBalance(balances.sol) : <Placeholder />}
               </div>
+              {/* Deliberately "at least": this counts matured withdrawals
+                  only, not unlocked locked-transfer vaults, which would cost
+                  every visitor the vaults snapshot on every route. The
+                  Balances card is the complete figure, so this points there
+                  rather than presenting itself as the total. */}
+              {claimable.total > 0 && (
+                <div className="mt-3 border-t border-grey-800 px-4 pt-3">
+                  <div className="text-xs text-low">Ready to claim</div>
+                  <div className="pt-1 text-high">
+                    at least {formatBalance(claimable.total)}
+                  </div>
+                  <Link
+                    to="/balances"
+                    onClick={() => close()}
+                    className="mt-1 inline-flex items-center text-xs text-link"
+                  >
+                    Claim on Balances
+                  </Link>
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-3 text-nowrap px-6 pt-3 text-mid">
               <button

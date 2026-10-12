@@ -8,7 +8,21 @@ import { ChevronRightIcon, NotebookText } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-const GatewayHeader = ({ gateway }: { gateway?: Gateway | null }) => {
+const GatewayHeader = ({
+  gateway,
+  /**
+   * The registry has no such gateway, and the read has settled.
+   *
+   * A placeholder promises arrival. Once the answer is "there is no gateway
+   * here" it will never arrive, and a crumb shimmering above a notice that
+   * explains the absence reads as the page still working rather than as the
+   * page having answered.
+   */
+  absent = false,
+}: {
+  gateway?: Gateway | null;
+  absent?: boolean;
+}) => {
   const params = useParams();
 
   const ownerId = params?.ownerId;
@@ -46,6 +60,8 @@ const GatewayHeader = ({ gateway }: { gateway?: Gateway | null }) => {
           <div className="hidden truncate text-low lg:block">
             {gateway.settings.label}
           </div>
+        ) : absent ? (
+          <div className="hidden truncate text-low lg:block">Not found</div>
         ) : (
           <Placeholder className="hidden lg:block" />
         )}
@@ -87,7 +103,7 @@ const GatewayHeader = ({ gateway }: { gateway?: Gateway | null }) => {
               </div>
             </div>
           </>
-        ) : (
+        ) : absent ? null : (
           <Placeholder />
         )}
       </div>

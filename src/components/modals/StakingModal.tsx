@@ -3,9 +3,11 @@ import { EAY_TOOLTIP_FORMULA, EAY_TOOLTIP_TEXT } from '@src/constants';
 import useBalances from '@src/hooks/useBalances';
 import useDelegateStakes from '@src/hooks/useDelegateStakes';
 import useGateway from '@src/hooks/useGateway';
+import useGatewayRegistrySettings from '@src/hooks/useGatewayRegistrySettings';
 import useRewardsInfo from '@src/hooks/useRewardsInfo';
 import { useGlobalState } from '@src/store';
 import { formatAddress, formatWithCommas } from '@src/utils';
+import { minimumDelegationFor } from '@src/utils/delegationMinimum';
 import { MathJax } from 'better-react-mathjax';
 import { useEffect, useState } from 'react';
 import Button, { ButtonType } from '../Button';
@@ -55,6 +57,7 @@ const StakingModal = ({
   });
 
   const { data: delegateStakes } = useDelegateStakes(walletAddress?.toString());
+  const { data: registrySettings } = useGatewayRegistrySettings();
 
   useEffect(() => {
     if (!gateway || !delegateStakes) {
@@ -79,9 +82,6 @@ const StakingModal = ({
         }) + '%'
       : '-';
 
-  const minDelegatedStake = gateway
-    ? new mARIOToken(gateway?.settings.minDelegatedStake).toARIO().valueOf()
-    : 10;
   // The gateway's minimum applies only to a FIRST delegation. `delegate_stake`
   // guards the check with `delegation.amount == 0`, read before the handler
   // mutates it, so a wallet already holding stake here may add any amount above
@@ -98,9 +98,18 @@ const StakingModal = ({
   //
   // 1 ARIO rather than the protocol's 1 mARIO floor, matching every other stake
   // form in the app.
+  // Through the shared helper, which is the point of its existing. It was
+  // extracted so this form and Smart Delegate could not drift, documented as
+  // having both callers, and then only Smart Delegate called it — so the
+  // guarantee was written down and not implemented. This form also ignored
+  // the protocol floor (`delegates.minStake`) and fell back to a hard-coded
+  // 10 ARIO with no gateway loaded; the helper covers both.
   const stakeLoaded = currentStake !== undefined;
-  const minRequiredStakeToAdd =
-    currentStake !== undefined && currentStake > 0 ? 1 : minDelegatedStake;
+  const minRequiredStakeToAdd = minimumDelegationFor({
+    gatewayMinDelegatedStake: gateway?.settings.minDelegatedStake,
+    protocolMinStake: registrySettings?.delegates?.minStake,
+    hasExistingStake: currentStake !== undefined && currentStake > 0,
+  });
 
   const validators = {
     address: validateWalletAddress('Gateway Owner'),

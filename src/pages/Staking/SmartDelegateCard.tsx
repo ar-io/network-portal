@@ -1,5 +1,5 @@
 import Placeholder from '@src/components/Placeholder';
-import { PinkArrowIcon } from '@src/components/icons';
+import { CloseIcon, PinkArrowIcon } from '@src/components/icons';
 import StakingModal from '@src/components/modals/StakingModal';
 import useSmartDelegate from '@src/hooks/useSmartDelegate';
 import { useGlobalState } from '@src/store';
@@ -108,11 +108,16 @@ const SmartDelegateCard = () => {
             </div>
             <PinkArrowIcon className="size-3 shrink-0" />
           </div>
-          <div className="max-w-2xl text-xs text-mid">
-            Rewards are split by stake, so the same delegation earns more where
-            less is already delegated. Enter an amount to rank every gateway for
-            it.
-          </div>
+          {/* The pitch retires once it has been taken up. The footnote under
+              the results restates the same rule, so leaving both on screen
+              spends about 40px saying it twice. */}
+          {!entered && (
+            <div className="max-w-2xl text-xs text-mid">
+              Rewards are split by stake, so the same delegation earns more
+              where less is already delegated. Enter an amount to rank every
+              gateway for it.
+            </div>
+          )}
         </div>
 
         <div className="flex h-[3.25rem] w-full items-center overflow-hidden rounded-md border border-grey-700 bg-grey-1000 sm:w-64">
@@ -130,8 +135,31 @@ const SmartDelegateCard = () => {
               }
               setAmountText(next);
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setAmountText('');
+              }
+            }}
           />
-          <div className="shrink-0 pr-5 text-sm text-low">{ticker}</div>
+          <div
+            className={`shrink-0 text-sm text-low ${entered ? 'pr-4' : 'pr-5'}`}
+          >
+            {ticker}
+          </div>
+          {/* The only way out used to be emptying the field by hand, and
+              typing 0 does not do it — that is an amount, and it renders the
+              "no gateway accepts a delegation that small" state instead. */}
+          {entered && (
+            <button
+              type="button"
+              onClick={() => setAmountText('')}
+              aria-label="Clear amount and close results"
+              title="Clear"
+              className="mr-3 shrink-0 rounded p-1 hover:bg-grey-800"
+            >
+              <CloseIcon className="size-4" />
+            </button>
+          )}
         </div>
       </div>
 

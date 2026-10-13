@@ -1,10 +1,11 @@
 import Tooltip from '@src/components/Tooltip';
-import { InfoIcon } from '@src/components/icons';
+import { CaretRightIcon, InfoIcon } from '@src/components/icons';
 import { formatAddress, formatWithCommas } from '@src/utils';
 import {
   EPOCHS_PER_YEAR,
   type SmartDelegateResult,
 } from '@src/utils/smartDelegate';
+import { useState } from 'react';
 
 /** Within this many of the prune threshold, SD-1.4 says so explicitly. */
 const PRUNE_WARNING_WINDOW = 5;
@@ -72,6 +73,14 @@ const Figure = ({
  * that wanted to render a row, so the layout could not be exercised against
  * real data outside a running app. Mainnet labels run long and carry emoji,
  * which is exactly what needs looking at.
+ *
+ * Collapsed by default. Fully expanded the row ran about 300px, so three
+ * results pushed the gateway table a screen and a half down the page the
+ * moment anyone typed an amount. What survives the collapse is identity, the
+ * headline, the three inputs that explain the headline, and every warning;
+ * what folds away is the supporting detail, one click from the row it
+ * belongs to. All three rows start the same way on purpose — expanding the
+ * top one by default reads as promoting it.
  */
 export const ResultRow = ({
   result,
@@ -96,6 +105,7 @@ export const ResultRow = ({
   onDelegate: () => void;
 }) => {
   const { gateway } = result;
+  const [expanded, setExpanded] = useState(false);
 
   // SD-1.4. Omitted entirely when the threshold is unknown rather than
   // compared against a guess.
@@ -124,6 +134,28 @@ export const ResultRow = ({
         : 'Less competition than most gateways with delegates'
       : undefined;
 
+  // The three inputs behind the headline, on one line, so a collapsed row
+  // still says why its number is what it is. The failing streak joins them
+  // rather than hiding: a reader scanning collapsed rows must not have to
+  // open one to find out the gateway is missing epochs right now.
+  const summary = [
+    `${result.rewardShareRatio}% to delegates`,
+    result.passRate !== undefined
+      ? `${pct(result.passRate)} pass rate`
+      : 'pass rate unknown',
+    result.noDelegatesYet
+      ? 'no delegates yet'
+      : `${formatWithCommas(Math.round(result.totalDelegatedStake))} ${ticker} delegated`,
+    ...(result.failedConsecutiveEpochs > 0
+      ? [`${result.failedConsecutiveEpochs} failed epochs in a row`]
+      : []),
+    ...(result.existingStake > 0
+      ? [`you already delegate ${formatWithCommas(result.existingStake)} here`]
+      : []),
+  ].join(' · ');
+
+  const detailsId = `smart-delegate-details-${gateway.gatewayAddress}`;
+
   return (
     // `containerL0` with a lighter edge, because the row now nests inside a
     // `bg-grey-800` card: a `border-grey-800` row against a `grey-800` card has
@@ -148,90 +180,9 @@ export const ResultRow = ({
         </div>
       </div>
 
-      {result.similarCount > 1 && (
-        <div className="-mt-1 text-xs text-low">
-          Shown once for {result.similarCount} gateways with the same figures,
-          because there is nothing here to choose between them.
-        </div>
-      )}
-
-      {/* The measured figure, where one exists. Deliberately second: it is a
-          fact rather than an estimate, but it describes other people's
-          positions rather than the one being considered. */}
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-y border-grey-800 py-2 text-xs">
-        {realizedReturn !== undefined ? (
-          <>
-            {/* A rate, applied to the amount being considered — not a
-                payment anyone received. No delegate here necessarily held
-                this amount, so "delegates earned X on 1,000" would assert a
-                transaction that never happened. */}
-            <span className="text-low">
-              At the rate delegates here have been paid,{' '}
-              {formatWithCommas(amount)} {ticker} would have returned about
-            </span>
-            <span className="text-high">
-              +{formatARIO((realizedReturn * amount) / EPOCHS_PER_YEAR)}{' '}
-              {ticker} a day
-            </span>
-            <span className="text-low">
-              {realizedEpochs !== undefined
-                ? `, averaged over ${formatWithCommas(realizedEpochs)} epochs`
-                : ''}
-              . The estimate above assumes today's pool and reward; this covers
-              a stretch when both were different.
-            </span>
-          </>
-        ) : realizedEpochs !== undefined ? (
-          <span className="text-low">
-            No delegate has been paid at this gateway yet, so there is no
-            measured return to compare against.
-          </span>
-        ) : (
-          // The document is absent, not empty: still loading, the fetch
-          // failed, or this is devnet where the analyzer publishes nothing.
-          // "Nobody has been paid here" would be a claim about the gateway
-          // drawn from our own missing data — `realizedEpochs` is undefined
-          // in exactly those cases, so it is the guard.
-          <span className="text-low">
-            Measured returns are not available right now.
-          </span>
-        )}
-      </div>
-
-      {/* The four inputs behind the headline, so it can be recomputed. */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Figure
-          label="Reward share"
-          value={`${result.rewardShareRatio}%`}
-          note="To delegates"
-        />
-        <Figure
-          label="Pass rate"
-          value={
-            result.passRate !== undefined ? pct(result.passRate) : 'Unknown'
-          }
-          note={`${formatWithCommas(result.passedEpochCount)} of ${formatWithCommas(result.totalEpochCount)} epochs`}
-        />
-        <Figure
-          label="Current streak"
-          value={
-            result.failedConsecutiveEpochs > 0
-              ? `${result.failedConsecutiveEpochs} failed`
-              : 'Passing'
-          }
-          note={
-            result.failedConsecutiveEpochs > 0
-              ? 'Consecutive, right now'
-              : undefined
-          }
-        />
-        <Figure
-          label="Delegated stake"
-          value={`${formatWithCommas(Math.round(result.totalDelegatedStake))} ${ticker}`}
-          note={stakeNote}
-        />
-      </div>
-
+      {/* Warnings stay out of the collapse, and sit directly under the
+          headline. Hiding a slash risk behind a disclosure the reader has no
+          reason to open is how a caveat becomes decorative. */}
       {nearPrune && (
         <div className="rounded-md border border-red-400/40 bg-red-400/5 px-3 py-2 text-xs text-mid">
           On {result.failedConsecutiveEpochs} consecutive failed epochs, against
@@ -241,26 +192,127 @@ export const ResultRow = ({
         </div>
       )}
 
-      <div className="text-xs text-low">
-        {result.poolShare >= 0.999
-          ? 'You would be the only delegate here, so the whole delegate share would be yours — and every later delegate takes directly from it.'
-          : `You would own ${pct(result.poolShare)} of this gateway's delegate pool. Rewards are split by stake, so your share falls as others delegate.`}
-      </div>
-
-      {result.existingStake > 0 && (
+      {result.similarCount > 1 && (
         <div className="text-xs text-low">
-          You already delegate {formatWithCommas(result.existingStake)} {ticker}{' '}
-          here.
+          Shown once for {result.similarCount} gateways with the same figures,
+          because there is nothing here to choose between them.
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={onDelegate}
-        className="self-start rounded-md border border-grey-700 px-4 py-2 text-sm text-high hover:bg-grey-800"
-      >
-        Delegate to this gateway
-      </button>
+      {/* The summary and the actions share a line: on their own rows they cost
+          a further ~45px each, three times over, which is most of what the
+          collapse was for. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="text-xs text-low">{summary}</div>
+        <div className="flex shrink-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setExpanded((open) => !open)}
+            aria-expanded={expanded}
+            aria-controls={expanded ? detailsId : undefined}
+            className="flex items-center gap-1 px-1 py-2 text-xs text-low hover:text-mid"
+          >
+            {expanded ? 'Hide detail' : 'Why this number'}
+            <CaretRightIcon
+              className={`size-3 transition-transform ${expanded ? '-rotate-90' : 'rotate-90'}`}
+            />
+          </button>
+          <button
+            type="button"
+            onClick={onDelegate}
+            className="rounded-md border border-grey-700 px-4 py-2 text-sm text-high hover:bg-grey-800"
+          >
+            Delegate to this gateway
+          </button>
+        </div>
+      </div>
+
+      {expanded && (
+        <div id={detailsId} className="flex flex-col gap-3">
+          {/* The measured figure, where one exists. Deliberately first in the
+              detail: it is a fact rather than an estimate, but it describes
+              other people's positions rather than the one being considered. */}
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-y border-grey-800 py-2 text-xs">
+            {realizedReturn !== undefined ? (
+              <>
+                {/* A rate, applied to the amount being considered — not a
+                    payment anyone received. No delegate here necessarily held
+                    this amount, so "delegates earned X on 1,000" would assert a
+                    transaction that never happened. */}
+                <span className="text-low">
+                  At the rate delegates here have been paid,{' '}
+                  {formatWithCommas(amount)} {ticker} would have returned about
+                </span>
+                <span className="text-high">
+                  +{formatARIO((realizedReturn * amount) / EPOCHS_PER_YEAR)}{' '}
+                  {ticker} a day
+                </span>
+                <span className="text-low">
+                  {realizedEpochs !== undefined
+                    ? `, averaged over ${formatWithCommas(realizedEpochs)} epochs`
+                    : ''}
+                  . The estimate above assumes today&apos;s pool and reward;
+                  this covers a stretch when both were different.
+                </span>
+              </>
+            ) : realizedEpochs !== undefined ? (
+              <span className="text-low">
+                No delegate has been paid at this gateway yet, so there is no
+                measured return to compare against.
+              </span>
+            ) : (
+              // The document is absent, not empty: still loading, the fetch
+              // failed, or this is devnet where the analyzer publishes nothing.
+              // "Nobody has been paid here" would be a claim about the gateway
+              // drawn from our own missing data — `realizedEpochs` is undefined
+              // in exactly those cases, so it is the guard.
+              <span className="text-low">
+                Measured returns are not available right now.
+              </span>
+            )}
+          </div>
+
+          {/* The four inputs behind the headline, so it can be recomputed. */}
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Figure
+              label="Reward share"
+              value={`${result.rewardShareRatio}%`}
+              note="To delegates"
+            />
+            <Figure
+              label="Pass rate"
+              value={
+                result.passRate !== undefined ? pct(result.passRate) : 'Unknown'
+              }
+              note={`${formatWithCommas(result.passedEpochCount)} of ${formatWithCommas(result.totalEpochCount)} epochs`}
+            />
+            <Figure
+              label="Current streak"
+              value={
+                result.failedConsecutiveEpochs > 0
+                  ? `${result.failedConsecutiveEpochs} failed`
+                  : 'Passing'
+              }
+              note={
+                result.failedConsecutiveEpochs > 0
+                  ? 'Consecutive, right now'
+                  : undefined
+              }
+            />
+            <Figure
+              label="Delegated stake"
+              value={`${formatWithCommas(Math.round(result.totalDelegatedStake))} ${ticker}`}
+              note={stakeNote}
+            />
+          </div>
+
+          <div className="text-xs text-low">
+            {result.poolShare >= 0.999
+              ? 'You would be the only delegate here, so the whole delegate share would be yours — and every later delegate takes directly from it.'
+              : `You would own ${pct(result.poolShare)} of this gateway's delegate pool. Rewards are split by stake, so your share falls as others delegate.`}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

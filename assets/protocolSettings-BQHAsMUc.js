@@ -1,0 +1,1 @@
+const s=7776e6;const P=o=>{const t=o/864e5;if(t>=1){const r=Number(t.toFixed(t%1===0?0:1));return`${r} ${r===1?"day":"days"}`}const _=Number((o/36e5).toFixed(1));return`${_} ${_===1?"hour":"hours"}`},e=o=>`${Number((o/1e4).toFixed(2))}%`;export{s as G,e as a,P as f};
